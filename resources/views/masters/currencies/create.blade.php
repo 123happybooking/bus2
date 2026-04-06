@@ -135,23 +135,40 @@
                         <!-- 第四行：有效期 -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="rate_valid_from" class="form-label required">適用開始日</label><span class="text-danger">*</span>
-                                <input type="date" class="form-control @error('rate_valid_from') is-invalid @enderror" 
-                                       id="rate_valid_from" name="rate_valid_from" 
-                                       value="{{ old('rate_valid_from', date('Y-m-d')) }}" 
-                                       required>
+                                <!-- 1. 修改 Label 样式，去掉原来的 * 号（样式由 JS 插件控制） -->
+                                <label for="rate_valid_from" class="form-label mb-1 text-muted" style="font-size: 0.75rem;">
+                                    適用開始日 <span class="text-danger">*</span>
+                                </label>
+                                
+                                <!-- 2. 修改 Input：改为 text 类型，添加 datepicker-3months 类，移除 id (可选)，增加 autocomplete -->
+                                <input type="text" 
+                                    class="form-control @error('rate_valid_from') is-invalid @enderror datepicker-3months" 
+                                    name="rate_valid_from" 
+                                    value="{{ old('rate_valid_from', date('Y-m-d')) }}" 
+                                    placeholder=""
+                                    autocomplete="off"
+                                    style="border-color: #E5E7EB;">
+                                
                                 @error('rate_valid_from')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
+
                             <div class="col-md-6 mb-3">
-                                <label for="rate_valid_to" class="form-label">適用終了日</label><span class="text-danger">*</span>
-                                <input type="date" class="form-control @error('rate_valid_to') is-invalid @enderror" 
-                                       id="rate_valid_to" name="rate_valid_to" 
-                                       value="{{ old('rate_valid_to') }}" 
-                                       placeholder="未設定の場合は無期限">
-                                <div class="form-text">空白または未設定の場合、このレートは無期限に有効となります。</div>
+                                <!-- 3. 修改 Label 样式 -->
+                                <label for="rate_valid_to" class="form-label mb-1 text-muted" style="font-size: 0.75rem;">
+                                    適用終了日 <span class="text-danger">*</span>
+                                </label>
+                                
+                                <!-- 4. 修改 Input：改为 text 类型，添加 datepicker-3months 类，移除 id (可选)，增加 autocomplete -->
+                                <input type="text" 
+                                    class="form-control @error('rate_valid_to') is-invalid @enderror datepicker-3months" 
+                                    name="rate_valid_to" 
+                                    value="{{ old('rate_valid_to') }}" 
+                                    placeholder=""
+                                    autocomplete="off"
+                                    style="border-color: #E5E7EB;">
+                                
                                 @error('rate_valid_to')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -183,6 +200,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    initDateRangePicker('input[name="rate_valid_from"]', 'input[name="rate_valid_to"]');
     // 简单的验证：如果结束日期早于开始日期，前端提示（后端也会验证）
     const fromDate = document.getElementById('rate_valid_from');
     const toDate = document.getElementById('rate_valid_to');
@@ -197,5 +215,6 @@ document.addEventListener('DOMContentLoaded', function() {
         toDate.min = this.value;
     });
 });
+
 </script>
 @endpush

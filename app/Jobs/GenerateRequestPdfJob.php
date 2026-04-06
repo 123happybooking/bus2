@@ -92,9 +92,9 @@ class GenerateRequestPdfJob implements ShouldQueue
             $linuxPaths = [
                 '/usr/bin/google-chrome-stable',
                 '/usr/bin/google-chrome',
-                '/usr/bin/chromium-browser',
-                '/usr/bin/chromium',
-                '/snap/bin/chromium',
+                '/usr/local/nodejs/bin/node',
+                '/usr/local/nodejs/bin/npm',
+                '/usr/local/chrome/chrome',
                 '/snap/google-chrome/current/usr/lib/chromium-browser/chrome',
             ];
 
@@ -104,7 +104,7 @@ class GenerateRequestPdfJob implements ShouldQueue
                     break;
                 }
             }
-            
+        
             // 如果特定路径都没找到，尝试依赖系统 PATH (which google-chrome)
             if (!$foundChromePath) {
                 $output = shell_exec('which google-chrome-stable 2>/dev/null || which google-chrome 2>/dev/null || which chromium-browser 2>/dev/null');

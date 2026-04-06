@@ -60,12 +60,20 @@
             </nav>
 
             <!-- Flash Messages: 减小内边距 py-2，字体变小 -->
-            @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show py-2 mb-2" role="alert" style="font-size: 0.875rem;">
-                <i class="bi bi-check-circle"></i> {{ session('success') }}
-                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
-            </div>
-            @endif
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show py-2 mb-2 d-flex align-items-center" role="alert" style="font-size: 0.875rem;">
+    <!-- 1. 图标：添加 align-middle -->
+    <i class="bi bi-check-circle align-middle"></i>
+    
+    <!-- 2. 文字：添加 align-middle 并微调间距 -->
+    <span class="align-middle ms-1">
+        {{ session('success') }}
+    </span>
+    
+    <!-- 3. 按钮：添加 align-middle 并靠右 -->
+    <button type="button" class="btn-close btn-sm" style="margin-top: -8px; margin-left: auto;" data-bs-dismiss="alert"></button>
+</div>
+@endif
             @if($errors->any())
             <div class="alert alert-danger alert-dismissible fade show py-2 mb-2" role="alert" style="font-size: 0.875rem;">
                 <h5 class="alert-heading fs-6 mb-1"><i class="bi bi-exclamation-triangle"></i> 入力エラーがあります</h5>
@@ -179,11 +187,27 @@
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="invoice_date" class="form-label mb-0" style="font-size: 0.75rem;">請求日</label>
-                                        <input type="date" class="form-control form-control-sm" id="invoice_date" name="invoice_date" value="{{ old('invoice_date', $invoice->invoice_date) }}" style="font-size: 0.875rem;">
+                                        <input 
+                                            type="text" 
+                                            class="form-control form-control-sm datepicker-3months" 
+                                            id="invoice_date" 
+                                            name="invoice_date" 
+                                            value="{{ old('invoice_date', $invoice->invoice_date) }}" 
+                                            style="font-size: 0.875rem;"
+                                            placeholder=""
+                                        >
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="operation_date" class="form-label mb-0" style="font-size: 0.75rem;">運行日</label>
-                                        <input type="date" class="form-control form-control-sm" id="operation_date" name="operation_date" value="{{ old('operation_date', $invoice->operation_date) }}" style="font-size: 0.875rem;">
+                                        <input 
+                                            type="text" 
+                                            class="form-control form-control-sm datepicker-3months" 
+                                            id="operation_date" 
+                                            name="operation_date" 
+                                            value="{{ old('operation_date', $invoice->operation_date) }}" 
+                                            style="font-size: 0.875rem;"
+                                            placeholder=""
+                                        >
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="reservation_id" class="form-label mb-0" style="font-size: 0.75rem;">予約 ID</label>
@@ -208,8 +232,15 @@
                             </div>
                             <div class="col-md-3">
                                 <label for="due_date" class="form-label fw-bold mb-0" style="font-size: 0.875rem;">支払指定日</label>
-                                <input type="date" class="form-control form-control-sm @error('due_date') is-invalid @enderror"
-                                    id="due_date" name="due_date" value="{{ old('due_date', $invoice->due_date) }}" style="font-size: 0.875rem;">
+                                <input 
+                                    type="text" 
+                                    class="form-control form-control-sm datepicker-3months @error('due_date') is-invalid @enderror"
+                                    id="due_date" 
+                                    name="due_date" 
+                                    value="{{ old('due_date', $invoice->due_date) }}" 
+                                    style="font-size: 0.875rem;"
+                                    placeholder="YYYY-MM-DD"
+                                >
                                 @error('due_date') <div class="invalid-feedback d-block small">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-3">
@@ -778,7 +809,22 @@
     window.addEventListener('beforeunload', () => {
         Object.keys(pollingTimers).forEach(id => { clearInterval(pollingTimers[id]); delete pollingTimers[id]; });
     });
-})();
+
+});
+document.addEventListener('DOMContentLoaded', function () {
+    flatpickr('.datepicker-3months', {
+        locale: "ja",
+        dateFormat: "Y-m-d",
+        showMonths: 3, // 显示3个月
+        allowInput: true,
+        clickOpens: true,
+        disableMobile: true,
+        onOpen: function(selectedDates, dateStr, instance) {
+            instance.calendarContainer.style.zIndex = '9999';
+        }
+    });
+});
+
 </script>
 
 <style>

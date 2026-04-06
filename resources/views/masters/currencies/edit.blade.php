@@ -145,22 +145,39 @@
                         <!-- 第四行：有效期 -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="rate_valid_from" class="form-label required">適用開始日</label><span class="text-danger">*</span>
-                                <input type="date" class="form-control @error('rate_valid_from') is-invalid @enderror" 
-                                       id="rate_valid_from" name="rate_valid_from" 
-                                       value="{{ old('rate_valid_from', \Carbon\Carbon::parse($currency->rate_valid_from)->format('Y-m-d')) }}" 
-                                       required>
+                                <!-- 1. 标签：调整样式以匹配插件风格 -->
+                                <label class="form-label mb-1 text-muted" style="font-size: 0.75rem;">
+                                    適用開始日 <span class="text-danger">*</span>
+                                </label>
+                                
+                                <!-- 2. 输入框：关键修改点 -->
+                                <input type="text" 
+                                    class="form-control @error('rate_valid_from') is-invalid @enderror datepicker-3months" 
+                                    name="rate_valid_from" 
+                                    value="{{ old('rate_valid_from', \Carbon\Carbon::parse($currency->rate_valid_from)->format('Y-m-d')) }}" 
+                                    placeholder=""
+                                    autocomplete="off"
+                                    required>
+                                
                                 @error('rate_valid_from')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
+
                             <div class="col-md-6 mb-3">
-                                <label for="rate_valid_to" class="form-label">適用終了日</label><span class="text-danger">*</span>
-                                <input type="date" class="form-control @error('rate_valid_to') is-invalid @enderror" 
-                                       id="rate_valid_to" name="rate_valid_to" 
-                                       value="{{ old('rate_valid_to', $currency->rate_valid_to ? \Carbon\Carbon::parse($currency->rate_valid_to)->format('Y-m-d') : '') }}" 
-                                       placeholder="未設定の場合は無期限">
+                                <!-- 3. 标签：调整样式以匹配插件风格 -->
+                                <label class="form-label mb-1 text-muted" style="font-size: 0.75rem;">
+                                    適用終了日 <span class="text-danger">*</span>
+                                </label>
+                                
+                                <!-- 4. 输入框：关键修改点 -->
+                                <input type="text" 
+                                    class="form-control @error('rate_valid_to') is-invalid @enderror datepicker-3months" 
+                                    name="rate_valid_to" 
+                                    value="{{ old('rate_valid_to', $currency->rate_valid_to ? \Carbon\Carbon::parse($currency->rate_valid_to)->format('Y-m-d') : '') }}" 
+                                    placeholder=""
+                                    autocomplete="off">
+                                
                                 @error('rate_valid_to')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -195,6 +212,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    initDateRangePicker('input[name="rate_valid_from"]', 'input[name="rate_valid_to"]');
     // 前端验证：结束日期不能早于开始日期
     const fromDate = document.getElementById('rate_valid_from');
     const toDate = document.getElementById('rate_valid_to');
