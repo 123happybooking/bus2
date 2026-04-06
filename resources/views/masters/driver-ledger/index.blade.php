@@ -1155,7 +1155,7 @@ function openCreateGroup(vehicleId, date, vehicleName, driverId, driverName) {
 }
 
 function openBusAssignmentEdit(busAssignmentId) {
-    const url = '/masters/bus-assignments/' + busAssignmentId + '/edit';
+    const url = '/masters/bus-assignments/' + busAssignmentId + '/edit?source=driver-ledger';
     openIframeModal(url, '運行割当編集');
 }
 

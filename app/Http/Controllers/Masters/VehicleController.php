@@ -92,9 +92,22 @@ class VehicleController extends Controller
             ->with('success', '車両が登録されました。');
     }
     
-    public function show($id): View
+    public function show($id)
     {
         $vehicle = Vehicle::with('branch', 'vehicleType', 'vehicleModel')->findOrFail($id);
+        
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'id' => $vehicle->id,
+                'registration_number' => $vehicle->registration_number,
+                'vehicle_code' => $vehicle->vehicle_code,
+                'vehicle_type' => $vehicle->vehicleType->type_name ?? '',
+                'vehicle_model' => $vehicle->vehicleModel->model_name ?? '',
+                'vehicle_branch' => $vehicle->branch->branch_name ?? '',
+                'seating_capacity' => $vehicle->seating_capacity ?? '',
+            ]);
+        }
+        
         return view('masters.vehicles.show', compact('vehicle'));
     }
     

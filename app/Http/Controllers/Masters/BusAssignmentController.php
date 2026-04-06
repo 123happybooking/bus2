@@ -732,7 +732,7 @@ class BusAssignmentController extends Controller
                     if ($oldReservationStatus != $newReservationStatus) {
                         $oldStatus = $oldReservationStatus ?? '未設定';
                         $newStatus = $newReservationStatus ?? '未設定';
-                        $actionDesc = "予約状態変更: {$oldStatus} → {$newStatus}";
+                        $actionDesc = "{$newStatus}";
                         BusAssignmentLog::log(
                             $busAssignment->id,
                             $groupInfo->id,

@@ -100,6 +100,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::get('login-histories', [LoginHistoryController::class, 'index'])->name('login-histories.index');
         
         Route::resource('group-infos', GroupInfoController::class)->names('group-infos');
+        Route::post('group-infos/{id}/split-itineraries', [GroupInfoController::class, 'splitItineraries'])->name('group-infos.split-itineraries');
         Route::post('group-infos/batch-destroy', [GroupInfoController::class, 'batchDestroy'])->name('group-infos.batch-destroy');
         Route::get('group-infos/uuid/{uuid}', [GroupInfoController::class, 'getByUuid'])->name('group-infos.by-uuid');
         Route::post('group-infos/{id}/merge-by-id', [GroupInfoController::class, 'mergeItinerariesById'])->name('group-infos.merge-by-id');
