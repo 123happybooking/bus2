@@ -132,11 +132,27 @@
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="invoice_date" class="form-label mb-0" style="font-size: 0.75rem;">請求日</label>
-                                        <input type="date" class="form-control form-control-sm" id="invoice_date" name="invoice_date" value="{{ old('invoice_date', now()->format('Y-m-d')) }}" style="font-size: 0.875rem;">
+                                        <input 
+                                            type="text" 
+                                            class="form-control form-control-sm datepicker-3months" 
+                                            id="invoice_date" 
+                                            name="invoice_date" 
+                                            value="{{ old('invoice_date', now()->format('Y-m-d')) }}" 
+                                            style="font-size: 0.875rem;"
+                                            placeholder=""
+                                        >
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="operation_date" class="form-label mb-0" style="font-size: 0.75rem;">運行日</label>
-                                        <input type="date" class="form-control form-control-sm" id="operation_date" name="operation_date" value="{{ old('operation_date') }}" style="font-size: 0.875rem;">
+                                        <input 
+                                            type="text" 
+                                            class="form-control form-control-sm datepicker-3months" 
+                                            id="operation_date" 
+                                            name="operation_date" 
+                                            value="{{ old('operation_date') }}" 
+                                            style="font-size: 0.875rem;"
+                                            placeholder=""
+                                        >
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="reservation_id" class="form-label mb-0" style="font-size: 0.75rem;">予約 ID</label>
@@ -160,8 +176,16 @@
                             </div>
                             <div class="col-md-3">
                                 <label for="due_date" class="form-label fw-bold mb-0" style="font-size: 0.875rem;">支払指定日</label>
-                                <input type="date" required class="form-control form-control-sm @error('due_date') is-invalid @enderror"
-                                    id="due_date" name="due_date" value="{{ old('due_date') }}" style="font-size: 0.875rem;">
+                                <input 
+                                    type="text" 
+                                    required 
+                                    class="form-control form-control-sm datepicker-3months @error('due_date') is-invalid @enderror"
+                                    id="due_date" 
+                                    name="due_date" 
+                                    value="{{ old('due_date') }}" 
+                                    style="font-size: 0.875rem;"
+                                    placeholder=""
+                                >
                             </div>
                             <div class="col-md-3">
                                 <label for="bank_id" class="form-label fw-bold mb-0" style="font-size: 0.875rem;">入金銀行</label>
@@ -483,6 +507,21 @@
     });
     document.querySelectorAll('#itemsBody tr[data-index]').forEach(row => calculateRowTotal(row));
 })();
+
+document.addEventListener('DOMContentLoaded', function () {
+    flatpickr('.datepicker-3months', {
+        locale: "ja",
+        dateFormat: "Y-m-d",
+        showMonths: 3, // 显示3个月
+        allowInput: true,
+        clickOpens: true,
+        disableMobile: true,
+        onOpen: function(selectedDates, dateStr, instance) {
+            instance.calendarContainer.style.zIndex = '9999';
+        }
+    });
+});
+
 </script>
 
 <style>

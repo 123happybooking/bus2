@@ -61,9 +61,17 @@
 
             <!-- Flash Messages: 减小内边距 py-2，字体变小 -->
             @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show py-2 mb-2" role="alert" style="font-size: 0.875rem;">
-                <i class="bi bi-check-circle"></i> {{ session('success') }}
-                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+            <div class="alert alert-success alert-dismissible fade show py-2 mb-2 d-flex align-items-center" role="alert" style="font-size: 0.875rem;">
+                <!-- 1. 图标：添加 align-middle -->
+                <i class="bi bi-check-circle align-middle"></i>
+                
+                <!-- 2. 文字：添加 align-middle 并微调间距 -->
+                <span class="align-middle ms-1">
+                    {{ session('success') }}
+                </span>
+                
+                <!-- 3. 按钮：添加 align-middle 并靠右 -->
+                <button type="button" class="btn-close btn-sm" style="margin-top: -8px; margin-left: auto;" data-bs-dismiss="alert"></button>
             </div>
             @endif
             @if($errors->any())
@@ -179,11 +187,27 @@
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="invoice_date" class="form-label mb-0" style="font-size: 0.75rem;">請求日</label>
-                                        <input type="date" class="form-control form-control-sm" id="invoice_date" name="invoice_date" value="{{ old('invoice_date', $invoice->invoice_date) }}" style="font-size: 0.875rem;">
+                                        <input 
+                                            type="text" 
+                                            class="form-control form-control-sm datepicker-3months" 
+                                            id="invoice_date" 
+                                            name="invoice_date" 
+                                            value="{{ old('invoice_date', $invoice->invoice_date) }}" 
+                                            style="font-size: 0.875rem;"
+                                            placeholder=""
+                                        >
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="operation_date" class="form-label mb-0" style="font-size: 0.75rem;">運行日</label>
-                                        <input type="date" class="form-control form-control-sm" id="operation_date" name="operation_date" value="{{ old('operation_date', $invoice->operation_date) }}" style="font-size: 0.875rem;">
+                                        <input 
+                                            type="text" 
+                                            class="form-control form-control-sm datepicker-3months" 
+                                            id="operation_date" 
+                                            name="operation_date" 
+                                            value="{{ old('operation_date', $invoice->operation_date) }}" 
+                                            style="font-size: 0.875rem;"
+                                            placeholder=""
+                                        >
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="reservation_id" class="form-label mb-0" style="font-size: 0.75rem;">予約 ID</label>
@@ -208,8 +232,15 @@
                             </div>
                             <div class="col-md-3">
                                 <label for="due_date" class="form-label fw-bold mb-0" style="font-size: 0.875rem;">支払指定日</label>
-                                <input type="date" class="form-control form-control-sm @error('due_date') is-invalid @enderror"
-                                    id="due_date" name="due_date" value="{{ old('due_date', $invoice->due_date) }}" style="font-size: 0.875rem;">
+                                <input 
+                                    type="text" 
+                                    class="form-control form-control-sm datepicker-3months @error('due_date') is-invalid @enderror"
+                                    id="due_date" 
+                                    name="due_date" 
+                                    value="{{ old('due_date', $invoice->due_date) }}" 
+                                    style="font-size: 0.875rem;"
+                                    placeholder="YYYY-MM-DD"
+                                >
                                 @error('due_date') <div class="invalid-feedback d-block small">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-3">
@@ -430,12 +461,14 @@
                             $pdfUrl = $hasPdf ? '/storage/' . $invoice->pdf_file_path : '';
                         @endphp
                         <a href="javascript:void(0)" 
-                        data-invoice-id="{{ $invoice->id }}"
-                        data-has-pdf="{{ $hasPdf ? '1' : '0' }}"
-                        data-pdf-url="{{ $pdfUrl }}"
-                        onclick="handlePdfClick(this)" 
-                        class="btn btn-secondary btn-pdf-action btn-sm" style="font-size: 0.875rem;">
-                            <i class="bi bi-file-earmark-pdf"></i> <span class="btn-text">PDF 表示</span>
+                        id="pdfBtn" 
+                        data-invoice-id="{{ $invoice->id }}" 
+                        data-has-pdf="{{ $hasPdf ? '1' : '0' }}" 
+                        data-pdf-url="{{ $pdfUrl }}" 
+                        class="btn btn-secondary btn-pdf-action btn-sm" 
+                        style="font-size: 0.875rem;">
+                        <i class="bi bi-file-earmark-pdf"></i> 
+                        <span class="btn-text">PDF 表示</span> 
                         </a>
                         
                         <a href="{{ route('masters.invoices.index', ['group_id' => $groupId]) }}" class="btn btn-secondary btn-sm" style="font-size: 0.875rem;">
@@ -465,320 +498,387 @@
 @include('masters.invoices.components.bulk-reconcile-modal')
 
 <script>
-(function () {
-    // 1. 代理店联动
-    const agencySelect = document.getElementById('agency_id');
-    const clientDetailsTextarea = document.getElementById('agency_detail');
-    if (agencySelect && clientDetailsTextarea) {
-        if(agencySelect.value) {
-            const event = new Event('change');
-            agencySelect.dispatchEvent(event);
+    // 使用 IIFE (立即执行函数) 避免全局变量污染
+    (function () {
+        // =================================================================
+        // 1. 全局状态变量 (State)
+        // =================================================================
+        // 修正：将 pollingTimers 定义在顶部，供所有函数共享
+        const pollingTimers = {};
+
+        // =================================================================
+        // 2. 工具函数与核心逻辑 (Utilities & Core Logic)
+        // =================================================================
+
+        // --- 2.1 PDF 生成与轮询逻辑 ---
+        function showStatusMessage(message, type = 'info') {
+            const alertBox = document.getElementById('pdf-status-alert');
+            if (!alertBox) return;
+
+            alertBox.className = `alert alert-${type} alert-dismissible fade show py-2 mb-2`;
+            alertBox.style.position = 'relative'; 
+
+            let iconClass = 'bi-info-circle-fill';
+            if (type === 'success') iconClass = 'bi-check-circle-fill';
+            if (type === 'warning') iconClass = 'bi-hourglass-split';
+            if (type === 'danger') iconClass = 'bi-exclamation-triangle-fill';
+
+            alertBox.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi ${iconClass} me-2"></i> 
+                    <span>${message}</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" 
+                        style="position: absolute; top: 50%; right: 0.75rem; transform: translateY(-50%); z-index: 10;"></button>
+            `;
+
+            alertBox.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alertBox);
+                    bsAlert.close();
+                }, 5000);
+            }
         }
 
-        agencySelect.addEventListener('change', function () {
-            const selectedOption = this.options[this.selectedIndex];
-            if (this.value === "") { 
-                return; 
-            }
-            const agencyName = selectedOption.getAttribute('data-agency-name') || '';
-            const agencyCode = selectedOption.getAttribute('data-agency-code') || '';
-            const name = selectedOption.text;
-            
-            let detailsText = `会社名:${name}\n`;
-            if (agencyCode) detailsText += `コード:${agencyCode}\n`;
-            clientDetailsTextarea.value = detailsText;
-        });
-    }
+        function startPolling(invoiceId, btn) {
+            setBtnLoadingState(btn, true);
+            showStatusMessage('PDF を生成中です。完了まで数秒かかります...', 'info');
+            checkStatus(invoiceId, btn);
+            // 修正：使用外部定义的 pollingTimers
+            pollingTimers[invoiceId] = setInterval(() => {
+                checkStatus(invoiceId, btn);
+            }, 2000);
+        }
 
-    // 2. 锁开关
-    const lockIconContainer = document.getElementById('lock_icon_container');
-    if (lockIconContainer) {
-        const invoiceId = {{ $invoice->id }};
-        const currentLocked = {{ $invoice->is_locked ? 'true' : 'false' }};
+        function checkStatus(invoiceId, btn) {
+            fetch(`/masters/invoices/${invoiceId}/pdf-status`)
+                .then(response => response.json())
+                .then(data => {
+                    const isReady = (data.ready === true || data.ready === 'true');
+                    if (isReady) {
+                        // 修正：清除定时器
+                        clearInterval(pollingTimers[invoiceId]);
+                        delete pollingTimers[invoiceId];
+                        btn.dataset.hasPdf = '1';
+                        btn.dataset.pdfUrl = data.url;
+                        setBtnLoadingState(btn, false);
+                        showStatusMessage('PDF の準備ができました！表示しています...', 'success');
+                        window.open(data.url, '_blank');
+                        btn.querySelector('.btn-text').textContent = 'PDF を開く';
+                        btn.classList.remove('btn-secondary');
+                        btn.classList.add('btn-success');
+                    }
+                })
+                .catch(err => console.error('轮询失败', err));
+        }
 
-        lockIconContainer.addEventListener('click', function () {
-            const message = currentLocked 
-                ? 'ロックを解除しますか？' 
-                : 'この請求書をロックしますか？\nロック後は編集・削除ができなくなります。';
-
-            if (!confirm(message)) return;
-
-            this.innerHTML = '<i class="bi bi-hourglass-split text-muted" style="font-size: 1.5rem;"></i>';
-
-            fetch(`/masters/invoices/${invoiceId}/toggle-lock`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ locked: currentLocked ? 0 : 1 })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.reload();
-                } else {
-                    alert('操作に失敗しました：' + (data.message || ''));
-                    window.location.reload();
+        function setBtnLoadingState(btn, isLoading) {
+            const textSpan = btn.querySelector('.btn-text');
+            if (isLoading) {
+                btn.classList.add('disabled');
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-secondary');
+                if (!btn.querySelector('.spinner-border')) {
+                    const spinner = document.createElement('span');
+                    spinner.className = 'spinner-border spinner-border-sm me-2';
+                    btn.insertBefore(spinner, textSpan);
                 }
-            })
-            .catch(error => {
-                console.error('Lock toggle error:', error);
-                alert('ネットワークエラーが発生しました。');
-                window.location.reload();
+                textSpan.textContent = '生成中...';
+            } else {
+                btn.classList.remove('disabled', 'btn-secondary');
+                btn.classList.add('btn-success');
+                const spinner = btn.querySelector('.spinner-border');
+                if (spinner) spinner.remove();
+                textSpan.textContent = 'PDF を開く';
+            }
+        }
+
+        // --- 2.2 表格行操作逻辑 (Row Manipulation & Drag & Drop) ---
+        let globalRowIndex = 0;
+
+        function updateDisplayOrder() {
+            document.querySelectorAll('#itemsBody tr[data-index]').forEach((row, idx) => {
+                const order = idx + 1;
+                row.querySelector('.display-order').textContent = order;
+                const hiddenInput = row.querySelector('input[name$="[display_order]"]');
+                if (hiddenInput) hiddenInput.value = order;
+            });
+        }
+
+        function calculateRowTotal(row) {
+            const unitPriceInput = row.querySelector('.unit-price');
+            const quantityInput = row.querySelector('.quantity');
+            const totalInput = row.querySelector('.line-total-input');
+            if (!unitPriceInput || !quantityInput || !totalInput) return;
+            const price = parseFloat(unitPriceInput.value) || 0;
+            const qty = parseFloat(quantityInput.value) || 0;
+            const total = Math.round(price * qty);
+            totalInput.value = total.toLocaleString('ja-JP');
+        }
+
+        // --- 2.3 拖拽排序逻辑 (Drag & Drop) ---
+        function initDraggableRows() {
+            const rows = document.querySelectorAll('#itemsBody tr[data-index]');
+            rows.forEach(row => {
+                if (row.hasAttribute('data-drag-initialized')) return;
+                row.setAttribute('data-drag-initialized', 'true');
+                row.addEventListener('dragstart', handleDragStart, false);
+                row.addEventListener('dragover', handleDragOver, false);
+                row.addEventListener('dragenter', handleDragEnter, false);
+                row.addEventListener('dragleave', handleDragLeave, false);
+                row.addEventListener('drop', handleDrop, false);
+                row.addEventListener('dragend', handleDragEnd, false);
+            });
+        }
+
+        function handleDragStart(e) {
+            dragSrcEl = this;
+            e.dataTransfer.effectAllowed = 'move';
+            this.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            this.classList.add('over');
+        }
+
+        function handleDragLeave() {
+            this.classList.remove('over');
+        }
+
+        function handleDrop(e) {
+            e.stopPropagation();
+            if (dragSrcEl !== this) {
+                const tbody = document.getElementById('itemsBody');
+                const allRows = Array.from(tbody.querySelectorAll('tr[data-index]'));
+                const srcIndex = allRows.indexOf(dragSrcEl);
+                const destIndex = allRows.indexOf(this);
+                if (srcIndex === -1 || destIndex === -1) return;
+                dragSrcEl.parentNode.removeChild(dragSrcEl);
+                if (destIndex < srcIndex) {
+                    this.parentNode.insertBefore(dragSrcEl, this);
+                } else {
+                    this.parentNode.insertBefore(dragSrcEl, this.nextSibling);
+                }
+                updateDisplayOrder();
+            }
+            this.classList.remove('over');
+            return false;
+        }
+
+        function handleDragEnd() {
+            document.querySelectorAll('#itemsBody tr[data-index]').forEach(row => {
+                row.classList.remove('dragging', 'over');
+            });
+        }
+
+        // =================================================================
+        // 3. DOM 初始化 (Initialization)
+        // =================================================================
+        document.addEventListener('DOMContentLoaded', function () {
+            let dragSrcEl = null; // 拖拽状态变量
+
+            // --- 3.1 Flatpickr 日期插件初始化 ---
+            flatpickr('.datepicker-3months', {
+                locale: "ja",
+                dateFormat: "Y-m-d",
+                showMonths: 3,
+                allowInput: true,
+                clickOpens: true,
+                disableMobile: true,
+                onOpen: function (selectedDates, dateStr, instance) {
+                    instance.calendarContainer.style.zIndex = '9999';
+                }
+            });
+
+            // --- 3.2 代理店联动逻辑 ---
+            const agencySelect = document.getElementById('agency_id');
+            const clientDetailsTextarea = document.getElementById('agency_detail');
+            if (agencySelect && clientDetailsTextarea) {
+                agencySelect.addEventListener('change', function () {
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (this.value === "") {
+                        clientDetailsTextarea.value = '';
+                        return;
+                    }
+                    const agencyName = selectedOption.getAttribute('data-agency-name') || '';
+                    const agencyCode = selectedOption.getAttribute('data-agency-code') || '';
+                    const name = selectedOption.text;
+                    let detailsText = `会社名:${name}\n`;
+                    if (agencyCode) detailsText += `コード:${agencyCode}\n`;
+                    clientDetailsTextarea.value = detailsText;
+                });
+                // 触发一次 change 以初始化数据 (如果已有选中项)
+                if (agencySelect.value) {
+                    const event = new Event('change');
+                    agencySelect.dispatchEvent(event);
+                }
+            }
+
+            // --- 3.3 锁定开关逻辑 ---
+            const lockIconContainer = document.getElementById('lock_icon_container');
+            if (lockIconContainer) {
+                const invoiceId = {{ $invoice->id }};
+                const currentLocked = {{ $invoice->is_locked ? 'true' : 'false' }};
+                lockIconContainer.addEventListener('click', function () {
+                    const message = currentLocked ? 'ロックを解除しますか？' : 'この請求書をロックしますか？\nロック後は編集・削除ができなくなります。';
+                    if (!confirm(message)) return;
+                    this.innerHTML = '<i class="bi bi-hourglass-split text-muted" style="font-size: 1.5rem;"></i>';
+                    fetch(`/masters/invoices/${invoiceId}/toggle-lock`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ locked: currentLocked ? 0 : 1 })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.reload();
+                        } else {
+                            alert('操作に失敗しました：' + (data.message || ''));
+                            window.location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Lock toggle error:', error);
+                        alert('ネットワークエラーが発生しました。');
+                        window.location.reload();
+                    });
+                });
+            }
+
+            // --- 3.4 表格行操作逻辑 (Add/Delete/Move) ---
+            // 初始化行索引
+            globalRowIndex = document.querySelectorAll('#itemsBody tr[data-index]').length;
+
+            // 添加行
+            document.getElementById('addItemRowBtn')?.addEventListener('click', () => {
+                addNewRow(null);
+            });
+
+            // 行内按钮事件代理
+            document.getElementById('itemsBody').addEventListener('click', function (e) {
+                const btn = e.target.closest('.add-row-btn, .delete-row-btn, .move-up-btn, .move-down-btn');
+                if (!btn) return;
+                const row = btn.closest('tr');
+                const currentIndex = parseInt(row.dataset.index);
+                
+                if (btn.classList.contains('add-row-btn')) {
+                    addNewRow(currentIndex);
+                }
+                if (btn.classList.contains('delete-row-btn')) {
+                    if (document.querySelectorAll('#itemsBody tr[data-index]').length > 1) {
+                        row.remove();
+                        updateDisplayOrder();
+                    } else {
+                        alert('明細は最低 1 行必要です。');
+                    }
+                }
+                if (btn.classList.contains('move-up-btn')) {
+                    const prevRow = row.previousElementSibling;
+                    if (prevRow && prevRow.dataset.index !== undefined) {
+                        row.parentNode.insertBefore(row, prevRow);
+                        updateDisplayOrder();
+                    }
+                }
+                if (btn.classList.contains('move-down-btn')) {
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow && nextRow.dataset.index !== undefined) {
+                        row.parentNode.insertBefore(nextRow, row);
+                        updateDisplayOrder();
+                    }
+                }
+            });
+
+            // --- 3.5 PDF 按钮事件绑定 ---
+            const pdfBtn = document.getElementById('pdfBtn');
+            if (pdfBtn) {
+                pdfBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const invoiceId = this.dataset.invoiceId;
+                    const hasPdf = this.dataset.hasPdf === '1';
+                    const pdfUrl = this.dataset.pdfUrl;
+
+                    if (hasPdf && pdfUrl) {
+                        window.open(pdfUrl, '_blank');
+                        return;
+                    }
+                    if (pollingTimers[invoiceId]) {
+                        showStatusMessage('PDF はバックグラウンドで生成中です。完了すると自動的に開きます。', 'warning');
+                        return;
+                    }
+                    startPolling(invoiceId, this);
+                });
+            }
+
+            // --- 3.6 销账模态框初始化 ---
+            const reconcileModal = document.getElementById('reconcileModal');
+            if (reconcileModal && typeof bootstrap !== 'undefined') {
+                reconcileModal.addEventListener('hidden.bs.modal', function () {
+                    const form = reconcileModal.querySelector('form');
+                    if (form) form.reset();
+                    reconcileModal.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                    reconcileModal.querySelectorAll('.invalid-feedback').forEach(el => el.style.display = 'none');
+                });
+            }
+
+            // --- 3.7 表格行初始化 (计算与拖拽) ---
+            function addNewRow(afterIndex = null) {
+                const template = document.getElementById('newRowTemplate');
+                const newRow = template.content.firstElementChild.cloneNode(true);
+                const newIndex = globalRowIndex++;
+                newRow.dataset.index = newIndex;
+                newRow.innerHTML = newRow.innerHTML.replace(/__index__/g, newIndex);
+                const tbody = document.getElementById('itemsBody');
+                if (afterIndex !== null) {
+                    const targetRow = tbody.querySelector(`tr[data-index="${afterIndex}"]`);
+                    if (targetRow && targetRow.nextElementSibling) {
+                        tbody.insertBefore(newRow, targetRow.nextElementSibling);
+                    } else {
+                        tbody.appendChild(newRow);
+                    }
+                } else {
+                    tbody.appendChild(newRow);
+                }
+                // 初始化新行事件
+                initRowEvents(newRow);
+                updateDisplayOrder();
+                calculateRowTotal(newRow);
+            }
+
+            function initRowEvents(row) {
+                // 为行内的输入框绑定计算事件
+                row.querySelector('.unit-price')?.addEventListener('input', () => calculateRowTotal(row));
+                row.querySelector('.quantity')?.addEventListener('input', () => calculateRowTotal(row));
+            }
+
+            // 初始化所有现有行
+            document.querySelectorAll('#itemsBody tr[data-index]').forEach(row => {
+                initRowEvents(row);
+                calculateRowTotal(row);
+            });
+            initDraggableRows();
+            updateDisplayOrder(); // 最终修正序号
+
+            // --- 3.8 窗口卸载前清理 ---
+            window.addEventListener('beforeunload', () => {
+                Object.keys(pollingTimers).forEach(id => {
+                    clearInterval(pollingTimers[id]);
+                    delete pollingTimers[id];
+                });
             });
         });
-    }
 
-    // 3. 表格逻辑
-    const existingRows = document.querySelectorAll('#itemsBody tr[data-index]');
-    let globalRowIndex = existingRows.length;
-
-    function updateDisplayOrder() {
-        document.querySelectorAll('#itemsBody tr[data-index]').forEach((row, idx) => {
-            const order = idx + 1;
-            row.querySelector('.display-order').textContent = order;
-            const hiddenInput = row.querySelector('input[name$="[display_order]"]');
-            if (hiddenInput) hiddenInput.value = order;
-        });
-    }
-
-    function addNewRow(afterIndex = null) {
-        const template = document.getElementById('newRowTemplate');
-        const newRow = template.content.firstElementChild.cloneNode(true);
-        const newIndex = globalRowIndex++;
-        newRow.dataset.index = newIndex;
-        newRow.innerHTML = newRow.innerHTML.replace(/__index__/g, newIndex);
-        
-        const tbody = document.getElementById('itemsBody');
-        if (afterIndex !== null) {
-            const targetRow = tbody.querySelector(`tr[data-index="${afterIndex}"]`);
-            if (targetRow && targetRow.nextElementSibling) tbody.insertBefore(newRow, targetRow.nextElementSibling);
-            else tbody.appendChild(newRow);
-        } else { tbody.appendChild(newRow); }
-        
-        updateDisplayOrder();
-        calculateRowTotal(newRow);
-        initDraggableRows(); 
-    }
-
-    document.getElementById('addItemRowBtn').addEventListener('click', () => addNewRow());
-
-    document.getElementById('itemsBody').addEventListener('click', function (e) {
-        const btn = e.target.closest('.add-row-btn, .delete-row-btn, .move-up-btn, .move-down-btn');
-        if (!btn) return;
-        const row = btn.closest('tr');
-        const currentIndex = row.dataset.index;
-
-        if (btn.classList.contains('add-row-btn')) addNewRow(currentIndex);
-        if (btn.classList.contains('delete-row-btn')) {
-            if (document.querySelectorAll('#itemsBody tr[data-index]').length > 1) { row.remove(); updateDisplayOrder(); }
-            else alert('明細は最低 1 行必要です。');
-        }
-        if (btn.classList.contains('move-up-btn')) {
-            const prevRow = row.previousElementSibling;
-            if (prevRow && prevRow.dataset.index !== undefined) { row.parentNode.insertBefore(row, prevRow); updateDisplayOrder(); }
-        }
-        if (btn.classList.contains('move-down-btn')) {
-            const nextRow = row.nextElementSibling;
-            if (nextRow && nextRow.dataset.index !== undefined) { row.parentNode.insertBefore(nextRow, row); updateDisplayOrder(); }
-        }
-    });
-
-    updateDisplayOrder();
-
-    function calculateRowTotal(row) {
-        const unitPriceInput = row.querySelector('.unit-price');
-        const quantityInput = row.querySelector('.quantity');
-        const totalInput = row.querySelector('.line-total-input');
-        if (!unitPriceInput || !quantityInput || !totalInput) return;
-        
-        const price = parseFloat(unitPriceInput.value) || 0;
-        const qty = parseFloat(quantityInput.value) || 0;
-        const total = Math.round(price * qty);
-        totalInput.value = total.toLocaleString('ja-JP');
-    }
-
-    // ===== 拖拽排序邏輯 =====
-    let dragSrcEl = null;
-
-    function handleDragStart(e) {
-        dragSrcEl = this;
-        e.dataTransfer.effectAllowed = 'move';
-        this.classList.add('dragging');
-    }
-
-    function handleDragOver(e) {
-        if (e.preventDefault) e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        return false;
-    }
-
-    function handleDragEnter(e) {
-        this.classList.add('over');
-    }
-
-    function handleDragLeave() {
-        this.classList.remove('over');
-    }
-
-    function handleDrop(e) {
-        if (e.stopPropagation) e.stopPropagation();
-
-        if (dragSrcEl !== this) {
-            const tbody = document.getElementById('itemsBody');
-            const allRows = Array.from(tbody.querySelectorAll('tr[data-index]'));
-
-            const srcIndex = allRows.indexOf(dragSrcEl);
-            const destIndex = allRows.indexOf(this);
-
-            if (srcIndex === -1 || destIndex === -1) return;
-
-            dragSrcEl.parentNode.removeChild(dragSrcEl);
-
-            if (destIndex < srcIndex) {
-                this.parentNode.insertBefore(dragSrcEl, this);
-            } else {
-                this.parentNode.insertBefore(dragSrcEl, this.nextSibling);
-            }
-
-            updateDisplayOrder();
-        }
-
-        this.classList.remove('over');
-        return false;
-    }
-
-    function handleDragEnd() {
-        const rows = document.querySelectorAll('#itemsBody tr[data-index]');
-        rows.forEach(row => row.classList.remove('dragging', 'over'));
-    }
-
-    function initDraggableRows() {
-        const rows = document.querySelectorAll('#itemsBody tr[data-index]');
-        rows.forEach(row => {
-            if (row.hasAttribute('data-drag-initialized')) return;
-            row.setAttribute('data-drag-initialized', 'true');
-
-            row.addEventListener('dragstart', handleDragStart, false);
-            row.addEventListener('dragover', handleDragOver, false);
-            row.addEventListener('dragenter', handleDragEnter, false);
-            row.addEventListener('dragleave', handleDragLeave, false);
-            row.addEventListener('drop', handleDrop, false);
-            row.addEventListener('dragend', handleDragEnd, false);
-        });
-    }
-
-    document.getElementById('itemsBody').addEventListener('input', function (e) {
-        if (e.target.classList.contains('unit-price') || e.target.classList.contains('quantity')) {
-            calculateRowTotal(e.target.closest('tr'));
-        }
-    });
-    
-    document.querySelectorAll('#itemsBody tr[data-index]').forEach(row => calculateRowTotal(row));
-    initDraggableRows();
-
-    // 4. PDF 轮询逻辑
-    const pollingTimers = {}; 
-
-    function showStatusMessage(message, type = 'info') {
-        const alertBox = document.getElementById('pdf-status-alert');
-        if (!alertBox) return; 
-        alertBox.className = `alert alert-${type} alert-dismissible fade show`;
-        let iconClass = 'bi-info-circle-fill';
-        if (type === 'success') iconClass = 'bi-check-circle-fill';
-        if (type === 'warning') iconClass = 'bi-hourglass-split';
-        if (type === 'danger') iconClass = 'bi-exclamation-triangle-fill';
-        alertBox.innerHTML = `<i class="bi ${iconClass}"></i> <span>${message}</span><button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>`;
-        alertBox.style.display = 'block';
-        if (type === 'success') {
-            setTimeout(() => { if(alertBox) { const bsAlert = bootstrap.Alert.getOrCreateInstance(alertBox); if(bsAlert) bsAlert.close(); } }, 5000);
-        }
-    }
-
-    window.handlePdfClick = function(btn) {
-        const invoiceId = btn.dataset.invoiceId;
-        const hasPdf = btn.dataset.hasPdf === '1';
-        const pdfUrl = btn.dataset.pdfUrl;
-
-        if (hasPdf && pdfUrl) {
-            window.open(pdfUrl, '_blank');
-            return;
-        }
-        if (pollingTimers[invoiceId]) {
-            showStatusMessage('PDF はバックグラウンドで生成中です。完了すると自動的に開きます。', 'warning');
-            return;
-        }
-        startPolling(invoiceId, btn);
-    }
-
-    function startPolling(invoiceId, btn) {
-        setBtnLoadingState(btn, true);
-        showStatusMessage('PDF を生成中です。完了まで数秒かかります...', 'info');
-        checkStatus(invoiceId, btn);
-        pollingTimers[invoiceId] = setInterval(() => { checkStatus(invoiceId, btn); }, 2000);
-    }
-
-    function checkStatus(invoiceId, btn) {
-        fetch(`/masters/invoices/${invoiceId}/pdf-status`)
-            .then(response => response.json())
-            .then(data => {
-                const isReady = (data.ready === true || data.ready === 'true');
-                if (isReady) {
-                    clearInterval(pollingTimers[invoiceId]);
-                    delete pollingTimers[invoiceId];
-                    btn.dataset.hasPdf = '1';
-                    btn.dataset.pdfUrl = data.url;
-                    setBtnLoadingState(btn, false);
-                    showStatusMessage('PDF の準備ができました！表示しています...', 'success');
-                    window.open(data.url, '_blank');
-                    btn.querySelector('.btn-text').textContent = 'PDF を開く';
-                    btn.classList.remove('btn-secondary');
-                    btn.classList.add('btn-success');
-                }
-            })
-            .catch(err => console.error('轮询失败', err));
-    }
-
-    function setBtnLoadingState(btn, isLoading) {
-        const textSpan = btn.querySelector('.btn-text');
-        if (isLoading) {
-            btn.classList.add('disabled');
-            btn.classList.remove('btn-success');
-            btn.classList.add('btn-secondary');
-            if (!btn.querySelector('.spinner-border')) {
-                const spinner = document.createElement('span');
-                spinner.className = 'spinner-border spinner-border-sm me-2';
-                btn.insertBefore(spinner, textSpan);
-            }
-            textSpan.textContent = '生成中...';
-        } else {
-            btn.classList.remove('disabled', 'btn-secondary');
-            btn.classList.add('btn-success'); 
-            const spinner = btn.querySelector('.spinner-border');
-            if (spinner) spinner.remove();
-            textSpan.textContent = 'PDF を開く'; 
-        }
-    }
-
-    // 5. 销账模态框初始化
-    document.addEventListener('DOMContentLoaded', function () {
-        const reconcileModal = document.getElementById('reconcileModal');
-        if (!reconcileModal) return;
-        if (typeof bootstrap === 'undefined') return;
-
-        reconcileModal.addEventListener('hidden.bs.modal', function () {
-            const form = reconcileModal.querySelector('form');
-            if (form) form.reset();
-            reconcileModal.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            reconcileModal.querySelectorAll('.invalid-feedback').forEach(el => el.style.display = 'none');
-        });
-    });
-
-    window.addEventListener('beforeunload', () => {
-        Object.keys(pollingTimers).forEach(id => { clearInterval(pollingTimers[id]); delete pollingTimers[id]; });
-    });
-})();
+    })();
 </script>
 
 <style>

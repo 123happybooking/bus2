@@ -8,7 +8,7 @@
     <!-- 标题与新建按钮: 减小间距 mb-2，标题变小 -->
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h5 class="mb-0 text-primary" style="font-size: 1.1rem !important;">
-            <i class="bi bi-file-text me-2"></i>請求書マスター {{$totalAmount}} {{$paidAmount}}
+            <i class="bi bi-file-text me-2"></i>請求書
         </h5>
         <!-- 修改点：btn-sm, 字体变小 -->
         <a href="{{ route('masters.invoices.create', ['group_id' => request('group_id')]) }}" class="btn btn-primary btn-sm" style="font-size: 0.875rem;">
@@ -75,8 +75,13 @@
                     <!-- 日期和天数并排显示 -->
                     <div class="input-group input-group-sm">
                         <!-- 日期输入框 -->
-                        <input type="date" name="target_date" class="form-control" 
-                            value="{{ request('target_date') }}">
+                        <input 
+                            type="text" 
+                            name="target_date" 
+                            class="form-control datepicker-3months" 
+                            value="{{ request('target_date') }}" 
+                            placeholder=""
+                        >
                         
                         <!-- 天数输入框 (移到了这里) -->
                         <input type="number" name="days" class="form-control" 
@@ -316,188 +321,148 @@
     </div>
 
     <!-- 表格区域 -->
-    <div class="card shadow-sm">
-        <div class="table-responsive">
-            <!-- 修改点：font-size 0.875rem -->
-            <table class="table table-bordered mb-0 table-striped align-middle table-compact">
-                <thead class="table-secondary">
-                    <tr>
-                        <!-- 【新增】全选复选框 -->
-                        <th class="text-center py-1" style="width: 40px; font-size: 0.75rem;">
-                            <input type="checkbox" class="form-check-input" id="select-all" title="全選択">
-                        </th>
-                        <!-- <th class="text-center py-1" style="width: 50px; font-size: 0.75rem;">No.</th> -->
-                        <th class="text-center py-1" style="width: 60px; font-size: 0.75rem;">予約ID</th>
-                        <th class="text-center py-1" style="width: 120px; font-size: 0.75rem;">請求先</th>
-                        <th class="text-center py-1" style="width: 120px; font-size: 0.75rem;">タイトル</th>
-                        <!-- <th class="text-center py-1" style="width: 130px; font-size: 0.75rem;">請求書番号</th> -->
-                        <th class="text-center py-1" style="width: 100px; font-size: 0.75rem;">運行日</th>
-                        <th class="text-center py-1" style="width: 100px; font-size: 0.75rem;">請求日</th>
-                        <!-- <th class="text-center py-1" style="width: 100px; font-size: 0.75rem;">支払期日</th> -->
-                        <th class="text-center py-1" style="width: 80px; font-size: 0.75rem;">通貨</th>
-                        <th class="text-center py-1" style="width: 100px; font-size: 0.75rem;">合計金額</th>
-                        <th class="text-center py-1" style="width: 100px; font-size: 0.75rem;">余额</th>
-                        <th class="text-center py-1" style="width: 80px; font-size: 0.75rem;">タイプ</th>
-                        <th class="text-center py-1" style="width: 80px; font-size: 0.75rem;">請求担当</th>
-                        <th class="text-center py-1" style="width: 60px; font-size: 0.75rem;" title="データロック状態">ロック</th>
-                        <th class="text-center py-1" style="width: 140px; font-size: 0.75rem;">操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($invoices as $invoice)
-                    <tr>
-                        <!-- 【新增】行复选框 -->
-                        <td class="text-center py-1">
-                            <input type="checkbox" class="form-check-input invoice-checkbox" 
-                                value="{{ $invoice->id }}"
-                                data-locked="{{ $invoice->is_locked ? 1 : 0 }}"
-                                data-customer-id="{{ $invoice->agency_id }}"
-                                data-invoice-no="{{ $invoice->invoice_number }}"
-                                data-currency-code="{{ $invoice->currency_code }}"
-                                data-customer-name="{{ $invoice->agency->agency_name ?? ''}}"
-                                data-return-url="{{ url()->current() }}"
-                                data-request-amount="{{ number_format($invoice->total_amount, 2, '.', '') }}" 
-                                data-balance-amount="{{ number_format($invoice->total_amount - $invoice->paid_amount, 2, '.', '') }}">
-                        </td>
-                        <!-- <td class="text-center fw-bold text-muted py-1" style="font-size: 0.8rem;">
-                            {{ ($invoices->currentPage() - 1) * $invoices->perPage() + $loop->iteration }}
-                        </td> -->
-                        <td class="text-center text-muted small py-1" style="font-size: 0.75rem;">{{ $invoice->id }}</td>
-                        <td class="text-center py-1" style="font-size: 0.875rem;">{{ $invoice->agency->agency_name ?? ''}}</td>
-                        <td class="text-center fw-bold text-primary py-1" style="font-size: 0.875rem;">{{ $invoice->billing_title }}</td>
-                        <!-- <td class="text-center fw-bold text-primary py-1" style="font-size: 0.875rem;">{{ $invoice->invoice_number }}</td> -->
-                        <td class="text-center py-1" style="font-size: 0.875rem;">{{ \Carbon\Carbon::parse($invoice->operation_date)->format('Y/m/d') }}</td>
-                        <td class="text-center py-1" style="font-size: 0.875rem;">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('Y/m/d') }}</td>
-                        <!-- <td class="text-center py-1" style="font-size: 0.875rem;">{{ \Carbon\Carbon::parse($invoice->due_date)->format('Y/m/d') }}</td> -->
-                        <td class="text-center py-1" style="font-size: 0.875rem;">{{ $invoice->currency_code }}</td>
-                        <td class="text-center font-monospace py-1" style="font-size: 0.875rem;">
-                            {{ number_format($invoice->total_amount, 2) }}
-                        </td>
-                        <td class="text-center font-monospace py-1" style="font-size: 0.875rem;">
-                            {{ number_format($invoice->total_amount - $invoice->paid_amount, 2) }}
-                        </td>
-                        <td class="text-center py-1" style="font-size: 0.875rem;">{{ $invoice->staff->name ?? '' }}</td>
-                        <td class="text-center font-monospace py-1" style="font-size: 0.875rem;">
-                            {{ $invoice->type == 1 ? '正式' : '臨時' }}
-                        </td>
-                        
-                        <!-- 状态列：锁开关按钮 -->
-                        <td class="text-center py-1">
-                            <!-- 修改点：宽高 30px (原 36px) -->
-                            <button type="button" 
-                                    class="btn btn-sm border-0 toggle-lock-btn" 
-                                    data-id="{{ $invoice->id }}" 
-                                    data-locked="{{ $invoice->is_locked ? 1 : 0 }}"
-                                    title="{{ $invoice->is_locked ? 'ロックを解除' : 'ロックを掛ける' }}"
-                                    style="width: 30px; height: 30px; border-radius: 50%; transition: all 0.2s; display:inline-flex; align-items:center; justify-content:center; padding: 0;">
-                                
-                                @if($invoice->is_locked)
-                                    <i class="bi bi-lock-fill text-danger" style="font-size: 0.9rem;"></i>
-                                @else
-                                    <i class="bi bi-unlock-fill text-success" style="font-size: 0.9rem;"></i>
-                                @endif
-                            </button>
-                        </td>
-
-                        <td class="py-1">
-                            <div class="d-flex gap-1 justify-content-center">
-                                <!-- 【新增】单行销账按钮 -->
-                                @if($invoice->total_amount > $invoice->paid_amount)
-                                    <button type="button" 
-                                            class="btn btn-sm btn-outline-warning btn-single-reconcile" 
-                                            data-id="{{ $invoice->id }}"
-                                            title="消し込み (入金登録)"
-                                            style="padding: 0.1rem 0.3rem;">
-                                        <i class="bi bi-cash-coin" style="font-size: 0.8rem;"></i>
-                                    </button>
-                                @else
-                                    <!-- 已付清状态 -->
-                                    <button type="button" 
-                                            class="btn btn-sm btn-light text-muted" 
-                                            disabled
-                                            title="全額入金済み"
-                                            style="padding: 0.1rem 0.3rem;">
-                                        <i class="bi bi-check-circle-fill" style="font-size: 0.8rem;"></i>
-                                    </button>
-                                @endif
-
-
-                                <!-- PDF 下载按钮 -->
-                                <a href="{{ route('masters.invoices.pdf', ['invoice' => $invoice, 'group_id' => request('group_id')]) }}" 
-                                   class="btn btn-sm btn-outline-success" 
-                                   title="PDF ダウンロード"
-                                   target="_blank"
-                                   style="padding: 0.1rem 0.3rem;">
-                                    <i class="bi bi-file-earmark-pdf" style="font-size: 0.8rem;"></i>
-                                </a>
-
-                                <!-- 详细 -->
-                                <a href="{{ route('masters.invoices.show', ['invoice' => $invoice, 'group_id' => request('group_id')]) }}" 
-                                   class="btn btn-sm btn-outline-info" title="詳細"
-                                   style="padding: 0.1rem 0.3rem;">
-                                    <i class="bi bi-eye" style="font-size: 0.8rem;"></i>
-                                </a>
-                                
-                                @if(!$invoice->is_locked)
+<div class="card shadow-sm"> 
+    <div class="table-responsive"> 
+        <!-- 修改点：font-size 0.875rem -->
+        <table class="table table-bordered mb-0 align-middle"> 
+            <thead class="table-secondary"> 
+                <tr> 
+                    <!-- 【新增】全选复选框 -->
+                    <th class="text-center py-1" style="width: 40px; font-size: 0.75rem;"> 
+                        <input type="checkbox" class="form-check-input" id="select-all" title="全選択"> 
+                    </th> 
+                    <th class="text-center py-1" style="width: 60px; font-size: 0.75rem;">予約ID</th> 
+                    <th class="text-center py-1" style="width: 120px; font-size: 0.75rem;">請求先</th> 
+                    <th class="text-center py-1" style="width: 120px; font-size: 0.75rem;">タイトル</th> 
+                    <th class="text-center py-1" style="width: 100px; font-size: 0.75rem;">運行日</th> 
+                    <th class="text-center py-1" style="width: 100px; font-size: 0.75rem;">請求日</th> 
+                    <th class="text-center py-1" style="width: 80px; font-size: 0.75rem;">通貨</th> 
+                    <th class="text-center py-1" style="width: 100px; font-size: 0.75rem;">合計金額</th> 
+                    <th class="text-center py-1" style="width: 100px; font-size: 0.75rem;">未入金</th> 
+                    <th class="text-center py-1" style="width: 80px; font-size: 0.75rem;">タイプ</th> 
+                    <th class="text-center py-1" style="width: 80px; font-size: 0.75rem;">請求担当</th> 
+                    <th class="text-center py-1" style="width: 60px; font-size: 0.75rem;" title="データロック状態">ロック</th> 
+                    <th class="text-center py-1" style="width: 140px; font-size: 0.75rem;">操作</th> 
+                </tr> 
+            </thead> 
+            <tbody> 
+                @forelse($invoices as $invoice) 
+                <tr> 
+                    <td class="text-center py-1"> 
+                        <input type="checkbox" class="form-check-input invoice-checkbox" value="{{ $invoice->id }}" 
+                            data-locked="{{ $invoice->is_locked ? 1 : 0 }}" 
+                            data-customer-id="{{ $invoice->agency_id }}" 
+                            data-invoice-no="{{ $invoice->invoice_number }}" 
+                            data-currency-code="{{ $invoice->currency_code }}" 
+                            data-customer-name="{{ $invoice->agency->agency_name ?? ''}}"
+                            data-return-url="{{ url()->current() }}" 
+                            data-request-amount="{{ number_format($invoice->total_amount, 2, '.', '') }}" 
+                            data-balance-amount="{{ number_format($invoice->total_amount - $invoice->paid_amount, 2, '.', '') }}"> 
+                    </td> 
+                    <td class="text-center text-muted small py-1" style="font-size: 0.75rem;">{{ $invoice->id }}</td> 
+                    <td class="text-center py-1" style="font-size: 0.875rem;">{{ $invoice->agency->agency_name ?? ''}}</td> 
+                    <td class="text-center fw-bold text-primary py-1" style="font-size: 0.875rem;">{{ $invoice->billing_title }}</td> 
+                    <td class="text-center py-1" style="font-size: 0.875rem;">
+                        {{ \Carbon\Carbon::parse($invoice->operation_date)->format('Y/m/d') }}
+                    </td> 
+                    <td class="text-center py-1" style="font-size: 0.875rem;">
+                        {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('Y/m/d') }}
+                    </td> 
+                    <td class="text-center py-1" style="font-size: 0.875rem;">{{ $invoice->currency_code }}</td> 
+                    <td class="text-center font-monospace py-1" style="font-size: 0.875rem;"> 
+                        {{ number_format($invoice->total_amount, 0) }} 
+                    </td> 
+                    <td class="text-center font-monospace py-1" style="font-size: 0.875rem;"> 
+                        {{ number_format($invoice->total_amount - $invoice->paid_amount, 0) }} 
+                    </td> 
+                    <td class="text-center font-monospace py-1" style="font-size: 0.875rem;"> 
+                        {{ $invoice->type == 1 ? '正式' : '臨時' }} 
+                    </td> 
+                    <td class="text-center py-1" style="font-size: 0.875rem;">{{ $invoice->staff->name ?? '' }}</td> 
+                    <td class="text-center py-1"> 
+                        <button type="button" class="btn btn-sm border-0 toggle-lock-btn" 
+                            data-id="{{ $invoice->id }}" data-locked="{{ $invoice->is_locked ? 1 : 0 }}" 
+                            title="{{ $invoice->is_locked ? 'ロックを解除' : 'ロックを掛ける' }}" 
+                            style="width: 30px; height: 30px; border-radius: 50%; transition: all 0.2s; display:inline-flex; align-items:center; justify-content:center; padding: 0;">
+                            @if($invoice->is_locked) 
+                                <i class="bi bi-lock-fill text-danger" style="font-size: 0.9rem;"></i> 
+                            @else 
+                                <i class="bi bi-unlock-fill text-success" style="font-size: 0.9rem;"></i> 
+                            @endif 
+                        </button> 
+                    </td> 
+                    <td class="py-1"> 
+                        <div class="d-flex gap-1 justify-content-center"> 
+                            @if($invoice->total_amount > $invoice->paid_amount) 
+                                <button type="button" class="btn btn-sm btn-outline-warning btn-single-reconcile" 
+                                    data-id="{{ $invoice->id }}" title="消し込み (入金登録)" style="padding: 0.1rem 0.3rem;"> 
+                                    <i class="bi bi-cash-coin" style="font-size: 0.8rem;"></i> 
+                                </button> 
+                            @else 
+                                <button type="button" class="btn btn-sm btn-light text-muted" disabled title="全額入金済み" style="padding: 0.1rem 0.3rem;"> 
+                                    <i class="bi bi-check-circle-fill" style="font-size: 0.8rem;"></i> 
+                                </button> 
+                            @endif 
+                            <a href="{{ route('masters.invoices.pdf', ['invoice' => $invoice, 'group_id' => request('group_id')]) }}" 
+                               class="btn btn-sm btn-outline-success" title="PDF ダウンロード" target="_blank" style="padding: 0.1rem 0.3rem;"> 
+                                <i class="bi bi-file-earmark-pdf" style="font-size: 0.8rem;"></i> 
+                            </a> 
+                            <a href="{{ route('masters.invoices.show', ['invoice' => $invoice, 'group_id' => request('group_id')]) }}" 
+                               class="btn btn-sm btn-outline-info" title="詳細" style="padding: 0.1rem 0.3rem;"> 
+                                <i class="bi bi-eye" style="font-size: 0.8rem;"></i> 
+                            </a> 
+                            @if(!$invoice->is_locked)
                                 <a href="{{ route('masters.invoices.edit', ['invoice' => $invoice, 'group_id' => request('group_id')]) }}" 
                                    class="btn btn-sm btn-outline-primary {{ $invoice->is_locked ? 'disabled' : '' }}" 
-                                   title="{{ $invoice->is_locked ? 'ロック中です' : '編集' }}"
-                                   style="padding: 0.1rem 0.3rem;">
-                                    <i class="bi bi-pencil" style="font-size: 0.8rem;"></i>
+                                   title="{{ $invoice->is_locked ? 'ロック中です' : '編集' }}" style="padding: 0.1rem 0.3rem;"> 
+                                    <i class="bi bi-pencil" style="font-size: 0.8rem;"></i> 
                                 </a>
-                                @endif
-                                
-                                <!-- 删除 -->
-                                 @if( !$invoice->is_locked && $invoice->total_amount == $invoice->paid_amount )
+                            @endif 
+                            @if( !$invoice->is_locked && $invoice->total_amount == $invoice->paid_amount ) 
                                 <form action="{{ route('masters.invoices.destroy', ['invoice' => $invoice, 'group_id' => request('group_id')]) }}" 
-                                    method="POST" 
-                                    class="d-inline" 
-                                    onsubmit="return checkAndDelete({{ $invoice->type }}, '{{ $invoice->invoice_number }}')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="削除" style="padding: 0.1rem 0.3rem;">
-                                        <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
-                                    </button>
-                                </form>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="14" class="text-center py-4">
-                            @if(request()->hasAny(['search', 'status']))
-                                <div class="text-muted">
-                                    <i class="bi bi-search display-6 mb-2 d-block"></i>
-                                    <p class="mb-0 fw-bold" style="font-size: 0.9rem;">検索条件に一致する請求書が見つかりませんでした</p>
-                                    <p class="small">検索条件を変更してお試しください</p>
-                                </div>
-                            @else
-                                <div class="text-muted">
-                                    <i class="bi bi-file-text display-6 mb-2 d-block"></i>
-                                    <p class="mb-0 fw-bold" style="font-size: 0.9rem;">請求書が登録されていません</p>
-                                    <p class="small">「新規追加」ボタンから最初の請求書を作成してください</p>
-                                </div>
-                            @endif
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-            <div class="border-top border-2 d-flex justify-content-end py-2 px-3 bg-light">
-                <div class="text-end">
-                    <span class="fw-bold text-dark me-4" style="font-size: 0.9rem;">
-                        合計金額: 
-                        <span class="text-primary">{{ number_format($totalAmount) }}</span> 
-                    </span>
-                    <span class="fw-bold text-dark" style="font-size: 0.9rem;">
-                        入金残高: 
-                        <span class="text-danger">{{ number_format($totalAmount - $paidAmount) }}</span> 
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
+                                      method="POST" class="d-inline" onsubmit="return checkAndDelete({{ $invoice->type }}, '{{ $invoice->invoice_number }}')">
+                                    @csrf @method('DELETE') 
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="削除" style="padding: 0.1rem 0.3rem;"> 
+                                        <i class="bi bi-trash" style="font-size: 0.8rem;"></i> 
+                                    </button> 
+                                </form> 
+                            @endif 
+                        </div> 
+                    </td> 
+                </tr> 
+                @empty 
+                <tr> 
+                    <td colspan="14" class="text-center py-4"> 
+                        @if(request()->hasAny(['search', 'status'])) 
+                            <div class="text-muted"> 
+                                <i class="bi bi-search display-6 mb-2 d-block"></i> 
+                                <p class="mb-0 fw-bold" style="font-size: 0.9rem;">検索条件に一致する請求書が見つかりませんでした</p> 
+                                <p class="small">検索条件を変更してお試しください</p> 
+                            </div> 
+                        @else 
+                            <div class="text-muted"> 
+                                <i class="bi bi-file-text display-6 mb-2 d-block"></i> 
+                                <p class="mb-0 fw-bold" style="font-size: 0.9rem;">請求書が登録されていません</p> 
+                                <p class="small">「新規追加」ボタンから最初の請求書を作成してください</p> 
+                            </div> 
+                        @endif 
+                    </td> 
+                </tr> 
+                @endforelse 
+            </tbody> 
+        </table> 
+        <div class="border-top border-2 d-flex justify-content-end py-2 px-3 bg-light"> 
+            <div class="text-end"> 
+                <span class="fw-bold text-dark me-4" style="font-size: 0.9rem;"> 
+                    合計金額: <span class="text-primary">{{ number_format($totalAmount) }}</span> 
+                </span> 
+                <span class="fw-bold text-dark" style="font-size: 0.9rem;"> 
+                    入金残高: <span class="text-danger">{{ number_format($totalAmount - $paidAmount) }}</span> 
+                </span> 
+            </div> 
+        </div> 
+    </div> 
+</div>
     
     <!-- 分页区域 -->
     @if($invoices->hasPages() || $invoices->total() > 0)
@@ -507,7 +472,9 @@
                 
                 <!-- 1. 左侧：行数选择器 -->
                 <div class="d-flex align-items-center">
-                    <label for="per_page_select" class="form-label small text-muted mb-0 me-2" >
+                    <label for="per_page_select" 
+                        class="form-label small text-muted mb-0 me-2" 
+                        style="white-space: nowrap;"> <!-- 添加这行 -->
                         表示件数:
                     </label>
                     <select id="per_page_select" class="form-select form-select-sm" style="font-size: 0.75rem;min-width: 80px;">
@@ -906,47 +873,53 @@ document.addEventListener('DOMContentLoaded', function() {
     initPaymentStatusDropdown(); 
 });
 
+document.addEventListener('DOMContentLoaded', function () {
+    flatpickr('.datepicker-3months', {
+        locale: "ja",
+        dateFormat: "Y-m-d",
+        showMonths: 3, // 显示3个月
+        allowInput: true,
+        clickOpens: true,
+        disableMobile: true,
+        onOpen: function(selectedDates, dateStr, instance) {
+            instance.calendarContainer.style.zIndex = '9999';
+        }
+    });
+});
+
 
 </script>
 <style>
-/* 紧凑表格样式 */
-.table-compact td,
-.table-compact th {
-    padding-top: 0.2rem !important;    
-    padding-bottom: 0.2rem !important; 
+.table tbody tr {
+    background-color: transparent !important; /* 确保基础背景透明 */
+}
+
+.table thead th,
+.table tbody td {
+    padding-top: 0.1rem !important;    /* 强制覆盖 */
+    padding-bottom: 0.1rem !important; /* 强制覆盖 */
     vertical-align: middle;
 }
-
-/* 优化操作按钮 */
-.table-compact .btn {
-    padding: 0.1rem 0.25rem !important;
-    font-size: 0.75rem !important;
-    line-height: 1.2;
+/* 2. 使用最顶级的 !important 强制覆盖 */
+/* 我们甚至要针对 .table-striped 的特定类进行覆盖 */
+.table-striped tbody tr:hover td,
+.table-striped tbody tr:hover th,
+.table tbody tr:hover td,
+.table tbody tr:hover th {
+    background-color: #e9ecef  !important; /* 鲜明的浅蓝色背景 */
+    cursor: pointer !important;
+    /* 强制提升层级，防止被其他阴影盖住 */
+    position: relative !important;
+    z-index: 1 !important;
+    /* 字体加粗，增加反馈感 */
+    font-weight: 500 !important;
 }
 
-/* 批量操作栏动画 */
-#bulk-action-bar {
-    transition: all 0.3s ease-in-out;
+/* 3. 针对锁定按钮行的特殊处理（如果有） */
+/* 如果你的行里有绝对定位的元素，可能需要这个 */
+.table tbody tr:hover .toggle-lock-btn {
+    transform: scale(1.1) !important; /* 锁定图标稍微放大 */
 }
 
-/* 标签统一变小 */
-.form-label {
-    font-size: 0.75rem !important;
-    /* 不再强制 margin-bottom，让 Bootstrap 默认处理或依赖具体上下文 */
-}
-
-.d-flex.align-items-center label,
-.d-flex.align-items-center .form-label {
-    margin-bottom: 0 !important;
-    white-space: nowrap;
-}
-/* 自定义样式微调 */
-.form-select[multiple] {
-    background-image: none; /* 移除多选框默认背景图，可选 */
-}
-.form-text {
-    margin-top: 0.2rem;
-    color: #6c757d;
-}
 </style>
 @endsection
