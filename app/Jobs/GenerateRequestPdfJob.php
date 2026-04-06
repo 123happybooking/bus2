@@ -145,10 +145,10 @@ class GenerateRequestPdfJob implements ShouldQueue
 
                 // 【关键修复】添加必要的参数，解决 Zygote 和 权限问题
                 $browsershot->addChromiumArguments([
-                    '--no-sandbox', 
-                    '--disable-setuid-sandbox', 
-                    '--disable-dev-shm-usage', // 解决共享内存不足
-                    '--no-zygote'             // 解决 Zygote 报错
+                    'no-sandbox', 
+                    'disable-setuid-sandbox', 
+                    'disable-dev-shm-usage', // 解决共享内存不足
+                    'no-zygote'             // 解决 Zygote 报错
                 ]);
             }
 
