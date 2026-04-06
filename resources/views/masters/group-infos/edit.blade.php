@@ -3037,179 +3037,54 @@ function copyClickHandler(e) {
     }
 
     function splitSelectedRows(selectedRows, sourceCard) {
-        const container = document.getElementById('operation-details-container');
-        
-        const existingCards = document.querySelectorAll('#operation-details-container > .card');
-        const newIndex = existingCards.length + 1;
-        const newBusId = 'split_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        
-        const sourceVehicleSelect = sourceCard.querySelector('.vehicle-select');
-        const sourceDriverSelect = sourceCard.querySelector('.driver-select');
-        const sourceGuideSelect = sourceCard.querySelector('.guide-select');
-        const sourceVehicleId = sourceVehicleSelect ? sourceVehicleSelect.value : '';
-        const sourceDriverId = sourceDriverSelect ? sourceDriverSelect.value : '';
-        const sourceGuideId = sourceGuideSelect ? sourceGuideSelect.value : '';
-        
-        const newCard = createCopyOperationDetailCard(newIndex, newBusId, [], sourceCard);
-        container.appendChild(newCard);
-        
-        const targetTable = newCard.querySelector('table tbody');
-        const sourceTable = sourceCard.querySelector('table tbody');
-        
-        if (!sourceTable || !targetTable) return;
-        
-        const rowsToMove = [...selectedRows].reverse();
-        const newCardBusId = newCard.getAttribute('data-bus-id') || '';
-        
-        let uniqueCounter = Date.now();
-        
-        rowsToMove.forEach((item, idx) => {
+        const itineraryIds = selectedRows.map(item => {
             const row = item.row;
-            const clonedRow = row.cloneNode(true);
-            
-            const clonedCheckbox = clonedRow.querySelector('.itinerary-select');
-            if (clonedCheckbox) {
-                clonedCheckbox.checked = false;
-            }
-            
-            const dateInput = clonedRow.querySelector('input[name*="[date]"]');
-            if (dateInput && dateInput.value.includes(' ')) {
-                dateInput.value = dateInput.value.split(' ')[0];
-            }
-            
-            const uniqueIndex = uniqueCounter + '_' + idx;
-            uniqueCounter++;
-            
-            clonedRow.querySelectorAll('input, textarea, select').forEach(field => {
-                const name = field.getAttribute('name');
-                if (name && name.includes('daily_itineraries[')) {
-                    const newName = name.replace(/daily_itineraries\[\d+\]/, `daily_itineraries[${uniqueIndex}]`);
-                    field.setAttribute('name', newName);
-                }
-            });
-            
-            const busIdField = clonedRow.querySelector('.itinerary-bus-id');
-            if (busIdField) {
-                busIdField.value = newCardBusId;
-            }
-            
-            const vehicleIdField = clonedRow.querySelector('.itinerary-vehicle-id');
-            if (vehicleIdField) {
-                vehicleIdField.value = '';
-            }
-            
-            const driverIdField = clonedRow.querySelector('.itinerary-driver-id');
-            if (driverIdField) {
-                driverIdField.value = '';
-            }
-            
-            const guideIdField = clonedRow.querySelector('.itinerary-guide-id');
-            if (guideIdField) {
-                guideIdField.value = '';
-            }
-            
-            const vehicleGroupInput = clonedRow.querySelector('input[name*="[vehicle_group]"]');
-            if (vehicleGroupInput) {
-                vehicleGroupInput.value = newIndex;
-                clonedRow.setAttribute('data-vehicle', newIndex);
-            }
-            
-            clonedRow.setAttribute('data-bus-id', newCardBusId);
-            clonedRow.setAttribute('data-index', uniqueIndex);
-            
-            row.remove();
-            targetTable.appendChild(clonedRow);
-        });
+            return row.getAttribute('data-itinerary-id');
+        }).filter(id => id && id !== '');
         
-        const remainingRows = sourceTable.querySelectorAll('tr.itinerary-row:not(.no-data-row)');
-        remainingRows.forEach((row, newIdx) => {
-            const uniqueIndex = uniqueCounter + '_' + newIdx + '_rem';
-            uniqueCounter++;
-            row.querySelectorAll('input, textarea, select').forEach(field => {
-                const name = field.getAttribute('name');
-                if (name && name.includes('daily_itineraries[')) {
-                    const newName = name.replace(/daily_itineraries\[\d+\]/, `daily_itineraries[${uniqueIndex}]`);
-                    field.setAttribute('name', newName);
-                }
-            });
-            row.setAttribute('data-index', uniqueIndex);
-            
-            const vehicleIdField = row.querySelector('.itinerary-vehicle-id');
-            if (vehicleIdField) {
-                vehicleIdField.value = sourceVehicleId || '';
-            }
-            const driverIdField = row.querySelector('.itinerary-driver-id');
-            if (driverIdField) {
-                driverIdField.value = sourceDriverId || '';
-            }
-            const guideIdField = row.querySelector('.itinerary-guide-id');
-            if (guideIdField) {
-                guideIdField.value = sourceGuideId || '';
-            }
-        });
-        
-        if (sourceTable.children.length === 0) {
-            sourceTable.innerHTML = `
-                <tr class="no-data-row">
-                    <td colspan="6" class="text-center py-4" style="color: #6c757d; background-color: #f9f9f9;">
-                        <i class="bi bi-info-circle me-1"></i> 旅程データがありません。「+」ボタンを押して追加してください。
-                         </tr>
-            `;
+        if (itineraryIds.length === 0) {
+            alert('分割する行程を選択してください');
+            return;
         }
         
-        const noDataRow = targetTable.querySelector('.no-data-row');
-        if (noDataRow) {
-            noDataRow.remove();
-        }
+        const groupId = {{ $groupInfo->id }};
+        const sourceVehicleSelect = sourceCard.querySelector('.vehicle-select');
+        const sourceVehicleId = sourceVehicleSelect ? sourceVehicleSelect.value : '';
         
-        reindexRows(sourceTable.closest('table'));
-        updateMoveButtons(sourceTable.closest('table'));
+        const splitBtn = sourceCard.querySelector('.split-btn');
+        const originalText = splitBtn.innerHTML;
+        splitBtn.innerHTML = '分割中...';
+        splitBtn.disabled = true;
         
-        reindexRows(targetTable.closest('table'));
-        updateMoveButtons(targetTable.closest('table'));
-        
-        updateOperationDetailNumbers();
-        refreshEventListeners();
-    
-        const newDateInputs = newCard.querySelectorAll('.datepicker-3months');
-        newDateInputs.forEach(function(dateInput) {
-            if (!dateInput._flatpickr) {
-                flatpickr(dateInput, {
-                    locale: 'ja',
-                    dateFormat: 'Y-m-d',
-                    showMonths: 3,
-                    allowInput: true,
-                    clickOpens: true,
-                    mode: 'single',
-                    disableMobile: true,
-                    wrap: false,
-                    onOpen: function(selectedDates, dateStr, instance) {
-                        instance.calendarContainer.style.zIndex = '9999';
-                    },
-                    onReady: function(selectedDates, dateStr, instance) {
-                        const daysContainer = instance.daysContainer;
-                        if (daysContainer) {
-                            const dayContainers = daysContainer.querySelectorAll('.dayContainer');
-                            dayContainers.forEach(function(dayContainer) {
-                                const wrapper = document.createElement('div');
-                                wrapper.className = 'month-wrapper';
-                                dayContainer.parentNode.insertBefore(wrapper, dayContainer);
-                                wrapper.appendChild(dayContainer);
-                            });
-                        }
-                    }
-                });
+        fetch(`/masters/group-infos/${groupId}/split-itineraries`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                itinerary_ids: itineraryIds,
+                source_vehicle_id: sourceVehicleId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('エラー: ' + data.message);
+                splitBtn.innerHTML = originalText;
+                splitBtn.disabled = false;
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('分割処理に失敗しました: ' + error.message);
+            splitBtn.innerHTML = originalText;
+            splitBtn.disabled = false;
         });
-    
-        document.querySelectorAll('.itinerary-select:checked').forEach(cb => {
-            cb.checked = false;
-        });
-        
-        const finalNewIndex = document.querySelectorAll('#operation-details-container > .card').length;
-        setTimeout(() => {
-            setupSelectChangeHandlers(finalNewIndex);
-        }, 100);
     }
 
     const tabItems = document.querySelectorAll('.tab-item');

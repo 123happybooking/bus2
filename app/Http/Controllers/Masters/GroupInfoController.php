@@ -813,7 +813,7 @@ class GroupInfoController extends Controller
                 $busId = $busAssignment->id ?? $groupKey;
                 
                 $logs = BusAssignmentLog::where('bus_assignment_id', $busId)
-                    ->orderBy('created_at', 'asc')
+                    ->orderBy('created_at', 'desc')
                     ->get();
                 
                 $groupedItineraries[$groupKey] = [
@@ -1805,6 +1805,30 @@ class GroupInfoController extends Controller
                         );
                     }
                     
+                    foreach ($driverSchedules as $schedule) {
+                        $startDateTime = Carbon::parse($schedule['date'] . ' ' . $schedule['start']);
+                        $endDateTime = Carbon::parse($schedule['date'] . ' ' . $schedule['end']);
+                        
+                        $restConflict = $this->checkDriverRestConflict(
+                            $schedule['id'],
+                            $startDateTime,
+                            $endDateTime,
+                            $groupInfo->id
+                        );
+                        
+                        if ($restConflict) {
+                            $driver = Driver::find($schedule['id']);
+                            $driverName = $driver ? $driver->name : '#' . $schedule['id'];
+                            throw new \Exception(
+                                "運転手「{$driverName}」は日付「{$schedule['date']}」 " . 
+                                substr($schedule['start'], 0, 5) . "～" . substr($schedule['end'], 0, 5) . 
+                                " に休憩時間が設定されています。\n" .
+                                "休憩時間: {$restConflict['start_datetime']} ～ {$restConflict['end_datetime']}\n" .
+                                "内容: {$restConflict['attendance_name']}"
+                            );
+                        }
+                    }
+                    
                     $vehicleConflicts = [];
                     foreach ($vehicleSchedules as $schedule) {
                         $key = $schedule['id'] . '_' . $schedule['date'];
@@ -1882,30 +1906,42 @@ class GroupInfoController extends Controller
     
                 foreach ($busAssignments as $bus) {
                     $bus->refresh();
-                
+                    
                     $itinerariesForBus = DailyItinerary::where('group_info_id', $groupInfo->id)
                                                     ->where('bus_assignment_id', $bus->id)
                                                     ->orderBy('date', 'asc')
                                                     ->get();
-                
+                    
                     if ($itinerariesForBus->isEmpty()) {
                         $bus->delete();
                         continue;
                     }
-                
+                    
                     $firstItinerary = $itinerariesForBus->first();
                     $lastItinerary = $itinerariesForBus->last();
-                
+                    
                     $submittedBusData = $submittedBusAssignmentData[$bus->id] ?? null;
-                
+                    
                     $submittedVehicleId = $submittedBusData['vehicle_id'] ?? null;
                     $submittedDriverId = $submittedBusData['driver_id'] ?? null;
                     $guideIdFromRequest = $submittedBusData['guide_id'] ?? null;
-                
+                    
                     $finalVehicleId = !empty($submittedVehicleId) && $submittedVehicleId > 0 ? $submittedVehicleId : null;
                     $finalDriverId = !empty($submittedDriverId) && $submittedDriverId > 0 ? $submittedDriverId : null;
                     $finalGuideId = !empty($guideIdFromRequest) && $guideIdFromRequest > 0 ? $guideIdFromRequest : null;
-                
+                    
+                    $oldLock = (bool)$bus->lock_arrangement;
+                    $oldFinalized = (bool)$bus->status_finalized;
+                    $oldSent = (bool)$bus->status_sent;
+                    $oldTemporaryDriver = (bool)$bus->temporary_driver;
+                    $oldVehicleSpec = (bool)$bus->vehicle_type_spec_check;
+                    
+                    $newLock = isset($submittedBusData['lock_arrangement']) ? (bool)$submittedBusData['lock_arrangement'] : false;
+                    $newFinalized = isset($submittedBusData['status_finalized']) ? (bool)$submittedBusData['status_finalized'] : false;
+                    $newSent = isset($submittedBusData['status_sent']) ? (bool)$submittedBusData['status_sent'] : false;
+                    $newTemporaryDriver = isset($submittedBusData['temporary_driver']) ? (bool)$submittedBusData['temporary_driver'] : false;
+                    $newVehicleSpec = $finalVehicleSpec;
+                    
                     $bus->update([
                         'vehicle_id' => $finalVehicleId,
                         'driver_id' => $finalDriverId,
@@ -1915,15 +1951,93 @@ class GroupInfoController extends Controller
                         'end_date' => $lastItinerary->date,
                         'end_time' => $lastItinerary->time_end,
                         'count_daily' => $itinerariesForBus->count(),
+                        'lock_arrangement' => $newLock,
+                        'status_sent' => $newSent,
+                        'status_finalized' => $newFinalized,
+                        'temporary_driver' => $newTemporaryDriver,
+                        'vehicle_type_spec_check' => $newVehicleSpec,
+                        'operation_basic_remarks' => $submittedBusData['operation_basic_remarks'] ?? null,
+                        'operation_remarks' => $submittedBusData['operation_remarks'] ?? null,
+                        'operation_memo' => $submittedBusData['operation_memo'] ?? null,
+                        'attention' => $submittedBusData['attention'] ?? null,
+                        'representative' => $submittedBusData['representative'] ?? null,
+                        'representative_phone' => $submittedBusData['representative_phone'] ?? null,
+                        'step_car' => $submittedBusData['step_car'] ?? null,
+                        'vehicle_number' => $submittedBusData['vehicle_number'] ?? null,
+                        'adult_count' => $submittedBusData['adult_count'] ?? 0,
+                        'child_count' => $submittedBusData['child_count'] ?? 0,
+                        'guide_count' => $submittedBusData['guide_count'] ?? 0,
+                        'other_count' => $submittedBusData['other_count'] ?? 0,
+                        'luggage_count' => $submittedBusData['luggage_count'] ?? 0,
                     ]);
-                
+                    
+                    if ($oldLock != $newLock) {
+                        $actionDesc = $newLock ? 'Lock' : 'Un-Lock';
+                        $this->logBusAssignmentChange(
+                            $bus->id,
+                            $groupInfo->id,
+                            'lock_arrangement',
+                            'lock',
+                            $oldLock ? '1' : '0',
+                            $newLock ? '1' : '0',
+                            $actionDesc,
+                            $userId,
+                            $username
+                        );
+                    }
+                    
+                    if ($oldFinalized != $newFinalized) {
+                        $actionDesc = $newFinalized ? '最終確認' : 'Clear-最終確認';
+                        $this->logBusAssignmentChange(
+                            $bus->id,
+                            $groupInfo->id,
+                            'status_finalized',
+                            'finalized',
+                            $oldFinalized ? '1' : '0',
+                            $newFinalized ? '1' : '0',
+                            $actionDesc,
+                            $userId,
+                            $username
+                        );
+                    }
+                    
+                    if ($oldSent != $newSent) {
+                        $actionDesc = $newSent ? '送信済' : 'Clear-送信済';
+                        $this->logBusAssignmentChange(
+                            $bus->id,
+                            $groupInfo->id,
+                            'status_sent',
+                            'sent',
+                            $oldSent ? '1' : '0',
+                            $newSent ? '1' : '0',
+                            $actionDesc,
+                            $userId,
+                            $username
+                        );
+                    }
+                    
+                    if ($oldVehicleSpec != $newVehicleSpec) {
+                        $actionDesc = $newVehicleSpec ? '車種指定' : 'Clear-車種指定';
+                        $this->logBusAssignmentChange(
+                            $bus->id,
+                            $groupInfo->id,
+                            'vehicle_type_spec_check',
+                            'vehicle_spec',
+                            $oldVehicleSpec ? '1' : '0',
+                            $newVehicleSpec ? '1' : '0',
+                            $actionDesc,
+                            $userId,
+                            $username
+                        );
+                    }
+                    
                     if ($guideIdFromRequest !== null) {
                         $guideName = '';
                         if ($finalGuideId) {
                             $guide = Guide::find($finalGuideId);
                             $guideName = $guide ? $guide->name : '';
                         }
-                
+                        
                         foreach ($itinerariesForBus as $itinerary) {
                             $itinerary->update([
                                 'guide_id' => $finalGuideId,
@@ -1997,7 +2111,7 @@ class GroupInfoController extends Controller
             if ($oldReservationStatus != $newReservationStatus) {
                 $oldStatus = $oldReservationStatus ?? '未設定';
                 $newStatus = $newReservationStatus ?? '未設定';
-                $actionDesc = "予約状態変更: {$oldStatus} → {$newStatus}";
+                $actionDesc = "{$newStatus}";
                 
                 $relatedBusAssignments = BusAssignment::where('group_info_id', $groupInfo->id)->get();
                 foreach ($relatedBusAssignments as $bus) {
@@ -2921,10 +3035,28 @@ public function updateBusAssignment(Request $request, $id)
         $conflict = $query->first();
         
         if ($conflict) {
+            $attributes = $conflict->getAttributes();
+            $rawDate = $attributes['date'];
+            $rawStartTime = $attributes['start_time'];
+            $rawEndTime = $attributes['end_time'];
+            
+            if ($rawDate instanceof Carbon) {
+                $rawDate = $rawDate->format('Y-m-d');
+            }
+            if ($rawStartTime instanceof Carbon) {
+                $rawStartTime = $rawStartTime->format('H:i:s');
+            }
+            if ($rawEndTime instanceof Carbon) {
+                $rawEndTime = $rawEndTime->format('H:i:s');
+            }
+            
+            $conflictStart = Carbon::parse($rawDate . ' ' . $rawStartTime);
+            $conflictEnd = Carbon::parse($rawDate . ' ' . $rawEndTime);
+            
             return [
                 'id' => $conflict->id,
-                'start_datetime' => Carbon::parse($conflict->start_time)->format('Y-m-d H:i'),
-                'end_datetime' => Carbon::parse($conflict->end_time)->format('Y-m-d H:i'),
+                'start_datetime' => $conflictStart->format('Y-m-d H:i'),
+                'end_datetime' => $conflictEnd->format('Y-m-d H:i'),
                 'attendance_name' => $conflict->category->attendance_name ?? '休憩',
                 'remarks' => $conflict->remarks
             ];
