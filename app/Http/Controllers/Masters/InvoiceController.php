@@ -625,6 +625,7 @@ public function store(Request $request)
 
     public function destroy(Request $request, $id)
     {
+
         $invoice = Invoice::findOrFail($id);
         $groupId = $request->query('group_id');
 
@@ -634,29 +635,14 @@ public function store(Request $request)
 
         
 
-        try {
-            $invoice->delete();
+        $invoice->delete();
 
-            return redirect()
-                ->route('masters.invoices.index', ['group_id' => $groupId])
-                ->with([
-                    'success' => '請求書を削除しました。',
-                    'alert-type' => 'success'
-                ]);
-
-        } catch (\Exception $e) {
-            Log::error('Invoice delete error: ' . $e->getMessage(), [
-                'invoice_id' => $invoice->id,
-              //'user_id' => auth()->id()
+        return redirect()
+            ->route('masters.invoices.index', ['group_id' => $groupId])
+            ->with([
+                'success' => '請求書を削除しました。',
+                'alert-type' => 'success'
             ]);
-
-            return redirect()
-                ->route('masters.invoices.index', ['group_id' => $groupId])
-                ->with([
-                    'error' => '削除に失敗しました。システムエラーが発生しました。',
-                    'alert-type' => 'danger'
-                ]);
-        }
     }
 
     public function generatePdf(Request $request, $id)

@@ -475,21 +475,22 @@
                             <i class="bi bi-x-circle"></i> キャンセル
                         </a>
                     </div>
-
-                     @if( !$invoice->is_locked && $invoice->total_amount == $invoice->paid_amount )
-                    <form action="{{ route('masters.invoices.destroy', $invoice) }}" 
-                        method="POST" 
-                        class="d-inline ms-auto" 
-                        onsubmit="return confirm('本当にこの請求書を削除しますか？復元できません。');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm" style="font-size: 0.875rem;">
-                            <i class="bi bi-trash"></i> 削除する
-                        </button>
                     </form>
+                    @if( !$invoice->is_locked && $invoice->total_amount == $invoice->paid_amount )
+                        <form action="{{ route('masters.invoices.destroy',  [$invoice, 'group_id' => $groupId]) }}" 
+                            method="POST" 
+                            class="d-inline ms-auto" 
+                            onsubmit="return confirm('本当にこの請求書を削除しますか？復元できません。');">
+                            @csrf 
+                            @method('DELETE') 
+                            <button type="submit" class="btn btn-danger btn-sm" style="font-size: 0.875rem;"> 
+                                <i class="bi bi-trash"></i> 削除する 
+                            </button> 
+                        </form> 
                     @endif
+
                 </div>
-            </form>
+
         </div>
     </div>
 </div>
