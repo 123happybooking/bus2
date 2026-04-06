@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Config;
 use Spatie\Browsershot\Browsershot;
+use Symfony\Component\Process\Exception\ProcessFailedException; // 引入这个异常类
 use App\Models\Masters\Invoice;
 use App\Models\Masters\InvoiceItem;
 use App\Models\Masters\InvoiceTaxSummary;
@@ -30,27 +31,21 @@ class GenerateRequestPdfJob implements ShouldQueue
 
     // ================= 队列重试配置 =================
     public $tries = 3;
-    public $backoff = [10, 30, 60];
-    public $timeout = 300; 
+    public $backoff = [10, 30, 60]; // 失败后分别等待 10s, 30s, 60s 重试
+    public $timeout = 300; // 5分钟超时
     // ==============================================
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct($invoiceId, $tenantId)
     {
         $this->invoiceId = $invoiceId;
         $this->tenantId = $tenantId;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle()
     {
         Log::info("【PDF 任务开始】Invoice ID: {$this->invoiceId}, 尝试次数: {$this->attempts()}, 系统: " . PHP_OS_FAMILY);
+        
         $connectionName = 'bus_user_' . $this->tenantId;
-
         $dbConfig = $this->getTenantDbConfig($this->tenantId); 
         
         if (!$dbConfig) {
@@ -64,14 +59,14 @@ class GenerateRequestPdfJob implements ShouldQueue
             'database' => $dbConfig['database'],
             'username' => $dbConfig['username'],
             'password' => $dbConfig['password'],
-            // ... 其他配置
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
         ]);
-        // ==========================================
-        // 1. 【核心修复】跨平台自动检测 Chrome 路径
-        // ==========================================
 
-
-        // 2. 获取数据
+        // 1. 获取数据
         $invoice = Invoice::on($connectionName)->find($this->invoiceId);
         
         if (!$invoice) {
@@ -87,7 +82,7 @@ class GenerateRequestPdfJob implements ShouldQueue
         $bank = Bank::on($connectionName)->where('id', $invoice->bank_id)->first();
         $company_info = UserCompanyInfo::on($connectionName)->where('user_company_id', $this->tenantId)->first();
 
-        // 3. 准备数据
+        // 2. 准备数据
         $data = [
             'invoice' => (object)[
                 'invoice_date' => $invoice->invoice_date,
@@ -116,8 +111,10 @@ class GenerateRequestPdfJob implements ShouldQueue
             ]
         ];
 
+        $tempPdfPath = null;
+
         try {
-            // 4. 渲染 HTML
+            // 3. 渲染 HTML
             $viewName = ($invoice->language == 1) ? 'masters.invoices.template_ja' : 'masters.invoices.template_en';
             
             if (!View::exists($viewName)) {
@@ -126,101 +123,74 @@ class GenerateRequestPdfJob implements ShouldQueue
 
             $html = View::make($viewName, $data)->render();
 
-
-            // ==========================================
-
-            // 6. 初始化 Browsershot
+            // 4. 初始化 Browsershot
             $browsershot = Browsershot::html($html);
 
-
-            // 构建通用参数
-            $chromeArgs = [
-                '--disable-gpu',
-                '--no-first-run',
-                '--no-zygote',
-                '--ignore-certificate-errors',
-            ];
-
-
-            $browsershot
-                ->paperSize(210, 297, 'mm') // A4
-                ->margins(15, 15, 15, 15) // mm
-                ->setOption('printBackground', true)
-                ->setOption('args', $chromeArgs)
-                ->waitUntilNetworkIdle()
-                ->timeout(30000); 
-
-
-            // 2. 根据操作系统设置 Chrome 路径（仅在 Windows 下需要指定）
+            // 5. 环境配置 (核心修复部分)
             if (PHP_OS_FAMILY === 'Windows') {
-                // Windows 环境：指定 chrome.exe 路径
                 $browsershot->setChromePath('D:\Google\Chrome\Application\chrome.exe');
             } else {
-                $browsershot->setNodePath('/usr/local/nodejs/bin/node');
+                // Linux 环境
+                // 建议：先在服务器执行 `which node` 确认路径
+                $nodePath = '/usr/local/nodejs/bin/node'; 
+                $chromePath = '/usr/local/chrome/chrome'; 
+
+                if (file_exists($nodePath)) {
+                    $browsershot->setNodePath($nodePath);
+                }
                 
-                // 如果上面只指定 node 还不行，可以尝试加上 npm 路径
-                $browsershot->setNpmPath('/usr/local/nodejs/bin/npm');
-                $browsershot->setChromePath('/usr/local/chrome/chrome');
-                // [Linux/生产环境] 取消下面这行的注释
-                $browsershot->addChromiumArguments(['--no-sandbox', '--disable-setuid-sandbox']);
+                if (file_exists($chromePath)) {
+                    $browsershot->setChromePath($chromePath);
+                }
+
+                // 【关键修复】添加必要的参数，解决 Zygote 和 权限问题
+                $browsershot->addChromiumArguments([
+                    '--no-sandbox', 
+                    '--disable-setuid-sandbox', 
+                    '--disable-dev-shm-usage', // 解决共享内存不足
+                    '--no-zygote'             // 解决 Zygote 报错
+                ]);
             }
 
-            // ==========================================
-            // 8. 生成 PDF：使用 savePdf + file_get_contents
-            // ==========================================
-            Log::info("正在调用 Chrome 生成 PDF (临时文件模式)...");
+            // 6. 配置 PDF 选项
+            $browsershot
+                ->paperSize(210, 297, 'mm')
+                ->margins(15, 15, 15, 15)
+                ->setOption('printBackground', true)
+                ->waitUntilNetworkIdle()
+                ->timeout(60000); // 增加超时时间到 60秒
 
+            // 7. 生成 PDF (临时文件模式)
+            Log::info("正在调用 Chrome 生成 PDF...");
             $tempPdfPath = tempnam(sys_get_temp_dir(), 'browsershot_') . '.pdf';
-            Log::info("临时 PDF 路径：{$tempPdfPath}");
-
-            try {
-                $browsershot->savePdf($tempPdfPath);
-                
-                if (!file_exists($tempPdfPath)) {
-                    throw new Exception("savePdf 执行完成，但临时文件未生成：{$tempPdfPath}。Chrome 可能已崩溃。");
-                }
-
-                $fileSize = filesize($tempPdfPath);
-                Log::info("临时 PDF 文件生成成功，大小：{$fileSize} 字节");
-
-                $pdfContent = file_get_contents($tempPdfPath);
-                
-                if ($pdfContent === false) {
-                    throw new Exception("无法读取临时 PDF 文件内容：{$tempPdfPath}");
-                }
-
-            } finally {
-                if (file_exists($tempPdfPath)) {
-                    @unlink($tempPdfPath);
-                    Log::info("临时文件已清理：{$tempPdfPath}");
-                }
+            
+            $browsershot->savePdf($tempPdfPath);
+            
+            if (!file_exists($tempPdfPath)) {
+                throw new Exception("savePdf 执行完成，但临时文件未生成。Chrome 可能已崩溃。");
             }
-            // ==========================================
 
-            // 9. 最终验证
-            if (!is_string($pdfContent) || empty($pdfContent)) {
-                throw new Exception('最终验证失败：PDF 内容为空或类型错误 (' . gettype($pdfContent) . ')。');
+            $pdfContent = file_get_contents($tempPdfPath);
+            
+            if ($pdfContent === false || empty($pdfContent)) {
+                throw new Exception("无法读取临时 PDF 文件内容或内容为空。");
             }
 
             Log::info("✅ PDF 二进制流准备成功，大小：" . strlen($pdfContent) . " 字节");
 
-            // 10. 构建保存路径 (YYYY/MMDD)
+            // 8. 保存文件
             $now = Carbon::now();
-            $year = $now->format('Y');
-            $monthDay = $now->format('md'); 
-            
-            $directory = "files/pdf/{$year}/{$monthDay}";
+            $directory = "files/pdf/{$now->format('Y')}/{$now->format('md')}";
             $filename = 'invoice_' . $data['invoice']->invoice_number . '.pdf';
             $relativePath = "{$directory}/{$filename}";
 
-            // 11. 保存文件到 storage/app/public
             $saved = Storage::disk('public')->put($relativePath, $pdfContent);
 
             if (!$saved) {
                 throw new Exception('文件保存失败，请检查 storage/app/public 目录权限');
             }
 
-            // 12. 更新数据库
+            // 9. 更新数据库
             $invoice->update([
                 'pdf_file_path' => $relativePath,
                 'pdf_generated_at' => now(),
@@ -228,38 +198,41 @@ class GenerateRequestPdfJob implements ShouldQueue
 
             Log::info("【PDF 任务成功】文件已保存：{$relativePath}", ['invoice_id' => $invoice->id]);
 
+        } catch (ProcessFailedException $exception) {
+            // 【关键】专门捕获 Chrome 进程失败的异常
+            Log::error('【PDF 任务异常】Chrome 进程失败：' . $exception->getMessage());
+            Log::error('Chrome Error Output: ' . $exception->getProcess()->getErrorOutput());
+            Log::error('Chrome Output: ' . $exception->getProcess()->getOutput());
+            
+            throw $exception; // 抛出异常以触发重试
+
         } catch (Exception $e) {
             Log::error('【PDF 任务异常】生成失败：' . $e->getMessage(), [
                 'invoice_id' => $this->invoiceId,
                 'attempt' => $this->attempts(),
-                'max_tries' => $this->tries,
-                'os' => PHP_OS_FAMILY,
-                'chrome_path' => $foundChromePath ?? 'Not Set',
                 'trace' => $e->getTraceAsString()
             ]);
             
             throw $e;
+        } finally {
+            // 10. 清理临时文件
+            if ($tempPdfPath && file_exists($tempPdfPath)) {
+                @unlink($tempPdfPath);
+                Log::info("临时文件已清理：{$tempPdfPath}");
+            }
         }
     }
 
-    /**
-     * 当所有重试次数用尽后调用的方法
-     */
     public function failed(Throwable $exception)
     {
-        Log::critical("【PDF 任务彻底失败】已耗尽所有重试次数 ({$this->tries} 次)", [
+        Log::critical("【PDF 任务彻底失败】已耗尽所有重试次数", [
             'invoice_id' => $this->invoiceId,
-            'os' => PHP_OS_FAMILY,
-            'error' => $exception->getMessage(),
-            'trace' => $exception->getTraceAsString()
+            'error' => $exception->getMessage()
         ]);
     }
 
-        private function getTenantDbConfig($tenantId)
+    private function getTenantDbConfig($tenantId)
     {
-        // 这里写你的逻辑，返回一个包含 host, database, username, password 的数组
-        // 例如：
-        // return DB::connection('mysql')->table('tenants')->find($tenantId);
         return [
             'host' => '127.0.0.1',
             'database' => 'bus_user_' . $tenantId,
