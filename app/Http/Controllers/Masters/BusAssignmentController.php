@@ -266,6 +266,8 @@ class BusAssignmentController extends Controller
             'dailyItineraries'
         ])->findOrFail($id);
         
+        $groupInfo = $busAssignment->groupInfo;
+        
         $logs = BusAssignmentLog::where('bus_assignment_id', $id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -299,6 +301,7 @@ class BusAssignmentController extends Controller
         
         return view('masters.bus-assignments.edit', compact(
             'busAssignment',
+            'groupInfo',
             'vehicles',
             'drivers',
             'guides',
@@ -422,11 +425,18 @@ class BusAssignmentController extends Controller
                     ];
                 }
                 
-                $newReservationStatus = $validated['reservation_status'] ?? ($groupInfo ? $groupInfo->reservation_status : null);
-                $newIgnoreOperation = $validated['ignore_operation'] ?? $busAssignment->ignore_operation;
+                $groupInfoData = $request->input('group_info', []);
+                $newIgnoreOperation = isset($groupInfoData['ignore_operation']) 
+                    ? filter_var($groupInfoData['ignore_operation'], FILTER_VALIDATE_BOOLEAN) 
+                    : false;
                 
-                $shouldCheck = !$newIgnoreOperation 
-                    && !in_array($newReservationStatus, ['見積', 'キャンセル']);
+                $newIgnoreAttendance = isset($groupInfoData['ignore_attendance']) 
+                    ? filter_var($groupInfoData['ignore_attendance'], FILTER_VALIDATE_BOOLEAN) 
+                    : false;
+
+                $newReservationStatus = $validated['reservation_status'] ?? ($groupInfo ? $groupInfo->reservation_status : null);
+                
+                $shouldCheck = !in_array($newReservationStatus, ['見積', 'キャンセル']);
                 
                 if ($shouldCheck) {
                     $this->checkConflicts(
@@ -435,9 +445,9 @@ class BusAssignmentController extends Controller
                         $itineraryData,
                         $busAssignment->id,
                         $groupInfo ? $groupInfo->id : null,
-                        $busAssignment->ignore_operation,
-                        $busAssignment->ignore_driver,
-                        $groupInfo ? $groupInfo->reservation_status : null
+                        $newIgnoreOperation,
+                        $newIgnoreAttendance,
+                        $groupInfo ? $groupInfo->reservation_status : null,
                     );
                 }
             }
@@ -445,6 +455,13 @@ class BusAssignmentController extends Controller
             
             
             $busAssignment->update($validated);
+            
+
+            $groupInfoData = [];
+            $groupInfoData['ignore_operation'] = isset($request->group_info['ignore_operation']) ? 1 : 0;
+            $groupInfoData['ignore_attendance'] = isset($request->group_info['ignore_attendance']) ? 1 : 0;
+            $groupInfo->update($groupInfoData);
+            
             
             $userId = session('user_id', auth()->id() ?? 0);
             $username = session('username', auth()->user()->name ?? 'system');
@@ -793,7 +810,7 @@ class BusAssignmentController extends Controller
         $excludeBusId = null,
         $excludeGroupId = null,
         $skipIgnoreOperation = false,
-        $ignoreDriver = false,
+        $ignoreAttendance = false,
         $currentReservationStatus = null
     ) {
         
@@ -802,7 +819,7 @@ class BusAssignmentController extends Controller
         }
         
         $checkVehicle = !empty($vehicleId);
-        $checkDriver = !empty($driverId) && !$ignoreDriver;
+        $checkDriver = !empty($driverId) && !$ignoreAttendance;
         
         if (!$checkVehicle && !$checkDriver) {
             return;
@@ -821,24 +838,27 @@ class BusAssignmentController extends Controller
                 $startDateTime = Carbon::parse($date . ' ' . $timeStart);
                 $endDateTime = Carbon::parse($date . ' ' . $timeEnd);
                 
-                $restConflict = $this->checkDriverRestConflict(
-                    $driverId,
-                    $startDateTime,
-                    $endDateTime,
-                    $excludeBusId
-                );
-                
-                if ($restConflict) {
-                    $driver = Driver::find($driverId);
-                    $driverName = $driver ? $driver->name : '#' . $driverId;
-                    throw new \Exception(
-                        "運転手「{$driverName}」は日付「{$date}」 " . 
-                        substr($timeStart, 0, 5) . "～" . substr($timeEnd, 0, 5) . 
-                        " に休憩時間が設定されています。\n" .
-                        "休憩時間: {$restConflict['start_datetime']} ～ {$restConflict['end_datetime']}\n" .
-                        "内容: {$restConflict['attendance_name']}"
+                if (!$ignoreAttendance) {
+                    $restConflict = $this->checkDriverRestConflict(
+                        $driverId,
+                        $startDateTime,
+                        $endDateTime,
+                        $excludeBusId
                     );
+                    
+                    if ($restConflict) {
+                        $driver = Driver::find($driverId);
+                        $driverName = $driver ? $driver->name : '#' . $driverId;
+                        throw new \Exception(
+                            "運転手「{$driverName}」は日付「{$date}」 " . 
+                            substr($timeStart, 0, 5) . "～" . substr($timeEnd, 0, 5) . 
+                            " に休憩時間が設定されています。\n" .
+                            "休憩時間: {$restConflict['start_datetime']} ～ {$restConflict['end_datetime']}\n" .
+                            "内容: {$restConflict['attendance_name']}"
+                        );
+                    }
                 }
+                
             }
         }
         
@@ -1002,10 +1022,28 @@ class BusAssignmentController extends Controller
         $conflict = $query->first();
         
         if ($conflict) {
+            $attributes = $conflict->getAttributes();
+            $rawDate = $attributes['date'];
+            $rawStartTime = $attributes['start_time'];
+            $rawEndTime = $attributes['end_time'];
+            
+            if ($rawDate instanceof Carbon) {
+                $rawDate = $rawDate->format('Y-m-d');
+            }
+            if ($rawStartTime instanceof Carbon) {
+                $rawStartTime = $rawStartTime->format('H:i:s');
+            }
+            if ($rawEndTime instanceof Carbon) {
+                $rawEndTime = $rawEndTime->format('H:i:s');
+            }
+            
+            $conflictStart = Carbon::parse($rawDate . ' ' . $rawStartTime);
+            $conflictEnd = Carbon::parse($rawDate . ' ' . $rawEndTime);
+            
             return [
                 'id' => $conflict->id,
-                'start_datetime' => Carbon::parse($conflict->start_time)->format('Y-m-d H:i'),
-                'end_datetime' => Carbon::parse($conflict->end_time)->format('Y-m-d H:i'),
+                'start_datetime' => $conflictStart->format('Y-m-d H:i'),
+                'end_datetime' => $conflictEnd->format('Y-m-d H:i'),
                 'attendance_name' => $conflict->category->attendance_name ?? '休憩',
                 'remarks' => $conflict->remarks
             ];

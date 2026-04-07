@@ -10,6 +10,7 @@
             - @yield('title')
         @endif
     </title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css">
     
@@ -267,7 +268,9 @@
 
         .sidebar.collapsed .submenu {
             position: fixed;
-            left: 62px;
+            left: 54px;
+            top: 0;
+            margin-top: -1px;
             background: #1e293b;
             border-radius: 8px;
             padding: 8px 0;
@@ -322,12 +325,102 @@
             content: '';
             position: absolute;
             left: -8px;
+            top: 20px;
             width: 0;
             height: 0;
             border-style: solid;
             border-width: 6px 8px 6px 0;
             border-color: transparent #1e293b transparent transparent;
             z-index: 1002;
+            pointer-events: none;
+        }
+
+        .submenu .submenu-level2 {
+            list-style: none;
+            padding-left: 20px;
+            margin: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .submenu .submenu-level2.show {
+            max-height: 300px;
+            overflow: visible !important;
+        }
+
+        .submenu .submenu-level2 li {
+            margin-bottom: 2px;
+        }
+
+        .submenu .submenu-level2 a {
+            padding: 5px 10px !important;
+            font-size: 11px;
+        }
+
+        .submenu .has-submenu {
+            position: relative;
+        }
+
+        .submenu .has-submenu > a {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .submenu .has-submenu > a i {
+            margin-right: 8px;
+        }
+
+        .submenu .has-submenu > a::after {
+            content: '\f282';
+            font-family: 'bootstrap-icons';
+            font-size: 10px;
+            transition: transform 0.2s;
+            margin-left: auto;
+        }
+
+        .submenu .has-submenu.open > a::after {
+            transform: rotate(90deg);
+        }
+
+        .sidebar.collapsed .submenu .submenu-level2 {
+            position: fixed;
+            left: 268px !important;
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 180px;
+            max-height: calc(100vh - 20px);
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1002;
+            display: none;
+        }
+        
+        .sidebar.collapsed .submenu .submenu-level2.show {
+            display: block;
+        }
+        
+        .sidebar.collapsed .submenu .submenu-level2 a {
+            white-space: nowrap;
+            padding: 8px 16px;
+        }
+        
+        .sidebar.collapsed .submenu .submenu-level2 a i {
+            margin-right: 8px;
+        }
+        
+        .sidebar.collapsed .submenu .submenu-level2::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 6px 8px 6px 0;
+            border-color: transparent #1e293b transparent transparent;
+            z-index: 1003;
             pointer-events: none;
         }
 
@@ -364,10 +457,10 @@
             left: 186px;
             width: 24px;
             height: 24px;
-            background: rgba(100, 116, 139, 0.5);
+            background: #e2e8f0;
             border: none;
             border-radius: 4px;
-            color: #94a3b8;
+            color: #666;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -468,6 +561,236 @@
         .mobile-menu-toggle {
             display: none;
         }
+        
+        
+        
+        
+        
+
+        .flatpickr-calendar {
+            border: 1px solid #ddd !important;
+            border-radius: 6px !important;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12) !important;
+            font-family: inherit !important;
+            font-size: 11px !important;
+            overflow: hidden !important;
+        }
+        
+        .flatpickr-calendar.multiMonth {
+            width: 516px !important;
+            max-width: 95vw !important;
+        }
+        
+        .flatpickr-calendar.multiMonth .flatpickr-innerContainer {
+            width: 100% !important;
+        }
+        
+        .flatpickr-calendar.multiMonth .flatpickr-months {
+            display: flex !important;
+        }
+        
+        .flatpickr-calendar.multiMonth .flatpickr-month {
+            flex: 1 !important;
+        }
+        
+        .flatpickr-calendar.multiMonth .flatpickr-month:not(:last-child) {
+            border-right: 1px solid #e9ecef !important;
+        }
+        
+        .flatpickr-months {
+            background: linear-gradient(135deg, #1f3241 0%, #2d4a5e 100%) !important;
+            border-radius: 6px 6px 0 0 !important;
+            display: flex !important;
+        }
+        
+        .flatpickr-month {
+            height: 28px !important;
+            padding-right: 0 !important;
+        }
+        
+        .flatpickr-current-month {
+            padding: 3px 0 0 0 !important;
+        }
+        
+        .flatpickr-current-month .flatpickr-monthDropdown-months {
+            font-weight: 600 !important;
+            color: #fff !important;
+            font-size: 11px !important;
+        }
+        
+        .flatpickr-current-month .numInputWrapper span {
+            color: #fff !important;
+        }
+        
+        .flatpickr-current-month input.cur-year {
+            color: #fff !important;
+            font-weight: 600 !important;
+            font-size: 11px !important;
+        }
+        
+        .flatpickr-months .flatpickr-month,
+        .flatpickr-months .flatpickr-next-month,
+        .flatpickr-months .flatpickr-prev-month {
+            color: #fff !important;
+            fill: #fff !important;
+        }
+        
+        .flatpickr-months .flatpickr-next-month:hover svg,
+        .flatpickr-months .flatpickr-prev-month:hover svg {
+            fill: #ffc107 !important;
+        }
+        
+        .flatpickr-months .flatpickr-next-month,
+        .flatpickr-months .flatpickr-prev-month {
+            width: 20px !important;
+            height: 20px !important;
+            padding: 2px !important;
+        }
+        
+        .flatpickr-weekdays {
+            background: #f8f9fa !important;
+            border-bottom: 1px solid #e9ecef !important;
+            margin: 0 !important;
+        }
+        
+        .flatpickr-weekday {
+            color: #495057 !important;
+            font-weight: 600 !important;
+            font-size: 10px !important;
+            padding: 1px 0 !important;
+        }
+        
+        .flatpickr-days {
+            border: none !important;
+            padding: 0 !important;
+        }
+        
+        .flatpickr-day {
+            color: #374151 !important;
+            border-radius: 2px !important;
+            margin: 0 !important;
+            border: 1px solid transparent !important;
+            max-width: 24px !important;
+            width: 24px !important;
+            height: 22px !important;
+            line-height: 20px !important;
+            font-size: 10px !important;
+        }
+        
+        .flatpickr-day:hover {
+            background: #e0f2fe !important;
+            border-color: #2563eb !important;
+            color: #2563eb !important;
+        }
+        
+        .flatpickr-day.selected {
+            background: #2563eb !important;
+            border-color: #2563eb !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+        }
+        
+        .flatpickr-day.selected:hover {
+            background: #1d4ed8 !important;
+        }
+        
+        .flatpickr-day.startRange,
+        .flatpickr-day.endRange {
+            background: #2563eb !important;
+            border-color: #2563eb !important;
+            color: #fff !important;
+        }
+        
+        .flatpickr-day.inRange {
+            background: #dbeafe !important;
+            border-color: transparent !important;
+            color: #1e40af !important;
+        }
+        
+        .flatpickr-day.today {
+            border-color: #ffc107 !important;
+            background: #fffbeb !important;
+            color: #374151 !important;
+        }
+        
+        .flatpickr-day.today:hover {
+            background: #fef3c7 !important;
+            border-color: #f59e0b !important;
+            color: #374151 !important;
+        }
+        
+        .flatpickr-months .flatpickr-month {
+            background: transparent !important;
+        }
+        
+        span.flatpickr-weekday {
+            background: #f8f9fa !important;
+        }
+        
+        .flatpickr-calendar.showTimeInput.hasTime .flatpickr-time {
+            border-top: 1px solid #e9ecef !important;
+        }
+        
+        .flatpickr-calendar.multiMonth .dayContainer {
+            width: 168px !important;
+            min-width: 168px !important;
+            max-width: 168px !important;
+            position: relative !important;
+        }
+        
+        .month-wrapper {
+            flex: 1 !important;
+            position: relative !important;
+            padding: 2px !important;
+            height: 135px !important;
+        }
+        
+        .month-wrapper:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background-color: #e9ecef;
+        }
+        
+        .flatpickr-calendar.multiMonth .flatpickr-days {
+            display: flex !important;
+            position: relative;
+            width: 514px !important;
+        }
+        
+        .flatpickr-calendar.multiMonth .flatpickr-days .dayContainer {
+            padding: 0 !important;
+        }
+        
+        .flatpickr-calendar.multiMonth .flatpickr-rContainer {
+            width: 514px !important;
+        }
+        
+        
+        .flatpickr-day.start-range-highlight,
+        .flatpickr-day.start-range-highlight.flatpickr-disabled,
+        .flatpickr-day.start-range-highlight.today {
+            background: #2563eb !important;
+            border-color: #2563eb !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            border-radius: 4px !important;
+        }
+        
+        .flatpickr-day.end-range-highlight,
+        .flatpickr-day.end-range-highlight.flatpickr-disabled,
+        .flatpickr-day.end-range-highlight.today {
+            background: #2563eb !important;
+            border-color: #2563eb !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            border-radius: 4px !important;
+        }
+        
+
 
         @media (max-width: 768px) {
             .sidebar {
@@ -509,6 +832,7 @@
                 padding-left: 70px;
             }
         }
+        
     </style>
     @stack('styles')
 </head>
@@ -521,7 +845,7 @@
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-            <img src="/images/logo.jpg" alt="Logo" id="logoImg">
+            <img src="/images/logo.png" alt="Logo" id="logoImg">
         </div>
 
         <nav class="sidebar-nav" id="sidebarNav">
@@ -537,6 +861,7 @@
                 $canViewSales = $isAdmin || $isOperationsManager || $isManager;
                 $canViewResults = $isAdmin || $isOperationsManager || $isManager;
                 $canViewMaster = $isAdmin || $isOperationsManager;
+                $canViewAccounting = $isAdmin || $isManager; 
             @endphp
             
             <div class="nav-item" data-menu="home">
@@ -557,13 +882,11 @@
                 <ul class="submenu submenu-s">
                     <li><a href="{{ route('masters.operation-ledger.index') }}" data-route="operation-ledger">運行台帳</a></li>
                     <li><a href="{{ route('masters.driver-ledger.index') }}" data-route="driver-ledger">運転手台帳</a></li>
-                    <li><a href="{{ route('masters.bus-assignments.index') }}" data-route="bus-assignments">運行一覧</a></li>
                     <li><a href="{{ route('masters.group-infos.index') }}" data-route="group-infos">予約一覧</a></li>
+                    <li><a href="{{ route('masters.bus-assignments.index') }}" data-route="bus-assignments">運行一覧</a></li>
+                    <li><a href="{{ route('masters.drivers.index') }}" data-route="drivers-operations">乗務指示一覧</a></li>
                     <li><a href="{{ route('masters.daily-itineraries.index') }}" data-route="daily-itineraries">日次一覧</a></li>
-                    <li><a href="{{ route('masters.drivers.index') }}" data-route="drivers">乗務指示一覧</a></li>
-                    <li><hr class="dropdown-divider" style="margin: 8px 0;"></li>
-                    <li><a href="{{ route('masters.basicinfo.index') }}" data-route="basicinfo">デジタコデータアップロード</a></li>
-                    <li><a href="{{ route('masters.basicinfo.index') }}" data-route="basicinfo-history">アップロード履歴</a></li>
+                    <li><a href="{{ route('masters.attendance-categories.index') }}" data-route="attendance-categories-operations">運転手勤怠</a></li>
                 </ul>
             </div>
             @endif
@@ -576,24 +899,24 @@
                     <i class="bi bi-chevron-down menu-arrow"></i>
                 </div>
                 <ul class="submenu submenu-s">
-                    <li><a href="{{ route('masters.products.index') }}" data-route="products">品名</a></li>
-                    <li><a href="{{ route('masters.currencies.index') }}" data-route="currencies">货币汇率</a></li>
-                    <li><a href="{{ route('masters.invoices.index', ['group_id' => 12]) }}" data-route="invoices">請求管理</a></li>
+                    <li><a href="{{ route('masters.invoices.index', ['group_id' => 12]) }}" data-route="invoices">請求一覧</a></li>
                     <li><a href="{{ route('masters.payments.index') }}" data-route="payments">入金管理</a></li>
+                    <li><a href="{{ route('masters.products.index') }}" data-route="products-sales">請求項目設定</a></li>
+                    <li><a href="{{ route('masters.currencies.index') }}" data-route="currencies">為替レート</a></li>
                 </ul>
             </div>
             @endif
 
             @if($canViewResults)
             <div class="nav-item" data-menu="results">
-                <div class="nav-header" data-title="実績集計">
+                <div class="nav-header" data-title="実績管理">
                     <i class="bi bi-graph-up-arrow menu-icon"></i>
-                    <span class="menu-title">実績集計</span>
+                    <span class="menu-title">実績管理</span>
                     <i class="bi bi-chevron-down menu-arrow"></i>
                 </div>
                 <ul class="submenu submenu-s">
-                    <li><a href="{{ route('masters.basicinfo.index') }}" data-route="basicinfo-performance">輸送実績一覧</a></li>
-                    <li><a href="{{ route('masters.drivers.index') }}" data-route="drivers-performance">乗務実績一覧</a></li>
+                    <li><a href="{{ route('masters.basicinfo.index') }}" data-route="basicinfo-performance">運行実績</a></li>
+                    <li><a href="{{ route('masters.drivers.index') }}" data-route="drivers-performance">乗務実績</a></li>
                     <li><a href="{{ route('masters.fees.index') }}" data-route="fees">売上集計</a></li>
                 </ul>
             </div>
@@ -601,9 +924,9 @@
 
             @if($canViewMaster)
             <div class="nav-item" data-menu="master">
-                <div class="nav-header" data-title="マスター管理">
+                <div class="nav-header" data-title="マスタ管理">
                     <i class="bi bi-database-gear menu-icon"></i>
-                    <span class="menu-title">マスター管理</span>
+                    <span class="menu-title">マスタ管理</span>
                     <i class="bi bi-chevron-down menu-arrow"></i>
                 </div>
                 <ul class="submenu submenu-s">
@@ -614,15 +937,48 @@
                     <li><a href="{{ route('masters.drivers.index') }}" data-route="drivers-master">運転手</a></li>
                     <li><a href="{{ route('masters.guides.index') }}" data-route="guides">ガイド</a></li>
                     <li><a href="{{ route('masters.agencies.index') }}" data-route="agencies">代理店</a></li>
-                    <li><a href="{{ route('masters.partners.index') }}" data-route="partners">取引先(傭車先)</a></li>
+                    <li><a href="{{ route('masters.partners.index') }}" data-route="partners">取引先</a></li>
                     <li><a href="{{ route('masters.itineraries.index') }}" data-route="itineraries">行程</a></li>
                     <li><a href="{{ route('masters.reservation-categories.index') }}" data-route="reservation-categories">予約分類</a></li>
-                    <li><a href="{{ route('masters.attendance-categories.index') }}" data-route="attendance-categories">勤怠分類</a></li>
+                    <li><a href="{{ route('masters.attendance-categories.index') }}" data-route="attendance-categories-master">勤怠分類</a></li>
                     <li><a href="{{ route('masters.remarks.index') }}" data-route="remarks">備考</a></li>
-                    <li><a href="{{ route('masters.banks.index') }}" data-route="banks">Bank</a></li>
+                    <li><a href="{{ route('masters.banks.index') }}" data-route="banks">銀行</a></li>
                     <li><a href="{{ route('masters.vehicle-types.index') }}" data-route="vehicle-types">車両種類</a></li>
-                    <li><hr class="dropdown-divider" style="margin: 8px 0;"></li>
+                    <li><a href="#" data-route="vehicle-grade">車両グレード</a></li>
                     <li><a href="{{ route('masters.login-histories.index') }}" data-route="login-histories">ログイン履歴</a></li>
+                </ul>
+            </div>
+            @endif
+
+            @if($canViewAccounting)
+            <div class="nav-item" data-menu="accounting">
+                <div class="nav-header" data-title="会計システム">
+                    <i class="bi bi-calculator menu-icon"></i>
+                    <span class="menu-title">会計システム</span>
+                    <i class="bi bi-chevron-down menu-arrow"></i>
+                </div>
+                <ul class="submenu submenu-s">
+                    <li><a href="{{ route('masters.journal_entries.index') }}" data-route="journal-entries">仕訳帳</a></li>
+                    <li><a href="{{ route('masters.products.index') }}" data-route="products-cash">現金出納帳</a></li>
+                    <li><a href="{{ route('masters.products.index') }}" data-route="products-deposit">預金出納帳</a></li>
+                    <li><a href="{{ route('masters.products.index') }}" data-route="products-receivable">売掛帳</a></li>
+                    <li><a href="{{ route('masters.products.index') }}" data-route="products-payable">買掛帳</a></li>
+                    <li><a href="{{ route('masters.account-ledgers.index') }}" data-route="account-ledgers">勘定元帳</a></li>
+                    <li><a href="{{ route('masters.account-month-sums.index') }}" data-route="account-month-sums">月次決算</a></li>
+                    <li><a href="{{ route('masters.account-bs.index') }}" data-route="account-bs">貸借対照表</a></li>
+                    <li><a href="{{ route('masters.account-pl.index') }}" data-route="account-pl">損益計算書</a></li>
+                    <li><a href="{{ route('masters.products.index') }}" data-route="products-cashflow">キャッシュフロー計算書</a></li>
+                    <li class="has-submenu">
+                        <a href="#"><i class="bi bi-folder2-open"></i>各種マスタ</a>
+                        <ul class="submenu-level2">
+                            <li><a href="{{ route('masters.account-categories.index') }}" data-route="account-categories">区分</a></li>	
+                            <li><a href="{{ route('masters.account-taxs.index') }}" data-route="account-taxs">税区分</a></li>	
+                            <li><a href="{{ route('masters.account-departments.index') }}" data-route="account-departments">部門</a></li>	
+                            <li><a href="{{ route('masters.account_partners.index') }}" data-route="account-partners">取引先</a></li>	
+                            <li><a href="{{ route('masters.accounts.index') }}" data-route="accounts">勘定科目</a></li>	
+                            <li><a href="{{ route('masters.account-subs.index') }}" data-route="account-subs">補助科目</a></li>
+                        </ul>
+                    </li>
                 </ul>
             </div>
             @endif
@@ -670,6 +1026,7 @@
 <div class="mobile-overlay" id="mobileOverlay" style="display: none;"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
 <script>
 document.documentElement.classList.add('no-transition');
 
@@ -684,12 +1041,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let currentTooltip = null;
     let closeTimer = null;
+    let isMouseOnSubmenu = false;
+    let isMouseOnLevel2 = false;
     
     function updateLogo() {
         if (sidebar.classList.contains('collapsed')) {
-            logoImg.src = '/images/logo_s.jpg';
+            logoImg.src = '/images/logo_s.png';
         } else {
-            logoImg.src = '/images/logo.jpg';
+            logoImg.src = '/images/logo.png';
         }
     }
     
@@ -718,6 +1077,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     submenu.style.display = 'none';
                 }
             });
+            document.querySelectorAll('.has-submenu.open').forEach(item => {
+                item.classList.remove('open');
+                const level2 = item.querySelector('.submenu-level2');
+                if (level2) {
+                    level2.classList.remove('show');
+                    level2.style.display = 'none';
+                }
+            });
             hideTooltip();
         } else {
             sidebar.classList.remove('collapsed');
@@ -739,6 +1106,14 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.submenu').forEach(submenu => {
                 submenu.style.display = '';
                 submenu.style.visibility = '';
+            });
+            
+            document.querySelectorAll('.has-submenu.open').forEach(item => {
+                item.classList.remove('open');
+                const level2 = item.querySelector('.submenu-level2');
+                if (level2) {
+                    level2.classList.remove('show');
+                }
             });
             
             if (closeTimer) {
@@ -819,6 +1194,44 @@ document.addEventListener('DOMContentLoaded', function() {
         hideTooltip();
     }
     
+    function showFloatingSubmenuLevel2(submenuLevel2, clickedElement) {
+        if (closeTimer) {
+            clearTimeout(closeTimer);
+            closeTimer = null;
+        }
+        submenuLevel2.style.display = 'block';
+        submenuLevel2.style.visibility = 'hidden';
+        const rect = clickedElement.getBoundingClientRect();
+        const submenuHeight = submenuLevel2.offsetHeight;
+        const windowHeight = window.innerHeight;
+        const margin = 10;
+        let topPosition = rect.top;
+        if (topPosition + submenuHeight + margin > windowHeight) {
+            topPosition = windowHeight - submenuHeight - margin;
+        }
+        if (topPosition < margin) {
+            topPosition = margin;
+        }
+        
+        let arrowTop = rect.top - topPosition + 20;
+        arrowTop = Math.max(arrowTop, 12);
+        arrowTop = Math.min(arrowTop, submenuHeight - 12);
+        
+        const styleId = 'level2-arrow-position-style';
+        let styleEl = document.getElementById(styleId);
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = styleId;
+            document.head.appendChild(styleEl);
+        }
+        styleEl.textContent = `.sidebar.collapsed .submenu .submenu-level2.show::before { top: ${arrowTop}px; }`;
+        
+        submenuLevel2.style.top = topPosition + 'px';
+        submenuLevel2.style.left = (rect.right + 8) + 'px';
+        submenuLevel2.style.visibility = 'visible';
+        hideTooltip();
+    }
+    
     function hideAllFloatingSubmenus() {
         if (closeTimer) {
             clearTimeout(closeTimer);
@@ -833,8 +1246,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     submenu.style.display = 'none';
                     submenu.style.visibility = '';
                 }
+                item.querySelectorAll('.has-submenu.open').forEach(hasSub => {
+                    hasSub.classList.remove('open');
+                    const level2 = hasSub.querySelector('.submenu-level2');
+                    if (level2) {
+                        level2.classList.remove('show');
+                        level2.style.display = 'none';
+                        level2.style.visibility = '';
+                    }
+                });
             });
         }
+        isMouseOnSubmenu = false;
+        isMouseOnLevel2 = false;
     }
     
     function scheduleHideSubmenus() {
@@ -842,60 +1266,40 @@ document.addEventListener('DOMContentLoaded', function() {
             clearTimeout(closeTimer);
         }
         closeTimer = setTimeout(function() {
-            const activeSubmenu = document.querySelector('.sidebar.collapsed .submenu.show');
-            if (activeSubmenu) {
+            if (!isMouseOnSubmenu && !isMouseOnLevel2) {
                 const hoveredElement = document.querySelector(':hover');
-                const isHoveringSubmenu = activeSubmenu.contains(hoveredElement);
                 const isHoveringNavHeader = hoveredElement && hoveredElement.closest('.nav-header');
-                if (!isHoveringSubmenu && !isHoveringNavHeader) {
+                if (!isHoveringNavHeader) {
                     hideAllFloatingSubmenus();
                 }
             }
             closeTimer = null;
-        }, 150);
+        }, 1000);
     }
     
     function highlightCurrentMenu() {
-        const allLinks = document.querySelectorAll('.submenu a');
+        const allLinks = document.querySelectorAll('.submenu a, .submenu-level2 a');
         const isCollapsed = sidebar.classList.contains('collapsed');
-        const currentPath = window.location.pathname;
-        const currentFullPath = window.location.href;
-        const pathParts = currentPath.split('/').filter(p => p);
-        let currentBasePath = currentPath;
-        if (pathParts.length >= 3) {
-            currentBasePath = '/' + pathParts.slice(0, 2).join('/');
+        const currentDataRoute = sessionStorage.getItem('currentMenuRoute');
+        
+        if (!currentDataRoute) {
+            allLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+            return;
         }
         
         allLinks.forEach(link => {
             const href = link.getAttribute('href');
+            const dataRoute = link.getAttribute('data-route');
+            
             if (href && href !== '#' && href !== '') {
                 let isMatch = false;
-                let linkPath = href;
-                if (href.startsWith('http')) {
-                    try {
-                        const url = new URL(href);
-                        linkPath = url.pathname;
-                    } catch(e) {
-                        linkPath = href;
-                    }
-                }
-                if (!linkPath.startsWith('/') && !linkPath.startsWith('http')) {
-                    linkPath = '/' + linkPath;
-                }
-                const linkParts = linkPath.split('/').filter(p => p);
-                let linkBasePath = linkPath;
-                if (linkParts.length >= 3) {
-                    linkBasePath = '/' + linkParts.slice(0, 2).join('/');
-                }
-                if (currentPath === linkPath) {
-                    isMatch = true;
-                } else if (currentBasePath === linkBasePath && linkBasePath !== '/') {
-                    isMatch = true;
-                } else if (linkPath !== '/' && currentPath.startsWith(linkPath + '/')) {
-                    isMatch = true;
-                } else if (currentFullPath === href) {
+                
+                if (dataRoute && dataRoute === currentDataRoute) {
                     isMatch = true;
                 }
+                
                 if (isMatch) {
                     link.classList.add('active');
                     if (!isCollapsed) {
@@ -907,6 +1311,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                 submenu.classList.add('show');
                             }
                         }
+                        const parentHasSubmenu = link.closest('.has-submenu');
+                        if (parentHasSubmenu) {
+                            parentHasSubmenu.classList.add('open');
+                            const level2 = parentHasSubmenu.querySelector('.submenu-level2');
+                            if (level2) {
+                                level2.classList.add('show');
+                            }
+                        }
                     }
                 } else {
                     link.classList.remove('active');
@@ -915,8 +1327,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    function bindMenuClickTracking() {
+        const allMenuLinks = document.querySelectorAll('.submenu a, .submenu-level2 a');
+        
+        allMenuLinks.forEach(link => {
+            link.removeEventListener('click', link._trackHandler);
+            
+            const trackHandler = function(e) {
+                const dataRoute = this.getAttribute('data-route');
+                if (dataRoute) {
+                    sessionStorage.setItem('currentMenuRoute', dataRoute);
+                }
+            };
+            
+            link.addEventListener('click', trackHandler);
+            link._trackHandler = trackHandler;
+        });
+    }
+    
+    function initMenuHighlight() {
+        bindMenuClickTracking();
+        highlightCurrentMenu();
+    }
+    
     function rebindNavHeaders() {
         const navHeaders = document.querySelectorAll('.nav-header');
+        const hasSubmenuItems = document.querySelectorAll('.has-submenu');
         const isCollapsed = sidebar.classList.contains('collapsed');
         
         navHeaders.forEach(header => {
@@ -946,6 +1382,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         parentItem.classList.remove('open');
                         submenu.classList.remove('show');
                         submenu.style.display = 'none';
+                        parentItem.querySelectorAll('.has-submenu.open').forEach(item => {
+                            item.classList.remove('open');
+                            const level2 = item.querySelector('.submenu-level2');
+                            if (level2) {
+                                level2.classList.remove('show');
+                                level2.style.display = 'none';
+                            }
+                        });
                     } else {
                         document.querySelectorAll('.nav-item.open').forEach(item => {
                             if (item !== parentItem) {
@@ -955,6 +1399,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                     otherSubmenu.classList.remove('show');
                                     otherSubmenu.style.display = 'none';
                                 }
+                                item.querySelectorAll('.has-submenu.open').forEach(subItem => {
+                                    subItem.classList.remove('open');
+                                    const level2 = subItem.querySelector('.submenu-level2');
+                                    if (level2) {
+                                        level2.classList.remove('show');
+                                        level2.style.display = 'none';
+                                    }
+                                });
                             }
                         });
                         parentItem.classList.add('open');
@@ -965,7 +1417,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (isOpen) {
                         parentItem.classList.remove('open');
                         submenu.classList.remove('show');
+                        parentItem.querySelectorAll('.has-submenu.open').forEach(item => {
+                            item.classList.remove('open');
+                            const level2 = item.querySelector('.submenu-level2');
+                            if (level2) {
+                                level2.classList.remove('show');
+                            }
+                        });
                     } else {
+                        document.querySelectorAll('.nav-item.open').forEach(item => {
+                            if (item !== parentItem) {
+                                item.classList.remove('open');
+                                const otherSubmenu = item.querySelector('.submenu');
+                                if (otherSubmenu) {
+                                    otherSubmenu.classList.remove('show');
+                                }
+                                item.querySelectorAll('.has-submenu.open').forEach(subItem => {
+                                    subItem.classList.remove('open');
+                                    const level2 = subItem.querySelector('.submenu-level2');
+                                    if (level2) {
+                                        level2.classList.remove('show');
+                                    }
+                                });
+                            }
+                        });
                         parentItem.classList.add('open');
                         submenu.classList.add('show');
                     }
@@ -1023,6 +1498,84 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        hasSubmenuItems.forEach(item => {
+            item.removeEventListener('click', item._clickHandler);
+            item.removeEventListener('mouseenter', item._mouseEnterHandler);
+            item.removeEventListener('mouseleave', item._mouseLeaveHandler);
+            
+            const clickHandler = function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                const linkElement = this.querySelector('a');
+                if (linkElement) {
+                    const dataRoute = linkElement.getAttribute('data-route');
+                    if (dataRoute) {
+                        sessionStorage.setItem('currentMenuRoute', dataRoute);
+                    }
+                }
+                
+                const isOpen = this.classList.contains('open');
+                const submenuLevel2 = this.querySelector('.submenu-level2');
+                
+                if (sidebar.classList.contains('collapsed')) {
+                    if (isOpen) {
+                        this.classList.remove('open');
+                        if (submenuLevel2) {
+                            submenuLevel2.classList.remove('show');
+                            submenuLevel2.style.display = 'none';
+                        }
+                    } else {
+                        const parentSubmenu = this.closest('.submenu');
+                        if (parentSubmenu) {
+                            parentSubmenu.querySelectorAll('.has-submenu.open').forEach(other => {
+                                if (other !== this) {
+                                    other.classList.remove('open');
+                                    const otherSubmenu = other.querySelector('.submenu-level2');
+                                    if (otherSubmenu) {
+                                        otherSubmenu.classList.remove('show');
+                                        otherSubmenu.style.display = 'none';
+                                    }
+                                }
+                            });
+                        }
+                        this.classList.add('open');
+                        if (submenuLevel2) {
+                            submenuLevel2.classList.add('show');
+                            showFloatingSubmenuLevel2(submenuLevel2, this);
+                        }
+                    }
+                } else {
+                    if (isOpen) {
+                        this.classList.remove('open');
+                        if (submenuLevel2) {
+                            submenuLevel2.classList.remove('show');
+                        }
+                    } else {
+                        const parentSubmenu = this.closest('.submenu');
+                        if (parentSubmenu) {
+                            parentSubmenu.querySelectorAll('.has-submenu.open').forEach(other => {
+                                if (other !== this) {
+                                    other.classList.remove('open');
+                                    const otherSubmenu = other.querySelector('.submenu-level2');
+                                    if (otherSubmenu) {
+                                        otherSubmenu.classList.remove('show');
+                                    }
+                                }
+                            });
+                        }
+                        this.classList.add('open');
+                        if (submenuLevel2) {
+                            submenuLevel2.classList.add('show');
+                        }
+                    }
+                }
+            };
+            
+            item.addEventListener('click', clickHandler);
+            item._clickHandler = clickHandler;
+        });
+        
         if (isCollapsed) {
             document.querySelectorAll('.sidebar.collapsed .submenu').forEach(submenu => {
                 submenu.removeEventListener('mouseenter', submenu._enterHandler);
@@ -1033,9 +1586,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         clearTimeout(closeTimer);
                         closeTimer = null;
                     }
+                    isMouseOnSubmenu = true;
                 };
                 
                 const leaveHandler = function() {
+                    isMouseOnSubmenu = false;
                     scheduleHideSubmenus();
                 };
                 
@@ -1043,6 +1598,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 submenu.addEventListener('mouseleave', leaveHandler);
                 submenu._enterHandler = enterHandler;
                 submenu._leaveHandler = leaveHandler;
+            });
+            
+            document.querySelectorAll('.sidebar.collapsed .submenu-level2').forEach(level2 => {
+                level2.removeEventListener('mouseenter', level2._enterHandler);
+                level2.removeEventListener('mouseleave', level2._leaveHandler);
+                
+                const enterHandler = function() {
+                    if (closeTimer) {
+                        clearTimeout(closeTimer);
+                        closeTimer = null;
+                    }
+                    isMouseOnLevel2 = true;
+                };
+                
+                const leaveHandler = function() {
+                    isMouseOnLevel2 = false;
+                    scheduleHideSubmenus();
+                };
+                
+                level2.addEventListener('mouseenter', enterHandler);
+                level2.addEventListener('mouseleave', leaveHandler);
+                level2._enterHandler = enterHandler;
+                level2._leaveHandler = leaveHandler;
             });
         }
     }
@@ -1069,13 +1647,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 50);
     
     rebindNavHeaders();
-    highlightCurrentMenu();
+    initMenuHighlight();
     
     sidebar.addEventListener('mouseleave', function(e) {
         if (sidebar.classList.contains('collapsed')) {
             const relatedTarget = e.relatedTarget;
             const isLeavingToSubmenu = relatedTarget && relatedTarget.closest && relatedTarget.closest('.submenu');
-            if (!isLeavingToSubmenu) {
+            const isLeavingToLevel2 = relatedTarget && relatedTarget.closest && relatedTarget.closest('.submenu-level2');
+            if (!isLeavingToSubmenu && !isLeavingToLevel2) {
                 scheduleHideSubmenus();
             }
         }
@@ -1166,6 +1745,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
 @stack('scripts')
 </body>
 </html>

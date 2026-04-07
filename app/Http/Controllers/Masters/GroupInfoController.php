@@ -212,32 +212,38 @@ class GroupInfoController extends Controller
             }
         }
         
-        $query = DailyItinerary::whereDate('date', $date)
-            ->whereHas('busAssignment', function($q) use ($resourceType, $resourceId) {
-                if ($resourceType === 'vehicle') {
-                    $q->where('vehicle_id', $resourceId);
-                } elseif ($resourceType === 'driver') {
-                    $q->where('driver_id', $resourceId);
-                }
-            });
+        $query = DailyItinerary::whereDate('date', $date);
+        
+        if ($resourceType === 'vehicle') {
+            $query->where('vehicle_id', $resourceId);
+        } else {
+            $query->where('driver_id', $resourceId);
+        }
         
         if ($excludeBusId) {
             $query->where('bus_assignment_id', '!=', $excludeBusId);
         }
         
         if ($excludeGroupId) {
-            $query->whereHas('busAssignment', function($q) use ($excludeGroupId) {
-                $q->where('group_info_id', '!=', $excludeGroupId);
-            });
+            $query->where('group_info_id', '!=', $excludeGroupId);
         }
+        
+        $query->whereHas('groupInfo', function($q) {
+            $q->whereNotIn('reservation_status', ['見積', 'キャンセル']);
+        });
         
         $conflictingItineraries = $query->get();
         
         foreach ($conflictingItineraries as $itinerary) {
-            $existingStart = Carbon::parse($itinerary->time_start);
-            $existingEnd = Carbon::parse($itinerary->time_end);
-            $newStart = Carbon::parse($startTime);
-            $newEnd = Carbon::parse($endTime);
+            $itineraryDate = $itinerary->date;
+            if ($itineraryDate instanceof Carbon) {
+                $itineraryDate = $itineraryDate->format('Y-m-d');
+            }
+            
+            $existingStart = Carbon::parse($itineraryDate . ' ' . $itinerary->time_start);
+            $existingEnd = Carbon::parse($itineraryDate . ' ' . $itinerary->time_end);
+            $newStart = Carbon::parse($date . ' ' . $startTime);
+            $newEnd = Carbon::parse($date . ' ' . $endTime);
             
             if ($newStart->lt($existingEnd) && $newEnd->gt($existingStart)) {
                 $otherGroup = GroupInfo::find($itinerary->group_info_id);
@@ -511,7 +517,7 @@ class GroupInfoController extends Controller
                 $agencyInfo = Agency::find($request->agency_id);
             }
     
-            if (!$validated['ignore_operation'] && (!empty($request->vehicle_id) || !empty($request->driver_id))) {
+            if (!empty($request->vehicle_id) || !empty($request->driver_id)) {
                 $this->checkConflictsByItinerary(
                     $request->vehicle_id,
                     $request->driver_id,
@@ -520,7 +526,9 @@ class GroupInfoController extends Controller
                     $validated['end_date'],
                     $endTime,
                     null,
-                    $validated['reservation_status']
+                    $validated['reservation_status'],
+                    $validated['ignore_attendance'] ?? false,
+                    $validated['ignore_operation'] ?? false
                 );
             }
             
@@ -1610,7 +1618,7 @@ class GroupInfoController extends Controller
     
                         $existingItinerary->update($itineraryFields);
                         
-                        if (!$groupInfo->ignore_operation) {
+                        if (!$validated['ignore_operation']) {
                             if ($finalVehicleId > 0) {
                                 $vehicleSchedules[] = [
                                     'id' => $finalVehicleId,
@@ -1756,7 +1764,7 @@ class GroupInfoController extends Controller
                     
                     $newItinerary = DailyItinerary::create($itineraryFields);
                     
-                    if (!$groupInfo->ignore_operation) {
+                    if (!$validated['ignore_operation']) {
                         if ($vehicleId > 0) {
                             $vehicleSchedules[] = [
                                 'id' => $vehicleId,
@@ -1776,6 +1784,32 @@ class GroupInfoController extends Controller
                                 'itinerary_id' => $newItinerary->id,
                                 'bus_id' => $busAssignmentId
                             ];
+                        }
+                    }
+                }
+                
+                foreach ($driverSchedules as $schedule) {
+                    if (!$validated['ignore_attendance']) {
+                        $startDateTime = Carbon::parse($schedule['date'] . ' ' . $schedule['start']);
+                        $endDateTime = Carbon::parse($schedule['date'] . ' ' . $schedule['end']);
+                        
+                        $restConflict = $this->checkDriverRestConflict(
+                            $schedule['id'],
+                            $startDateTime,
+                            $endDateTime,
+                            $groupInfo->id
+                        );
+                        
+                        if ($restConflict) {
+                            $driver = Driver::find($schedule['id']);
+                            $driverName = $driver ? $driver->name : '#' . $schedule['id'];
+                            throw new \Exception(
+                                "運転手「{$driverName}」は日付「{$schedule['date']}」 " . 
+                                substr($schedule['start'], 0, 5) . "～" . substr($schedule['end'], 0, 5) . 
+                                " に休憩時間が設定されています。\n" .
+                                "休憩時間: {$restConflict['start_datetime']} ～ {$restConflict['end_datetime']}\n" .
+                                "内容: {$restConflict['attendance_name']}"
+                            );
                         }
                     }
                 }
@@ -1803,30 +1837,6 @@ class GroupInfoController extends Controller
                             $schedule['bus_id'],
                             $groupInfo->id
                         );
-                    }
-                    
-                    foreach ($driverSchedules as $schedule) {
-                        $startDateTime = Carbon::parse($schedule['date'] . ' ' . $schedule['start']);
-                        $endDateTime = Carbon::parse($schedule['date'] . ' ' . $schedule['end']);
-                        
-                        $restConflict = $this->checkDriverRestConflict(
-                            $schedule['id'],
-                            $startDateTime,
-                            $endDateTime,
-                            $groupInfo->id
-                        );
-                        
-                        if ($restConflict) {
-                            $driver = Driver::find($schedule['id']);
-                            $driverName = $driver ? $driver->name : '#' . $schedule['id'];
-                            throw new \Exception(
-                                "運転手「{$driverName}」は日付「{$schedule['date']}」 " . 
-                                substr($schedule['start'], 0, 5) . "～" . substr($schedule['end'], 0, 5) . 
-                                " に休憩時間が設定されています。\n" .
-                                "休憩時間: {$restConflict['start_datetime']} ～ {$restConflict['end_datetime']}\n" .
-                                "内容: {$restConflict['attendance_name']}"
-                            );
-                        }
                     }
                     
                     $vehicleConflicts = [];
@@ -2858,7 +2868,7 @@ public function updateBusAssignment(Request $request, $id)
     }
     
     
-    private function checkConflictsByItinerary($vehicleId, $driverId, $startDate, $startTime, $endDate, $endTime, $excludeGroupId = null, $currentReservationStatus = null)
+    private function checkConflictsByItinerary($vehicleId, $driverId, $startDate, $startTime, $endDate, $endTime, $excludeGroupId = null, $currentReservationStatus = null, $ignoreAttendance = false, $ignoreOperation = false)
     {
         if (in_array($currentReservationStatus, ['見積', 'キャンセル'])) {
             return;
@@ -2893,128 +2903,134 @@ public function updateBusAssignment(Request $request, $id)
                 $startDateTime = Carbon::parse($date . ' ' . $timeStart);
                 $endDateTime = Carbon::parse($date . ' ' . $timeEnd);
                 
-                $restConflict = $this->checkDriverRestConflict(
-                    $driverId,
-                    $startDateTime,
-                    $endDateTime,
-                    $excludeGroupId
-                );
-                
-                if ($restConflict) {
-                    $driver = Driver::find($driverId);
-                    $driverName = $driver ? $driver->name : '#' . $driverId;
-                    throw new \Exception(
-                        "運転手「{$driverName}」は日付「{$date}」 " . 
-                        substr($timeStart, 0, 5) . "～" . substr($timeEnd, 0, 5) . 
-                        " に休憩時間が設定されています。\n" .
-                        "休憩時間: {$restConflict['start_datetime']} ～ {$restConflict['end_datetime']}\n" .
-                        "内容: {$restConflict['attendance_name']}"
+                if (!$ignoreAttendance) {
+                    $restConflict = $this->checkDriverRestConflict(
+                        $driverId,
+                        $startDateTime,
+                        $endDateTime,
+                        $excludeGroupId
                     );
+                    
+                    if ($restConflict) {
+                        $driver = Driver::find($driverId);
+                        $driverName = $driver ? $driver->name : '#' . $driverId;
+                        throw new \Exception(
+                            "運転手「{$driverName}」は日付「{$date}」 " . 
+                            substr($timeStart, 0, 5) . "～" . substr($timeEnd, 0, 5) . 
+                            " に休憩時間が設定されています。\n" .
+                            "休憩時間: {$restConflict['start_datetime']} ～ {$restConflict['end_datetime']}\n" .
+                            "内容: {$restConflict['attendance_name']}"
+                        );
+                    }
+                }
+                
+            }
+        }
+        
+        if (!$ignoreOperation) {
+            $schedules = [];
+            if (!empty($vehicleId)) {
+                foreach ($itineraries as $itinerary) {
+                    $schedules[] = [
+                        'type' => 'vehicle',
+                        'id' => $vehicleId,
+                        'date' => $itinerary['date'],
+                        'start' => $itinerary['time_start'],
+                        'end' => $itinerary['time_end'],
+                    ];
                 }
             }
-        }
-        
-        $schedules = [];
-        if (!empty($vehicleId)) {
-            foreach ($itineraries as $itinerary) {
-                $schedules[] = [
-                    'type' => 'vehicle',
-                    'id' => $vehicleId,
-                    'date' => $itinerary['date'],
-                    'start' => $itinerary['time_start'],
-                    'end' => $itinerary['time_end'],
-                ];
-            }
-        }
-        
-        if (!empty($driverId)) {
-            foreach ($itineraries as $itinerary) {
-                $schedules[] = [
-                    'type' => 'driver',
-                    'id' => $driverId,
-                    'date' => $itinerary['date'],
-                    'start' => $itinerary['time_start'],
-                    'end' => $itinerary['time_end'],
-                ];
-            }
-        }
-        
-        $groupedSchedules = [];
-        foreach ($schedules as $schedule) {
-            $key = $schedule['type'] . '_' . $schedule['id'] . '_' . $schedule['date'];
-            if (!isset($groupedSchedules[$key])) {
-                $groupedSchedules[$key] = [];
-            }
-            $groupedSchedules[$key][] = $schedule;
-        }
-        
-        foreach ($groupedSchedules as $daySchedules) {
-            $firstSchedule = $daySchedules[0];
-            $resourceType = $firstSchedule['type'];
-            $resourceId = $firstSchedule['id'];
-            $date = $firstSchedule['date'];
             
-            $query = DailyItinerary::where('date', $date);
-            
-            if ($resourceType === 'vehicle') {
-                $query->where('vehicle_id', $resourceId);
-            } else {
-                $query->where('driver_id', $resourceId);
+            if (!empty($driverId)) {
+                foreach ($itineraries as $itinerary) {
+                    $schedules[] = [
+                        'type' => 'driver',
+                        'id' => $driverId,
+                        'date' => $itinerary['date'],
+                        'start' => $itinerary['time_start'],
+                        'end' => $itinerary['time_end'],
+                    ];
+                }
             }
             
-            if ($excludeGroupId) {
-                $query->where('group_info_id', '!=', $excludeGroupId);
+            $groupedSchedules = [];
+            foreach ($schedules as $schedule) {
+                $key = $schedule['type'] . '_' . $schedule['id'] . '_' . $schedule['date'];
+                if (!isset($groupedSchedules[$key])) {
+                    $groupedSchedules[$key] = [];
+                }
+                $groupedSchedules[$key][] = $schedule;
             }
             
-            $query->whereHas('groupInfo', function($q) {
-                $q->whereNotIn('reservation_status', ['見積', 'キャンセル']);
-            });
-            
-            $existingItineraries = $query->get();
-            
-            if ($existingItineraries->isEmpty()) {
-                continue;
-            }
-            
-            foreach ($daySchedules as $schedule) {
-                $newStart = Carbon::parse($schedule['start']);
-                $newEnd = Carbon::parse($schedule['end']);
+            foreach ($groupedSchedules as $daySchedules) {
+                $firstSchedule = $daySchedules[0];
+                $resourceType = $firstSchedule['type'];
+                $resourceId = $firstSchedule['id'];
+                $date = $firstSchedule['date'];
                 
-                foreach ($existingItineraries as $existing) {
-                    $otherBus = $existing->busAssignment;
-                    if ($otherBus && $otherBus->ignore_operation) {
-                        continue;
-                    }
+                $query = DailyItinerary::where('date', $date);
+                
+                if ($resourceType === 'vehicle') {
+                    $query->where('vehicle_id', $resourceId);
+                } else {
+                    $query->where('driver_id', $resourceId);
+                }
+                
+                if ($excludeGroupId) {
+                    $query->where('group_info_id', '!=', $excludeGroupId);
+                }
+                
+                $query->whereHas('groupInfo', function($q) {
+                    $q->whereNotIn('reservation_status', ['見積', 'キャンセル']);
+                });
+                
+                $existingItineraries = $query->get();
+                
+                if ($existingItineraries->isEmpty()) {
+                    continue;
+                }
+                
+                foreach ($daySchedules as $schedule) {
+                    $newStart = Carbon::parse($schedule['start']);
+                    $newEnd = Carbon::parse($schedule['end']);
                     
-                    $existingStart = Carbon::parse($existing->time_start);
-                    $existingEnd = Carbon::parse($existing->time_end);
-                    
-                    if ($newStart->lt($existingEnd) && $newEnd->gt($existingStart)) {
-                        $conflictGroup = GroupInfo::find($existing->group_info_id);
-                        $conflictGroupName = $conflictGroup ? $conflictGroup->group_name : '不明';
-                        $otherBusId = $existing->bus_assignment_id;
+                    foreach ($existingItineraries as $existing) {
+                        $otherBus = $existing->busAssignment;
+                        if ($otherBus && $otherBus->ignore_operation) {
+                            continue;
+                        }
                         
-                        if ($resourceType === 'vehicle') {
-                            $vehicle = Vehicle::find($resourceId);
-                            $resourceName = $vehicle ? $vehicle->registration_number : '不明';
-                            throw new \Exception(
-                                "車両「{$resourceName}」は日付「{$date}」 " . 
-                                substr($schedule['start'], 0, 5) . "～" . substr($schedule['end'], 0, 5) . 
-                                " に他のグループ「{$conflictGroupName}」(運行ID: {$otherBusId})の運行で既に使用されています。"
-                            );
-                        } else {
-                            $driver = Driver::find($resourceId);
-                            $resourceName = $driver ? $driver->name : '不明';
-                            throw new \Exception(
-                                "運転手「{$resourceName}」は日付「{$date}」 " . 
-                                substr($schedule['start'], 0, 5) . "～" . substr($schedule['end'], 0, 5) . 
-                                " に他のグループ「{$conflictGroupName}」(運行ID: {$otherBusId})の運行で既に使用されています。"
-                            );
+                        $existingStart = Carbon::parse($existing->time_start);
+                        $existingEnd = Carbon::parse($existing->time_end);
+                        
+                        if ($newStart->lt($existingEnd) && $newEnd->gt($existingStart)) {
+                            $conflictGroup = GroupInfo::find($existing->group_info_id);
+                            $conflictGroupName = $conflictGroup ? $conflictGroup->group_name : '不明';
+                            $otherBusId = $existing->bus_assignment_id;
+                            
+                            if ($resourceType === 'vehicle') {
+                                $vehicle = Vehicle::find($resourceId);
+                                $resourceName = $vehicle ? $vehicle->registration_number : '不明';
+                                throw new \Exception(
+                                    "車両「{$resourceName}」は日付「{$date}」 " . 
+                                    substr($schedule['start'], 0, 5) . "～" . substr($schedule['end'], 0, 5) . 
+                                    " に他のグループ「{$conflictGroupName}」(運行ID: {$otherBusId})の運行で既に使用されています。"
+                                );
+                            } else {
+                                $driver = Driver::find($resourceId);
+                                $resourceName = $driver ? $driver->name : '不明';
+                                throw new \Exception(
+                                    "運転手「{$resourceName}」は日付「{$date}」 " . 
+                                    substr($schedule['start'], 0, 5) . "～" . substr($schedule['end'], 0, 5) . 
+                                    " に他のグループ「{$conflictGroupName}」(運行ID: {$otherBusId})の運行で既に使用されています。"
+                                );
+                            }
                         }
                     }
                 }
             }
         }
+        
     }
     
     private function checkDriverRestConflict($driverId, $startDateTime, $endDateTime, $excludeGroupId = null)

@@ -11,12 +11,12 @@
     <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">
         <form method="GET" action="{{ route('masters.daily-itineraries.index') }}" class="row g-2">
             <div class="col-auto">
-                <input type="date" name="date_from" value="{{ request('date_from') }}" 
-                       class="form-control form-control-sm" style="width: 140px; border-color: #E5E7EB;" placeholder="開始日">
+                <input type="text" name="date_from" value="{{ request('date_from') }}" 
+                       class="form-control form-control-sm datepicker-3months" style="width: 140px; border-color: #E5E7EB;" placeholder="開始日" autocomplete="off">
             </div>
             <div class="col-auto">
-                <input type="date" name="date_to" value="{{ request('date_to') }}" 
-                       class="form-control form-control-sm" style="width: 140px; border-color: #E5E7EB;" placeholder="終了日">
+                <input type="text" name="date_to" value="{{ request('date_to') }}" 
+                       class="form-control form-control-sm datepicker-3months" style="width: 140px; border-color: #E5E7EB;" placeholder="終了日" autocomplete="off">
             </div>
             <div class="col">
                 <input type="text" name="search" value="{{ request('search') }}" 
@@ -315,9 +315,12 @@ function closeDeleteModal() {
     document.body.style.overflow = '';
 }
 
-document.getElementById('newItineraryBtn').addEventListener('click', function() {
-    openIframeModal('{{ route('masters.daily-itineraries.create') }}', '新規旅程作成');
-});
+const newItineraryBtn = document.getElementById('newItineraryBtn');
+if (newItineraryBtn) {
+    newItineraryBtn.addEventListener('click', function() {
+        openIframeModal('{{ route('masters.daily-itineraries.create') }}', '新規旅程作成');
+    });
+}
 
 document.getElementById('iframeModal').addEventListener('click', function(e) {
     if (e.target === this) {
@@ -351,6 +354,136 @@ window.addEventListener('message', function(event) {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
+    let startDateValue = null;
+    let endDateValue = null;
+    
+    const startDatePicker = flatpickr('input[name="date_from"]', {
+        locale: 'ja',
+        dateFormat: 'Y-m-d',
+        showMonths: 3,
+        allowInput: true,
+        clickOpens: true,
+        disableMobile: true,
+        onOpen: function(selectedDates, dateStr, instance) {
+            instance.calendarContainer.style.zIndex = '9999';
+            if (startDateValue) {
+                instance.redraw();
+            }
+        },
+        onChange: function(selectedDates, dateStr, instance) {
+            if (selectedDates.length > 0) {
+                startDateValue = selectedDates[0];
+                endDatePicker.setDate(selectedDates[0]);
+                endDatePicker.open();
+                endDatePicker.set('minDate', selectedDates[0]);
+                setTimeout(function() {
+                    endDatePicker.redraw();
+                    instance.redraw();
+                }, 10);
+            } else {
+                startDateValue = null;
+                endDatePicker.set('minDate', null);
+                endDatePicker.redraw();
+                instance.redraw();
+            }
+        },
+        onDayCreate: function(dObj, dStr, fp, dayElem) {
+            const dayDate = dayElem.dateObj;
+            if (!dayDate) return;
+            
+            const dayDateStr = dayDate.toDateString();
+            
+            if (startDateValue && dayDateStr === startDateValue.toDateString()) {
+                dayElem.classList.remove('flatpickr-disabled');
+                dayElem.classList.add('start-range-highlight');
+            }
+        },
+        onReady: function(selectedDates, dateStr, instance) {
+            const daysContainer = instance.daysContainer;
+            if (daysContainer) {
+                const dayContainers = daysContainer.querySelectorAll('.dayContainer');
+                dayContainers.forEach(function(dayContainer) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'month-wrapper';
+                    dayContainer.parentNode.insertBefore(wrapper, dayContainer);
+                    wrapper.appendChild(dayContainer);
+                });
+            }
+            if (startDateValue) {
+                instance.redraw();
+            }
+        }
+    });
+    
+    const endDatePicker = flatpickr('input[name="date_to"]', {
+        locale: 'ja',
+        dateFormat: 'Y-m-d',
+        showMonths: 3,
+        allowInput: true,
+        clickOpens: true,
+        disableMobile: true,
+        minDate: startDatePicker.input.value || null,
+        onOpen: function(selectedDates, dateStr, instance) {
+            instance.calendarContainer.style.zIndex = '9999';
+            if (startDateValue) {
+                setTimeout(function() {
+                    instance.redraw();
+                }, 10);
+            }
+        },
+        onChange: function(selectedDates, dateStr, instance) {
+            if (selectedDates.length > 0) {
+                endDateValue = selectedDates[0];
+            } else {
+                endDateValue = null;
+            }
+            instance.redraw();
+        },
+        onDayCreate: function(dObj, dStr, fp, dayElem) {
+            const dayDate = dayElem.dateObj;
+            if (!dayDate) return;
+            
+            const dayDateStr = dayDate.toDateString();
+            
+            if (startDateValue && dayDateStr === startDateValue.toDateString()) {
+                dayElem.classList.remove('flatpickr-disabled');
+                dayElem.classList.add('start-range-highlight');
+            }
+            
+            if (endDateValue && dayDateStr === endDateValue.toDateString()) {
+                dayElem.classList.remove('flatpickr-disabled');
+                dayElem.classList.add('end-range-highlight');
+            }
+            
+            if (startDateValue && endDateValue && dayDate) {
+                const startTime = startDateValue.getTime();
+                const endTime = endDateValue.getTime();
+                const dayTime = dayDate.getTime();
+                
+                if (dayTime > startTime && dayTime < endTime) {
+                    dayElem.classList.add('in-range-highlight');
+                }
+            }
+        },
+        onReady: function(selectedDates, dateStr, instance) {
+            const daysContainer = instance.daysContainer;
+            if (daysContainer) {
+                const dayContainers = daysContainer.querySelectorAll('.dayContainer');
+                dayContainers.forEach(function(dayContainer) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'month-wrapper';
+                    dayContainer.parentNode.insertBefore(wrapper, dayContainer);
+                    wrapper.appendChild(dayContainer);
+                });
+            }
+            if (startDateValue) {
+                instance.redraw();
+            }
+        }
+    });
+    
+    
+    
     @if(request()->has('open_id'))
         openDetailIframe('{{ route('masters.daily-itineraries.show', request('open_id')) }}');
     @endif

@@ -39,8 +39,8 @@
         $searchableBgColor = '';
         $vehicleReadonly = '';
         $vehicleBgColor = '';
-        $driverReadonly = 'readonly';
-        $driverBgColor = 'background-color: #f9fafb;';
+        $driverReadonly = '';
+        $driverBgColor = '';
         $numberReadonly = '';
         $remarksReadonly = '';
         $checkboxDisabled = '';
@@ -346,12 +346,12 @@
         <div class="m-2">
             <div class="d-flex gap-4">
                 <div class="d-flex align-items-center">
-                    <input type="checkbox" id="ignore_operation" class="checkbox-large" name="ignore_operation" value="1" {{ $busAssignment->ignore_operation ? 'checked' : '' }} {{ $disabledAttr }}>
+                    <input type="checkbox" id="ignore_operation" class="checkbox-large" name="group_info[ignore_operation]" value="1" {{ $groupInfo->ignore_operation ? 'checked' : '' }} {{ $disabledAttr }}>
                     <label for="ignore_operation" class="label-text" style="color: #9ca3af;">運行無視</label>
                 </div>
                 <div class="d-flex align-items-center">
-                    <input type="checkbox" id="ignore_driver" class="checkbox-large" name="ignore_driver" value="1" {{ $busAssignment->ignore_driver ? 'checked' : '' }} {{ $disabledAttr }}>
-                    <label for="ignore_driver" class="label-text" style="color: #9ca3af;">勤怠無視</label>
+                    <input type="checkbox" id="ignore_attendance" class="checkbox-large" name="group_info[ignore_attendance]" value="1" {{ $groupInfo->ignore_attendance ? 'checked' : '' }}>
+                    <label for="ignore_attendance" class="label-text" style="color: #9ca3af;">勤怠無視</label>
                 </div>
             </div>
         </div>
