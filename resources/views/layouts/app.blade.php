@@ -845,7 +845,7 @@
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-            <img src="/images/logo.png" alt="Logo" id="logoImg">
+            <img src="/images/logo.jpg" alt="Logo" id="logoImg">
         </div>
 
         <nav class="sidebar-nav" id="sidebarNav">
@@ -1046,9 +1046,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateLogo() {
         if (sidebar.classList.contains('collapsed')) {
-            logoImg.src = '/images/logo_s.png';
+            logoImg.src = '/images/logo_s.jpg';
         } else {
-            logoImg.src = '/images/logo.png';
+            logoImg.src = '/images/logo.jpg';
         }
     }
     
