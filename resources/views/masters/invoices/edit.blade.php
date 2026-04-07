@@ -475,21 +475,25 @@
                             <i class="bi bi-x-circle"></i> キャンセル
                         </a>
                     </div>
-
-                     @if( !$invoice->is_locked && $invoice->total_amount == $invoice->paid_amount )
-                    <form action="{{ route('masters.invoices.destroy', $invoice) }}" 
-                        method="POST" 
-                        class="d-inline ms-auto" 
-                        onsubmit="return confirm('本当にこの請求書を削除しますか？復元できません。');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm" style="font-size: 0.875rem;">
-                            <i class="bi bi-trash"></i> 削除する
-                        </button>
                     </form>
+                    @if( !$invoice->is_locked && $invoice->total_amount == $invoice->paid_amount )
+                        <form id="deleteInvoiceForm" action="{{ route('masters.invoices.destroy',  [$invoice, 'group_id' => $groupId]) }}" 
+                            method="POST" 
+                            class="d-inline">
+                            @csrf 
+                            @method('DELETE') 
+                            <!-- ✅ 修改点：将逻辑移到按钮的 onclick 上，并传入 PHP 变量 -->
+                            <button type="submit" 
+                                    class="btn btn-danger btn-sm" 
+                                    style="font-size: 0.875rem;"
+                                    onclick="return checkAndDelete(event, {{ $invoice->type }}, '{{ $invoice->invoice_number }}')">
+                                <i class="bi bi-trash"></i> 削除する 
+                            </button> 
+                        </form> 
                     @endif
+
                 </div>
-            </form>
+
         </div>
     </div>
 </div>
@@ -879,6 +883,31 @@
         });
 
     })();
+
+    function checkAndDelete(event, type, number) {
+    // 阻止事件的默认行为（即表单提交），直到我们确认
+    event.preventDefault();
+    event.stopPropagation();
+
+    // 1. 检查类型是否为 2 (臨時)
+    if (type != 2) {
+        alert('請求書タイプを臨時にしてから削除してください。');
+        return false;
+    }
+    
+    // 2. 弹出确认框
+    const message = '本当に請求書「' + number + '」を削除しますか？\nこの操作は元に戻せません。';
+    if (confirm(message)) {
+        // 3. 如果用户点击确定，手动提交表单
+        const form = event.target.closest('form');
+        if (form) {
+            form.submit(); // 手动触发提交
+        }
+        return true;
+    }
+    
+    return false; // 如果点击取消，不执行任何操作
+}
 </script>
 
 <style>
