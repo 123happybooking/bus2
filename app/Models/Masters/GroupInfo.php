@@ -35,6 +35,7 @@ class GroupInfo extends Model
         'reservation_categories',
         'vehicle_type',
         'vehicle_model',
+        'vehicle_grade_id',
         'vehicle',
         'vehicle_number',
         'driver',
@@ -101,5 +102,10 @@ class GroupInfo extends Model
     public function reservationCategory()
     {
         return $this->belongsTo(ReservationCategory::class, 'reservation_categories_id');
+    }
+    
+    public function vehicleGrade()
+    {
+        return $this->belongsTo(VehicleGrade::class, 'vehicle_grade_id');
     }
 }

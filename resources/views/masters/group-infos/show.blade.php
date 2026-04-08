@@ -116,6 +116,12 @@
                                     <span class="span-label">ガイド</span>
                                     <span class="border px-2 py-1 bg-white rounded w-100 text-center">{{ $groupInfo->guide ?? '--' }}</span>
                                 </div>
+                                <div class="d-flex align-items-center me-2 flex-fill">
+                                    <span class="span-label">車輛等級</span>
+                                    <span class="border px-2 py-1 bg-white rounded w-100 text-center">
+                                        {{ $groupInfo->vehicleGrade ? $groupInfo->vehicleGrade->description . ' (' . $groupInfo->vehicleGrade->grade_name . ')' : '--' }}
+                                    </span>
+                                </div>
                                 <div class="d-flex align-items-center flex-fill">
                                     <span class="span-label">国籍</span>
                                     <span class="border px-2 py-1 bg-white rounded w-100 text-center">{{ $groupInfo->agency_country ?? '--' }}</span>

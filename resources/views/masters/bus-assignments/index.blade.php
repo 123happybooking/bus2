@@ -16,7 +16,7 @@
     </div>
 
     <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">
-        <form method="GET" action="{{ route('masters.bus-assignments.index') }}" class="row g-1">
+        <form method="GET" action="{{ route('masters.bus-assignments.index') }}" class="row g-1" id="searchForm">
             <div class="col-12">
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     <div class="d-flex align-items-center">
@@ -26,17 +26,6 @@
                         <span class="mx-1">~</span>
                         <input type="text" name="end_date" value="{{ request('end_date', \Carbon\Carbon::today()->format('Y-m-d')) }}"
                                class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" placeholder="YYYY-MM-DD" readonly>
-                    </div>
-
-                    <div class="d-flex align-items-center">
-                        <div class="form-check form-check-inline me-1">
-                            <input class="form-check-input" type="radio" name="date_type" id="date_type_today" value="today" {{ request('date_type') == 'today' ? 'checked' : '' }} style="transform: scale(0.8);">
-                            <label class="form-check-label" for="date_type_today" style="font-size: 0.8rem;">当日</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="date_type" id="date_type_same" value="same" {{ request('date_type') == 'same' ? 'checked' : '' }} style="transform: scale(0.8);">
-                            <label class="form-check-label" for="date_type_same" style="font-size: 0.8rem;">同日</label>
-                        </div>
                     </div>
 
                     <div class="d-flex align-items-center">
@@ -95,6 +84,131 @@
                         <input type="text" name="group_name" value="{{ request('group_name') }}"
                                class="form-control form-control-sm" style="width: 120px; border-color: #E5E7EB;" placeholder="団体名">
                     </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">運転手</span>
+                        <select name="driver_id" class="form-select form-select-sm" style="width: 120px; border-color: #E5E7EB;">
+                            <option value="">選択</option>
+                            @foreach($drivers ?? [] as $driver)
+                                <option value="{{ $driver->id }}" {{ request('driver_id') == $driver->id ? 'selected' : '' }}>
+                                    {{ $driver->name }} @if($driver->driver_code)({{ $driver->driver_code }})@endif
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">代理店</span>
+                        <select name="agency_id" class="form-select form-select-sm" style="width: 120px; border-color: #E5E7EB;">
+                            <option value="">選択</option>
+                            @foreach($agencies ?? [] as $agency)
+                                <option value="{{ $agency->id }}" {{ request('agency_id') == $agency->id ? 'selected' : '' }}>
+                                    {{ $agency->agency_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">業務分類</span>
+                        <select name="reservation_categories_id" class="form-select form-select-sm" style="width: 120px; border-color: #E5E7EB;">
+                            <option value="">選択</option>
+                            @foreach($reservationCategories ?? [] as $category)
+                                <option value="{{ $category->id }}" {{ request('reservation_categories_id') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->category_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">予約状態</span>
+                        <div class="status-dropdown">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 130px; text-align: left; background-color: #fff; border-color: #ced4da;">
+                                    <span id="statusSelectedText">予約状態</span>
+                                    <span id="statusSelectedCount" class="selected-count" style="display: none;">0</span>
+                                </button>
+                                <div class="dropdown-menu p-0" style="min-width: 180px;">
+                                    <div class="dropdown-header border-bottom px-3 py-2">
+                                        <label class="d-flex align-items-center w-100" style="cursor: pointer;">
+                                            <input type="checkbox" id="statusSelectAll" class="me-2"> 
+                                            <span>全て選択</span>
+                                        </label>
+                                    </div>
+                                    <div style="max-height: 300px; overflow-y: auto;">
+                                        <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                            <input type="checkbox" name="status_checkbox" value="予約" class="me-2 status-checkbox"
+                                                {{ in_array('予約', (array)request('reservation_statuses', [])) ? 'checked' : '' }}>
+                                            <span style="background-color: #ccf5ff; border-radius: 4px; padding: 2px 8px; display: inline-block;">予約</span>
+                                        </label>
+                                        <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                            <input type="checkbox" name="status_checkbox" value="仮押さえ" class="me-2 status-checkbox"
+                                                {{ in_array('仮押さえ', (array)request('reservation_statuses', [])) ? 'checked' : '' }}>
+                                            <span style="background-color: #ffff99; border-radius: 4px; padding: 2px 8px; display: inline-block;">仮押さえ</span>
+                                        </label>
+                                        <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                            <input type="checkbox" name="status_checkbox" value="見積" class="me-2 status-checkbox"
+                                                {{ in_array('見積', (array)request('reservation_statuses', [])) ? 'checked' : '' }}>
+                                            <span style="background-color: #ccffcc; border-radius: 4px; padding: 2px 8px; display: inline-block;">見積</span>
+                                        </label>
+                                        <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                            <input type="checkbox" name="status_checkbox" value="危ない" class="me-2 status-checkbox"
+                                                {{ in_array('危ない', (array)request('reservation_statuses', [])) ? 'checked' : '' }}>
+                                            <span style="background-color: #ffcccc; border-radius: 4px; padding: 2px 8px; display: inline-block;">危ない</span>
+                                        </label>
+                                        <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                            <input type="checkbox" name="status_checkbox" value="確定待ち" class="me-2 status-checkbox"
+                                                {{ in_array('確定待ち', (array)request('reservation_statuses', [])) ? 'checked' : '' }}>
+                                            <span style="background-color: #ffd9b3; border-radius: 4px; padding: 2px 8px; display: inline-block;">確定待ち</span>
+                                        </label>
+                                        <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                            <input type="checkbox" name="status_checkbox" value="確定" class="me-2 status-checkbox"
+                                                {{ in_array('確定', (array)request('reservation_statuses', [])) ? 'checked' : '' }}>
+                                            <span style="background-color: #cbb87c; border-radius: 4px; padding: 2px 8px; display: inline-block;">確定</span>
+                                        </label>
+                                        <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                            <input type="checkbox" name="status_checkbox" value="送信済" class="me-2 status-checkbox"
+                                                {{ in_array('送信済', (array)request('reservation_statuses', [])) ? 'checked' : '' }}>
+                                            <span style="background-color: #e6e6fa; border-radius: 4px; padding: 2px 8px; display: inline-block;">送信済</span>
+                                        </label>
+                                        <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                            <input type="checkbox" name="status_checkbox" value="実績待ち" class="me-2 status-checkbox"
+                                                {{ in_array('実績待ち', (array)request('reservation_statuses', [])) ? 'checked' : '' }}>
+                                            <span style="background-color: #e0b0ff; border-radius: 4px; padding: 2px 8px; display: inline-block;">実績待ち</span>
+                                        </label>
+                                        <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                            <input type="checkbox" name="status_checkbox" value="運行済" class="me-2 status-checkbox"
+                                                {{ in_array('運行済', (array)request('reservation_statuses', [])) ? 'checked' : '' }}>
+                                            <span style="background-color: #c0c0c0; border-radius: 4px; padding: 2px 8px; display: inline-block;">運行済</span>
+                                        </label>
+                                        <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                            <input type="checkbox" name="status_checkbox" value="請求済" class="me-2 status-checkbox"
+                                                {{ in_array('請求済', (array)request('reservation_statuses', [])) ? 'checked' : '' }}>
+                                            <span style="background-color: #b0e0e6; border-radius: 4px; padding: 2px 8px; display: inline-block;">請求済</span>
+                                        </label>
+                                        <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                            <input type="checkbox" name="status_checkbox" value="キャンセル" class="me-2 status-checkbox"
+                                                {{ in_array('キャンセル', (array)request('reservation_statuses', [])) ? 'checked' : '' }}>
+                                            <span style="background-color: #d3d3d3; border-radius: 4px; padding: 2px 8px; display: inline-block;">キャンセル</span>
+                                        </label>
+                                        <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                            <input type="checkbox" name="status_checkbox" value="稼働不可" class="me-2 status-checkbox"
+                                                {{ in_array('稼働不可', (array)request('reservation_statuses', [])) ? 'checked' : '' }}>
+                                            <span style="background-color: #2c2c2c; color: white; border-radius: 4px; padding: 2px 8px; display: inline-block;">稼働不可</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center">
+                        <input type="checkbox" name="show_cancel_estimate" id="show_cancel_estimate" value="1" 
+                               class="form-check-input me-1" style="margin-top: 0;" {{ request('show_cancel_estimate') ? 'checked' : '' }}>
+                        <label for="show_cancel_estimate" style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0;">キャンセル・見積を表示</label>
+                    </div>
 
                     <div class="d-flex gap-1">
                         <button type="submit" class="btn btn-sm px-2"
@@ -112,15 +226,15 @@
     </div>
 
     <div class="table-responsive">
-        <table class="table table-sm table-bordered mb-0" style="border-color: #E5E7EB; font-size: 0.75rem;">
+        <table class="table table-sm table-bordered mb-0 table-hover" style="border-color: #E5E7EB; font-size: 0.75rem;">
             <thead>
                 <tr>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 60px;">No.</th>
-                    <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">運行期間</th>
+                    <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">運行日</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">車両名<br>号車</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 80px;">運転手</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">予約ID<br>運行ID</th>
-                    <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">開始時刻<br>開始場所</th>
+                    <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 120px;">開始時刻<br>開始場所</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 60px;">最終確認</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">業務分類<br>行程名</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 120px;">団体名<br>ステッカー</th>
@@ -133,23 +247,60 @@
              </thead>
             <tbody>
                 @forelse($assignments as $index => $assignment)
+                @php
+                    $groupInfo = $assignment->groupInfo;
+                    $busCount = \App\Models\Masters\BusAssignment::where('group_info_id', $assignment->group_info_id)->count();
+                    $startItinerary = $assignment->dailyItineraries->first();
+                    $endItinerary = $assignment->dailyItineraries->last();
+                    $startLocation = $startItinerary ? $startItinerary->start_location : '';
+                    $endLocation = $endItinerary ? $endItinerary->end_location : '';
+                @endphp
                 <tr>
                     <td class="text-center px-1 py-1 align-middle">{{ $assignments->firstItem() + $index }}</td>
-                    <td class="px-1 py-1 align-middle"><span>{!! nl2br(e($assignment->period_display)) !!}</span></td>
-                    <td class="px-1 py-1 align-middle"><span>{!! nl2br(e($assignment->vehicle_display)) !!}</span></td>
+                    <td class="px-1 py-1 align-middle">
+                        <span>{{ $assignment->start_date ? \Carbon\Carbon::parse($assignment->start_date)->format('Y/m/d') : '---' }}</span>
+                        @if($assignment->start_date != $assignment->end_date)
+                            <br><span>～ {{ $assignment->end_date ? \Carbon\Carbon::parse($assignment->end_date)->format('Y/m/d') : '---' }}</span>
+                        @endif
+                    </td>
+                    <td class="px-1 py-1 align-middle">
+                        @if($assignment->vehicle)
+                            <span>{{ $assignment->vehicle->registration_number }}</span>
+                            @if($assignment->vehicle->vehicleModel)
+                                <br><small>({{ $assignment->vehicle->vehicleModel->model_name }})</small>
+                            @endif
+                            @if($assignment->vehicle_number)
+                                <br><span>{{ $assignment->vehicle_number }}</span>
+                            @endif
+                        @else
+                            <span style="background-color: #fee2e2; border-radius: 12px; padding: 2px 8px; font-size: 0.7rem; display: inline-block;">未確定</span>
+                            @if($assignment->vehicle_number)
+                                <br><span>{{ $assignment->vehicle_number }}</span>
+                            @endif
+                        @endif
+                    </td>
                     <td class="px-1 py-1 align-middle">
                         @if($assignment->temporary_driver)
                             <span style="color: #f59e0b; font-weight: 600;">仮</span>
-                            {{ $assignment->driver?->name ?? '---'  }}
+                            {{ $assignment->driver?->name ?? '---' }}
                         @else
-                            {{ $assignment->driver?->name ?? '---'  }}
+                            {{ $assignment->driver?->name ?? '---' }}
                         @endif
                     </td>
                     <td class="px-1 py-1 align-middle text-center">
-                        <a href="{{ route('masters.group-infos.edit', $assignment->groupInfo?->id) }}" class="text-decoration-none">{{ $assignment->group_info_id ?? '---' }}</a><br>
+                        <a href="{{ route('masters.bus-assignments.index', ['reservation_id' => $assignment->group_info_id]) }}" class="text-decoration-none">
+                            {{ $assignment->group_info_id ?? '---' }}
+                        </a>
+                        @if($busCount > 1)
+                            <span style="color: #6b7280;">[{{ $busCount }}]</span>
+                        @endif
+                        <br>
                         {{ $assignment->id }}
                     </td>
-                    <td class="px-1 py-1 align-middle">{!! nl2br(e($assignment->start_info)) !!}</td>
+                    <td class="px-1 py-1 align-middle">
+                        <div>{{ $assignment->start_time ? \Carbon\Carbon::parse($assignment->start_time)->format('H:i') : '--:--' }} {{ $startLocation ?: '' }}</div>
+                        <div>{{ $assignment->end_time ? \Carbon\Carbon::parse($assignment->end_time)->format('H:i') : '--:--' }} {{ $endLocation ?: '' }}</div>
+                    </td>
                     <td class="text-center px-1 py-1 align-middle">
                         @php
                             $statusColor = '#fee2e2';
@@ -170,18 +321,65 @@
                         </span>
                     </td>
                     <td class="px-1 py-1 align-middle">
-                        {{ $assignment->groupInfo?->business_category ?? '---' }}<br>
-                        <small>{{ $assignment->groupInfo?->itinerary_name ?? '---' }}</small>
+                        {{ $groupInfo->category_name ?? '---' }}<br>
+                        <small>{{ $groupInfo?->itinerary_name ?? '---' }}</small>
                     </td>
                     <td class="px-1 py-1 align-middle">
-                        <span class="fw-bold">{{ $assignment->groupInfo?->group_name ?? '---' }}</span><br>
+                        <span class="fw-bold">{{ $groupInfo?->group_name ?? '---' }}</span><br>
                         <small class="text-muted">{{ $assignment->step_car ?? '---' }}</small>
                     </td>
                     <td class="px-1 py-1 align-middle">
-                        {{ $assignment->groupInfo?->agency ?? '---' }}<br>
-                        <small>{{ $assignment->groupInfo?->agency_country ?? '---' }}</small>
+                        {{ $groupInfo?->agency ?? '---' }}<br>
+                        <small>{{ $groupInfo?->agency_country ?? '---' }}</small>
                     </td>
-                    <td class="px-1 py-1 align-middle">{{ $assignment->groupInfo?->reservation_status ?? '---' }}</td>
+                    <td class="px-1 py-1 align-middle">
+                        @php
+                            $statusBgColor = '#ffffff';
+                            $statusTextColor = '#000000';
+                            switch($groupInfo?->reservation_status ?? '') {
+                                case '予約':
+                                    $statusBgColor = '#ccf5ff';
+                                    break;
+                                case '仮押さえ':
+                                    $statusBgColor = '#ffff99';
+                                    break;
+                                case '見積':
+                                    $statusBgColor = '#ccffcc';
+                                    break;
+                                case '危ない':
+                                    $statusBgColor = '#ffcccc';
+                                    break;
+                                case '確定待ち':
+                                    $statusBgColor = '#ffd9b3';
+                                    break;
+                                case '確定':
+                                    $statusBgColor = '#cbb87c';
+                                    break;
+                                case '送信済':
+                                    $statusBgColor = '#e6e6fa';
+                                    break;
+                                case '実績待ち':
+                                    $statusBgColor = '#e0b0ff';
+                                    break;
+                                case '運行済':
+                                    $statusBgColor = '#c0c0c0';
+                                    break;
+                                case '請求済':
+                                    $statusBgColor = '#b0e0e6';
+                                    break;
+                                case 'キャンセル':
+                                    $statusBgColor = '#d3d3d3';
+                                    break;
+                                case '稼働不可':
+                                    $statusBgColor = '#2c2c2c';
+                                    $statusTextColor = '#ffffff';
+                                    break;
+                            }
+                        @endphp
+                        <span style="background-color: {{ $statusBgColor }}; color: {{ $statusTextColor }}; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; display: inline-block; white-space: nowrap;">
+                            {{ $groupInfo?->reservation_status ?? '---' }}
+                        </span>
+                    </td>
                     <td class="text-center px-1 py-1 align-middle">--<br>--</td>
                     <td class="text-center px-1 py-1 align-middle">--</td>
                     <td class="text-center px-1 py-1 align-middle">
@@ -195,7 +393,7 @@
                 <tr><td colspan="14" class="text-center py-3" style="color: #9ca3af;">運行データがありません</td></tr>
                 @endforelse
             </tbody>
-         </table>
+         <table>
     </div>
 
     <div class="d-flex justify-content-between align-items-center mt-2">
@@ -223,7 +421,6 @@
     </div>
 </div>
 @endsection
-
 
 @push('styles')
 <style>
@@ -431,9 +628,38 @@ span.flatpickr-weekday {
 .flatpickr-calendar.multiMonth .flatpickr-rContainer {
     width: 514px !important;
 }
+
+
+.selected-count {
+    background-color: #0d6efd;
+    color: white;
+    border-radius: 10px;
+    padding: 0 6px;
+    font-size: 0.7rem;
+    margin-left: 8px;
+    display: inline-block;
+    min-width: 20px;
+    text-align: center;
+}
+
+.status-dropdown .btn-outline-secondary {
+    color: #212529 !important;
+}
+
+.status-dropdown .btn-outline-secondary:hover {
+    color: #212529 !important;
+    background-color: #e9ecef !important;
+    border-color: #adb5bd !important;
+}
+
+.status-dropdown .btn-outline-secondary:focus {
+    color: #212529 !important;
+    background-color: #fff !important;
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
 </style>
 @endpush
-
 
 @push('scripts')
 <script>
@@ -471,9 +697,110 @@ function confirmDelete(id, name) {
     }
 }
 
+
+
+function initStatusSelect() {
+    const checkboxes = document.querySelectorAll('.status-checkbox');
+    const selectAllCheckbox = document.getElementById('statusSelectAll');
+    const statusSelectedText = document.getElementById('statusSelectedText');
+    const statusSelectedCount = document.getElementById('statusSelectedCount');
+    const searchForm = document.getElementById('searchForm');
+    
+    function updateStatusDisplay() {
+        const selected = Array.from(checkboxes).filter(cb => cb.checked);
+        const count = selected.length;
+        
+        if (count === 0) {
+            statusSelectedText.textContent = '予約状態';
+            statusSelectedCount.style.display = 'none';
+        } else {
+            statusSelectedText.textContent = '予約状態';
+            statusSelectedCount.textContent = count;
+            statusSelectedCount.style.display = 'inline-block';
+        }
+        
+        if (selectAllCheckbox) {
+            const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+            selectAllCheckbox.checked = allChecked;
+        }
+        
+        document.querySelectorAll('.status-hidden-input').forEach(input => input.remove());
+        
+        selected.forEach(cb => {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'reservation_statuses[]';
+            hiddenInput.value = cb.value;
+            hiddenInput.className = 'status-hidden-input';
+            searchForm.appendChild(hiddenInput);
+        });
+    }
+    
+    function toggleCheckbox(checkbox) {
+        checkbox.checked = !checkbox.checked;
+        updateStatusDisplay();
+    }
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.removeEventListener('change', checkbox._changeHandler);
+        const changeHandler = function(e) {
+            e.stopPropagation();
+            updateStatusDisplay();
+        };
+        checkbox._changeHandler = changeHandler;
+        checkbox.addEventListener('change', changeHandler);
+        
+        checkbox.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+    
+    if (selectAllCheckbox) {
+        selectAllCheckbox.removeEventListener('change', selectAllCheckbox._changeHandler);
+        const selectAllHandler = function(e) {
+            e.stopPropagation();
+            const isChecked = this.checked;
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+            updateStatusDisplay();
+        };
+        selectAllCheckbox._changeHandler = selectAllHandler;
+        selectAllCheckbox.addEventListener('change', selectAllHandler);
+        
+        selectAllCheckbox.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+    
+    document.querySelectorAll('.status-dropdown .dropdown-item').forEach(item => {
+        item.removeEventListener('click', item._clickHandler);
+        
+        const clickHandler = function(e) {
+            if (e.target.type === 'checkbox') {
+                return;
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            const checkbox = this.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                toggleCheckbox(checkbox);
+            }
+        };
+        item._clickHandler = clickHandler;
+        item.addEventListener('click', clickHandler);
+    });
+    
+    updateStatusDisplay();
+}
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
     let startDateValue = null;
     let endDateValue = null;
+    
+    initStatusSelect();
     
     const startDatePicker = flatpickr('input[name="start_date"]', {
         locale: 'ja',
@@ -600,7 +927,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-
 
 document.getElementById('newGroupBtn').addEventListener('click', function() {
     openIframeModal('{{ route('masters.group-infos.create') }}', '新規グループ作成');

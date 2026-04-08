@@ -555,7 +555,7 @@
         }
 
         .content-wrapper {
-            padding: 20px 24px;
+            padding: 20px 0;
         }
 
         .mobile-menu-toggle {

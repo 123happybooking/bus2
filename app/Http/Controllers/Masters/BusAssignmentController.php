@@ -13,6 +13,7 @@ use App\Models\Masters\Agency;
 use App\Models\Masters\ReservationCategory;
 use App\Models\Masters\Branch;
 use App\Models\Masters\VehicleType;
+use App\Models\Masters\VehicleGrade;
 use App\Models\Masters\GroupInfoDateRemark;
 use App\Models\Masters\BusAssignmentLog;
 use Illuminate\Http\Request;
@@ -34,6 +35,10 @@ class BusAssignmentController extends Controller
         $vehicleTypeId = $request->input('vehicle_type_id');
         $vehicleName = $request->input('vehicle_name');
         $vehicleId = $request->input('vehicle_id');
+        $driverId = $request->input('driver_id');
+        $agencyId = $request->input('agency_id');
+        $reservationCategoriesId = $request->input('reservation_categories_id');
+        $showCancelEstimate = $request->input('show_cancel_estimate');
     
         if ($dateType == 'today') {
             $startDate = now()->format('Y-m-d');
@@ -67,6 +72,37 @@ class BusAssignmentController extends Controller
     
         if ($vehicleId) {
             $query->where('vehicle_id', $vehicleId);
+        }
+    
+        if ($driverId) {
+            $query->where('driver_id', $driverId);
+        }
+    
+        if ($agencyId) {
+            $agency = Agency::find($agencyId);
+            if ($agency) {
+                $query->whereHas('groupInfo', function($q) use ($agency) {
+                    $q->where('agency', $agency->agency_name);
+                });
+            }
+        }
+    
+        if ($reservationCategoriesId) {
+            $query->whereHas('groupInfo', function($q) use ($reservationCategoriesId) {
+                $q->where('reservation_categories_id', $reservationCategoriesId);
+            });
+        }
+        
+        $reservationStatuses = $request->input('reservation_statuses', []);
+        
+        if (!empty($reservationStatuses)) {
+            $query->whereHas('groupInfo', function($q) use ($reservationStatuses) {
+                $q->whereIn('reservation_status', $reservationStatuses);
+            });
+        } elseif (!$showCancelEstimate) {
+            $query->whereHas('groupInfo', function($q) {
+                $q->whereNotIn('reservation_status', ['キャンセル', '見積']);
+            });
         }
     
         if ($startDate && $endDate) {
@@ -112,6 +148,23 @@ class BusAssignmentController extends Controller
             ->paginate(20)
             ->withQueryString();
     
+        $categoryIds = $assignments->getCollection()->filter(function($assignment) {
+            return $assignment->groupInfo && $assignment->groupInfo->reservation_categories_id;
+        })->map(function($assignment) {
+            return $assignment->groupInfo->reservation_categories_id;
+        })->unique()->values()->toArray();
+    
+        if (!empty($categoryIds)) {
+            $categories = \App\Models\Masters\ReservationCategory::whereIn('id', $categoryIds)->get()->keyBy('id');
+            $assignments->getCollection()->transform(function($assignment) use ($categories) {
+                if ($assignment->groupInfo && $assignment->groupInfo->reservation_categories_id) {
+                    $category = $categories[$assignment->groupInfo->reservation_categories_id] ?? null;
+                    $assignment->groupInfo->category_name = $category ? $category->category_name : null;
+                }
+                return $assignment;
+            });
+        }
+    
         $totalAdult = $assignments->sum('adult_count');
         $totalChild = $assignments->sum('child_count');
         $totalGuide = $assignments->sum('guide_count');
@@ -120,6 +173,9 @@ class BusAssignmentController extends Controller
         $branches = Branch::orderBy('display_order')->get();
         $vehicleTypes = VehicleType::with('models')->orderBy('type_name')->get();
         $vehicles = Vehicle::with('vehicleModel')->orderBy('registration_number')->get();
+        $drivers = Driver::where('is_active', true)->orderBy('display_order', 'asc')->orderBy('driver_code', 'asc')->get();
+        $agencies = Agency::where('is_active', true)->orderBy('display_order', 'asc')->orderBy('agency_code', 'asc')->get();
+        $reservationCategories = ReservationCategory::where('is_active', true)->orderBy('display_order', 'asc')->get();
     
         return view('masters.bus-assignments.index', compact(
             'assignments',
@@ -139,7 +195,10 @@ class BusAssignmentController extends Controller
             'totalAmount',
             'branches',
             'vehicleTypes',
-            'vehicles'
+            'vehicles',
+            'drivers',
+            'agencies',
+            'reservationCategories'
         ));
     }
 
@@ -298,6 +357,8 @@ class BusAssignmentController extends Controller
         $reservationCategories = ReservationCategory::where('is_active', true)
             ->orderBy('display_order', 'asc')
             ->get();
+            
+        $vehicleGrades = VehicleGrade::orderBy('id')->get();
         
         return view('masters.bus-assignments.edit', compact(
             'busAssignment',
@@ -307,7 +368,8 @@ class BusAssignmentController extends Controller
             'guides',
             'agencies',
             'reservationCategories',
-            'logs'
+            'logs',
+            'vehicleGrades'
         ));
     }
 
@@ -460,6 +522,9 @@ class BusAssignmentController extends Controller
             $groupInfoData = [];
             $groupInfoData['ignore_operation'] = isset($request->group_info['ignore_operation']) ? 1 : 0;
             $groupInfoData['ignore_attendance'] = isset($request->group_info['ignore_attendance']) ? 1 : 0;
+            if ($request->has('group_info.vehicle_grade_id')) {
+                $groupInfoData['vehicle_grade_id'] = $request->input('group_info.vehicle_grade_id');
+            }
             $groupInfo->update($groupInfoData);
             
             

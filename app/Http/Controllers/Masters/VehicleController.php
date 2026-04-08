@@ -7,6 +7,7 @@ use App\Models\Masters\Vehicle;
 use App\Models\Masters\VehicleType;
 use App\Models\Masters\Branch;
 use App\Models\Masters\VehicleModel;
+use App\Models\Masters\VehicleGrade;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -45,7 +46,8 @@ class VehicleController extends Controller
     {
         $branches = Branch::orderBy('branch_name')->get();
         $vehicleTypes = VehicleType::with('models')->get();
-        return view('masters.vehicles.create', compact('branches', 'vehicleTypes'));
+        $vehicleGrades = VehicleGrade::orderBy('id')->get();
+        return view('masters.vehicles.create', compact('branches', 'vehicleTypes','vehicleGrades'));
     }
     
     public function store(Request $request): RedirectResponse
@@ -116,7 +118,8 @@ class VehicleController extends Controller
         $vehicle = Vehicle::findOrFail($id);
         $branches = Branch::orderBy('branch_name')->get();
         $vehicleTypes = VehicleType::with('models')->get();
-        return view('masters.vehicles.edit', compact('vehicle', 'branches', 'vehicleTypes'));
+        $vehicleGrades = VehicleGrade::orderBy('id')->get();
+        return view('masters.vehicles.edit', compact('vehicle', 'branches', 'vehicleTypes','vehicleGrades'));
     }
     
     public function update(Request $request, $id): RedirectResponse
@@ -127,6 +130,7 @@ class VehicleController extends Controller
             'registration_number' => 'required|max:20|unique:vehicles,registration_number,' . $id,
             'vehicle_type_id' => 'required|exists:vehicle_types,id',
             'vehicle_model_id' => 'required|exists:vehicle_models,id',
+            'vehicle_grade_id' => 'required|exists:vehicle_grades,id',
             'seating_capacity' => 'required|integer|min:1|max:100',
             'ownership_type' => 'required|in:own,reservable,rental',
             'inspection_expiration_date' => 'required|date',
@@ -143,6 +147,8 @@ class VehicleController extends Controller
             'vehicle_type_id.exists' => '選択された車両種類は存在しません',
             'vehicle_model_id.required' => 'モデルを選択してください',
             'vehicle_model_id.exists' => '選択されたモデルは存在しません',
+            'vehicle_grade_id.required' => '車両等級を選択してください',
+            'vehicle_grade_id.exists' => '選択された車両等級は存在しません',
             'seating_capacity.required' => '乗車定員を入力してください',
             'ownership_type.required' => '所有形態を選択してください',
             'inspection_expiration_date.required' => '車検満了日を入力してください',

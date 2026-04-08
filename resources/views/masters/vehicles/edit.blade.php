@@ -81,36 +81,54 @@
                                 @error('vehicle_code')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 20文字以内、他と重複不可</small>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="vehicle_type_id" class="form-label required">車両種類</label>
-                                <select name="vehicle_type_id" id="vehicle_type_id" 
-                                        class="form-select @error('vehicle_type_id') is-invalid @enderror" required>
-                                    <option value="">選択してください</option>
-                                    @foreach($vehicleTypes as $type)
-                                        <option value="{{ $type->id }}" 
-                                            {{ old('vehicle_type_id', $vehicle->vehicle_type_id) == $type->id ? 'selected' : '' }}
-                                            data-models='@json($type->models)'>
-                                            {{ $type->type_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('vehicle_type_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="vehicle_type_id" class="form-label required">車両種類</label>
+                                    <select name="vehicle_type_id" id="vehicle_type_id" 
+                                            class="form-select @error('vehicle_type_id') is-invalid @enderror" required>
+                                        <option value="">選択してください</option>
+                                        @foreach($vehicleTypes as $type)
+                                            <option value="{{ $type->id }}" 
+                                                {{ old('vehicle_type_id', $vehicle->vehicle_type_id) == $type->id ? 'selected' : '' }}
+                                                data-models='@json($type->models)'>
+                                                {{ $type->type_name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('vehicle_type_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             
-                            <div class="col-md-6 mb-3">
-                                <label for="vehicle_model_id" class="form-label required">モデル</label>
-                                <select name="vehicle_model_id" id="vehicle_model_id" 
-                                        class="form-select @error('vehicle_model_id') is-invalid @enderror" required>
-                                    <option value="">先に車両種類を選択してください</option>
-                                </select>
-                                @error('vehicle_model_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <div class="col-md-4">
+                                    <label for="vehicle_model_id" class="form-label required">モデル</label>
+                                    <select name="vehicle_model_id" id="vehicle_model_id" 
+                                            class="form-select @error('vehicle_model_id') is-invalid @enderror" required>
+                                        <option value="">先に車両種類を選択してください</option>
+                                    </select>
+                                    @error('vehicle_model_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            
+                                <div class="col-md-4">
+                                    <label for="vehicle_grade_id" class="form-label required">車両等級</label>
+                                    <select name="vehicle_grade_id" id="vehicle_grade_id" 
+                                            class="form-select @error('vehicle_grade_id') is-invalid @enderror" required>
+                                        <option value="">選択してください</option>
+                                        @foreach($vehicleGrades as $grade)
+                                            <option value="{{ $grade->id }}" 
+                                                {{ old('vehicle_grade_id', $vehicle->vehicle_grade_id) == $grade->id ? 'selected' : '' }}>
+                                                {{ $grade->description }} ({{ $grade->grade_name }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('vehicle_grade_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -171,7 +189,6 @@
                                 @error('display_order')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 数値を入力</small>
                             </div>
                         
                             <div class="col-md-12 mb-3">
@@ -182,7 +199,6 @@
                                 @error('remarks')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 500文字以内</small>
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -202,9 +218,6 @@
                                 @error('is_active')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted d-block">
-                                    ※ 無効にするとこの車両は選択できなくなります
-                                </small>
                             </div>
                         </div>
 

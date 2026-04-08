@@ -11,7 +11,7 @@ class Vehicle extends Model
         'branch_id', 'vehicle_code', 'registration_number', 
         'vehicle_type_id', 'vehicle_model_id', 'seating_capacity', 'ownership_type', 
         'inspection_expiration_date', 'is_active', 
-        'display_order', 'remarks'
+        'display_order', 'remarks','vehicle_grade_id'
     ];
 
     protected $dates = ['inspection_expiration_date'];
@@ -29,5 +29,10 @@ class Vehicle extends Model
     public function vehicleModel(): BelongsTo
     {
         return $this->belongsTo(VehicleModel::class, 'vehicle_model_id');
+    }
+    
+    public function vehicleGrade()
+    {
+        return $this->belongsTo(VehicleGrade::class, 'vehicle_grade_id');
     }
 }

@@ -71,6 +71,16 @@
                                         </div>
                                     </div>
                                     <div class="row mb-2">
+                                        <div class="col-md-4 fw-bold">車両等級</div>
+                                        <div class="col-md-8">
+                                            @if($vehicle->vehicleGrade)
+                                                {{ $vehicle->vehicleGrade->description }} ({{ $vehicle->vehicleGrade->grade_name }})
+                                            @else
+                                                <span class="text-muted">未設定</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
                                         <div class="col-md-4 fw-bold">所属営業所</div>
                                         <div class="col-md-8">
                                             @if($vehicle->branch)

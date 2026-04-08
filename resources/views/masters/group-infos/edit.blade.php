@@ -181,6 +181,17 @@
                                         </div>
                                     </div>
                                     <div class="d-flex align-items-center flex-fill">
+                                        <span class="span-label">車輛等級</span>
+                                        <select name="vehicle_grade_id" id="vehicle_grade_id" class="form-select form-select-sm border" style="width: 100%;">
+                                            @foreach($vehicleGrades ?? [] as $grade)
+                                                <option value="{{ $grade->id }}" 
+                                                    {{ (old('vehicle_grade_id', $groupInfo->vehicle_grade_id ?? '')) == $grade->id ? 'selected' : '' }}>
+                                                    {{ $grade->description }} ({{ $grade->grade_name }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="d-flex align-items-center flex-fill">
                                         <span class="span-label">国籍</span>
                                         <input type="text" class="form-control form-control-sm border w-100" id="agency_country" name="agency_country" value="{{ old('agency_country', $groupInfo->agency_country ?? '') }}">
                                     </div>

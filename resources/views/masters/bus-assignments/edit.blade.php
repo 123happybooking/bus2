@@ -56,15 +56,29 @@
         <input type="hidden" name="group_info_id" id="group_info_id" value="{{ $busAssignment->group_info_id }}">
 
         <div class="m-2">
-            <div class="d-flex flex-wrap align-items-center justify-content-between">
-                <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center justify-content-between" style="flex-wrap: nowrap; gap: 6px;">
+                <div class="d-flex align-items-center" style="flex-shrink: 0;">
                     <label for="status" class="label-text mr-2">車種指定</label>
                     <input type="checkbox" id="status" class="checkbox mr-5" name="vehicle_type_spec_check" value="1" {{ $busAssignment->vehicle_type_spec_check ? 'checked' : '' }} {{ $checkboxDisabled }}>
                 </div>
                 
-                <div class="d-flex align-items-center mx-3">
+                <div class="d-flex align-items-center" style="flex-shrink: 0;">
+                    <label for="vehicle_grade_id" class="label-text mr-2">車輛等級</label>
+                    <select id="vehicle_grade_id" name="group_info[vehicle_grade_id]" class="form-input-small" style="width: 80px;" {{ $disabledAttr }}>
+                        @foreach($vehicleGrades ?? [] as $grade)
+                            <option value="{{ $grade->id }}" 
+                                data-description="{{ $grade->description }}"
+                                data-grade-name="{{ $grade->grade_name }}"
+                                {{ ($groupInfo->vehicle_grade_id ?? '') == $grade->id ? 'selected' : '' }}>
+                                {{ $grade->description }} ({{ $grade->grade_name }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <div class="d-flex align-items-center" style="flex-shrink: 0;">
                     <label for="reservation_status" class="label-text mr-2">予約状況</label>
-                        <select id="reservation_status" class="form-input-small" name="reservation_status" {{ $disabledAttr }}>
+                        <select id="reservation_status" class="form-input-small" name="reservation_status" style="width: 80px;" {{ $disabledAttr }}>
                             <option value="予約" style="background-color: #ccf5ff; color: black;" {{ ($busAssignment->groupInfo->reservation_status ?? '') == '予約' ? 'selected' : '' }}>予約</option>
                             <option value="仮押さえ" style="background-color: #ffff99; color: black;" {{ ($busAssignment->groupInfo->reservation_status ?? '') == '仮押さえ' ? 'selected' : '' }}>仮押さえ</option>
                             <option value="見積" style="background-color: #ccffcc; color: black;" {{ ($busAssignment->groupInfo->reservation_status ?? '') == '見積' ? 'selected' : '' }}>見積</option>
@@ -80,9 +94,9 @@
                         </select>
                 </div>
                 
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center" style="flex-shrink: 0;">
                     <label for="category" class="label-text mr-2">業務分類</label>
-                    <select id="category" name="reservation_categories_id" class="form-input" style="width: 100px;" {{ $disabledAttr }}>
+                    <select id="category" name="reservation_categories_id" class="form-input" style="width: 80px;" {{ $disabledAttr }}>
                         <option value="">-- 選択 --</option>
                         @foreach($reservationCategories ?? [] as $category)
                             <option value="{{ $category->id }}" 

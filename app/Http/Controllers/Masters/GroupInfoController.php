@@ -14,6 +14,7 @@ use App\Models\Masters\ReservationCategory;
 use App\Models\Masters\Branch;
 use App\Models\Masters\GroupInfoDateRemark;
 use App\Models\Masters\BusAssignmentLog;
+use App\Models\Masters\VehicleGrade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -55,14 +56,17 @@ class GroupInfoController extends Controller
             'busAssignments.vehicle',
             'busAssignments.driver',
             'busAssignments.guide',
-            'dailyItineraries'
+            'dailyItineraries',
+            'vehicleGrade'
         ])->findOrFail($id);
         
         $busAssignments = $groupInfo->busAssignments->sortBy('vehicle_index');
         
         $dailyItineraries = $groupInfo->dailyItineraries->sortBy('date');
         
-        return view('masters.group-infos.show', compact('groupInfo', 'busAssignments', 'dailyItineraries'));
+        $vehicleGrades = VehicleGrade::orderBy('id')->get();
+        
+        return view('masters.group-infos.show', compact('groupInfo', 'busAssignments', 'dailyItineraries','vehicleGrades'));
     }
 
     public function create(Request $request)
@@ -94,6 +98,8 @@ class GroupInfoController extends Controller
             ->orderBy('display_order')
             ->get();
             
+        $vehicleGrades = VehicleGrade::orderBy('id')->get();
+            
         $selectedVehicleId = $request->input('vehicle_id');
         $selectedVehicleName = $request->input('vehicle_name');
         $selectedDriverId = $request->input('driver_id');
@@ -112,7 +118,8 @@ class GroupInfoController extends Controller
             'selectedDriverId',
             'selectedDriverName',
             'startDate', 
-            'endDate'
+            'endDate',
+            'vehicleGrades'
         ));
     }
 
@@ -422,6 +429,7 @@ class GroupInfoController extends Controller
             'luggage_count' => 'nullable|integer|min:0',
             'vehicle_type' => 'nullable|string|max:100',
             'vehicle_model' => 'nullable|string|max:200',
+            'vehicle_grade_id' => 'nullable|exists:vehicle_grades,id',
             'vehicle_branch' => 'nullable|string|max:200',
             'start_location' => 'nullable|string|max:255',
             'end_location' => 'nullable|string|max:255',
@@ -450,6 +458,8 @@ class GroupInfoController extends Controller
             'guide_count.integer' => 'ガイド人数は数値で入力してください。',
             'other_count.integer' => 'その他人数は数値で入力してください。',
             'luggage_count.integer' => '荷物数は数値で入力してください。',
+            'vehicle_grade_id.nullable' => '車輛等級の選択は任意です',
+            'vehicle_grade_id.exists' => '選択された車輛等級は存在しません',
         ];
     
         $validated = $request->validate($rules, $messages);
@@ -540,6 +550,7 @@ class GroupInfoController extends Controller
                 'vehicle_id' => $request->vehicle_id,
                 'driver_id' => $request->driver_id,
                 'guide_id' => $request->guide_id,
+                'vehicle_grade_id' => $validated['vehicle_grade_id'] ?? null,
                 'group_name' => $validated['group_name'] ?? null,
                 'itinerary_name' => $validated['itinerary_name'] ?? null,
                 'agency' => $validated['agency_name_input'] ?? $validated['agency'] ?? null,
@@ -800,6 +811,8 @@ class GroupInfoController extends Controller
                                         ->orderBy('date', 'asc')
                                         ->orderBy('id', 'asc')
                                         ->get();
+                                        
+        $vehicleGrades = VehicleGrade::orderBy('id')->get();
 
         $groupedItineraries = [];
         $uniqueVehicles = [];
@@ -870,7 +883,8 @@ class GroupInfoController extends Controller
             'uniqueVehicles',
             'hasMultipleVehicles',
             'branches',
-            'reservationCategories'
+            'reservationCategories',
+            'vehicleGrades'
         ));
     }
 
@@ -908,6 +922,7 @@ class GroupInfoController extends Controller
             'luggage_count' => 'nullable|integer|min:0',
             'vehicle_type' => 'nullable|string|max:100',
             'vehicle_model' => 'nullable|string|max:200',
+            'vehicle_grade_id' => 'nullable|exists:vehicle_grades,id',
             'vehicle_branch' => 'nullable|string|max:200',
             'remarks' => 'nullable|string',
             'ignore_operation' => 'nullable',
@@ -1019,6 +1034,7 @@ class GroupInfoController extends Controller
             'guide_count.integer' => 'ガイド人数は数値で入力してください。',
             'other_count.integer' => 'その他人数は数値で入力してください。',
             'luggage_count.integer' => '荷物数は数値で入力してください。',
+            'vehicle_grade_id.exists' => '選択された車輛等級は存在しません',
         ];
     
         $validated = $request->validate($rules, $messages);
@@ -2108,6 +2124,7 @@ class GroupInfoController extends Controller
                 'vehicle_type_selection' => $finalVehicleSpec,
                 'ignore_operation' => $validated['ignore_operation'] ? 1 : 0,
                 'ignore_attendance' => $validated['ignore_attendance'] ? 1 : 0,
+                'vehicle_grade_id' => $validated['vehicle_grade_id'] ?? null,
                 'updated_at' => now(),
                 'updated_by' => $userId,
             ];
