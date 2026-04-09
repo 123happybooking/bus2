@@ -107,6 +107,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::post('group-infos/{id}/update-bus-assignment', [GroupInfoController::class, 'updateBusAssignment'])->name('group-infos.update-bus-assignment');
         Route::put('group-infos/{id}', [GroupInfoController::class, 'update'])->name('group-infos.update');
         Route::post('group-infos/{id}/delete-itinerary', [GroupInfoController::class, 'deleteItinerary'])->name('group-infos.delete-itinerary');
+        Route::post('/group-infos/{id}/copy', [GroupInfoController::class, 'copy'])->name('group-infos.copy');
         
         Route::get('operation-ledger', [OperationLedgerController::class, 'index'])->name('operation-ledger.index');
         

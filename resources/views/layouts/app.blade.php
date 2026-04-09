@@ -10,7 +10,7 @@
             - @yield('title')
         @endif
     </title>
-    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css">
     
@@ -845,7 +845,7 @@
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-            <img src="/images/logo.jpg" alt="Logo" id="logoImg">
+            <img src="/images/logo.png" alt="Logo" id="logoImg">
         </div>
 
         <nav class="sidebar-nav" id="sidebarNav">
@@ -1046,9 +1046,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateLogo() {
         if (sidebar.classList.contains('collapsed')) {
-            logoImg.src = '/images/logo_s.jpg';
+            logoImg.src = '/images/logo_s.png';
         } else {
-            logoImg.src = '/images/logo.jpg';
+            logoImg.src = '/images/logo.png';
         }
     }
     

@@ -47,14 +47,14 @@
                 
                 <div class="d-flex align-items-center" style="flex-shrink: 0;">
                     <label for="category" class="label-text mr-2">業務分類</label>
-                    <select id="category" name="business_category" class="form-input" style="width: 80px;">
+                    <select id="category" name="reservation_categories_id" class="form-input" style="width: 80px;">
                         <option value="">-- 選択 --</option>
                         @foreach($reservationCategories ?? [] as $category)
-                            <option value="{{ $category->category_name }}" 
-                                    data-category-id="{{ $category->id }}"
+                            <option value="{{ $category->id }}" 
+                                    data-category-name="{{ $category->category_name }}"
                                     data-category-code="{{ $category->category_code }}"
                                     data-color-code="{{ $category->color_code }}"
-                                    {{ old('business_category') == $category->category_name ? 'selected' : '' }}>
+                                    {{ old('reservation_categories_id') == $category->id ? 'selected' : '' }}>
                                 {{ $category->category_name }}
                             </option>
                         @endforeach
@@ -272,11 +272,12 @@
 
 @push('styles')
 <style>
+    body,.container-fluid { background-color: #ddd !important;}
     .text-small { color: #374151; font-size: 11px; }
     .text-gray { color: #6b7280; font-size: 11px; }
     .card { background-color: white; border: 1px solid #E5E7EB; border-radius: 6px; padding: 4px 8px; margin-bottom: 8px; }
-    .form-input { width: 100%; border: 1px solid #E5E7EB; border-radius: 4px; font-size: 11px; padding: 4px 6px; height: 28px; }
-    .form-input-small { border: 1px solid #E5E7EB; border-radius: 4px; padding: 4px; height: 28px; font-size: 11px; }
+    .form-input { width: 100%; border: 1px solid #bbb; border-radius: 4px; font-size: 11px; padding: 4px 6px; height: 28px; }
+    .form-input-small { border: 1px solid #bbb; border-radius: 4px; padding: 4px; height: 28px; font-size: 11px; }
     .checkbox { width: 12px; height: 12px; margin-right: 2px; }
     .checkbox-large { width: 14px; height: 14px; margin-right: 4px; }
     .label-text { color: #374151; font-size: 11px; }

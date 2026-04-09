@@ -543,7 +543,7 @@ class GroupInfoController extends Controller
             }
             
             
-            $hasVehicleSpec = $request->has('vehicle_type_spec_check') && $request->vehicle_type_spec_check == 1;
+            $hasVehicleSpec = $request->has('vehicle_selection') && $request->vehicle_selection == 'on';
             $finalVehicleSpec = $hasVehicleSpec ? 1 : 0;
     
             $groupData = [
@@ -567,7 +567,8 @@ class GroupInfoController extends Controller
                 'vehicle_type_selection' => $finalVehicleSpec,
                 'remarks' => $validated['remarks'] ?? null,
                 'itinerary_id' => 0,
-                'business_category' => $validated['business_category'] ?? null,
+                // 'business_category' => $validated['business_category'] ?? null,
+                'reservation_categories_id' => $request->input('reservation_categories_id') ?? null,
                 'itinerary_name' => null,
                 'reservation_channel' => $validated['reservation_channel'] ?? null,
                 'vehicle_type' => $validated['vehicle_type'] ?? ($vehicleInfo->vehicleType->type_name ?? null),
@@ -3117,4 +3118,139 @@ public function updateBusAssignment(Request $request, $id)
         } catch (\Exception $e) {
         }
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    public function copy(Request $request, $id)
+    {
+        $request->validate([
+            'start_dates' => 'required|array',
+            'start_dates.*' => 'required|date_format:Y/m/d',
+        ]);
+        
+        $sourceGroup = GroupInfo::with([
+            'busAssignments',
+            'dailyItineraries'
+        ])->findOrFail($id);
+        
+        if ($sourceGroup->busAssignments->count() > 1) {
+            return response()->json([
+                'success' => false,
+                'message' => '複数の車单があるため、複製できません。'
+            ], 400);
+        }
+        
+        $sourceBus = $sourceGroup->busAssignments->first();
+        $sourceItineraries = $sourceGroup->dailyItineraries
+            ->sortBy('date')
+            ->values();
+        
+        if ($sourceItineraries->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => '行程データがありません。'
+            ], 400);
+        }
+        
+        $oldStartDate = Carbon::parse($sourceItineraries->first()->date);
+        
+        $oldBusStartDate = Carbon::parse($sourceBus->start_date);
+        $oldBusEndDate = Carbon::parse($sourceBus->end_date);
+        
+        $userId = session('user_id', auth()->id() ?? 0);
+        $username = session('username', auth()->user()->name ?? 'system');
+        
+        $createdGroups = [];
+        
+        try {
+            DB::beginTransaction();
+            
+            foreach ($request->start_dates as $newStartDateStr) {
+                $newStartDate = Carbon::parse($newStartDateStr);
+                
+                $daysDiff = $oldStartDate->diffInDays($newStartDate, false);
+                
+                $newGroupName = $newStartDate->format('ymd') . '-CopyID' . $sourceGroup->id;
+                
+                $newGroup = $sourceGroup->replicate();
+                $newGroup->group_name = $newGroupName;
+                
+                if ($newGroup->start_date) {
+                    $newGroup->start_date = Carbon::parse($newGroup->start_date)->addDays($daysDiff)->format('Y-m-d');
+                }
+                if ($newGroup->end_date) {
+                    $newGroup->end_date = Carbon::parse($newGroup->end_date)->addDays($daysDiff)->format('Y-m-d');
+                }
+                
+                $newGroup->created_by = $userId;
+                $newGroup->updated_by = $userId;
+                $newGroup->created_at = now();
+                $newGroup->updated_at = now();
+                $newGroup->save();
+                
+                $newBus = $sourceBus->replicate();
+                $newBus->group_info_id = $newGroup->id;
+                
+                if ($newBus->start_date) {
+                    $newBus->start_date = Carbon::parse($newBus->start_date)->addDays($daysDiff)->format('Y-m-d');
+                }
+                if ($newBus->end_date) {
+                    $newBus->end_date = Carbon::parse($newBus->end_date)->addDays($daysDiff)->format('Y-m-d');
+                }
+                
+                $newBus->created_by = $userId;
+                $newBus->updated_by = $userId;
+                $newBus->created_at = now();
+                $newBus->updated_at = now();
+                $newBus->save();
+                
+                $newItineraries = [];
+                foreach ($sourceItineraries as $itinerary) {
+                    $newItinerary = $itinerary->replicate();
+                    
+                    $newItinerary->date = Carbon::parse($itinerary->date)->addDays($daysDiff)->format('Y-m-d');
+                    
+                    $newItinerary->group_info_id = $newGroup->id;
+                    $newItinerary->bus_assignment_id = $newBus->id;
+                    $newItinerary->created_by = $userId;
+                    $newItinerary->updated_by = $userId;
+                    $newItinerary->created_at = now();
+                    $newItinerary->updated_at = now();
+                    $newItinerary->save();
+                    $newItineraries[] = $newItinerary;
+                }
+                
+                if (!empty($newItineraries)) {
+                    $newBus->daily_itinerary_id = $newItineraries[0]->id;
+                    $newBus->count_daily = count($newItineraries);
+                    $newBus->save();
+                }
+                
+                $createdGroups[] = $newGroup->id;
+            }
+            
+            DB::commit();
+            
+            return response()->json([
+                'success' => true,
+                'message' => count($createdGroups) . '個のグループを複製しました。',
+                'group_ids' => $createdGroups
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => '複製中にエラーが発生しました: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
 }

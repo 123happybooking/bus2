@@ -351,7 +351,11 @@
 
                 <div class="tab-pane" id="copy-tab" style="display: none;">
                     <div class="dashed-box">
-                        複製機能はこちら
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="span-label" style="min-width: 50px;">複製</span>
+                            <input type="text" id="copy_dates" class="form-control form-control-sm border" 
+                                   style="flex: 1; background-color: #fff !important; border: 1px solid #bbb !important;" readonly>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -375,6 +379,7 @@
                 <button type="button" class="btn-primary" id="detailBtn">運行詳細</button>
                 <button type="submit" class="btn-primary" id="saveBtn">変更</button>
                 <button type="button" class="btn-secondary" id="closeBtn">閉じる</button>
+                <button type="button" class="btn btn-success btn-sm" id="copyGroupBtn">複製</button>
             </div>
         </div>
     </form>
@@ -383,11 +388,12 @@
 
 @push('styles')
 <style>
+    body,.container-fluid { background-color: #ddd !important;}
     .text-small { color: #374151; font-size: 11px; }
     .text-gray { color: #6b7280; font-size: 11px; }
     .card { background-color: white; border: 1px solid #E5E7EB; border-radius: 6px; padding: 4px 8px; margin-bottom: 8px; }
-    .form-input { width: 100%; border: 1px solid #E5E7EB; border-radius: 4px; font-size: 11px; padding: 4px 6px; height: 28px; }
-    .form-input-small { border: 1px solid #E5E7EB; border-radius: 4px; padding: 4px; height: 28px; font-size: 11px; }
+    .form-input { width: 100%; border: 1px solid #bbb; border-radius: 4px; font-size: 11px; padding: 4px 6px; height: 28px; }
+    .form-input-small { border: 1px solid #bbb; border-radius: 4px; padding: 4px; height: 28px; font-size: 11px; }
     .checkbox { width: 12px; height: 12px; margin-right: 2px; }
     .checkbox-large { width: 14px; height: 14px; margin-right: 4px; }
     .label-text { color: #374151; font-size: 11px; }
@@ -930,6 +936,88 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = false;
         });
     });
+    
+    
+    
+    
+        
+    flatpickr("#copy_dates", {
+        locale: 'ja',
+        dateFormat: 'Y/m/d',
+        mode: 'multiple',
+        showMonths: 3,
+        allowInput: false,
+        clickOpens: true,
+        disableMobile: true,
+        onOpen: function(selectedDates, dateStr, instance) {
+            instance.calendarContainer.style.zIndex = '9999';
+        },
+        onReady: function(selectedDates, dateStr, instance) {
+            const daysContainer = instance.daysContainer;
+            if (daysContainer) {
+                const dayContainers = daysContainer.querySelectorAll('.dayContainer');
+                dayContainers.forEach(function(dayContainer) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'month-wrapper';
+                    dayContainer.parentNode.insertBefore(wrapper, dayContainer);
+                    wrapper.appendChild(dayContainer);
+                });
+            }
+        }
+    });
+    
+    document.getElementById('copyGroupBtn').addEventListener('click', function() {
+        const copyDatesInput = document.getElementById('copy_dates');
+        const selectedDates = copyDatesInput.value;
+        
+        if (!selectedDates) {
+            alert('複製する開始日を選択してください。');
+            return;
+        }
+        
+        const dates = selectedDates.split(',').map(d => d.trim());
+        
+        if (!confirm(`選択された ${dates.length} 個の日付で複製を実行しますか？\n${dates.join(', ')}`)) {
+            return;
+        }
+        
+        const groupId = {{ $groupInfo->id }};
+        const submitBtn = this;
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '複製中...';
+        submitBtn.disabled = true;
+        
+        fetch(`/masters/group-infos/${groupId}/copy`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                start_dates: dates
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                window.top.location.reload();
+            } else {
+                alert('エラー: ' + data.message);
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('複製処理中にエラーが発生しました: ' + error.message);
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+    
+
 });
 </script>
 @endpush

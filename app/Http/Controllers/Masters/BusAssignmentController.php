@@ -498,7 +498,7 @@ class BusAssignmentController extends Controller
 
                 $newReservationStatus = $validated['reservation_status'] ?? ($groupInfo ? $groupInfo->reservation_status : null);
                 
-                $shouldCheck = !in_array($newReservationStatus, ['見積', 'キャンセル']);
+                $shouldCheck = !in_array($newReservationStatus, ['見積', 'キャンセル']) && !$newIgnoreOperation;
                 
                 if ($shouldCheck) {
                     $this->checkConflicts(

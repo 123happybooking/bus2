@@ -1511,6 +1511,39 @@ document.addEventListener('DOMContentLoaded', function() {
     let startDateValue = null;
     let endDateValue = null;
     
+    
+    document.querySelectorAll('.vehicle-itinerary-table .datepicker-3months, #itinerary-table .datepicker-3months').forEach(function(el) {
+        if (!el._flatpickr) {
+            flatpickr(el, {
+                locale: 'ja',
+                dateFormat: 'Y-m-d',
+                showMonths: 3,
+                allowInput: true,
+                clickOpens: true,
+                mode: 'single',
+                disableMobile: true,
+                wrap: false,
+                onOpen: function(selectedDates, dateStr, instance) {
+                    instance.calendarContainer.style.zIndex = '9999';
+                },
+                onReady: function(selectedDates, dateStr, instance) {
+                    const daysContainer = instance.daysContainer;
+                    if (daysContainer) {
+                        const dayContainers = daysContainer.querySelectorAll('.dayContainer');
+                        dayContainers.forEach(function(dayContainer) {
+                            const wrapper = document.createElement('div');
+                            wrapper.className = 'month-wrapper';
+                            dayContainer.parentNode.insertBefore(wrapper, dayContainer);
+                            wrapper.appendChild(dayContainer);
+                        });
+                    }
+                }
+            });
+        }
+    });
+    
+
+    
     const startDatePicker = flatpickr('#start_date', {
         locale: 'ja',
         dateFormat: 'Y-m-d',
