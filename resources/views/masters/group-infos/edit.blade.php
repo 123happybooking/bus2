@@ -7,23 +7,6 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div class="d-flex align-items-center gap-3">
             <h5 class="mb-0 page-title">グループ情報編集</h5>
-            <div class="d-flex gap-2 ms-5">
-                <a href="{{ route('masters.drivers.index') }}" class="btn btn-outline-primary btn-sm px-2">
-                    運転台帳
-                </a>
-                <a href="{{ route('masters.drivers.index') }}" class="btn btn-outline-primary btn-sm px-2">
-                    運転手台帳
-                </a>
-                <a href="{{ route('masters.bus-assignments.index') }}" class="btn btn-outline-primary btn-sm px-2">
-                    運転一覧
-                </a>
-                <a href="{{ route('masters.group-infos.index') }}" class="btn btn-outline-primary btn-sm px-2">
-                    予約一覧
-                </a>
-                <a href="#" class="btn btn-outline-primary btn-sm px-2">
-                    乘務指示書
-                </a>
-            </div>
         </div>
         <div class="d-flex gap-2">
             <button type="button" id="newGroupBtn" class="btn btn-primary btn-sm px-3" 

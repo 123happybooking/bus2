@@ -145,6 +145,44 @@
                         
                         <div class="row mb-4">
                             <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3">ログイン情報</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="login_id" class="form-label required">ログインID</label>
+                                <input type="text" class="form-control @error('login_id') is-invalid @enderror" 
+                                       id="login_id" name="login_id" 
+                                       value="{{ old('login_id', $driver->login_id) }}" 
+                                       maxlength="255" readonly>
+                                @error('login_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">パスワード</label>
+                                <input type="password" class="form-control @error('password') is-invalid @enderror" 
+                                       id="password" name="password" 
+                                       maxlength="255" placeholder="変更する場合のみ入力">
+                                <small class="form-text text-muted">8文字以上、変更する場合のみ入力してください</small>
+                                @error('password')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="password_confirmation" class="form-label">パスワード（確認）</label>
+                                <input type="password" class="form-control" 
+                                       id="password_confirmation" name="password_confirmation" 
+                                       maxlength="255" placeholder="パスワードを再入力">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-12">
                                 <h5 class="border-bottom pb-2 mb-3">入社・免許情報</h5>
                             </div>
                         </div>

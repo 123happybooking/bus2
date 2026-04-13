@@ -32,6 +32,10 @@
             overflow-x: hidden;
             background-color: #f5f7fa;
         }
+        
+        .bg-primary {
+            background-color: #141c28 !important;
+        }
 
         .no-transition,
         .no-transition * {
@@ -46,7 +50,7 @@
             background: linear-gradient(180deg, #1a2530 0%, #0f1720 100%);
             color: #e2e8f0;
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
+            z-index: 1001;
             overflow-x: hidden;
             overflow-y: auto;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
@@ -504,7 +508,7 @@
             padding: 12px 24px;
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 999;
@@ -829,7 +833,25 @@
                 font-size: 20px;
             }
             .top-bar {
-                padding-left: 70px;
+                justify-content: flex-end;
+            }
+            
+            .top-bar .btn-list {
+                display: none !important;
+            }
+            
+            
+            .logout-btn span {
+                display: none;
+            }
+            
+            .logout-btn i {
+                font-size: 18px;
+                margin: 0;
+            }
+            
+            .logout-btn {
+                padding: 6px 10px;
             }
         }
         
@@ -991,6 +1013,26 @@
 
     <main class="main-content" id="mainContent">
         <div class="top-bar">
+
+            <div class="d-flex gap-2 ms-5 btn-list">
+                <a href="{{ route('masters.drivers.index') }}" class="btn btn-outline-primary btn-sm px-2">
+                    運転台帳
+                </a>
+                <a href="{{ route('masters.drivers.index') }}" class="btn btn-outline-primary btn-sm px-2">
+                    運転手台帳
+                </a>
+                <a href="{{ route('masters.bus-assignments.index') }}" class="btn btn-outline-primary btn-sm px-2">
+                    運転一覧
+                </a>
+                <a href="{{ route('masters.group-infos.index') }}" class="btn btn-outline-primary btn-sm px-2">
+                    予約一覧
+                </a>
+                <a href="#" class="btn btn-outline-primary btn-sm px-2">
+                    乘務指示書
+                </a>
+            </div>
+            
+            
             <div class="user-info">
                 <div class="user-name">
                     <i class="bi bi-person-circle"></i>

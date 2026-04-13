@@ -139,6 +139,49 @@
             display: block;
             font-size: 13px;
         }
+        
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+            }
+            
+            .login-container {
+                padding: 32px 20px;
+                border-radius: 24px;
+            }
+            
+            .login-header h1 {
+                font-size: 22px;
+            }
+            
+            input[type="text"],
+            input[type="password"],
+            input[type="number"] {
+                padding: 12px 14px 12px 40px;
+                font-size: 15px;
+            }
+            
+            .input-icon {
+                left: 12px;
+                font-size: 15px;
+            }
+            
+            button {
+                padding: 12px;
+                font-size: 15px;
+            }
+        }
+        
+        @media (max-width: 380px) {
+            .login-container {
+                padding: 28px 16px;
+            }
+            
+            .login-header h1 {
+                font-size: 20px;
+            }
+        }
     </style>
 </head>
 <body>

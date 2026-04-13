@@ -33,6 +33,8 @@ use App\Http\Controllers\Masters\OperationLedgerController;
 use App\Http\Controllers\Masters\DriverLedgerController;
 use App\Http\Controllers\Masters\DriverAttendanceController;
 
+use App\Http\Controllers\Driver\DriverDashboardController;
+
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
@@ -180,10 +182,21 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::get('/account-pl/index', [AccountPlController::class, 'index'])->name('account-pl.index');
         Route::get('/account-bs/index', [AccountBsController::class, 'index'])->name('account-bs.index');
         Route::resource('account-month-sums', AccountMonthSumController::class)->names('account-month-sums');//月次決算
-
-
+        
     });
 });
+
+
+Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\Middleware\SetUserDatabase::class])->group(function () {
+    Route::get('dashboard', [DriverDashboardController::class, 'index'])->name('dashboard');
+    Route::get('calendar-data', [DriverDashboardController::class, 'getCalendarData'])->name('calendar-data');
+    Route::get('itineraries/{date}', [DriverDashboardController::class, 'getItineraries'])->name('itineraries');
+    Route::get('search', [DriverDashboardController::class, 'search'])->name('search');
+    Route::get('itinerary/{id}', [DriverDashboardController::class, 'showItinerary'])->name('itinerary.show');
+    Route::post('logout', [DriverDashboardController::class, 'logout'])->name('logout');
+    Route::get('settings', [DriverDashboardController::class, 'settings'])->name('settings');
+});
+
 
 Route::get('/login', function() {
     return redirect()->route('masters.login');

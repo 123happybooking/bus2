@@ -102,6 +102,14 @@ class AuthController extends Controller
             $request->session()->put('user_name', $staff->name);
             $request->session()->put('role', $staff->role);
             
+            if ($staff->role === 'driver') {
+                $driver = \App\Models\Masters\Driver::where('login_id', $staff->login_id)->first();
+                if ($driver) {
+                    $request->session()->put('driver_id', $driver->id);
+                    $request->session()->put('driver_name', $driver->name);
+                }
+            }
+            
             DatabaseConnectionService::connectToDefaultDatabase();
             
             Auth::guard('masters')->login($user, $request->boolean('remember'));
@@ -122,6 +130,10 @@ class AuthController extends Controller
             }
             
             DatabaseConnectionService::connectToDefaultDatabase();
+            
+            if ($staff->role === 'driver') {
+                return redirect()->route('driver.dashboard');
+            }
             
             return redirect()->route('masters.home');
 
