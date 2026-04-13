@@ -386,6 +386,7 @@
     border-bottom: 1px solid var(--border-color);
     font-size: 14px;
     font-weight: 500;
+    color: var(--sidebar-user-text);
 }
 
 .sidebar-menu {

@@ -20,6 +20,7 @@
             --header-bg: #1f3241;
             --sidebar-bg: #2a3f4f;
             --sidebar-header-bg: #1f3241;
+            --sidebar-user-text: #fff;
             --itinerary-time-bg: #1f3241;
             --button-bg: #ffc107;
             --button-text: #1f3241;
@@ -41,6 +42,7 @@
             --header-bg: #ffffff;
             --sidebar-bg: #ffffff;
             --sidebar-header-bg: #2563eb;
+            --sidebar-user-text: #1f3241;
             --itinerary-time-bg: #e8edf2;
             --button-bg: #2563eb;
             --button-text: #ffffff;
