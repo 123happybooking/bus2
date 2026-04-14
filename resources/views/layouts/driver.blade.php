@@ -89,7 +89,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 16px;
+            padding: 12px;
             background-color: var(--header-bg);
             color: var(--text-primary);
             gap: 8px;
@@ -98,9 +98,8 @@
         .menu-btn {
             background: none;
             border: none;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 8px;
+            font-size: 2rem;
+            line-height: 2rem;
             display: flex;
             align-items: center;
             justify-content: center;

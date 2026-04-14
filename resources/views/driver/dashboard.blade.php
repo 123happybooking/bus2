@@ -30,6 +30,12 @@
         <div class="calendar-days" id="calendarDays"></div>
     </div>
 
+    <div class="tab-bar">
+        <button class="tab-btn active" data-tab="upcoming">未運行</button>
+        <button class="tab-btn" data-tab="today">本日全部運行</button>
+        <button class="tab-btn" data-tab="completed">運行済</button>
+    </div>
+
     <div class="itinerary-section">
         <div class="section-title" id="sectionTitle"></div>
         <div class="itinerary-list" id="itineraryList">
@@ -57,11 +63,11 @@
             <li>
                 <span>📬</span>すべての受信トレイ
             </li>
-            <li>
-                <span>📬</span>すべての受信トレイ
+            <li id="changePasswordBtn">
+                <span>🔐</span>パスワード変更
             </li>
-            <li>
-                <span>📬</span>すべての受信トレイ
+            <li id="editProfileBtn">
+                <span>👤</span>個人情報変更
             </li>
             <li id="settingsBtn">
                 <span>⚙️</span>設定
@@ -193,6 +199,33 @@
 
 .calendar-day.other-month .calendar-day-number {
     color: var(--text-muted);
+}
+
+.tab-bar {
+    display: flex;
+    background-color: var(--card-bg);
+    margin: 0 12px;
+    border-radius: 16px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    background-color: var(--accent-color);
+    color: var(--accent-text);
 }
 
 .itinerary-section {
@@ -548,6 +581,7 @@ let selectedYear = currentYear;
 let selectedMonth = currentMonth;
 let selectedDay = null;
 let events = [];
+let currentTab = 'upcoming';
 
 function formatDate(year, month, day) {
     return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -583,18 +617,25 @@ function updateCalendar() {
         const dateStr = formatDate(currentYear, currentMonth, day);
         const event = events.find(e => e.date === dateStr);
         const eventCount = event ? event.count : 0;
+        
+        const today = new Date();
+        const isToday = (currentYear === today.getFullYear() && 
+                         currentMonth === today.getMonth() + 1 && 
+                         day === today.getDate());
+        
+        const todayClass = isToday ? 'selected' : '';
         const selectedClass = (currentYear === selectedYear && currentMonth === selectedMonth && day === selectedDay) ? 'selected' : '';
         
         if (eventCount > 0) {
             calendarHtml += `
-                <div class="calendar-day ${selectedClass}" data-year="${currentYear}" data-month="${currentMonth}" data-day="${day}">
+                <div class="calendar-day ${todayClass} ${selectedClass}" data-year="${currentYear}" data-month="${currentMonth}" data-day="${day}">
                     <div class="calendar-day-number">${day}</div>
                     <div class="calendar-day-count">${eventCount}</div>
                 </div>
             `;
         } else {
             calendarHtml += `
-                <div class="calendar-day ${selectedClass}" data-year="${currentYear}" data-month="${currentMonth}" data-day="${day}">
+                <div class="calendar-day ${todayClass} ${selectedClass}" data-year="${currentYear}" data-month="${currentMonth}" data-day="${day}">
                     <div class="calendar-day-number">${day}</div>
                 </div>
             `;
@@ -630,19 +671,80 @@ function updateCalendar() {
     
     document.querySelectorAll('.calendar-day').forEach(day => {
         day.addEventListener('click', function() {
-            document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
-            this.classList.add('selected');
-            
             const year = parseInt(this.getAttribute('data-year'));
             const month = parseInt(this.getAttribute('data-month'));
             const dayNum = parseInt(this.getAttribute('data-day'));
-            selectedYear = year;
-            selectedMonth = month;
-            selectedDay = dayNum;
+            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
             
-            loadItineraries(year, month, dayNum);
+            window.location.href = `/driver/daily-itineraries/${dateStr}`;
         });
     });
+}
+
+function loadTabData() {
+    const itineraryList = document.getElementById('itineraryList');
+    
+    if (itineraryList) {
+        itineraryList.innerHTML = '<div class="loading">読み込み中...</div>';
+    }
+    
+    fetch(`/driver/tab-itineraries?tab=${currentTab}`)
+        .then(response => response.json())
+        .then(data => {
+            if (itineraryList) {
+                if (data.success && data.itineraries && data.itineraries.length > 0) {
+                    let listHtml = '';
+                    data.itineraries.forEach(item => {
+                        listHtml += `
+                            <div class="itinerary-card" data-id="${item.id}">
+                                <div class="itinerary-row">
+                                    <div class="itinerary-left">
+                                        <div class="start-time">${escapeHtml(item.time_start)}</div>
+                                        <div class="start-location">${escapeHtml(item.start_location || '')}</div>
+                                    </div>
+                    
+                                    <div class="itinerary-center">
+                                        <div class="itinerary-vehicle">${escapeHtml(item.vehicle || '')}</div>
+                                        <div class="arrow-container">
+                                            <div class="arrow-line"></div>
+                                            <div class="arrow-triangle"></div>
+                                        </div>
+                                        <div class="itinerary-date">${escapeHtml(item.date)}</div>
+                                    </div>
+                    
+                                    <div class="itinerary-right">
+                                        <div class="end-time">${escapeHtml(item.time_end)}</div>
+                                        <div class="end-location">${escapeHtml(item.end_location || '')}</div>
+                                    </div>
+                                </div>
+                    
+                                <div class="itinerary-footer">
+                                    <span class="detail-link">行程详情 &gt;</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    itineraryList.innerHTML = listHtml;
+                    
+                    document.querySelectorAll('.itinerary-card').forEach(card => {
+                        card.addEventListener('click', function() {
+                            const id = this.getAttribute('data-id');
+                            if (id) {
+                                window.location.href = `/driver/itinerary/${id}`;
+                            }
+                        });
+                    });
+                } else {
+                    itineraryList.innerHTML = '<div class="empty">予定はありません</div>';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading tab data:', error);
+            if (itineraryList) {
+                itineraryList.innerHTML = '<div class="empty">データの読み込みに失敗しました</div>';
+            }
+        });
 }
 
 function loadCalendarData() {
@@ -662,28 +764,7 @@ function loadCalendarData() {
                 
                 updateCalendar();
                 
-                if (currentYear === today.getFullYear() && currentMonth === today.getMonth() + 1) {
-                    selectedDay = today.getDate();
-                    loadItineraries(currentYear, currentMonth, today.getDate());
-                    setTimeout(() => {
-                        document.querySelectorAll('.calendar-day').forEach(day => {
-                            const dayNum = parseInt(day.getAttribute('data-day'));
-                            if (dayNum === today.getDate() && !day.classList.contains('other-month')) {
-                                day.classList.add('selected');
-                            }
-                        });
-                    }, 100);
-                } else if (events.length > 0) {
-                    const firstEventDate = events[0].date;
-                    const parts = firstEventDate.split('-');
-                    if (parts.length === 3) {
-                        const year = parseInt(parts[0]);
-                        const month = parseInt(parts[1]);
-                        const day = parseInt(parts[2]);
-                        selectedDay = day;
-                        loadItineraries(year, month, day);
-                    }
-                }
+                loadTabData();
             }
         })
         .catch(error => {
@@ -814,6 +895,16 @@ function updateMonthGrid() {
     });
 }
 
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        currentTab = this.getAttribute('data-tab');
+        loadTabData();
+    });
+});
+
 const menuBtn = document.getElementById('menuBtn');
 if (menuBtn) {
     menuBtn.addEventListener('click', function() {
@@ -927,11 +1018,24 @@ if (logoutBtn) {
     });
 }
 
-
 const settingsBtn = document.getElementById('settingsBtn');
 if (settingsBtn) {
     settingsBtn.addEventListener('click', function() {
         window.location.href = '/driver/settings';
+    });
+}
+
+const changePasswordBtn = document.getElementById('changePasswordBtn');
+if (changePasswordBtn) {
+    changePasswordBtn.addEventListener('click', function() {
+        window.location.href = '/driver/password';
+    });
+}
+
+const editProfileBtn = document.getElementById('editProfileBtn');
+if (editProfileBtn) {
+    editProfileBtn.addEventListener('click', function() {
+        window.location.href = '/driver/profile';
     });
 }
 

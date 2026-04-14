@@ -65,7 +65,7 @@
             </div>
             <div class="detail-item">
                 <div class="detail-label">行程</div>
-                <div class="detail-value">{{ $itinerary->itinerary ?? '未設定' }}</div>
+                <div class="detail-value">{{ $itinerary->busAssignment->groupInfo->itinerary_name ?? '未設定' }}</div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">団体名</div>

@@ -153,4 +153,84 @@ class DriverDashboardController extends Controller
     {
         return view('driver.settings');
     }
+    
+    
+    public function dailyItineraries($date)
+    {
+        $driverId = session('driver_id');
+        
+        if (!$driverId) {
+            return redirect()->route('driver.dashboard');
+        }
+        
+        $itineraries = DailyItinerary::with(['busAssignment.groupInfo'])
+            ->where('driver_id', $driverId)
+            ->whereDate('date', $date)
+            ->orderBy('time_start', 'asc')
+            ->get();
+        
+        $dateObj = Carbon::parse($date);
+        $weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+        $weekday = $weekdays[$dateObj->dayOfWeek];
+        $formattedDate = $dateObj->format('Y年m月d日') . " ({$weekday})";
+        
+        return view('driver.daily-itineraries', compact('itineraries', 'formattedDate', 'date'));
+    }
+    
+    
+    public function getTabItineraries(Request $request)
+    {
+        $driverId = session('driver_id');
+        $tab = $request->input('tab', 'upcoming');
+        $today = date('Y-m-d');
+        
+        if (!$driverId) {
+            return response()->json([
+                'success' => true,
+                'itineraries' => []
+            ]);
+        }
+        
+        $query = DailyItinerary::with(['busAssignment.groupInfo'])
+            ->where('driver_id', $driverId);
+        
+        switch ($tab) {
+            case 'upcoming':
+                $query->whereDate('date', '>=', $today);
+                break;
+            case 'today':
+                $query->whereDate('date', '=', $today);
+                break;
+            case 'completed':
+                $query->whereDate('date', '<', $today);
+                break;
+            default:
+                $query->whereDate('date', '>', $today);
+                break;
+        }
+        
+        $itineraries = $query->orderBy('date', 'asc')
+            ->orderBy('time_start', 'asc')
+            ->get();
+        
+        $formattedItineraries = [];
+        foreach ($itineraries as $itinerary) {
+            $formattedItineraries[] = [
+                'id' => $itinerary->id,
+                'time_start' => substr($itinerary->time_start, 0, 5),
+                'time_end' => substr($itinerary->time_end, 0, 5),
+                'start_location' => $itinerary->start_location,
+                'end_location' => $itinerary->end_location,
+                'vehicle' => $itinerary->vehicle,
+                'date' => \Carbon\Carbon::parse($itinerary->date)->format('m月d日'),
+                'itinerary' => $itinerary->itinerary,
+                'group_name' => $itinerary->busAssignment->groupInfo->group_name ?? '',
+            ];
+        }
+        
+        return response()->json([
+            'success' => true,
+            'itineraries' => $formattedItineraries
+        ]);
+    }
 }

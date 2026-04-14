@@ -1,0 +1,199 @@
+@extends('layouts.driver')
+
+@section('title', '行程一覧')
+
+@section('content')
+<div class="mobile-container">
+    <div class="header">
+        <button class="menu-btn" id="backBtn">
+            <div class="back-arrow"></div>
+        </button>
+        <div class="page-title">行程一覧</div>
+        <div class="header-right">
+            <div style="width: 32px;"></div>
+        </div>
+    </div>
+
+    <div class="itinerary-section">
+        <div class="section-title">{{ $formattedDate }}</div>
+        <div class="itinerary-list">
+            @forelse($itineraries as $itinerary)
+            <div class="itinerary-card" data-id="{{ $itinerary->id }}">
+                <div class="itinerary-row">
+                    <div class="itinerary-left">
+                        <div class="start-time">{{ \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') }}</div>
+                        <div class="start-location">{{ $itinerary->start_location ?? '' }}</div>
+                    </div>
+
+                    <div class="itinerary-center">
+                        <div class="itinerary-vehicle">{{ $itinerary->vehicle ?? '' }}</div>
+                        <div class="arrow-container">
+                            <div class="arrow-line"></div>
+                            <div class="arrow-triangle"></div>
+                        </div>
+                    </div>
+
+                    <div class="itinerary-right">
+                        <div class="end-time">{{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }}</div>
+                        <div class="end-location">{{ $itinerary->end_location ?? '' }}</div>
+                    </div>
+                </div>
+
+                <div class="itinerary-footer">
+                    <span class="detail-link">行程详情 &gt;</span>
+                </div>
+            </div>
+            @empty
+            <div class="empty">予定はありません</div>
+            @endforelse
+        </div>
+    </div>
+</div>
+
+<style>
+.itinerary-section {
+    background-color: transparent;
+    margin: 0 12px;
+}
+
+.section-title {
+    padding: 14px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.itinerary-list {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.itinerary-card {
+    padding: 16px;
+    background-color: var(--card-bg);
+    cursor: pointer;
+    border-radius: 16px;
+}
+
+.itinerary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.itinerary-left {
+    text-align: left;
+    width: 25%;
+    flex-shrink: 0;
+}
+
+.itinerary-center {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.itinerary-right {
+    text-align: right;
+    width: 25%;
+    flex-shrink: 0;
+}
+
+.start-time {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.start-location {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 120px;
+}
+
+.end-time {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.end-location {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 120px;
+}
+
+.itinerary-vehicle {
+    font-size: 13px;
+    color: var(--accent-color);
+}
+
+.arrow-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.arrow-line {
+    flex: 1;
+    height: 2px;
+    background-color: var(--text-secondary);
+}
+
+.arrow-triangle {
+    width: 0;
+    height: 0;
+    border-left: 8px solid var(--text-secondary);
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+}
+
+.itinerary-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.detail-link {
+    font-size: 13px;
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+</style>
+
+<script>
+document.getElementById('backBtn').addEventListener('click', function() {
+    window.location.href = '/driver/dashboard';
+});
+
+document.querySelectorAll('.itinerary-card').forEach(card => {
+    card.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        window.location.href = `/driver/itinerary/${id}`;
+    });
+});
+</script>
+@endsection

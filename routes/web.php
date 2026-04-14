@@ -34,6 +34,7 @@ use App\Http\Controllers\Masters\DriverLedgerController;
 use App\Http\Controllers\Masters\DriverAttendanceController;
 
 use App\Http\Controllers\Driver\DriverDashboardController;
+use App\Http\Controllers\Driver\DriverProfileController;
 
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -195,6 +196,13 @@ Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\
     Route::get('itinerary/{id}', [DriverDashboardController::class, 'showItinerary'])->name('itinerary.show');
     Route::post('logout', [DriverDashboardController::class, 'logout'])->name('logout');
     Route::get('settings', [DriverDashboardController::class, 'settings'])->name('settings');
+    Route::get('daily-itineraries/{date}', [DriverDashboardController::class, 'dailyItineraries'])->name('daily-itineraries');
+    Route::get('tab-itineraries', [DriverDashboardController::class, 'getTabItineraries'])->name('tab-itineraries');
+    
+    Route::get('password', [DriverProfileController::class, 'showChangePasswordForm'])->name('password');
+    Route::post('password', [DriverProfileController::class, 'updatePassword'])->name('update-password');
+    Route::get('profile', [DriverProfileController::class, 'editProfile'])->name('profile');
+    Route::post('profile', [DriverProfileController::class, 'updateProfile'])->name('update-profile');
 });
 
 
