@@ -79,16 +79,23 @@ class AuthController extends Controller
             DatabaseConnectionService::connectToDefaultDatabase();
             
             try {
+
                 $user = User::on('mysql')->updateOrCreate(
-                    ['id' => $companyId],
+                    ['id' => $companyId,
+                    'login_id' => $credentials['login_id']],
                     [
+                        'id' => $companyId,
                         'login_id' => $credentials['login_id'],
                         'name' => $staff->name,
+                        'user_company_name' => "",
+                        "user_plan"=>"basic",
                         'password' => Hash::make($credentials['password']),
                         'last_login_at' => now(),
                     ]
                 );
+
             } catch (\Exception $e) {
+                \Log::error('Failed to update user: ' . $e->getMessage());
                 $user = new User();
                 $user->id = $companyId;
             }
