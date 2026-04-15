@@ -15,11 +15,26 @@
     </div>
 
     <div class="itinerary-detail-section">
+        @php
+            $groupInfo = $itinerary->busAssignment->groupInfo ?? null;
+            $reservationCategory = $groupInfo ? $groupInfo->reservationCategory : null;
+            $bookingId = $groupInfo ? $groupInfo->id : '';
+            $operationId = $itinerary->bus_assignment_id ?? '';
+            $categoryName = $reservationCategory ? $reservationCategory->category_name : '';
+            $busAssignment = $itinerary->busAssignment;
+        @endphp
+
         <div class="itinerary-card">
+            <div class="card-header-row">
+                <span class="booking-operation-id">{{ $bookingId }}-{{ $operationId }}</span>
+                <span class="category-name">{{ $categoryName }}</span>
+            </div>
+            <div class="divider"></div>
+
             <div class="itinerary-row">
                 <div class="itinerary-left">
                     <div class="start-time">{{ \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') }}</div>
-                    <div class="start-location">{{ $itinerary->start_location ?? '未設定' }}</div>
+                    <div class="start-location">{{ $itinerary->start_location ?? '' }}</div>
                 </div>
 
                 <div class="itinerary-center">
@@ -33,7 +48,7 @@
 
                 <div class="itinerary-right">
                     <div class="end-time">{{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }}</div>
-                    <div class="end-location">{{ $itinerary->end_location ?? '未設定' }}</div>
+                    <div class="end-location">{{ $itinerary->end_location ?? '' }}</div>
                 </div>
             </div>
         </div>
@@ -42,51 +57,53 @@
             <div class="detail-item">
                 <div class="detail-label">開始時間</div>
                 <div class="detail-value">{{ \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') }}</div>
-            </div>
-            <div class="detail-item">
-                <div class="detail-label">開始場所</div>
-                <div class="detail-value">{{ $itinerary->start_location ?? '未設定' }}</div>
+                <div class="detail-value-right">{{ $itinerary->start_location ?? '未設定' }}</div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">終了時間</div>
                 <div class="detail-value">{{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }}</div>
-            </div>
-            <div class="detail-item">
-                <div class="detail-label">終了場所</div>
-                <div class="detail-value">{{ $itinerary->end_location ?? '未設定' }}</div>
-            </div>
-            <div class="detail-item">
-                <div class="detail-label">車両名</div>
-                <div class="detail-value">{{ $itinerary->vehicle ?? '未設定' }}</div>
-            </div>
-            <div class="detail-item">
-                <div class="detail-label">日付</div>
-                <div class="detail-value">{{ \Carbon\Carbon::parse($itinerary->date)->format('Y年m月d日') }}</div>
+                <div class="detail-value-right">{{ $itinerary->end_location ?? '未設定' }}</div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">行程</div>
-                <div class="detail-value">{{ $itinerary->busAssignment->groupInfo->itinerary_name ?? '未設定' }}</div>
+                <div class="detail-value-full">{{ $itinerary->itinerary ?? '未設定' }}</div>
             </div>
             <div class="detail-item">
-                <div class="detail-label">団体名</div>
-                <div class="detail-value">{{ $itinerary->busAssignment->groupInfo->group_name ?? '未設定' }}</div>
+                <div class="detail-label">お客様人数</div>
+                <div class="detail-value-full">
+                    大人: {{ $busAssignment->adult_count ?? 0 }}　
+                    小人: {{ $busAssignment->child_count ?? 0 }}　
+                    ガイド: {{ $busAssignment->guide_count ?? 0 }}　
+                    その他: {{ $busAssignment->other_count ?? 0 }}
+                </div>
             </div>
             <div class="detail-item">
-                <div class="detail-label">運転手</div>
-                <div class="detail-value">{{ $itinerary->driver ?? '未設定' }}</div>
+                <div class="detail-label">荷物数</div>
+                <div class="detail-value-full">{{ $busAssignment->luggage_count ?? 0 }}</div>
             </div>
             <div class="detail-item">
-                <div class="detail-label">ガイド</div>
-                <div class="detail-value">{{ $itinerary->guide ?? '未設定' }}</div>
+                <div class="detail-label">注意事項</div>
+                <div class="detail-value-full">{{ $busAssignment->attention ?? '未設定' }}</div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">備考</div>
-                <div class="detail-value">{{ $itinerary->remarks ?? 'なし' }}</div>
+                <div class="detail-value-full">{{ $busAssignment->operation_remarks ?? '未設定' }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">ステッカー</div>
+                <div class="detail-value-full">{{ $busAssignment->step_car ?? '未設定' }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">お客様氏名・連絡先</div>
+                <div class="detail-value-full">
+                    {{ $busAssignment->representative ?? '' }} {{ $busAssignment->representative_phone ?? '' }}
+                </div>
             </div>
         </div>
 
         <div class="button-container">
-            <button class="back-btn" id="backToDashboard">戻る</button>
+            <button class="start-operation-btn" id="startOperationBtn">運行開始</button>
+            <button class="back-btn" id="cancelBtn">戻る</button>
         </div>
     </div>
 </div>
@@ -101,6 +118,29 @@
     background-color: var(--card-bg);
     border-radius: 16px;
     margin-bottom: 16px;
+}
+
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.booking-operation-id {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.category-name {
+    font-size: 12px;
+    color: var(--accent-color);
+}
+
+.divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin-bottom: 12px;
 }
 
 .itinerary-row {
@@ -163,6 +203,7 @@
 }
 
 .itinerary-vehicle {
+    font-size: 13px;
     color: var(--accent-color);
 }
 
@@ -170,6 +211,7 @@
     width: 100%;
     display: flex;
     align-items: center;
+    margin: 8px 0;
 }
 
 .arrow-line {
@@ -187,7 +229,7 @@
 }
 
 .itinerary-date {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
     color: var(--text-secondary);
 }
@@ -210,13 +252,29 @@
 }
 
 .detail-label {
-    width: 100px;
+    width: 80px;
+    margin-right: 10px;
     font-size: 14px;
     color: var(--text-secondary);
     flex-shrink: 0;
 }
 
 .detail-value {
+    width: 70px;
+    font-size: 14px;
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.detail-value-right {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-primary);
+    text-align: left;
+    word-break: break-word;
+}
+
+.detail-value-full {
     flex: 1;
     font-size: 14px;
     color: var(--text-primary);
@@ -226,14 +284,28 @@
 .button-container {
     display: flex;
     justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
 }
 
-.back-btn {
-    width: 100%;
-    padding: 12px 32px;
+.start-operation-btn {
+    flex: 1;
+    padding: 12px 16px;
     background-color: var(--accent-color);
     color: var(--accent-text);
     border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.back-btn {
+    flex: 1;
+    padding: 12px 16px;
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     font-size: 16px;
     font-weight: 600;
@@ -243,17 +315,25 @@
 
 <script>
 const backBtn = document.getElementById('backBtn');
-const backToDashboard = document.getElementById('backToDashboard');
+const cancelBtn = document.getElementById('cancelBtn');
+const startOperationBtn = document.getElementById('startOperationBtn');
 
 if (backBtn) {
     backBtn.addEventListener('click', function() {
-        window.location.href = '/driver/dashboard';
+        window.history.back();
     });
 }
 
-if (backToDashboard) {
-    backToDashboard.addEventListener('click', function() {
-        window.location.href = '/driver/dashboard';
+if (cancelBtn) {
+    cancelBtn.addEventListener('click', function() {
+        window.history.back();
+    });
+}
+
+if (startOperationBtn) {
+    startOperationBtn.addEventListener('click', function() {
+        const id = '{{ $itinerary->id }}';
+        window.location.href = `/driver/operation/run/${id}`;
     });
 }
 </script>

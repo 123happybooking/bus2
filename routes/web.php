@@ -35,6 +35,8 @@ use App\Http\Controllers\Masters\DriverAttendanceController;
 
 use App\Http\Controllers\Driver\DriverDashboardController;
 use App\Http\Controllers\Driver\DriverProfileController;
+use App\Http\Controllers\Driver\DriverDailyReportController;
+use App\Http\Controllers\Driver\DriverOperationController;
 
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -203,6 +205,12 @@ Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\
     Route::post('password', [DriverProfileController::class, 'updatePassword'])->name('update-password');
     Route::get('profile', [DriverProfileController::class, 'editProfile'])->name('profile');
     Route::post('profile', [DriverProfileController::class, 'updateProfile'])->name('update-profile');
+    
+    Route::get('daily-reports/{date}', [DriverDailyReportController::class, 'index'])->name('daily-reports');
+    
+    Route::get('operation/run/{id}', [DriverOperationController::class, 'runOperation'])->name('operation.run');
+    Route::post('operation/log/{id}', [DriverOperationController::class, 'logAction'])->name('operation.log');
+    Route::get('operation/logs/{id}', [DriverOperationController::class, 'getLogs'])->name('operation.logs');
 });
 
 
