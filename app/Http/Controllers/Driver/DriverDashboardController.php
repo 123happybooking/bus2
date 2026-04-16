@@ -215,6 +215,9 @@ class DriverDashboardController extends Controller
         
         $formattedItineraries = [];
         foreach ($itineraries as $itinerary) {
+            $groupInfo = $itinerary->busAssignment->groupInfo ?? null;
+            $reservationCategory = $groupInfo ? $groupInfo->reservationCategory : null;
+            
             $formattedItineraries[] = [
                 'id' => $itinerary->id,
                 'time_start' => substr($itinerary->time_start, 0, 5),
@@ -225,6 +228,10 @@ class DriverDashboardController extends Controller
                 'date' => \Carbon\Carbon::parse($itinerary->date)->format('m月d日'),
                 'itinerary' => $itinerary->itinerary,
                 'group_name' => $itinerary->busAssignment->groupInfo->group_name ?? '',
+                'group_info_id' => $groupInfo->id ?? '',
+                'bus_assignment_id' => $itinerary->bus_assignment_id ?? '',
+                'category_name' => $reservationCategory->category_name ?? '',
+                'operation_status' => $itinerary->operation_status,
             ];
         }
         

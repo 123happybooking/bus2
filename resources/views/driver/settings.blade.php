@@ -32,7 +32,9 @@
         <button class="save-btn" id="saveBtn">保存</button>
     </div>
 </div>
+@endsection
 
+@push('styles')
 <style>
 .settings-section {
     background-color: var(--card-bg);
@@ -93,7 +95,9 @@
     cursor: pointer;
 }
 </style>
+@endpush
 
+@push('scripts')
 <script>
 const backBtn = document.getElementById('backBtn');
 if (backBtn) {
@@ -134,4 +138,4 @@ if (saveBtn) {
     });
 }
 </script>
-@endsection
+@endpush

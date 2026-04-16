@@ -22,6 +22,7 @@
             $operationId = $itinerary->bus_assignment_id ?? '';
             $categoryName = $reservationCategory ? $reservationCategory->category_name : '';
             $busAssignment = $itinerary->busAssignment;
+            $isCompleted = $itinerary->operation_status === '終了';
         @endphp
 
         <div class="itinerary-card">
@@ -102,12 +103,14 @@
         </div>
 
         <div class="button-container">
-            <button class="start-operation-btn" id="startOperationBtn">運行開始</button>
+            <button class="start-operation-btn" id="startOperationBtn" {{ $isCompleted ? 'disabled' : '' }}>運行開始</button>
             <button class="back-btn" id="cancelBtn">戻る</button>
         </div>
     </div>
 </div>
+@endsection
 
+@push('styles')
 <style>
 .itinerary-detail-section {
     padding: 12px;
@@ -300,6 +303,10 @@
     cursor: pointer;
 }
 
+.start-operation-btn:disabled {
+    display: none;
+}
+
 .back-btn {
     flex: 1;
     padding: 12px 16px;
@@ -312,7 +319,9 @@
     cursor: pointer;
 }
 </style>
+@endpush
 
+@push('scripts')
 <script>
 const backBtn = document.getElementById('backBtn');
 const cancelBtn = document.getElementById('cancelBtn');
@@ -337,4 +346,4 @@ if (startOperationBtn) {
     });
 }
 </script>
-@endsection
+@endpush

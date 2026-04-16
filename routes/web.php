@@ -207,6 +207,8 @@ Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\
     Route::post('profile', [DriverProfileController::class, 'updateProfile'])->name('update-profile');
     
     Route::get('daily-reports/{date}', [DriverDailyReportController::class, 'index'])->name('daily-reports');
+    Route::post('daily-reports/create', [DriverDailyReportController::class, 'create'])->name('daily-reports.create');
+    Route::put('daily-reports/{id}', [DriverDailyReportController::class, 'update'])->name('daily-reports.update');
     
     Route::get('operation/run/{id}', [DriverOperationController::class, 'runOperation'])->name('operation.run');
     Route::post('operation/log/{id}', [DriverOperationController::class, 'logAction'])->name('operation.log');

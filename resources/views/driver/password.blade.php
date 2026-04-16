@@ -48,7 +48,9 @@
         </form>
     </div>
 </div>
+@endsection
 
+@push('styles')
 <style>
 .form-container {
     padding: 20px;
@@ -118,10 +120,12 @@
     font-size: 14px;
 }
 </style>
+@endpush
 
+@push('scripts')
 <script>
 document.getElementById('backBtn').addEventListener('click', function() {
     window.location.href = '/driver/dashboard';
 });
 </script>
-@endsection
+@endpush

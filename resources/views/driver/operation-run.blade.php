@@ -55,6 +55,19 @@
     </div>
 </div>
 
+<div class="mileage-modal" id="mileageModal">
+    <div class="modal-content">
+        <h4 id="modalTitle">走行距離を入力</h4>
+        <input type="number" id="mileageInput" placeholder="走行距離 (km)" min="0">
+        <div class="modal-buttons">
+            <button class="modal-confirm" id="confirmBtn">確認</button>
+            <button class="modal-cancel" id="cancelModalBtn">キャンセル</button>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('styles')
 <style>
 .operation-container {
     padding: 12px;
@@ -244,18 +257,9 @@
     border: 1px solid var(--border-color);
 }
 </style>
+@endpush
 
-<div class="mileage-modal" id="mileageModal">
-    <div class="modal-content">
-        <h4 id="modalTitle">走行距離を入力</h4>
-        <input type="number" id="mileageInput" placeholder="走行距離 (km)" min="0">
-        <div class="modal-buttons">
-            <button class="modal-confirm" id="confirmBtn">確認</button>
-            <button class="modal-cancel" id="cancelModalBtn">キャンセル</button>
-        </div>
-    </div>
-</div>
-
+@push('scripts')
 <script>
 let currentAction = null;
 let currentItineraryId = {{ $itinerary->id }};
@@ -359,16 +363,31 @@ document.getElementById('backBtn').addEventListener('click', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    const existingLogs = document.querySelectorAll('.log-item .col-action');
-    const uniqueActions = new Set();
-    existingLogs.forEach(log => {
-        const action = log.textContent;
-        if (!uniqueActions.has(action)) {
-            uniqueActions.add(action);
-            completedActions.add(action);
-            markButtonCompleted(action);
+    const currentStatus = '{{ $currentStatus }}';
+    
+    if (currentStatus) {
+        const statusOrder = ['迎車', '到着', '空車', '下車', '終了'];
+        const statusIndex = statusOrder.indexOf(currentStatus);
+        
+        for (let i = 0; i <= statusIndex; i++) {
+            const action = statusOrder[i];
+            if (!completedActions.has(action)) {
+                completedActions.add(action);
+                markButtonCompleted(action);
+            }
         }
-    });
+    } else {
+        const existingLogs = document.querySelectorAll('.log-item .col-action');
+        const uniqueActions = new Set();
+        existingLogs.forEach(log => {
+            const action = log.textContent;
+            if (!uniqueActions.has(action)) {
+                uniqueActions.add(action);
+                completedActions.add(action);
+                markButtonCompleted(action);
+            }
+        });
+    }
 });
 </script>
-@endsection
+@endpush

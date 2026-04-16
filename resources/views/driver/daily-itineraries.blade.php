@@ -23,13 +23,19 @@
         @php
             $groupInfo = $itinerary->busAssignment->groupInfo ?? null;
             $reservationCategory = $groupInfo ? $groupInfo->reservationCategory : null;
-            $bookingId = $groupInfo ? $groupInfo->id : '';
-            $operationId = $itinerary->bus_assignment_id ?? '';
+            $group_info_id = $groupInfo ? $groupInfo->id : '';
+            $bus_assignment_id = $itinerary->bus_assignment_id ?? '';
             $categoryName = $reservationCategory ? $reservationCategory->category_name : '';
+            $isCompleted = $itinerary->operation_status === '終了';
         @endphp
         <div class="itinerary-card" data-id="{{ $itinerary->id }}">
             <div class="card-header-row">
-                <span class="booking-operation-id">{{ $bookingId }}-{{ $operationId }}</span>
+                <div class="left-group">
+                    <span class="booking-operation-id">{{ $group_info_id }}-{{ $bus_assignment_id }}</span>
+                    @if($isCompleted)
+                    <span class="completed-badge">完了</span>
+                    @endif
+                </div>
                 <span class="category-name">{{ $categoryName }}</span>
             </div>
             <div class="divider"></div>
@@ -62,7 +68,9 @@
         @endforelse
     </div>
 </div>
+@endsection
 
+@push('styles')
 <style>
 .header {
     display: flex;
@@ -149,9 +157,23 @@
     margin-bottom: 8px;
 }
 
+.left-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .booking-operation-id {
     font-size: 12px;
     color: var(--text-secondary);
+}
+
+.completed-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    background-color: #10b981;
+    color: white;
+    border-radius: 20px;
 }
 
 .category-name {
@@ -271,7 +293,9 @@
     font-size: 13px;
 }
 </style>
+@endpush
 
+@push('scripts')
 <script>
 document.getElementById('backBtn').addEventListener('click', function() {
     window.location.href = '/driver/dashboard';
@@ -290,5 +314,9 @@ document.querySelectorAll('.itinerary-card').forEach(card => {
         }
     });
 });
+
+@if(session('error_alert'))
+    alert("{{ session('error_alert') }}");
+@endif
 </script>
-@endsection
+@endpush

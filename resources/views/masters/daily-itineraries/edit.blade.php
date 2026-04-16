@@ -45,7 +45,7 @@
         <input type="hidden" name="group_info_id" value="{{ $dailyItinerary->group_info_id }}">
 
         <div class="card shadow-sm mb-3 itinerary-info-card">
-            <div class="card-header py-2 px-3 card-header-bg">
+            <div class="card-header py-2 px-3 bg-primary">
                 <h6 class="mb-0 card-title">
                     <i class="bi bi-calendar-day me-1"></i> 旅程基本情報
                 </h6>
@@ -53,66 +53,64 @@
             
             <div class="card-body p-3">
                 <div class="row">
-                    <div class="col-md-2">
-                        <div class="d-flex align-items-center">
-                            <label for="date" class="form-label me-2 mb-0 form-label-custom required">日付</label>
-                            <input type="date" name="date" id="date" class="form-control form-control-sm form-control-custom @error('date') is-invalid @enderror" 
-                                   value="{{ old('date', $dailyItinerary->date instanceof \Carbon\Carbon ? $dailyItinerary->date->format('Y-m-d') : $dailyItinerary->date) }}" required style="width: 140px;">
+                    <div class="col-md-12">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <div class="d-flex align-items-center">
+                                <label for="date" class="form-label me-2 mb-0 form-label-custom required" style="min-width: 40px;">日付</label>
+                                <input type="date" name="date" id="date" class="form-control form-control-sm form-control-custom @error('date') is-invalid @enderror" 
+                                       value="{{ old('date', $dailyItinerary->date instanceof \Carbon\Carbon ? $dailyItinerary->date->format('Y-m-d') : $dailyItinerary->date) }}" required style="width: 120px;">
+                            </div>
+                            
+                            <div class="d-flex align-items-center">
+                                <label for="time_start" class="form-label me-2 mb-0 form-label-custom required" style="min-width: 40px;">開始</label>
+                                <input type="time" name="time_start" id="time_start" class="form-control form-control-sm form-control-custom @error('time_start') is-invalid @enderror" 
+                                       value="{{ old('time_start', $dailyItinerary->time_start ? substr($dailyItinerary->time_start, 0, 5) : '') }}" required style="width: 90px;">
+                            </div>
+                            
+                            <div class="d-flex align-items-center">
+                                <label for="time_end" class="form-label me-2 mb-0 form-label-custom required" style="min-width: 40px;">終了</label>
+                                <input type="time" name="time_end" id="time_end" class="form-control form-control-sm form-control-custom @error('time_end') is-invalid @enderror" 
+                                       value="{{ old('time_end', $dailyItinerary->time_end ? substr($dailyItinerary->time_end, 0, 5) : '') }}" required style="width: 90px;">
+                            </div>
+                            
+                            <div class="d-flex align-items-center">
+                                <label for="start_location" class="form-label me-2 mb-0 form-label-custom" style="min-width: 50px;">出発地</label>
+                                <input type="text" name="start_location" id="start_location" class="form-control form-control-sm form-control-custom @error('start_location') is-invalid @enderror" 
+                                       value="{{ old('start_location', $dailyItinerary->start_location) }}" placeholder="出発地" style="width: 120px;">
+                            </div>
+                            
+                            <div class="d-flex align-items-center">
+                                <label for="end_location" class="form-label me-2 mb-0 form-label-custom" style="min-width: 50px;">到着地</label>
+                                <input type="text" name="end_location" id="end_location" class="form-control form-control-sm form-control-custom @error('end_location') is-invalid @enderror" 
+                                       value="{{ old('end_location', $dailyItinerary->end_location) }}" placeholder="到着地" style="width: 120px;">
+                            </div>
+                            
+                            <div class="d-flex align-items-center">
+                                <label for="accommodation" class="form-label me-2 mb-0 form-label-custom" style="min-width: 40px;">宿泊</label>
+                                <select name="accommodation" id="accommodation" class="form-select form-select-sm form-control-custom" style="width: 70px;">
+                                    <option value="0" {{ old('accommodation', $dailyItinerary->accommodation) == '0' ? 'selected' : '' }}>無</option>
+                                    <option value="1" {{ old('accommodation', $dailyItinerary->accommodation) == '1' ? 'selected' : '' }}>有</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <div class="d-flex align-items-center">
-                            <label for="time_start" class="form-label me-2 mb-0 form-label-custom required">開始</label>
-                            <input type="time" name="time_start" id="time_start" class="form-control form-control-sm form-control-custom @error('time_start') is-invalid @enderror" 
-                                   value="{{ old('time_start', $dailyItinerary->time_start ? substr($dailyItinerary->time_start, 0, 5) : '') }}" required style="width: 100px;">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="d-flex align-items-center">
-                            <label for="time_end" class="form-label me-2 mb-0 form-label-custom required">終了</label>
-                            <input type="time" name="time_end" id="time_end" class="form-control form-control-sm form-control-custom @error('time_end') is-invalid @enderror" 
-                                   value="{{ old('time_end', $dailyItinerary->time_end ? substr($dailyItinerary->time_end, 0, 5) : '') }}" required style="width: 100px;">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="d-flex align-items-center">
-                            <label for="start_location" class="form-label me-2 mb-0 form-label-custom" style="width: 60px;">出発地</label>
-                            <input type="text" name="start_location" id="start_location" class="form-control form-control-sm form-control-custom @error('start_location') is-invalid @enderror" 
-                                   value="{{ old('start_location', $dailyItinerary->start_location) }}" placeholder="出発地" style="width: 100%;">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="d-flex align-items-center">
-                            <label for="end_location" class="form-label me-2 mb-0 form-label-custom" style="width: 60px;">到着地</label>
-                            <input type="text" name="end_location" id="end_location" class="form-control form-control-sm form-control-custom @error('end_location') is-invalid @enderror" 
-                                   value="{{ old('end_location', $dailyItinerary->end_location) }}" placeholder="到着地" style="width: 100%;">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="d-flex align-items-center">
-                            <label for="accommodation" class="form-label me-2 mb-0 form-label-custom">宿泊</label>
-                            <select name="accommodation" id="accommodation" class="form-select form-select-sm form-control-custom" style="width: 80px;">
-                                <option value="0" {{ old('accommodation', $dailyItinerary->accommodation) == '0' ? 'selected' : '' }}>無</option>
-                                <option value="1" {{ old('accommodation', $dailyItinerary->accommodation) == '1' ? 'selected' : '' }}>有</option>
-                            </select>
+                </div>
+                
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <div class="d-flex align-items-start">
+                            <label for="itinerary" class="form-label me-2 mb-0 form-label-custom" style="min-width: 70px; padding-top: 4px;">行程説明</label>
+                            <textarea name="itinerary" id="itinerary" rows="1" class="form-control form-control-sm form-control-custom @error('itinerary') is-invalid @enderror" 
+                                      placeholder="行程説明" style="flex: 1;">{{ old('itinerary', $dailyItinerary->itinerary) }}</textarea>
                         </div>
                     </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col-md-12">
-                        <div class="d-flex">
-                            <label for="itinerary" class="form-label me-2 mb-0 form-label-custom" style="width: 60px; padding-top: 2px;">行程説明</label>
-                            <textarea name="itinerary" id="itinerary" rows="2" class="form-control form-control-sm form-control-custom @error('itinerary') is-invalid @enderror" 
-                                      placeholder="行程説明">{{ old('itinerary', $dailyItinerary->itinerary) }}</textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-md-12">
-                        <div class="d-flex">
-                            <label for="remarks" class="form-label me-2 mb-0 form-label-custom" style="width: 60px; padding-top: 2px;">備考</label>
-                            <textarea name="remarks" id="remarks" rows="2" class="form-control form-control-sm form-control-custom @error('remarks') is-invalid @enderror" 
-                                      placeholder="備考">{{ old('remarks', $dailyItinerary->remarks) }}</textarea>
+                        <div class="d-flex align-items-start">
+                            <label for="remarks" class="form-label me-2 mb-0 form-label-custom" style="min-width: 70px; padding-top: 4px;">備考</label>
+                            <textarea name="remarks" id="remarks" rows="1" class="form-control form-control-sm form-control-custom @error('remarks') is-invalid @enderror" 
+                                      placeholder="備考" style="flex: 1;">{{ old('remarks', $dailyItinerary->remarks) }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -120,7 +118,7 @@
         </div>
 
         <div class="card shadow-sm mb-3 vehicle-card">
-            <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center card-header-bg">
+            <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center bg-primary">
                 <h6 class="mb-0 card-title">
                     <i class="bi bi-truck me-1"></i> 車両情報
                 </h6>

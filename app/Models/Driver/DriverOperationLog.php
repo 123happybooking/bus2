@@ -10,6 +10,8 @@ class DriverOperationLog extends Model
     protected $table = 'driver_operation_logs';
     
     protected $fillable = [
+        'driver_id',
+        'vehicle_id',
         'itinerary_id',
         'action',
         'mileage',

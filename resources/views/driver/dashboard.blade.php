@@ -98,7 +98,9 @@
         <button id="yearNextNav">翌年</button>
     </div>
 </div>
+@endsection
 
+@push('styles')
 <style>
 .calendar-wrapper {
     background-color: var(--card-bg);
@@ -280,6 +282,43 @@
     text-align: right;
     width: 25%;
     flex-shrink: 0;
+}
+
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.left-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.booking-operation-id {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.completed-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    background-color: #10b981;
+    color: white;
+    border-radius: 20px;
+}
+
+.category-name {
+    font-size: 12px;
+    color: var(--accent-color);
+}
+
+.divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 8px 0;
 }
 
 .start-time {
@@ -573,7 +612,9 @@
     color: var(--text-primary);
 }
 </style>
+@endpush
 
+@push('scripts')
 <script>
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth() + 1;
@@ -695,8 +736,19 @@ function loadTabData() {
                 if (data.success && data.itineraries && data.itineraries.length > 0) {
                     let listHtml = '';
                     data.itineraries.forEach(item => {
+                        const isCompleted = item.operation_status === '終了';
+                        const completedBadgeHtml = isCompleted ? '<span class="completed-badge">完了</span>' : '';
+                        
                         listHtml += `
                             <div class="itinerary-card" data-id="${item.id}">
+                                <div class="card-header-row">
+                                    <div class="left-group">
+                                        <span class="booking-operation-id">${escapeHtml(item.group_info_id || '')}-${escapeHtml(item.bus_assignment_id || '')}</span>
+                                        ${completedBadgeHtml}
+                                    </div>
+                                    <span class="category-name">${escapeHtml(item.category_name || '')}</span>
+                                </div>
+                                <div class="divider"></div>
                                 <div class="itinerary-row">
                                     <div class="itinerary-left">
                                         <div class="start-time">${escapeHtml(item.time_start)}</div>
@@ -850,7 +902,8 @@ function loadItineraries(year, month, day) {
 }
 
 function escapeHtml(str) {
-    if (!str) return '';
+    if (str === null || str === undefined) return '';
+    if (typeof str !== 'string') str = String(str);
     return str
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -1041,4 +1094,4 @@ if (editProfileBtn) {
 
 loadCalendarData();
 </script>
-@endsection
+@endpush

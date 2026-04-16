@@ -68,7 +68,9 @@
         @endif
     </div>
 </div>
+@endsection
 
+@push('styles')
 <script>
     document.getElementById('backBtn').addEventListener('click', function() {
         window.location.href = '{{ route("driver.dashboard") }}';
@@ -101,7 +103,9 @@
         });
     }
 </script>
+@endpush
 
+@push('scripts')
 <style>
 .search-form-container {
     padding: 12px;
@@ -341,4 +345,4 @@
     border-color: var(--accent-color);
 }
 </style>
-@endsection
+@endpush

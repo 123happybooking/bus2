@@ -1015,10 +1015,10 @@
         <div class="top-bar">
 
             <div class="d-flex gap-2 ms-5 btn-list">
-                <a href="{{ route('masters.drivers.index') }}" class="btn btn-outline-primary btn-sm px-2">
-                    運転台帳
+                <a href="{{ route('masters.operation-ledger.index') }}" class="btn btn-outline-primary btn-sm px-2">
+                    運行台帳
                 </a>
-                <a href="{{ route('masters.drivers.index') }}" class="btn btn-outline-primary btn-sm px-2">
+                <a href="{{ route('masters.driver-ledger.index') }}" class="btn btn-outline-primary btn-sm px-2">
                     運転手台帳
                 </a>
                 <a href="{{ route('masters.bus-assignments.index') }}" class="btn btn-outline-primary btn-sm px-2">

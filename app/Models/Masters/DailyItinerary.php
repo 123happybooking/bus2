@@ -27,6 +27,7 @@ class DailyItinerary extends Model
         'remarks',
         'bus_ass_uuid',
         'display_order',
+        'operation_status',
         'created_by',
         'updated_by',
     ];
