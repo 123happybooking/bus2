@@ -101,12 +101,12 @@ class DriverDailyReportController extends Controller
             ->firstOrFail();
             
         $today = Carbon::today()->format('Y-m-d');
-        if ($report->date !== $today) {
-            return response()->json([
-                'success' => false,
-                'message' => '本日の日報のみ更新できます。'
-            ]);
-        }
+        // if ($report->date !== $today) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => '本日の日報のみ更新できます。'
+        //     ]);
+        // }
         
         $request->validate([
             'start_time' => 'nullable|date_format:H:i',
