@@ -32,11 +32,13 @@ use App\Http\Controllers\Masters\BusAssignmentController;
 use App\Http\Controllers\Masters\OperationLedgerController;
 use App\Http\Controllers\Masters\DriverLedgerController;
 use App\Http\Controllers\Masters\DriverAttendanceController;
+use App\Http\Controllers\Masters\DailyReportController;
 
 use App\Http\Controllers\Driver\DriverDashboardController;
 use App\Http\Controllers\Driver\DriverProfileController;
 use App\Http\Controllers\Driver\DriverDailyReportController;
 use App\Http\Controllers\Driver\DriverOperationController;
+use App\Http\Controllers\Driver\DriverAuthController;
 
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -130,7 +132,6 @@ Route::prefix('masters')->name('masters.')->group(function () {
             Route::delete('/{date}', [GroupInfoDateRemarkController::class, 'destroy'])->name('destroy');
         });
         
-        
         Route::prefix('daily-itineraries')->name('daily-itineraries.')->group(function () {
             Route::get('/', [DailyItineraryController::class, 'index'])->name('index');
             Route::get('/create', [DailyItineraryController::class, 'create'])->name('create');
@@ -147,7 +148,6 @@ Route::prefix('masters')->name('masters.')->group(function () {
                  ->name('by-group');
         });
         
-            
         Route::prefix('bus-assignments')->name('bus-assignments.')->group(function () {
             Route::get('/', [BusAssignmentController::class, 'index'])->name('index');
             Route::get('/create', [BusAssignmentController::class, 'create'])->name('create');
@@ -157,6 +157,14 @@ Route::prefix('masters')->name('masters.')->group(function () {
             Route::put('/{id}', [BusAssignmentController::class, 'update'])->name('update');
             Route::delete('/{id}', [BusAssignmentController::class, 'destroy'])->name('destroy');
         });
+        
+        Route::prefix('daily-reports')->name('daily-reports.')->group(function () {
+            Route::get('/', [DailyReportController::class, 'index'])->name('index');
+            Route::get('/{id}/edit', [DailyReportController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [DailyReportController::class, 'update'])->name('update');
+            Route::get('/{id}/pdf', [DailyReportController::class, 'exportPdf'])->name('export-pdf');
+        });
+        
 
         Route::resource('currencies', CurrencyController::class)->names('currencies');
         Route::resource('invoices', InvoiceController::class)->names('invoices');
@@ -196,10 +204,11 @@ Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\
     Route::get('itineraries/{date}', [DriverDashboardController::class, 'getItineraries'])->name('itineraries');
     Route::get('search', [DriverDashboardController::class, 'search'])->name('search');
     Route::get('itinerary/{id}', [DriverDashboardController::class, 'showItinerary'])->name('itinerary.show');
-    Route::post('logout', [DriverDashboardController::class, 'logout'])->name('logout');
-    Route::get('settings', [DriverDashboardController::class, 'settings'])->name('settings');
     Route::get('daily-itineraries/{date}', [DriverDashboardController::class, 'dailyItineraries'])->name('daily-itineraries');
     Route::get('tab-itineraries', [DriverDashboardController::class, 'getTabItineraries'])->name('tab-itineraries');
+    
+    Route::post('logout', [DriverAuthController::class, 'logout'])->name('logout');
+    Route::get('settings', [DriverAuthController::class, 'settings'])->name('settings');
     
     Route::get('password', [DriverProfileController::class, 'showChangePasswordForm'])->name('password');
     Route::post('password', [DriverProfileController::class, 'updatePassword'])->name('update-password');
@@ -213,6 +222,7 @@ Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\
     Route::get('operation/run/{id}', [DriverOperationController::class, 'runOperation'])->name('operation.run');
     Route::post('operation/log/{id}', [DriverOperationController::class, 'logAction'])->name('operation.log');
     Route::get('operation/logs/{id}', [DriverOperationController::class, 'getLogs'])->name('operation.logs');
+    Route::put('operation/log/{id}', [DriverOperationController::class, 'updateLog'])->name('operation.log.update');
 });
 
 

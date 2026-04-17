@@ -26,6 +26,17 @@
             </div>
         </div>
 
+        <div class="vehicle-selector">
+            <span class="vehicle-label">車両</span>
+            <select id="vehicleSelect" class="vehicle-select">
+                @foreach($vehicles as $vehicle)
+                <option value="{{ $vehicle->id }}" {{ $defaultVehicleId == $vehicle->id ? 'selected' : '' }}>
+                    {{ $vehicle->registration_number }}
+                </option>
+                @endforeach
+            </select>
+        </div>
+
         <div class="action-buttons">
             <button class="action-btn" data-action="迎車">迎車</button>
             <button class="action-btn" data-action="到着">到着</button>
@@ -37,17 +48,15 @@
         <div class="logs-container">
             <div class="logs-header">
                 <span class="col-time">時間</span>
-                <span class="col-action">操作</span>
                 <span class="col-mileage">走行距離</span>
-                <span class="col-status">状態</span>
+                <span class="col-action">操作</span>
             </div>
             <div class="logs-list" id="logsList">
                 @foreach($logs as $log)
-                <div class="log-item">
+                <div class="log-item" data-id="{{ $log->id }}" data-action="{{ $log->action }}" data-mileage="{{ $log->mileage }}" data-status="{{ $log->status }}">
                     <span class="col-time">{{ \Carbon\Carbon::parse($log->logged_at)->format('Y/m/d H:i:s') }}</span>
-                    <span class="col-action">{{ $log->action }}</span>
                     <span class="col-mileage">{{ $log->mileage ?? '' }}</span>
-                    <span class="col-status">{{ $log->status }}</span>
+                    <span class="col-action">{{ $log->action }}</span>
                 </div>
                 @endforeach
             </div>
@@ -62,6 +71,30 @@
         <div class="modal-buttons">
             <button class="modal-confirm" id="confirmBtn">確認</button>
             <button class="modal-cancel" id="cancelModalBtn">キャンセル</button>
+        </div>
+    </div>
+</div>
+
+<div class="edit-log-modal" id="editLogModal">
+    <div class="modal-content">
+        <h4>ログを編集</h4>
+        <div class="edit-field">
+            <label>操作</label>
+            <select id="editActionSelect">
+                <option value="迎車">迎車</option>
+                <option value="到着">到着</option>
+                <option value="空車">空車</option>
+                <option value="下車">下車</option>
+                <option value="終了">終了</option>
+            </select>
+        </div>
+        <div class="edit-field" id="editMileageField">
+            <label>走行距離 (km)</label>
+            <input type="number" id="editMileageInput" placeholder="走行距離" min="0">
+        </div>
+        <div class="modal-buttons">
+            <button class="modal-confirm" id="editConfirmBtn">更新</button>
+            <button class="modal-cancel" id="cancelEditModalBtn">キャンセル</button>
         </div>
     </div>
 </div>
@@ -99,6 +132,33 @@
     flex: 1;
     font-size: 14px;
     color: var(--text-primary);
+}
+
+.vehicle-selector {
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vehicle-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.vehicle-select {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 14px;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    cursor: pointer;
 }
 
 .action-buttons {
@@ -159,6 +219,12 @@
     border-bottom: 1px solid var(--border-color);
     font-size: 12px;
     color: var(--text-primary);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.log-item:hover {
+    background-color: var(--bg-color);
 }
 
 .log-item:last-child {
@@ -170,23 +236,18 @@
     flex-shrink: 0;
 }
 
-.col-action {
-    width: 60px;
-    flex-shrink: 0;
-}
-
 .col-mileage {
-    width: 60px;
+    width: 80px;
     flex-shrink: 0;
     text-align: right;
 }
 
-.col-status {
+.col-action {
     flex: 1;
     text-align: right;
 }
 
-.mileage-modal {
+.mileage-modal, .edit-log-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -202,7 +263,7 @@
     transition: all 0.3s;
 }
 
-.mileage-modal.show {
+.mileage-modal.show, .edit-log-modal.show {
     visibility: visible;
     opacity: 1;
 }
@@ -221,7 +282,7 @@
     color: var(--text-primary);
 }
 
-.modal-content input {
+.modal-content input, .modal-content select {
     width: 100%;
     padding: 12px;
     border: 1px solid var(--border-color);
@@ -230,6 +291,18 @@
     background-color: var(--bg-color);
     color: var(--text-primary);
     margin-bottom: 16px;
+}
+
+.edit-field {
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.edit-field label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
 }
 
 .modal-buttons {
@@ -263,7 +336,12 @@
 <script>
 let currentAction = null;
 let currentItineraryId = {{ $itinerary->id }};
+let currentEditingLogId = null;
 let completedActions = new Set();
+
+function getSelectedVehicleId() {
+    return document.getElementById('vehicleSelect').value;
+}
 
 function markButtonCompleted(action) {
     const buttons = document.querySelectorAll('.action-btn');
@@ -275,6 +353,7 @@ function markButtonCompleted(action) {
 }
 
 function addLog(action, mileage = null) {
+    const vehicleId = getSelectedVehicleId();
     fetch(`/driver/operation/log/${currentItineraryId}`, {
         method: 'POST',
         headers: {
@@ -283,7 +362,8 @@ function addLog(action, mileage = null) {
         },
         body: JSON.stringify({
             action: action,
-            mileage: mileage
+            mileage: mileage,
+            vehicle_id: vehicleId
         })
     })
     .then(response => response.json())
@@ -314,13 +394,51 @@ function addLogToList(log) {
     const logsList = document.getElementById('logsList');
     const logItem = document.createElement('div');
     logItem.className = 'log-item';
+    logItem.setAttribute('data-id', log.id);
+    logItem.setAttribute('data-action', log.action);
+    logItem.setAttribute('data-mileage', log.mileage || '');
+    logItem.setAttribute('data-status', log.status);
     logItem.innerHTML = `
         <span class="col-time">${log.logged_at}</span>
-        <span class="col-action">${log.action}</span>
         <span class="col-mileage">${log.mileage || ''}</span>
-        <span class="col-status">${log.status}</span>
+        <span class="col-action">${log.action}</span>
     `;
     logsList.insertBefore(logItem, logsList.firstChild);
+    
+    logItem.addEventListener('click', function(e) {
+        e.stopPropagation();
+        openEditModal(this);
+    });
+}
+
+function updateLogInList(logId, newAction, newMileage) {
+    const logItem = document.querySelector(`.log-item[data-id="${logId}"]`);
+    if (logItem) {
+        logItem.setAttribute('data-action', newAction);
+        logItem.setAttribute('data-mileage', newMileage || '');
+        const mileageSpan = logItem.querySelector('.col-mileage');
+        const actionSpan = logItem.querySelector('.col-action');
+        if (mileageSpan) mileageSpan.textContent = newMileage || '';
+        if (actionSpan) actionSpan.textContent = newAction;
+    }
+}
+
+function openEditModal(logItem) {
+    currentEditingLogId = logItem.getAttribute('data-id');
+    const currentAction = logItem.getAttribute('data-action');
+    const currentMileage = logItem.getAttribute('data-mileage');
+    
+    document.getElementById('editActionSelect').value = currentAction;
+    document.getElementById('editMileageInput').value = currentMileage;
+    
+    const editMileageField = document.getElementById('editMileageField');
+    if (currentAction === '到着' || currentAction === '下車') {
+        editMileageField.style.display = 'block';
+    } else {
+        editMileageField.style.display = 'none';
+    }
+    
+    document.getElementById('editLogModal').classList.add('show');
 }
 
 document.querySelectorAll('.action-btn').forEach(btn => {
@@ -358,8 +476,64 @@ document.getElementById('cancelModalBtn').addEventListener('click', function() {
     currentAction = null;
 });
 
+document.getElementById('editConfirmBtn').addEventListener('click', function() {
+    const newAction = document.getElementById('editActionSelect').value;
+    const newMileage = document.getElementById('editMileageInput').value;
+    const vehicleId = getSelectedVehicleId();
+    
+    fetch(`/driver/operation/log/${currentEditingLogId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            action: newAction,
+            mileage: newMileage ? parseInt(newMileage) : null,
+            vehicle_id: vehicleId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateLogInList(currentEditingLogId, newAction, newMileage);
+            document.getElementById('editLogModal').classList.remove('show');
+            currentEditingLogId = null;
+        } else {
+            alert('更新に失敗しました');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('エラーが発生しました');
+    });
+});
+
+document.getElementById('cancelEditModalBtn').addEventListener('click', function() {
+    document.getElementById('editLogModal').classList.remove('show');
+    currentEditingLogId = null;
+});
+
+document.getElementById('editActionSelect').addEventListener('change', function() {
+    const action = this.value;
+    const editMileageField = document.getElementById('editMileageField');
+    if (action === '到着' || action === '下車') {
+        editMileageField.style.display = 'block';
+    } else {
+        editMileageField.style.display = 'none';
+        document.getElementById('editMileageInput').value = '';
+    }
+});
+
 document.getElementById('backBtn').addEventListener('click', function() {
     window.history.back();
+});
+
+document.querySelectorAll('.log-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        e.stopPropagation();
+        openEditModal(this);
+    });
 });
 
 document.addEventListener('DOMContentLoaded', function() {

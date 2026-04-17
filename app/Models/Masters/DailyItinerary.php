@@ -68,4 +68,9 @@ class DailyItinerary extends Model
     {
         return $this->hasMany(BusAssignment::class, 'daily_itinerary_id', 'id');
     }
+    
+    public function operationLogs()
+    {
+        return $this->hasMany(\App\Models\Driver\DriverOperationLog::class, 'itinerary_id');
+    }
 }

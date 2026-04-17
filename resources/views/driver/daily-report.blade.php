@@ -18,31 +18,31 @@
     <div class="report-form">
         <div class="form-group">
             <label class="form-label">出庫時間</label>
-            <input type="time" id="start_time" class="form-input" value="{{ $report->start_time ? \Carbon\Carbon::parse($report->start_time)->format('H:i') : '' }}">
+            <input type="time" id="start_time" class="form-input" value="{{ $report->start_time ? \Carbon\Carbon::parse($report->start_time)->format('H:i') : '' }}" {{ $isToday ? '' : 'readonly disabled' }}>
         </div>
 
         <div class="form-group">
             <label class="form-label">出庫時メーター</label>
             <div class="input-with-unit">
-                <input type="number" id="start_mileage" class="form-input" value="{{ $report->start_mileage }}" min="0">
+                <input type="number" id="start_mileage" class="form-input" value="{{ $report->start_mileage }}" min="0" {{ $isToday ? '' : 'readonly disabled' }}>
                 <span class="unit">km</span>
             </div>
         </div>
 
         <div class="form-group">
             <label class="form-label">帰庫時間</label>
-            <input type="time" id="end_time" class="form-input" value="{{ $report->end_time ? \Carbon\Carbon::parse($report->end_time)->format('H:i') : '' }}">
+            <input type="time" id="end_time" class="form-input" value="{{ $report->end_time ? \Carbon\Carbon::parse($report->end_time)->format('H:i') : '' }}" {{ $isToday ? '' : 'readonly disabled' }}>
         </div>
 
         <div class="form-group">
             <label class="form-label">帰庫時メーター</label>
             <div class="input-with-unit">
-                <input type="number" id="end_mileage" class="form-input" value="{{ $report->end_mileage }}" min="0">
+                <input type="number" id="end_mileage" class="form-input" value="{{ $report->end_mileage }}" min="0" {{ $isToday ? '' : 'readonly disabled' }}>
                 <span class="unit">km</span>
             </div>
         </div>
 
-        <div class="form-group distance-group">
+        <div class="form-group">
             <label class="form-label">走行距離</label>
             <div class="distance-value">
                 <span id="distance">{{ $report->distance ?? '0' }}</span>
@@ -50,13 +50,47 @@
             </div>
         </div>
 
+        @if($completedItineraries && count($completedItineraries) > 0)
+        <div class="completed-tasks-section">
+            <div class="section-title">完了した運行</div>
+            @foreach($completedItineraries as $itinerary)
+            <div class="completed-task-card">
+                <div class="task-header">
+                    <span class="task-id">{{ $itinerary->busAssignment->groupInfo->id ?? '' }}-{{ $itinerary->bus_assignment_id ?? '' }}</span>
+                    <span class="task-time">{{ \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') }} {{ $itinerary->start_location ?? '' }} → {{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }} {{ $itinerary->end_location ?? '' }}</span>
+                </div>
+                <div class="task-logs">
+                    <div class="logs-header">
+                        <span class="log-time">時間</span>
+                        <span class="log-mileage">走行距離</span>
+                        <span class="log-action">操作</span>
+                    </div>
+                    @foreach($itinerary->operationLogs as $log)
+                    <div class="log-row">
+                        <span class="log-time">{{ \Carbon\Carbon::parse($log->logged_at)->format('H:i:s') }}</span>
+                        <span class="log-mileage">{{ $log->mileage ?? '-' }}</span>
+                        <span class="log-action">{{ $log->action }}</span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+
+        @if($isToday)
         <button class="save-btn" id="saveBtn">保存</button>
+        @else
+        <button class="save-btn" id="backToListBtn">戻る</button>
+        @endif
     </div>
     @else
     <div class="empty-state">
         <div class="empty-icon">📋</div>
         <div class="empty-text">本日の運転日報がありません</div>
+        @if($isToday)
         <button class="create-btn" id="createBtn">作成する</button>
+        @endif
     </div>
     @endif
 </div>
@@ -83,7 +117,7 @@
 .form-input {
     width: 100%;
     padding: 12px 16px;
-    border: 1px solid var(--border-color);
+    border: 0;
     border-radius: 12px;
     font-size: 14px;
     background-color: var(--card-bg);
@@ -93,6 +127,14 @@
 
 .form-input:focus {
     border-color: var(--accent-color);
+}
+
+.form-input:read-only,
+.form-input:disabled {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    cursor: default;
+    opacity: 1;
 }
 
 .input-with-unit {
@@ -111,22 +153,98 @@
     width: 40px;
 }
 
-.distance-group {
-    background-color: var(--bg-color);
+.distance-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--accent-color);
+    background-color: var(--card-bg);
     border-radius: 16px;
     padding: 16px;
     margin-bottom: 20px;
 }
 
-.distance-value {
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--accent-color);
-}
-
 .distance-value .unit {
     font-size: 14px;
     font-weight: normal;
+}
+
+.completed-tasks-section {
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    padding-left: 4px;
+}
+
+.completed-task-card {
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.task-header {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.task-id {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-right: 12px;
+}
+
+.task-time {
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.task-logs {
+    background-color: var(--bg-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.logs-header {
+    display: flex;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.log-row {
+    display: flex;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 12px;
+    color: var(--text-primary);
+}
+
+.log-row:last-child {
+    border-bottom: none;
+}
+
+.log-time {
+    width: 80px;
+    flex-shrink: 0;
+}
+
+.log-mileage {
+    width: 80px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.log-action {
+    flex: 1;
+    text-align: right;
 }
 
 .save-btn {
@@ -178,6 +296,7 @@
 <script>
 const reportId = {{ $report ? $report->id : 'null' }};
 const currentDate = '{{ $date }}';
+const isToday = {{ $isToday ? 'true' : 'false' }};
 
 function updateDistance() {
     const startMileage = parseInt(document.getElementById('start_mileage').value) || 0;
@@ -188,7 +307,7 @@ function updateDistance() {
         const distance = endMileage - startMileage;
         distanceSpan.textContent = distance;
     } else {
-        distanceSpan.textContent = '';
+        distanceSpan.textContent = '0';
     }
 }
 
@@ -211,8 +330,7 @@ if (document.getElementById('createBtn')) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                window.location.href = `/driver/daily-itineraries/${currentDate}`;
-                // window.location.reload();
+                window.location.reload();
             } else {
                 alert('作成に失敗しました: ' + data.message);
             }
@@ -265,6 +383,11 @@ if (document.getElementById('saveBtn')) {
     });
 }
 
+if (document.getElementById('backToListBtn')) {
+    document.getElementById('backToListBtn').addEventListener('click', function() {
+        window.location.href = '/driver/daily-itineraries/' + currentDate;
+    });
+}
 
 @if(session('error_alert'))
     alert('{{ session('error_alert') }}');

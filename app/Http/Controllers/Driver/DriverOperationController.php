@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Driver\DriverOperationLog;
 use App\Models\Driver\DriverDailyReport;
+use App\Models\Masters\Vehicle;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -56,7 +57,23 @@ class DriverOperationController extends Controller
         
         $currentStatus = $itinerary->operation_status;
         
-        return view('driver.operation-run', compact('itinerary', 'logs', 'currentStatus'));
+        $vehicles = Vehicle::where('is_active', true)
+            ->orderBy('registration_number')
+            ->get(['id', 'registration_number']);
+        
+        $defaultVehicleId = null;
+        $firstItinerary = DailyItinerary::where('driver_id', $driverId)
+            ->whereDate('date', $today)
+            ->orderBy('time_start', 'asc')
+            ->first();
+        
+        if ($firstItinerary && $firstItinerary->busAssignment && $firstItinerary->busAssignment->vehicle_id) {
+            $defaultVehicleId = $firstItinerary->busAssignment->vehicle_id;
+        } else {
+            $defaultVehicleId = $dailyReport->vehicle_id;
+        }
+        
+        return view('driver.operation-run', compact('itinerary', 'logs', 'currentStatus', 'vehicles', 'defaultVehicleId'));
     }
     
     public function logAction(Request $request, $id)
@@ -69,11 +86,14 @@ class DriverOperationController extends Controller
         $request->validate([
             'action' => 'required|in:迎車,到着,空車,下車,終了',
             'mileage' => 'nullable|integer|min:0',
+            'vehicle_id' => 'nullable|integer|exists:vehicles,id',
         ]);
+        
+        $vehicleId = $request->vehicle_id ?? $itinerary->vehicle_id;
         
         $log = DriverOperationLog::create([
             'driver_id' => $driverId,
-            'vehicle_id' => $itinerary->vehicle_id,
+            'vehicle_id' => $vehicleId,
             'itinerary_id' => $itinerary->id,
             'action' => $request->action,
             'mileage' => $request->mileage,
@@ -121,5 +141,18 @@ class DriverOperationController extends Controller
             'success' => true,
             'logs' => $logs
         ]);
+    }
+    
+    public function updateLog($id, Request $request)
+    {
+        $log = DriverOperationLog::findOrFail($id);
+        
+        $log->update([
+            'action' => $request->action,
+            'mileage' => $request->mileage,
+            'vehicle_id' => $request->vehicle_id,
+        ]);
+        
+        return response()->json(['success' => true, 'log' => $log]);
     }
 }

@@ -15,11 +15,7 @@ class DriverDailyReportController extends Controller
         $driverId = session('driver_id');
         
         $today = Carbon::today()->format('Y-m-d');
-        
-        if ($date !== $today) {
-            return redirect()->route('driver.daily-itineraries', $today)
-                ->with('error_alert', '本日の日報のみ編集できます。');
-        }
+        $isToday = ($date === $today);
         
         $formattedDate = Carbon::parse($date)->format('Y年m月d日');
         $weekdays = ['日', '月', '火', '水', '木', '金', '土'];
@@ -35,17 +31,14 @@ class DriverDailyReportController extends Controller
                 ->with('error_alert', '権限がありません。');
         }
         
-        $vehicleId = null;
-        if (!$report) {
-            $itinerary = DailyItinerary::where('driver_id', $driverId)
-                ->whereDate('date', $date)
-                ->first();
-            if ($itinerary) {
-                $vehicleId = $itinerary->vehicle_id;
-            }
-        }
+        $completedItineraries = DailyItinerary::with(['busAssignment.groupInfo', 'operationLogs'])
+            ->where('driver_id', $driverId)
+            ->whereDate('date', $date)
+            ->where('operation_status', '終了')
+            ->orderBy('time_start', 'asc')
+            ->get();
         
-        return view('driver.daily-report', compact('date', 'dateTitle', 'report', 'vehicleId'));
+        return view('driver.daily-report', compact('date', 'dateTitle', 'report', 'isToday', 'completedItineraries'));
     }
     
     public function create(Request $request)
@@ -99,14 +92,14 @@ class DriverDailyReportController extends Controller
         $report = DriverDailyReport::where('driver_id', $driverId)
             ->where('id', $id)
             ->firstOrFail();
-            
+        
         $today = Carbon::today()->format('Y-m-d');
-        // if ($report->date !== $today) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => '本日の日報のみ更新できます。'
-        //     ]);
-        // }
+        if ($report->date->format('Y-m-d') !== $today) {
+            return response()->json([
+                'success' => false,
+                'message' => '本日の日報のみ更新できます。'
+            ]);
+        }
         
         $request->validate([
             'start_time' => 'nullable|date_format:H:i',

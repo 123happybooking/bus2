@@ -906,6 +906,7 @@
                     <li><a href="{{ route('masters.driver-ledger.index') }}" data-route="driver-ledger">運転手台帳</a></li>
                     <li><a href="{{ route('masters.group-infos.index') }}" data-route="group-infos">予約一覧</a></li>
                     <li><a href="{{ route('masters.bus-assignments.index') }}" data-route="bus-assignments">運行一覧</a></li>
+                    <li><a href="{{ route('masters.daily-reports.index') }}" data-route="daily-reports">运行日报</a></li>
                     <li><a href="{{ route('masters.drivers.index') }}" data-route="drivers-operations">乗務指示一覧</a></li>
                     <li><a href="{{ route('masters.daily-itineraries.index') }}" data-route="daily-itineraries">日次一覧</a></li>
                     <li><a href="{{ route('masters.attendance-categories.index') }}" data-route="attendance-categories-operations">運転手勤怠</a></li>

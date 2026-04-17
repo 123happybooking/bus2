@@ -140,20 +140,6 @@ class DriverDashboardController extends Controller
         
         return view('driver.itinerary-show', compact('itinerary'));
     }
-
-    public function logout(Request $request)
-    {
-        session()->forget('driver_id');
-        session()->forget('driver_name');
-        
-        return redirect()->route('driver.login');
-    }
-    
-    public function settings()
-    {
-        return view('driver.settings');
-    }
-    
     
     public function dailyItineraries($date)
     {
@@ -196,22 +182,41 @@ class DriverDashboardController extends Controller
         
         switch ($tab) {
             case 'upcoming':
-                $query->whereDate('date', '>=', $today);
+                $query->whereDate('date', '>=', $today)
+                      ->where(function($q) {
+                          $q->whereNull('operation_status')
+                            ->orWhere('operation_status', '!=', '終了');
+                      });
                 break;
             case 'today':
                 $query->whereDate('date', '=', $today);
                 break;
             case 'completed':
-                $query->whereDate('date', '<', $today);
+                $query->where(function($q) use ($today) {
+                    $q->whereDate('date', '<', $today)
+                      ->orWhere('operation_status', '=', '終了');
+                });
                 break;
             default:
-                $query->whereDate('date', '>', $today);
+                $query->whereDate('date', '>=', $today)
+                      ->where(function($q) {
+                          $q->whereNull('operation_status')
+                            ->orWhere('operation_status', '!=', '終了');
+                      });
                 break;
         }
         
-        $itineraries = $query->orderBy('date', 'asc')
-            ->orderBy('time_start', 'asc')
-            ->get();
+        if ($tab === 'completed') {
+            $itineraries = $query->orderBy('date', 'desc')
+                ->orderBy('time_start', 'desc')
+                ->limit(20)
+                ->get();
+        } else {
+            $itineraries = $query->orderBy('date', 'asc')
+                ->orderBy('time_start', 'asc')
+                ->limit(20)
+                ->get();
+        }
         
         $formattedItineraries = [];
         foreach ($itineraries as $itinerary) {

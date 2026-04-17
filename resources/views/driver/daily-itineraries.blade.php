@@ -10,12 +10,14 @@
         </button>
         <div class="page-title">{{ $formattedDate }}</div>
         <div class="header-right">
-            <div class="page-subtitle">行程一覧</div>
+            <button class="report-btn" id="reportBtn">运行日报</button>
         </div>
     </div>
 
-    <div class="report-btn-container">
-        <button class="report-btn" id="reportBtn">运行日报</button>
+    <div class="tab-bar">
+        <button class="tab-btn active" data-filter="pending">未運転</button>
+        <button class="tab-btn" data-filter="all">全部</button>
+        <button class="tab-btn" data-filter="completed">完了</button>
     </div>
 
     <div class="itinerary-list">
@@ -28,7 +30,7 @@
             $categoryName = $reservationCategory ? $reservationCategory->category_name : '';
             $isCompleted = $itinerary->operation_status === '終了';
         @endphp
-        <div class="itinerary-card" data-id="{{ $itinerary->id }}">
+        <div class="itinerary-card" data-id="{{ $itinerary->id }}" data-status="{{ $isCompleted ? 'completed' : 'pending' }}">
             <div class="card-header-row">
                 <div class="left-group">
                     <span class="booking-operation-id">{{ $group_info_id }}-{{ $bus_assignment_id }}</span>
@@ -113,31 +115,46 @@
     flex-shrink: 0;
 }
 
-.page-subtitle {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.report-btn-container {
-    display: flex;
-    justify-content: center;
-    padding: 12px;
-}
-
 .report-btn {
-    padding: 10px 24px;
+    padding: 8px 16px;
     background-color: var(--accent-color);
     color: var(--accent-text);
     border: none;
-    border-radius: 12px;
-    font-size: 14px;
+    border-radius: 20px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
 }
 
+.tab-bar {
+    display: flex;
+    background-color: var(--card-bg);
+    margin: 0 12px;
+    border-radius: 16px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    background-color: var(--accent-color);
+    color: var(--accent-text);
+}
+
 .itinerary-list {
-    padding: 0 12px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -148,6 +165,10 @@
     background-color: var(--card-bg);
     cursor: pointer;
     border-radius: 16px;
+}
+
+.itinerary-card.hidden {
+    display: none;
 }
 
 .card-header-row {
@@ -305,6 +326,56 @@ document.getElementById('reportBtn').addEventListener('click', function() {
     const date = '{{ $date }}';
     window.location.href = `/driver/daily-reports/${date}`;
 });
+
+const filterBtns = document.querySelectorAll('.tab-btn');
+const itineraryCards = document.querySelectorAll('.itinerary-card');
+
+function filterItineraries(filterValue) {
+    itineraryCards.forEach(card => {
+        const status = card.getAttribute('data-status');
+        
+        if (filterValue === 'all') {
+            card.classList.remove('hidden');
+        } else if (filterValue === 'pending') {
+            if (status === 'pending') {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        } else if (filterValue === 'completed') {
+            if (status === 'completed') {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        }
+    });
+    
+    const visibleCards = document.querySelectorAll('.itinerary-card:not(.hidden)');
+    const emptyDiv = document.querySelector('.empty');
+    
+    if (visibleCards.length === 0 && !emptyDiv) {
+        const itineraryList = document.querySelector('.itinerary-list');
+        const newEmptyDiv = document.createElement('div');
+        newEmptyDiv.className = 'empty';
+        newEmptyDiv.textContent = '予定はありません';
+        itineraryList.appendChild(newEmptyDiv);
+    } else if (visibleCards.length > 0 && emptyDiv) {
+        emptyDiv.remove();
+    }
+}
+
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        const filterValue = this.getAttribute('data-filter');
+        filterItineraries(filterValue);
+    });
+});
+
+filterItineraries('pending');
 
 document.querySelectorAll('.itinerary-card').forEach(card => {
     card.addEventListener('click', function() {
