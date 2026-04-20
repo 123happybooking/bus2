@@ -7,9 +7,9 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0 page-title">运行日报編集</h5>
         <div>
-            <!--<a href="{{ route('masters.daily-reports.export-pdf', $report->id) }}" class="btn btn-sm btn-outline-danger me-2" target="_blank">-->
-            <!--    <i class="bi bi-file-pdf"></i> PDF导出-->
-            <!--</a>-->
+            <a href="{{ route('masters.daily-reports.export-pdf', $report->id) }}" class="btn btn-sm btn-outline-danger me-2" target="_blank">
+                <i class="bi bi-file-pdf"></i> PDF导出
+            </a>
             <a href="{{ route('masters.daily-reports.index') }}" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> 一覧に戻る
             </a>
