@@ -45,6 +45,10 @@
                     @endif
                     
                     @if($isAdmin || $isOperationsManager || $isCoordinator || $isManager)
+                    <a href="{{ route('masters.daily-reports.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">运行日报</a>
+                    @endif
+                    
+                    @if($isAdmin || $isOperationsManager || $isCoordinator || $isManager)
                     <a href="{{ route('masters.daily-itineraries.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">日次一覧</a>
                     @endif
                     
@@ -250,6 +254,10 @@
                     
                     @if($isAdmin || $isOperationsManager)
                     <a href="{{ route('masters.vehicle-types.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">車両種類</a>
+                    @endif
+                    
+                    @if($isAdmin || $isOperationsManager)
+                    <a href="{{ route('masters.vehicle-grades.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">車両グレード</a>
                     @endif
                     
                     @if($isAdmin || $isOperationsManager)

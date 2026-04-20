@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Driver;
 use App\Http\Controllers\Controller;
 use App\Models\Driver\DriverDailyReport;
 use App\Models\Masters\DailyItinerary;
+use App\Models\Masters\Vehicle;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -31,6 +32,25 @@ class DriverDailyReportController extends Controller
                 ->with('error_alert', '権限がありません。');
         }
         
+        $vehicles = Vehicle::where('is_active', true)
+            ->orderBy('registration_number')
+            ->get(['id', 'registration_number']);
+        $defaultVehicleId = null;
+        if ($report && $report->vehicle_id) {
+            $defaultVehicleId = $report->vehicle_id;
+        } else {
+            $firstItinerary = DailyItinerary::where('driver_id', $driverId)
+                ->whereDate('date', $date)
+                ->orderBy('time_start', 'asc')
+                ->first();
+            
+            if ($firstItinerary && $firstItinerary->vehicle_id) {
+                $defaultVehicleId = $firstItinerary->vehicle_id;
+            } elseif ($vehicles->isNotEmpty()) {
+                $defaultVehicleId = $vehicles->first()->id;
+            }
+        }
+        
         $completedItineraries = DailyItinerary::with(['busAssignment.groupInfo', 'operationLogs'])
             ->where('driver_id', $driverId)
             ->whereDate('date', $date)
@@ -38,7 +58,7 @@ class DriverDailyReportController extends Controller
             ->orderBy('time_start', 'asc')
             ->get();
         
-        return view('driver.daily-report', compact('date', 'dateTitle', 'report', 'isToday', 'completedItineraries'));
+        return view('driver.daily-report', compact('date', 'dateTitle', 'report', 'isToday', 'completedItineraries', 'vehicles', 'defaultVehicleId'));
     }
     
     public function create(Request $request)
@@ -106,6 +126,7 @@ class DriverDailyReportController extends Controller
             'start_mileage' => 'nullable|integer|min:0',
             'end_time' => 'nullable|date_format:H:i',
             'end_mileage' => 'nullable|integer|min:0',
+            'vehicle_id' => 'nullable|integer|exists:vehicles,id',
         ]);
         
         $report->update([
@@ -113,6 +134,7 @@ class DriverDailyReportController extends Controller
             'start_mileage' => $request->start_mileage,
             'end_time' => $request->end_time,
             'end_mileage' => $request->end_mileage,
+            'vehicle_id' => $request->vehicle_id,
         ]);
         
         $distance = $report->distance;

@@ -23,6 +23,7 @@ use App\Http\Controllers\Masters\FeeController;
 use App\Http\Controllers\Masters\BankController;
 use App\Http\Controllers\Masters\VehicleTypeController;
 use App\Http\Controllers\Masters\VehicleModelController;
+use App\Http\Controllers\Masters\VehicleGradeController;
 use App\Http\Controllers\Masters\UserCompanyInfoController;
 
 use App\Http\Controllers\Masters\DailyItineraryController;
@@ -103,6 +104,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::resource('banks', BankController::class)->names('banks');
         Route::resource('vehicle-types', VehicleTypeController::class)->names('vehicle-types');
         Route::resource('vehicle-models', VehicleModelController::class)->names('vehicle-models');
+        Route::resource('vehicle-grades', VehicleGradeController::class)->names('vehicle-grades');
         Route::resource('user-company-info', UserCompanyInfoController::class)->names('user-company-info');
         Route::get('login-histories', [LoginHistoryController::class, 'index'])->name('login-histories.index');
         

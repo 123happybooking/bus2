@@ -967,7 +967,7 @@
                     <li><a href="{{ route('masters.remarks.index') }}" data-route="remarks">備考</a></li>
                     <li><a href="{{ route('masters.banks.index') }}" data-route="banks">銀行</a></li>
                     <li><a href="{{ route('masters.vehicle-types.index') }}" data-route="vehicle-types">車両種類</a></li>
-                    <li><a href="#" data-route="vehicle-grade">車両グレード</a></li>
+                    <li><a href="{{ route('masters.vehicle-grades.index') }}" data-route="vehicle-grade">車両グレード</a></li>
                     <li><a href="{{ route('masters.login-histories.index') }}" data-route="login-histories">ログイン履歴</a></li>
                 </ul>
             </div>

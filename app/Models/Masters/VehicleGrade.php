@@ -12,14 +12,9 @@ class VehicleGrade extends Model
         'code',
         'grade_name',
         'description',
-        'display_order',
-        'is_active',
     ];
     
-    protected $casts = [
-        'is_active' => 'boolean',
-        'display_order' => 'integer',
-    ];
+    public $timestamps = false;
     
     public function vehicles()
     {

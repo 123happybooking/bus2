@@ -116,7 +116,7 @@ class DailyReportController extends Controller
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
-            'tempDir' => storage_path('temp/pdf'),
+            'tempDir' => sys_get_temp_dir(),
             'default_font' => 'kozgopromedium',
         ]);
         

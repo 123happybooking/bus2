@@ -6,7 +6,7 @@
     <style>
         * { margin: 0; padding: 0; text-indent: 0; box-sizing: border-box; }
         body { background-color: #fff; font-family: 'Helvetica Neue', 'Noto Sans JP', 'Meiryo', 'MS Gothic', sans-serif; }
-        table { border-collapse: collapse; margin: 0 auto; width: 100%;}
+        table { border-collapse: collapse; margin: 0 auto; width: 100%; table-layout: fixed !important;}
         td { text-align: center; padding: 3px; border: 1px solid #000; vertical-align: middle; font-size: 11px; line-height: 100%; word-wrap: break-word; word-break: break-all; white-space: normal; }
         .t-l { text-align: left !important;}
         .t-r { text-align: right !important;}
@@ -14,10 +14,16 @@
 </head>
 <body>
 <table style="width: 100%;">
+    <colgroup>
+        <col span="40" style="width: 40%;">
+        <col span="20" style="width: 20%;">
+        <col span="40" style="width: 40%;">
+    </colgroup>
+    
     <tr>
-        <td colspan="40" style="width: 40%; font-size: 24pt; letter-spacing: 6pt; font-weight: bold; padding: 10px 5px;">運転日報</td>
-        <td colspan="20" style="width: 20%;">No.{{ $itinerary->busAssignment->groupInfo->id ?? '' }}-{{ $itinerary->bus_assignment_id ?? '' }}</td>
-        <td colspan="40" style="width: 40%;">{{ $companyInfo['name'] }} {{ $companyInfo['branch'] }}<br>TEL:{{ $companyInfo['tel'] }} / FAX:{{ $companyInfo['fax'] }}</td>
+        <td colspan="40" style="font-size: 24pt; letter-spacing: 6pt; font-weight: bold; padding: 10px 5px;">運転日報</td>
+        <td colspan="20">No.{{ $itinerary->busAssignment->groupInfo->id ?? '' }}-{{ $itinerary->bus_assignment_id ?? '' }}</td>
+        <td colspan="40">{{ $companyInfo['name'] }} {{ $companyInfo['branch'] }}<br>TEL:{{ $companyInfo['tel'] }} / FAX:{{ $companyInfo['fax'] }}</td>
     </tr>
     <tr>
         <td colspan="10">乗務日</td>
@@ -584,8 +590,8 @@
             <td colspan="8"></td>
             <td colspan="8"></td>
             
-            <td colspan="9" style="width: 9%;">管理者</td>
-            <td colspan="9" style="width: 9%;">補助者</td>
+            <td colspan="9">管理者</td>
+            <td colspan="9">補助者</td>
         </tr>
         
         <tr>
@@ -603,7 +609,7 @@
         </tr>
         
         <tr>
-            <td colspan="82" style="width: 82%; height: 60px; word-wrap: break-word; word-break: break-all; white-space: normal;">
+            <td colspan="82">
                 備考(事故・故障・宿泊・その他)<br>
                 =====================================<br>
                 说明：页面上的 {080} 这些内容为占位符，用来区别哪些位置填写什么内容，<br>

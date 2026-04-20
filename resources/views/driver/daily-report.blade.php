@@ -17,6 +17,17 @@
     @if($report)
     <div class="report-form">
         <div class="form-group">
+            <label class="form-label">車両</label>
+            <select id="vehicle_id" class="form-input" {{ $isToday ? '' : 'disabled' }}>
+                @foreach($vehicles as $vehicle)
+                <option value="{{ $vehicle->id }}" {{ $defaultVehicleId == $vehicle->id ? 'selected' : '' }}>
+                    {{ $vehicle->registration_number }}
+                </option>
+                @endforeach
+            </select>
+        </div>
+        
+        <div class="form-group">
             <label class="form-label">出庫時間</label>
             <input type="time" id="start_time" class="form-input" value="{{ $report->start_time ? \Carbon\Carbon::parse($report->start_time)->format('H:i') : '' }}" {{ $isToday ? '' : 'readonly disabled' }}>
         </div>
@@ -347,6 +358,7 @@ if (document.getElementById('saveBtn')) {
     const startMileageInput = document.getElementById('start_mileage');
     const endTimeInput = document.getElementById('end_time');
     const endMileageInput = document.getElementById('end_mileage');
+    const vehicleSelect = document.getElementById('vehicle_id');
     
     startMileageInput.addEventListener('input', updateDistance);
     endMileageInput.addEventListener('input', updateDistance);
@@ -357,6 +369,7 @@ if (document.getElementById('saveBtn')) {
             start_mileage: startMileageInput.value,
             end_time: endTimeInput.value,
             end_mileage: endMileageInput.value,
+            vehicle_id: vehicleSelect ? vehicleSelect.value : null,
         };
         
         fetch(`/driver/daily-reports/${reportId}`, {
