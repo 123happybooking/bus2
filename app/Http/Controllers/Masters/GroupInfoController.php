@@ -15,6 +15,8 @@ use App\Models\Masters\Branch;
 use App\Models\Masters\GroupInfoDateRemark;
 use App\Models\Masters\BusAssignmentLog;
 use App\Models\Masters\VehicleGrade;
+use App\Models\Masters\Option;
+use App\Models\Masters\GroupInfoFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -107,6 +109,11 @@ class GroupInfoController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
         
+        $options = Option::where('is_active', true)
+            ->orderBy('display_order')
+            ->orderBy('id')
+            ->get(['id', 'name']);
+        
         return view('masters.group-infos.create', compact(
             'agencies', 
             'vehicles', 
@@ -119,7 +126,8 @@ class GroupInfoController extends Controller
             'selectedDriverName',
             'startDate', 
             'endDate',
-            'vehicleGrades'
+            'vehicleGrades',
+            'options'
         ));
     }
 
@@ -426,7 +434,8 @@ class GroupInfoController extends Controller
             'agency_contact_name' => 'nullable|string|max:100',
             'agency_country' => 'nullable|string|max:100',
             'agt_tour_id' => 'nullable|string|max:100',
-            'luggage_count' => 'nullable|integer|min:0',
+            // 'luggage_count' => 'nullable|integer|min:0',
+            'luggage' => 'nullable|string|max:255',
             'vehicle_type' => 'nullable|string|max:100',
             'vehicle_model' => 'nullable|string|max:200',
             'vehicle_grade_id' => 'nullable|exists:vehicle_grades,id',
@@ -454,7 +463,7 @@ class GroupInfoController extends Controller
             'driver_id.exists' => '選択された運転手は存在しません。',
             'agency_id.exists' => '選択された代理店は存在しません。',
             'adult_count.integer' => '大人人数は数値で入力してください。',
-            'child_count.integer' => '子供人数は数値で入力してください。',
+            'child_count.integer' => '小人人数は数値で入力してください。',
             'guide_count.integer' => 'ガイド人数は数値で入力してください。',
             'other_count.integer' => 'その他人数は数値で入力してください。',
             'luggage_count.integer' => '荷物数は数値で入力してください。',
@@ -581,8 +590,10 @@ class GroupInfoController extends Controller
                 'adult_count' => $validated['adult_count'] ?? 0,
                 'child_count' => $validated['child_count'] ?? 0,
                 'guide_count' => $validated['guide_count'] ?? 0,
-                'other_count' => $validated['other_count'] ?? 0,
-                'luggage_count' => $validated['luggage_count'] ?? 0,
+                // 'other_count' => $validated['other_count'] ?? 0,
+                // 'luggage_count' => $validated['luggage_count'] ?? 0,
+                'luggage' => $validated['luggage'] ?? null,
+                'options' => $request->has('options') ? implode(',', $request->options) : null,
                 'copy_new_start_date' => null,
                 'agt_tour_code' => null,
                 'agt_tour_id' => $validated['agt_tour_id'] ?? null,
@@ -611,6 +622,12 @@ class GroupInfoController extends Controller
                 'vehicle_id' => !empty($request->vehicle_id) ? (int)$request->vehicle_id : null,
                 'driver_id' => !empty($request->driver_id) ? (int)$request->driver_id : null,
                 'guide_id' => !empty($request->guide_id) ? (int)$request->guide_id : null,
+                'vehicle_grade_id' => $validated['vehicle_grade_id'] ?? null,
+                'business_category_id' => $request->business_category_id ?? null,
+                'itinerary_name' => $validated['itinerary_name'] ?? null,
+                'group_name' => $validated['group_name'] ?? null,
+                'agt_tour_id' => $validated['agt_tour_id'] ?? null,
+                'agency_country' => $validated['agency_country'] ?? null,
                 'start_date' => $validated['start_date'],
                 'start_time' => $startTime,
                 'end_date' => $validated['end_date'],
@@ -624,8 +641,10 @@ class GroupInfoController extends Controller
                 'adult_count' => $validated['adult_count'] ?? 0,
                 'child_count' => $validated['child_count'] ?? 0,
                 'guide_count' => $validated['guide_count'] ?? 0,
-                'other_count' => $validated['other_count'] ?? 0,
-                'luggage_count' => $validated['luggage_count'] ?? 0,
+                // 'other_count' => $validated['other_count'] ?? 0,
+                // 'luggage_count' => $validated['luggage_count'] ?? 0,
+                'luggage' => $validated['luggage'] ?? null,
+                'options' => $request->has('options') ? implode(',', $request->options) : null,
                 'vehicle_type_spec_check' => false,
                 'temporary_driver' => false,
                 'accompanying' => null,
@@ -771,7 +790,7 @@ class GroupInfoController extends Controller
 
     public function edit($id)
     {
-        $groupInfo = GroupInfo::findOrFail($id);
+        $groupInfo = GroupInfo::with('files')->findOrFail($id);
         
         $agencies = Agency::where('is_active', true)
                          ->orderBy('display_order', 'asc')
@@ -807,6 +826,16 @@ class GroupInfoController extends Controller
         $busAssignments = BusAssignment::where('group_info_id', $groupInfo->id)
                                       ->orderBy('vehicle_index', 'asc')
                                       ->get();
+                                      
+        $busFilesMap = [];
+        foreach ($busAssignments as $bus) {
+            $busFilesMap[$bus->id] = GroupInfoFile::where('bus_assignment_id', $bus->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+        
+        $singleBusId = $busAssignments->first()->id ?? null;
+        $singleBusFiles = $singleBusId ? ($busFilesMap[$singleBusId] ?? collect()) : collect();
 
         $allItineraries = DailyItinerary::where('group_info_id', $groupInfo->id)
                                         ->orderBy('date', 'asc')
@@ -814,7 +843,7 @@ class GroupInfoController extends Controller
                                         ->get();
                                         
         $vehicleGrades = VehicleGrade::orderBy('id')->get();
-
+        
         $groupedItineraries = [];
         $uniqueVehicles = [];
 
@@ -838,6 +867,8 @@ class GroupInfoController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->get();
                 
+                $files = $busFilesMap[$busId] ?? collect();
+                
                 $groupedItineraries[$groupKey] = [
                     'vehicle_id' => $itinerary->vehicle_id,
                     'vehicle_name' => $vehicleInfo ? $vehicleInfo->registration_number : ($itinerary->vehicle ?? '未分配车辆'),
@@ -845,7 +876,14 @@ class GroupInfoController extends Controller
                     'driver_name' => $itinerary->driver ?? '',
                     'bus_assignment' => $busAssignment,
                     'itineraries' => [],
-                    'logs' => $logs
+                    'logs' => $logs,
+                    'files' => $files,
+                    'vehicle_grade_id' => $busAssignment->vehicle_grade_id ?? null,
+                    'business_category_id' => $busAssignment->business_category_id ?? null,
+                    'itinerary_name' => $busAssignment->itinerary_name ?? null,
+                    'group_name' => $busAssignment->group_name ?? null,
+                    'agt_tour_id' => $busAssignment->agt_tour_id ?? null,
+                    'agency_country' => $busAssignment->agency_country ?? null,
                 ];
                 
                 if ($itinerary->vehicle_id && $itinerary->vehicle_id > 0 && !in_array($itinerary->vehicle_id, array_column($uniqueVehicles, 'id'))) {
@@ -864,6 +902,15 @@ class GroupInfoController extends Controller
             usort($group['itineraries'], function($a, $b) {
                 return strtotime($a->date) - strtotime($b->date);
             });
+            
+            $allCompleted = true;
+            foreach ($group['itineraries'] as $itinerary) {
+                if ($itinerary->operation_status !== '終了') {
+                    $allCompleted = false;
+                    break;
+                }
+            }
+            $group['completion_status'] = $allCompleted ? '完成' : '未完成';
         }
         
         if (isset($groupedItineraries[0])) {
@@ -871,6 +918,15 @@ class GroupInfoController extends Controller
         }
         
         $hasMultipleVehicles = count($groupedItineraries) > 1;
+        
+        $options = Option::where('is_active', true)
+            ->orderBy('display_order')
+            ->orderBy('id')
+            ->get(['id', 'name']);
+        $selectedOptions = [];
+        if ($groupInfo->options) {
+            $selectedOptions = explode(',', $groupInfo->options);
+        }
         
         return view('masters.group-infos.edit', compact(
             'groupInfo', 
@@ -885,7 +941,10 @@ class GroupInfoController extends Controller
             'hasMultipleVehicles',
             'branches',
             'reservationCategories',
-            'vehicleGrades'
+            'vehicleGrades',
+            'options',
+            'selectedOptions',
+            'singleBusFiles'
         ));
     }
 
@@ -903,9 +962,9 @@ class GroupInfoController extends Controller
             'itinerary_name' => 'nullable|string|max:200',
             'vehicle' => 'nullable|string|max:200',
             'vehicle_number' => 'nullable|string|max:50',
-            'start_date' => 'required|date',
+            'start_date' => 'nullable|date',
             'start_time' => 'nullable|date_format:H:i',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'end_time' => 'nullable|date_format:H:i',
             'guide' => 'nullable|string|max:100',
             'guide_id' => 'nullable|exists:guides,id',
@@ -929,6 +988,9 @@ class GroupInfoController extends Controller
             'ignore_operation' => 'nullable',
             'ignore_attendance' => 'nullable',
             'reservation_channel' => 'nullable|string|max:100',
+            'luggage' => 'nullable|string|max:200',
+            'options' => 'nullable|array',
+            'options.*' => 'integer|exists:option,id',
             
             'bus_assignments' => 'sometimes|array',
             'bus_assignments.*.id' => 'nullable|string',
@@ -1022,8 +1084,8 @@ class GroupInfoController extends Controller
         ];
     
         $messages = [
-            'start_date.required' => '開始日は必須です。',
-            'end_date.required' => '終了日は必須です。',
+            // 'start_date.required' => '開始日は必須です。',
+            // 'end_date.required' => '終了日は必須です。',
             'end_date.after_or_equal' => '終了日は開始日以降の日付を入力してください。',
             'daily_itineraries.*.date.required' => 'すべての旅程の運行日は必須です。',
             'daily_itineraries.*.time_start.required' => 'すべての旅程の開始時刻は必須です。',
@@ -1031,7 +1093,7 @@ class GroupInfoController extends Controller
             'daily_itineraries.*.time_start.date_format' => '開始時刻はH:i形式で入力してください。',
             'daily_itineraries.*.time_end.date_format' => '終了時刻はH:i形式で入力してください。',
             'adult_count.integer' => '大人人数は数値で入力してください。',
-            'child_count.integer' => '子供人数は数値で入力してください。',
+            'child_count.integer' => '小人人数は数値で入力してください。',
             'guide_count.integer' => 'ガイド人数は数値で入力してください。',
             'other_count.integer' => 'その他人数は数値で入力してください。',
             'luggage_count.integer' => '荷物数は数値で入力してください。',
@@ -1326,6 +1388,12 @@ class GroupInfoController extends Controller
                         'vehicle_id' => !empty($busData['vehicle_id']) && $busData['vehicle_id'] > 0 ? $busData['vehicle_id'] : null,
                         'driver_id' => !empty($busData['driver_id']) && $busData['driver_id'] > 0 ? $busData['driver_id'] : null,
                         'guide_id' => $busDataGuideId,
+                        'vehicle_grade_id' => $busData['vehicle_grade_id'] ?? null,
+                        'business_category_id' => $busData['business_category_id'] ?? null,
+                        'itinerary_name' => $busData['itinerary_name'] ?? null,
+                        'group_name' => $busData['group_name'] ?? null,
+                        'agt_tour_id' => $busData['agt_tour_id'] ?? null,
+                        'agency_country' => $busData['agency_country'] ?? null,
                         'lock_arrangement' => isset($busData['lock_arrangement']) ? (bool)$busData['lock_arrangement'] : false,
                         'status_sent' => isset($busData['status_sent']) ? (bool)$busData['status_sent'] : false,
                         'status_finalized' => isset($busData['status_finalized']) ? (bool)$busData['status_finalized'] : false,
@@ -1994,8 +2062,16 @@ class GroupInfoController extends Controller
                         'adult_count' => $submittedBusData['adult_count'] ?? 0,
                         'child_count' => $submittedBusData['child_count'] ?? 0,
                         'guide_count' => $submittedBusData['guide_count'] ?? 0,
-                        'other_count' => $submittedBusData['other_count'] ?? 0,
-                        'luggage_count' => $submittedBusData['luggage_count'] ?? 0,
+                        // 'other_count' => $submittedBusData['other_count'] ?? 0,
+                        // 'luggage_count' => $submittedBusData['luggage_count'] ?? 0,
+                        'luggage' => $submittedBusData['luggage'] ?? null,
+                        'options' => isset($submittedBusData['options']) ? (is_array($submittedBusData['options']) ? implode(',', $submittedBusData['options']) : $submittedBusData['options']) : null,
+                        'vehicle_grade_id' => $submittedBusData['vehicle_grade_id'] ?? null,
+                        'business_category_id' => $submittedBusData['business_category_id'] ?? null,
+                        'itinerary_name' => $submittedBusData['itinerary_name'] ?? null,
+                        'group_name' => $submittedBusData['group_name'] ?? null,
+                        'agt_tour_id' => $submittedBusData['agt_tour_id'] ?? null,
+                        'agency_country' => $submittedBusData['agency_country'] ?? null,
                     ]);
                     
                     if ($oldLock != $newLock) {
@@ -2110,8 +2186,10 @@ class GroupInfoController extends Controller
                 'reservation_categories_id' => $validated['reservation_categories_id'] ?? null,
                 'adult_count' => $validated['adult_count'] ?? 0,
                 'child_count' => $validated['child_count'] ?? 0,
-                'other_count' => $validated['other_count'] ?? 0,
-                'luggage_count' => $validated['luggage_count'] ?? 0,
+                // 'other_count' => $validated['other_count'] ?? 0,
+                // 'luggage_count' => $validated['luggage_count'] ?? 0,
+                'luggage' => $validated['luggage'] ?? $groupInfo->luggage,
+                'options' => $request->has('options') ? implode(',', $request->options) : $groupInfo->options,
                 'reservation_channel' => $validated['reservation_channel'] ?? null,
                 'vehicle_type' => $validated['vehicle_type'] ?? ($vehicleInfo->vehicleType->type_name ?? $groupInfo->vehicle_type),
                 'vehicle_model' => $validated['vehicle_model'] ?? ($vehicleInfo->vehicleModel->model_name ?? $groupInfo->vehicle_model),
@@ -2131,7 +2209,7 @@ class GroupInfoController extends Controller
             ];
             
             $oldReservationStatus = $groupInfo->reservation_status;
-    
+            
             $groupInfo->update($updateData);
             
             $newReservationStatus = $groupInfo->reservation_status;
@@ -2304,36 +2382,17 @@ class GroupInfoController extends Controller
 
             $busAssignmentData = [
                 'group_info_id' => $groupInfo->id,
-                'vehicle_id' => $firstItinerary->vehicle_id > 0 ? $firstItinerary->vehicle_id : null,
-                'driver_id' => $firstItinerary->driver_id > 0 ? $firstItinerary->driver_id : null,
-                'guide_id' => $firstItinerary->guide_id,
+                'options' => $originalBus->options ?? null,
+                
                 'start_date' => $firstItinerary->date,
                 'start_time' => $firstItinerary->time_start,
                 'end_date' => $lastItinerary->date,
                 'end_time' => $lastItinerary->time_end,
-                'lock_arrangement' => false,
-                'status_sent' => false,
-                'status_finalized' => false,
                 'count_daily' => $selectedItineraries->count(),
+                
                 'vehicle_number' => sprintf('%02d', $newVehicleIndex),
-                'step_car' => null,
-                'adult_count' => $groupInfo->adult_count,
-                'child_count' => $groupInfo->child_count,
-                'guide_count' => $groupInfo->guide_count,
-                'other_count' => $groupInfo->other_count,
-                'luggage_count' => $groupInfo->luggage_count,
-                'vehicle_type_spec_check' => false,
-                'temporary_driver' => false,
-                'accompanying' => null,
-                'representative' => null,
-                'representative_phone' => null,
-                'attention' => null,
-                'operation_remarks' => null,
-                'operation_memo' => null,
-                'operation_basic_remarks' => null,
-                'doc_remarks' => null,
-                'history_remarks' => null,
                 'vehicle_index' => $newVehicleIndex,
+                
                 'created_by' => $userId,
                 'updated_by' => $userId,
                 'created_at' => now(),
@@ -2347,6 +2406,11 @@ class GroupInfoController extends Controller
                     'bus_assignment_id' => $newBus->id,
                     'updated_by' => $userId,
                     'updated_at' => now(),
+                    
+                    
+                    'vehicle_id' => null,
+                    'driver_id' => null,
+                    'guide_id' => null,
                 ]);
             }
             
@@ -2374,9 +2438,6 @@ class GroupInfoController extends Controller
                     
                     foreach ($remainingItineraries as $itinerary) {
                         $itinerary->update([
-                            'vehicle_id' => $originalBus->vehicle_id ?? 0,
-                            'driver_id' => $originalBus->driver_id ?? 0,
-                            'guide_id' => $originalBus->guide_id ?? 0,
                             'updated_by' => $userId,
                             'updated_at' => now(),
                         ]);
@@ -2575,254 +2636,260 @@ class GroupInfoController extends Controller
         }
     }
 
-public function updateBusAssignment(Request $request, $id)
-{
-    try {
-        $groupInfo = GroupInfo::findOrFail($id);
-        
-        $request->validate([
-            'bus_id' => 'required',
-        ]);
-        
-        DB::beginTransaction();
-        
-        $userId = session('user_id', auth()->id() ?? 0);
-        $username = session('username', auth()->user()->name ?? 'system');
-        
-        $isNewBus = !is_numeric($request->bus_id) || 
-                    (is_string($request->bus_id) && (strpos($request->bus_id, 'copy_') === 0 || strpos($request->bus_id, 'split_') === 0));
-        
-        $busAssignment = null;
-        
-        if (!$isNewBus) {
-            $busAssignment = BusAssignment::where('id', $request->bus_id)
-                                            ->where('group_info_id', $groupInfo->id)
-                                            ->first();
-        }
-        
-        $isNewlyCreated = false;
-        if (!$busAssignment) {
-            $maxIndex = BusAssignment::where('group_info_id', $groupInfo->id)->max('vehicle_index') ?? 0;
-            $newVehicleIndex = $maxIndex + 1;
+    public function updateBusAssignment(Request $request, $id)
+    {
+        try {
+            $groupInfo = GroupInfo::findOrFail($id);
             
-            $busAssignment = new BusAssignment();
-            $busAssignment->group_info_id = $groupInfo->id;
-            $busAssignment->vehicle_index = $newVehicleIndex;
-            $busAssignment->vehicle_number = $request->vehicle_number ?? sprintf('%02d', $newVehicleIndex);
-            $busAssignment->created_by = $userId;
-            $busAssignment->created_at = now();
-            $busAssignment->save();
+            $request->validate([
+                'bus_id' => 'required',
+            ]);
             
-            $busAssignment->refresh();
+            DB::beginTransaction();
             
-            $isNewlyCreated = true;
-        }
-        
-        if ($request->has('deleted_itineraries') && is_array($request->deleted_itineraries)) {
-            $deletedIds = $request->deleted_itineraries;
-            DailyItinerary::whereIn('id', $deletedIds)
-                            ->where('group_info_id', $groupInfo->id)
-                            ->where('bus_assignment_id', $busAssignment->id)
-                            ->delete();
-        }
-        
-        $itinerariesData = $request->input('itineraries', []);
-        if (!empty($itinerariesData)) {
-            foreach ($itinerariesData as $itineraryData) {
-                $date = $itineraryData['date'] ?? null;
-                if ($date) {
-                    if (strpos($date, ' ') !== false) {
-                        $date = explode(' ', $date)[0];
-                    }
-                    if (strpos($date, 'T') !== false) {
-                        $date = explode('T', $date)[0];
-                    }
-                    $date = preg_replace('/[^0-9-]/', '', $date);
-                }
+            $userId = session('user_id', auth()->id() ?? 0);
+            $username = session('username', auth()->user()->name ?? 'system');
+            
+            $isNewBus = !is_numeric($request->bus_id) || 
+                        (is_string($request->bus_id) && (strpos($request->bus_id, 'copy_') === 0 || strpos($request->bus_id, 'split_') === 0));
+            
+            $busAssignment = null;
+            
+            if (!$isNewBus) {
+                $busAssignment = BusAssignment::where('id', $request->bus_id)
+                                                ->where('group_info_id', $groupInfo->id)
+                                                ->first();
+            }
+            
+            $isNewlyCreated = false;
+            if (!$busAssignment) {
+                $maxIndex = BusAssignment::where('group_info_id', $groupInfo->id)->max('vehicle_index') ?? 0;
+                $newVehicleIndex = $maxIndex + 1;
                 
-                $timeStart = isset($itineraryData['time_start']) 
-                    ? (strpos($itineraryData['time_start'], ':') === false 
-                        ? $itineraryData['time_start'] . ':00' 
-                        : (strlen($itineraryData['time_start']) == 5 
-                            ? $itineraryData['time_start'] . ':00' 
-                            : $itineraryData['time_start']))
-                    : null;
+                $busAssignment = new BusAssignment();
+                $busAssignment->group_info_id = $groupInfo->id;
+                $busAssignment->vehicle_index = $newVehicleIndex;
+                $busAssignment->vehicle_number = $request->vehicle_number ?? sprintf('%02d', $newVehicleIndex);
+                $busAssignment->created_by = $userId;
+                $busAssignment->created_at = now();
+                $busAssignment->save();
+                
+                $busAssignment->refresh();
+                
+                $isNewlyCreated = true;
+            }
+            
+            if ($request->has('deleted_itineraries') && is_array($request->deleted_itineraries)) {
+                $deletedIds = $request->deleted_itineraries;
+                DailyItinerary::whereIn('id', $deletedIds)
+                                ->where('group_info_id', $groupInfo->id)
+                                ->where('bus_assignment_id', $busAssignment->id)
+                                ->delete();
+            }
+            
+            $itinerariesData = $request->input('itineraries', []);
+            if (!empty($itinerariesData)) {
+                foreach ($itinerariesData as $itineraryData) {
+                    $date = $itineraryData['date'] ?? null;
+                    if ($date) {
+                        if (strpos($date, ' ') !== false) {
+                            $date = explode(' ', $date)[0];
+                        }
+                        if (strpos($date, 'T') !== false) {
+                            $date = explode('T', $date)[0];
+                        }
+                        $date = preg_replace('/[^0-9-]/', '', $date);
+                    }
                     
-                $timeEnd = isset($itineraryData['time_end']) 
-                    ? (strpos($itineraryData['time_end'], ':') === false 
-                        ? $itineraryData['time_end'] . ':00' 
-                        : (strlen($itineraryData['time_end']) == 5 
+                    $timeStart = isset($itineraryData['time_start']) 
+                        ? (strpos($itineraryData['time_start'], ':') === false 
+                            ? $itineraryData['time_start'] . ':00' 
+                            : (strlen($itineraryData['time_start']) == 5 
+                                ? $itineraryData['time_start'] . ':00' 
+                                : $itineraryData['time_start']))
+                        : null;
+                        
+                    $timeEnd = isset($itineraryData['time_end']) 
+                        ? (strpos($itineraryData['time_end'], ':') === false 
                             ? $itineraryData['time_end'] . ':00' 
-                            : $itineraryData['time_end']))
-                    : null;
-                
-                if ($timeStart && strpos($timeStart, ' ') !== false) {
-                    $timeStart = explode(' ', $timeStart)[0];
-                }
-                if ($timeEnd && strpos($timeEnd, ' ') !== false) {
-                    $timeEnd = explode(' ', $timeEnd)[0];
-                }
-                
-                if (!empty($itineraryData['id'])) {
-                    $itinerary = DailyItinerary::find($itineraryData['id']);
-                    if ($itinerary && $itinerary->group_info_id == $groupInfo->id) {
-                        $updateData = [
+                            : (strlen($itineraryData['time_end']) == 5 
+                                ? $itineraryData['time_end'] . ':00' 
+                                : $itineraryData['time_end']))
+                        : null;
+                    
+                    if ($timeStart && strpos($timeStart, ' ') !== false) {
+                        $timeStart = explode(' ', $timeStart)[0];
+                    }
+                    if ($timeEnd && strpos($timeEnd, ' ') !== false) {
+                        $timeEnd = explode(' ', $timeEnd)[0];
+                    }
+                    
+                    if (!empty($itineraryData['id'])) {
+                        $itinerary = DailyItinerary::find($itineraryData['id']);
+                        if ($itinerary && $itinerary->group_info_id == $groupInfo->id) {
+                            $updateData = [
+                                'date' => $date,
+                                'time_start' => $timeStart,
+                                'time_end' => $timeEnd,
+                                'start_location' => $itineraryData['start_location'] ?? null,
+                                'end_location' => $itineraryData['end_location'] ?? null,
+                                'itinerary' => $itineraryData['itinerary'] ?? null,
+                                'bus_assignment_id' => $busAssignment->id,
+                                'updated_by' => $userId,
+                                'updated_at' => now(),
+                            ];
+                            $itinerary->update($updateData);
+                        }
+                    } else {
+                        $vehicleName = '';
+                        if (!empty($request->vehicle_id)) {
+                            $vehicle = Vehicle::find($request->vehicle_id);
+                            $vehicleName = $vehicle ? $vehicle->registration_number : '';
+                        }
+                        
+                        $driverName = '';
+                        if (!empty($request->driver_id)) {
+                            $driver = Driver::find($request->driver_id);
+                            $driverName = $driver ? $driver->name : '';
+                        }
+                        
+                        $guideName = '';
+                        if (!empty($request->guide_id)) {
+                            $guide = Guide::find($request->guide_id);
+                            $guideName = $guide ? $guide->name : '';
+                        }
+                        
+                        DailyItinerary::create([
+                            'group_info_id' => $groupInfo->id,
+                            'bus_assignment_id' => $busAssignment->id,
                             'date' => $date,
                             'time_start' => $timeStart,
                             'time_end' => $timeEnd,
                             'start_location' => $itineraryData['start_location'] ?? null,
                             'end_location' => $itineraryData['end_location'] ?? null,
                             'itinerary' => $itineraryData['itinerary'] ?? null,
-                            'bus_assignment_id' => $busAssignment->id,
+                            'vehicle_id' => $request->vehicle_id ?? 0,
+                            'vehicle' => $vehicleName,
+                            'driver_id' => $request->driver_id ?? 0,
+                            'driver' => $driverName,
+                            'guide_id' => $request->guide_id ?? 0,
+                            'guide' => $guideName,
+                            'accommodation' => false,
+                            'created_by' => $userId,
                             'updated_by' => $userId,
+                            'created_at' => now(),
                             'updated_at' => now(),
-                        ];
-                        $itinerary->update($updateData);
+                        ]);
                     }
-                } else {
-                    $vehicleName = '';
-                    if (!empty($request->vehicle_id)) {
-                        $vehicle = Vehicle::find($request->vehicle_id);
-                        $vehicleName = $vehicle ? $vehicle->registration_number : '';
-                    }
-                    
-                    $driverName = '';
-                    if (!empty($request->driver_id)) {
-                        $driver = Driver::find($request->driver_id);
-                        $driverName = $driver ? $driver->name : '';
-                    }
-                    
-                    $guideName = '';
-                    if (!empty($request->guide_id)) {
-                        $guide = Guide::find($request->guide_id);
-                        $guideName = $guide ? $guide->name : '';
-                    }
-                    
-                    DailyItinerary::create([
-                        'group_info_id' => $groupInfo->id,
-                        'bus_assignment_id' => $busAssignment->id,
-                        'date' => $date,
-                        'time_start' => $timeStart,
-                        'time_end' => $timeEnd,
-                        'start_location' => $itineraryData['start_location'] ?? null,
-                        'end_location' => $itineraryData['end_location'] ?? null,
-                        'itinerary' => $itineraryData['itinerary'] ?? null,
-                        'vehicle_id' => $request->vehicle_id ?? 0,
-                        'vehicle' => $vehicleName,
-                        'driver_id' => $request->driver_id ?? 0,
-                        'driver' => $driverName,
-                        'guide_id' => $request->guide_id ?? 0,
-                        'guide' => $guideName,
-                        'accommodation' => false,
-                        'created_by' => $userId,
-                        'updated_by' => $userId,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
                 }
             }
-        }
-        
-        $itineraries = DailyItinerary::where('bus_assignment_id', $busAssignment->id)
-                                        ->where('group_info_id', $groupInfo->id)
-                                        ->orderBy('date', 'asc')
-                                        ->get();
-        
-        $startDate = null;
-        $startTime = null;
-        $endDate = null;
-        $endTime = null;
-        
-        if ($itineraries->isNotEmpty()) {
-            $firstItinerary = $itineraries->first();
-            $lastItinerary = $itineraries->last();
             
-            $startDate = $firstItinerary->date;
-            $startTime = $firstItinerary->time_start;
-            $endDate = $lastItinerary->date;
-            $endTime = $lastItinerary->time_end;
+            $itineraries = DailyItinerary::where('bus_assignment_id', $busAssignment->id)
+                                            ->where('group_info_id', $groupInfo->id)
+                                            ->orderBy('date', 'asc')
+                                            ->get();
+            
+            $startDate = null;
+            $startTime = null;
+            $endDate = null;
+            $endTime = null;
+            
+            if ($itineraries->isNotEmpty()) {
+                $firstItinerary = $itineraries->first();
+                $lastItinerary = $itineraries->last();
+                
+                $startDate = $firstItinerary->date;
+                $startTime = $firstItinerary->time_start;
+                $endDate = $lastItinerary->date;
+                $endTime = $lastItinerary->time_end;
+            }
+            
+            $updateData = [
+                'vehicle_id' => !empty($request->vehicle_id) && $request->vehicle_id > 0 ? $request->vehicle_id : null,
+                'driver_id' => !empty($request->driver_id) && $request->driver_id > 0 ? $request->driver_id : null,
+                'guide_id' => $request->guide_id ?? null,
+                'vehicle_grade_id' => $request->vehicle_grade_id ?? null,
+                'business_category_id' => $request->business_category_id ?? null,
+                'itinerary_name' => $request->itinerary_name ?? null,
+                'group_name' => $request->group_name ?? null,
+                'agt_tour_id' => $request->agt_tour_id ?? null,
+                'agency_country' => $request->agency_country ?? null,
+                'vehicle_number' => $request->vehicle_number,
+                'step_car' => $request->step_car,
+                'adult_count' => $request->adult_count ?? 0,
+                'child_count' => $request->child_count ?? 0,
+                'guide_count' => $request->guide_count ?? 0,
+                'other_count' => $request->other_count ?? 0,
+                'luggage_count' => $request->luggage_count ?? 0,
+                'vehicle_type_spec_check' => $request->boolean('vehicle_type_spec_check'),
+                'temporary_driver' => $request->boolean('temporary_driver'),
+                'accompanying' => $request->accompanying,
+                'representative' => $request->representative,
+                'representative_phone' => $request->representative_phone,
+                'attention' => $request->attention,
+                'operation_remarks' => $request->operation_remarks,
+                'operation_memo' => $request->operation_memo,
+                'operation_basic_remarks' => $request->operation_basic_remarks,
+                'doc_remarks' => $request->doc_remarks,
+                'history_remarks' => $request->history_remarks,
+                'lock_arrangement' => $request->boolean('lock_arrangement'),
+                'status_sent' => $request->boolean('status_sent'),
+                'status_finalized' => $request->boolean('status_finalized'),
+                'updated_by' => $userId,
+                'updated_at' => now(),
+            ];
+            
+            if ($itineraries->isNotEmpty()) {
+                $updateData['start_date'] = $startDate;
+                $updateData['start_time'] = $startTime;
+                $updateData['end_date'] = $endDate;
+                $updateData['end_time'] = $endTime;
+                $updateData['count_daily'] = $itineraries->count();
+            }
+            
+            $busAssignment->update($updateData);
+            
+            if ($isNewlyCreated) {
+                $this->logBusAssignmentChange(
+                    $busAssignment->id,
+                    $groupInfo->id,
+                    'created',
+                    'create',
+                    null,
+                    null,
+                    '運行を作成しました',
+                    $userId,
+                    $username
+                );
+            }
+            
+            $this->recalculateGroupTotals($groupInfo->id);
+            
+            DB::commit();
+            
+            return response()->json([
+                'success' => true,
+                'message' => '運行詳細を更新しました。',
+                'bus_id' => $busAssignment->id,
+                'new_bus_id' => $busAssignment->id
+            ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'バリデーションエラー',
+                'errors' => $e->errors()
+            ], 422);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
-        
-        $updateData = [
-            'vehicle_id' => !empty($request->vehicle_id) && $request->vehicle_id > 0 ? $request->vehicle_id : null,
-            'driver_id' => !empty($request->driver_id) && $request->driver_id > 0 ? $request->driver_id : null,
-            'guide_id' => $request->guide_id ?? null,
-            'vehicle_number' => $request->vehicle_number,
-            'step_car' => $request->step_car,
-            'adult_count' => $request->adult_count ?? 0,
-            'child_count' => $request->child_count ?? 0,
-            'guide_count' => $request->guide_count ?? 0,
-            'other_count' => $request->other_count ?? 0,
-            'luggage_count' => $request->luggage_count ?? 0,
-            'vehicle_type_spec_check' => $request->boolean('vehicle_type_spec_check'),
-            'temporary_driver' => $request->boolean('temporary_driver'),
-            'accompanying' => $request->accompanying,
-            'representative' => $request->representative,
-            'representative_phone' => $request->representative_phone,
-            'attention' => $request->attention,
-            'operation_remarks' => $request->operation_remarks,
-            'operation_memo' => $request->operation_memo,
-            'operation_basic_remarks' => $request->operation_basic_remarks,
-            'doc_remarks' => $request->doc_remarks,
-            'history_remarks' => $request->history_remarks,
-            'lock_arrangement' => $request->boolean('lock_arrangement'),
-            'status_sent' => $request->boolean('status_sent'),
-            'status_finalized' => $request->boolean('status_finalized'),
-            'updated_by' => $userId,
-            'updated_at' => now(),
-        ];
-        
-        if ($itineraries->isNotEmpty()) {
-            $updateData['start_date'] = $startDate;
-            $updateData['start_time'] = $startTime;
-            $updateData['end_date'] = $endDate;
-            $updateData['end_time'] = $endTime;
-            $updateData['count_daily'] = $itineraries->count();
-        }
-        
-        $busAssignment->update($updateData);
-        
-        if ($isNewlyCreated) {
-            $this->logBusAssignmentChange(
-                $busAssignment->id,
-                $groupInfo->id,
-                'created',
-                'create',
-                null,
-                null,
-                '運行を作成しました',
-                $userId,
-                $username
-            );
-        }
-        
-        $this->recalculateGroupTotals($groupInfo->id);
-        
-        DB::commit();
-        
-        return response()->json([
-            'success' => true,
-            'message' => '運行詳細を更新しました。',
-            'bus_id' => $busAssignment->id,
-            'new_bus_id' => $busAssignment->id
-        ]);
-        
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        DB::rollBack();
-        return response()->json([
-            'success' => false,
-            'message' => 'バリデーションエラー',
-            'errors' => $e->errors()
-        ], 422);
-        
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage()
-        ], 500);
     }
-}
     
     public function deleteItinerary(Request $request, $id)
     {
@@ -3251,6 +3318,162 @@ public function updateBusAssignment(Request $request, $id)
                 'message' => '複製中にエラーが発生しました: ' . $e->getMessage()
             ], 500);
         }
+    }
+    
+    
+    public function uploadFile(Request $request, $id)
+    {
+        try {
+            $groupInfo = GroupInfo::findOrFail($id);
+            
+            $request->validate([
+                'file' => 'required|file|max:10240|mimes:doc,docx,pdf,xls,xlsx,zip,rar,jpg,jpeg,png,gif,txt',
+                'bus_assignment_id' => 'nullable|integer|exists:bus_assignment,id'
+            ]);
+            
+            $busAssignmentId = $request->input('bus_assignment_id');
+            
+            if ($busAssignmentId) {
+                $busAssignment = BusAssignment::where('id', $busAssignmentId)
+                    ->where('group_info_id', $groupInfo->id)
+                    ->first();
+                if (!$busAssignment) {
+                    throw new \Exception('指定された運行はこのグループに属していません。');
+                }
+            }
+            
+            $file = $request->file('file');
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $size = $file->getSize();
+            $mimeType = $file->getMimeType();
+            
+            $storePath = $busAssignmentId 
+                ? "group-files/{$groupInfo->id}/bus_{$busAssignmentId}"
+                : "group-files/{$groupInfo->id}";
+            
+            $finalName = $originalName;
+            $counter = 1;
+            while (file_exists(storage_path("app/public/{$storePath}/{$finalName}"))) {
+                $nameWithoutExt = pathinfo($originalName, PATHINFO_FILENAME);
+                $finalName = $nameWithoutExt . '_' . $counter . '.' . $extension;
+                $counter++;
+            }
+            
+            $path = $file->storeAs($storePath, $finalName, 'public');
+            
+            $groupFile = GroupInfoFile::create([
+                'group_info_id' => $groupInfo->id,
+                'bus_assignment_id' => $busAssignmentId,
+                'file_name' => $originalName,
+                'file_path' => $path,
+                'file_size' => $size,
+                'file_type' => $mimeType,
+                'file_extension' => $extension,
+                'uploaded_by' => session('user_id', auth()->id() ?? 0),
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'ファイルをアップロードしました。',
+                'file' => [
+                    'id' => $groupFile->id,
+                    'file_name' => $groupFile->file_name,
+                    'size_for_humans' => $groupFile->size_for_humans,
+                    'icon' => $groupFile->icon,
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'アップロードに失敗しました: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function downloadFile($id)
+    {
+        try {
+            $file = GroupInfoFile::findOrFail($id);
+            $filePath = storage_path("app/public/{$file->file_path}");
+            
+            if (!file_exists($filePath)) {
+                abort(404, 'ファイルが見つかりません。');
+            }
+            
+            return response()->download($filePath, $file->file_name);
+            
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'ダウンロードに失敗しました: ' . $e->getMessage());
+        }
+    }
+    
+    public function deleteFile($id)
+    {
+        try {
+            $file = GroupInfoFile::findOrFail($id);
+            $filePath = storage_path("app/public/{$file->file_path}");
+            
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+            
+            $dirPath = dirname($filePath);
+            if (is_dir($dirPath) && count(scandir($dirPath)) == 2) {
+                rmdir($dirPath);
+            }
+            
+            $file->delete();
+            
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'ファイルを削除しました。'
+                ]);
+            }
+            
+            return redirect()->back()->with('success', 'ファイルを削除しました。');
+            
+        } catch (\Exception $e) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '削除に失敗しました: ' . $e->getMessage()
+                ], 500);
+            }
+            return redirect()->back()->with('error', '削除に失敗しました: ' . $e->getMessage());
+        }
+    }
+    
+    public function getFiles($id, Request $request)
+    {
+        $groupInfo = GroupInfo::with('files')->findOrFail($id);
+        
+        $busAssignmentId = $request->input('bus_assignment_id');
+        
+        if ($busAssignmentId) {
+            $files = GroupInfoFile::where('group_info_id', $groupInfo->id)
+                ->where('bus_assignment_id', $busAssignmentId)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            $files = $groupInfo->files;
+        }
+        
+        $files = $files->map(function($file) {
+            return [
+                'id' => $file->id,
+                'file_name' => $file->file_name,
+                'size_for_humans' => $file->size_for_humans,
+                'icon' => $file->icon,
+            ];
+        });
+        
+        return response()->json([
+            'success' => true,
+            'files' => $files
+        ]);
     }
     
 }

@@ -44,6 +44,8 @@ class BusAssignment extends Model
         'guide_count',
         'other_count',
         'luggage_count',
+        'luggage',
+        'options',
         'vehicle_type_spec_check',
         'temporary_driver',
         'representative',
@@ -57,6 +59,12 @@ class BusAssignment extends Model
         'vehicle_index',
         'ignore_operation',
         'ignore_driver',
+        'vehicle_grade_id',
+        'business_category_id',
+        'itinerary_name',
+        'group_name',
+        'agt_tour_id',
+        'agency_country',
     ];
 
     protected $dates = [
@@ -88,6 +96,12 @@ class BusAssignment extends Model
         'luggage_count' => 'integer',
         'ignore_operation' => 'boolean',
         'ignore_driver' => 'boolean',
+        'vehicle_grade_id' => 'integer',
+        'business_category_id' => 'integer',
+        'itinerary_name' => 'string',
+        'group_name' => 'string',
+        'agt_tour_id' => 'string',
+        'agency_country' => 'string',
     ];
 
     public function groupInfo(): BelongsTo
@@ -196,13 +210,6 @@ class BusAssignment extends Model
         $groupName = $this->groupInfo?->group_name ?? '---';
         $sticker = $this->step_car ?? '---';
         return $groupName . "\n" . $sticker;
-    }
-
-    public function getAgencyCountryAttribute(): string
-    {
-        $agency = $this->groupInfo?->agency ?? '---';
-        $country = $this->groupInfo?->agency_country ?? '---';
-        return $agency . "\n" . $country;
     }
 
     public function getBusinessItineraryAttribute(): string
@@ -351,5 +358,15 @@ class BusAssignment extends Model
         }
 
         return $result;
+    }
+    
+    public function businessCategory(): BelongsTo
+    {
+        return $this->belongsTo(ReservationCategory::class, 'business_category_id', 'id');
+    }
+    
+    public function vehicleGrade(): BelongsTo
+    {
+        return $this->belongsTo(VehicleGrade::class, 'vehicle_grade_id', 'id');
     }
 }

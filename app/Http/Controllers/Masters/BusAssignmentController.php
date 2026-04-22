@@ -16,6 +16,7 @@ use App\Models\Masters\VehicleType;
 use App\Models\Masters\VehicleGrade;
 use App\Models\Masters\GroupInfoDateRemark;
 use App\Models\Masters\BusAssignmentLog;
+use App\Models\Masters\Option;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -40,6 +41,8 @@ class BusAssignmentController extends Controller
         $reservationCategoriesId = $request->input('reservation_categories_id');
         $showCancelEstimate = $request->input('show_cancel_estimate');
     
+        $hasExactSearch = !empty($reservationId) || !empty($operationId) || !empty($groupName);
+    
         if ($dateType == 'today') {
             $startDate = now()->format('Y-m-d');
             $endDate = now()->format('Y-m-d');
@@ -48,8 +51,10 @@ class BusAssignmentController extends Controller
                 $endDate = $startDate;
             }
         } else {
-            $startDate = $startDate ?? now()->format('Y-m-d');
-            $endDate = $endDate ?? now()->addMonths(2)->format('Y-m-d');
+            if (!$hasExactSearch) {
+                $startDate = $startDate ?? now()->format('Y-m-d');
+                $endDate = $endDate ?? now()->addMonths(2)->format('Y-m-d');
+            }
         }
     
         $query = BusAssignment::with([
@@ -105,7 +110,7 @@ class BusAssignmentController extends Controller
             });
         }
     
-        if ($startDate && $endDate) {
+        if (!$hasExactSearch && $startDate && $endDate) {
             $query->where(function($q) use ($startDate, $endDate) {
                 $q->whereBetween('start_date', [$startDate, $endDate])
                   ->orWhereBetween('end_date', [$startDate, $endDate])
@@ -114,6 +119,7 @@ class BusAssignmentController extends Controller
                            ->where('end_date', '>=', $endDate);
                   });
             });
+        } elseif ($hasExactSearch && $startDate && $endDate && $dateType !== 'custom') {
         }
     
         if ($vehicleName) {
@@ -155,7 +161,7 @@ class BusAssignmentController extends Controller
         })->unique()->values()->toArray();
     
         if (!empty($categoryIds)) {
-            $categories = \App\Models\Masters\ReservationCategory::whereIn('id', $categoryIds)->get()->keyBy('id');
+            $categories = ReservationCategory::whereIn('id', $categoryIds)->get()->keyBy('id');
             $assignments->getCollection()->transform(function($assignment) use ($categories) {
                 if ($assignment->groupInfo && $assignment->groupInfo->reservation_categories_id) {
                     $category = $categories[$assignment->groupInfo->reservation_categories_id] ?? null;
@@ -214,7 +220,7 @@ class BusAssignmentController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'group_info_id' => 'required|exists:group_info,id',
             'vehicle_id' => 'nullable|exists:vehicles,id',
             'driver_id' => 'nullable|exists:drivers,id',
@@ -228,14 +234,40 @@ class BusAssignmentController extends Controller
             'adult_count' => 'nullable|integer',
             'child_count' => 'nullable|integer',
             'guide_count' => 'nullable|integer',
-            'luggage_count' => 'nullable|integer',
+            // 'luggage_count' => 'nullable|integer',
+            'luggage' => 'nullable|string|max:255',
+            'options' => 'nullable|array',
+            'options.*' => 'exists:option,id',
             'representative' => 'nullable|string|max:100',
             'representative_phone' => 'nullable|string|max:20',
             'operation_remarks' => 'nullable|string',
             'ignore_operation' => 'nullable|boolean',
             'ignore_driver' => 'nullable|boolean',
             'reservation_status' => 'nullable|string',
-        ]);
+        ];
+        
+        $messages = [
+            'group_info_id.required' => 'グループ情報IDは必須です。',
+            'group_info_id.exists' => '指定されたグループ情報が存在しません。',
+            'vehicle_id.exists' => '選択された車両は存在しません。',
+            'driver_id.exists' => '選択された運転手は存在しません。',
+            'guide_id.exists' => '選択されたガイドは存在しません。',
+            'start_date.required' => '開始日は必須です。',
+            'start_date.date' => '開始日の形式が正しくありません。',
+            'end_date.required' => '終了日は必須です。',
+            'end_date.date' => '終了日の形式が正しくありません。',
+            'vehicle_number.max' => '号車は50文字以内で入力してください。',
+            'step_car.max' => 'ステップカーは50文字以内で入力してください。',
+            'adult_count.integer' => '大人人数は数値で入力してください。',
+            'child_count.integer' => '小人人数は数値で入力してください。',
+            'guide_count.integer' => 'ガイド人数は数値で入力してください。',
+            'luggage.max' => '荷物は255文字以内で入力してください。',
+            'options.*.exists' => '選択されたオプションが存在しません。',
+            'representative.max' => '代表者名は100文字以内で入力してください。',
+            'representative_phone.max' => '代表者電話番号は20文字以内で入力してください。',
+        ];
+        
+        $validated = $request->validate($rules, $messages);
 
         $validated['ignore_operation'] = filter_var($validated['ignore_operation'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $validated['ignore_driver'] = filter_var($validated['ignore_driver'] ?? false, FILTER_VALIDATE_BOOLEAN);
@@ -298,6 +330,12 @@ class BusAssignmentController extends Controller
         $validated['vehicle_index'] = $maxIndex + 1;
 
         $validated['key_uuid'] = (string) \Str::uuid();
+        
+        if ($request->has('options')) {
+            $validated['options'] = implode(',', $request->options);
+        } else {
+            $validated['options'] = null;
+        }
 
         BusAssignment::create($validated);
 
@@ -360,6 +398,15 @@ class BusAssignmentController extends Controller
             
         $vehicleGrades = VehicleGrade::orderBy('id')->get();
         
+        $options = Option::where('is_active', true)
+            ->orderBy('display_order')
+            ->orderBy('id')
+            ->get(['id', 'name']);
+        $selectedOptions = [];
+        if ($busAssignment->options) {
+            $selectedOptions = explode(',', $busAssignment->options);
+        }
+        
         return view('masters.bus-assignments.edit', compact(
             'busAssignment',
             'groupInfo',
@@ -369,7 +416,9 @@ class BusAssignmentController extends Controller
             'agencies',
             'reservationCategories',
             'logs',
-            'vehicleGrades'
+            'vehicleGrades',
+            'options',
+            'selectedOptions'
         ));
     }
 
@@ -397,7 +446,7 @@ class BusAssignmentController extends Controller
             $oldStartTime = $busAssignment->start_time;
             $oldEndTime = $busAssignment->end_time;
             
-            $validated = $request->validate([
+            $rules = [
                 'vehicle_id' => 'nullable|exists:vehicles,id',
                 'driver_id' => 'nullable|exists:drivers,id',
                 'guide_id' => 'nullable|exists:guides,id',
@@ -410,8 +459,11 @@ class BusAssignmentController extends Controller
                 'adult_count' => 'nullable|integer|min:0',
                 'child_count' => 'nullable|integer|min:0',
                 'guide_count' => 'nullable|integer|min:0',
-                'other_count' => 'nullable|integer|min:0',
-                'luggage_count' => 'nullable|integer|min:0',
+                // 'other_count' => 'nullable|integer|min:0',
+                // 'luggage_count' => 'nullable|integer|min:0',
+                'luggage' => 'nullable|string|max:255',
+                'options' => 'nullable|array',
+                'options.*' => 'exists:option,id',
                 'representative' => 'nullable|string|max:100',
                 'representative_phone' => 'nullable|string|max:20',
                 'attention' => 'nullable|string',
@@ -439,7 +491,30 @@ class BusAssignmentController extends Controller
                 'itinerary_name' => 'nullable|string|max:200',
                 'agt_tour_id' => 'nullable|string|max:100',
                 'remarks' => 'nullable|string',
-            ]);
+            ];
+            
+            $messages = [
+                'vehicle_id.exists' => '選択された車両は存在しません。',
+                'driver_id.exists' => '選択された運転手は存在しません。',
+                'guide_id.exists' => '選択されたガイドは存在しません。',
+                'start_date.date' => '開始日の形式が正しくありません。',
+                'end_date.date' => '終了日の形式が正しくありません。',
+                'adult_count.integer' => '大人人数は数値で入力してください。',
+                'adult_count.min' => '大人人数は0以上の数値を入力してください。',
+                'child_count.integer' => '小人人数は数値で入力してください。',
+                'child_count.min' => '小人人数は0以上の数値を入力してください。',
+                'guide_count.integer' => 'ガイド人数は数値で入力してください。',
+                'guide_count.min' => 'ガイド人数は0以上の数値を入力してください。',
+                'options.*.exists' => '選択されたオプションが存在しません。',
+                'reservation_categories_id.exists' => '選択された業務分類が存在しません。',
+                'agency.string' => '代理店名は文字列で入力してください。',
+                'agency.max' => '代理店名は200文字以内で入力してください。',
+                'group_name.max' => '団体名は200文字以内で入力してください。',
+                'itinerary_name.max' => '行程名は200文字以内で入力してください。',
+                'agt_tour_id.max' => 'AGT予約IDは100文字以内で入力してください。',
+            ];
+            
+            $validated = $request->validate($rules, $messages);
             
             $checkboxFields = [
                 'lock_arrangement',
@@ -514,7 +589,11 @@ class BusAssignmentController extends Controller
                 }
             }
             
-            
+            if ($request->has('options')) {
+                $validated['options'] = implode(',', $request->options);
+            } else {
+                $validated['options'] = null;
+            }
             
             $busAssignment->update($validated);
             
