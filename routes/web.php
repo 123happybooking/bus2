@@ -34,6 +34,7 @@ use App\Http\Controllers\Masters\OperationLedgerController;
 use App\Http\Controllers\Masters\DriverLedgerController;
 use App\Http\Controllers\Masters\DriverAttendanceController;
 use App\Http\Controllers\Masters\DailyReportController;
+use App\Http\Controllers\Masters\OptionController;
 
 use App\Http\Controllers\Driver\DriverDashboardController;
 use App\Http\Controllers\Driver\DriverProfileController;
@@ -108,6 +109,17 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::resource('user-company-info', UserCompanyInfoController::class)->names('user-company-info');
         Route::get('login-histories', [LoginHistoryController::class, 'index'])->name('login-histories.index');
         
+        
+        
+
+        
+        Route::get('/group-infos/{id}/files', [GroupInfoController::class, 'getFiles'])->name('group-infos.files');
+        Route::post('/group-infos/{id}/upload-file', [GroupInfoController::class, 'uploadFile'])->name('group-infos.upload-file');
+        Route::delete('/group-files/{id}', [GroupInfoController::class, 'deleteFile'])->name('group-files.delete');
+        Route::get('/group-files/{id}/download', [GroupInfoController::class, 'downloadFile'])->name('group-files.download');
+        
+        
+        
         Route::resource('group-infos', GroupInfoController::class)->names('group-infos');
         Route::post('group-infos/{id}/split-itineraries', [GroupInfoController::class, 'splitItineraries'])->name('group-infos.split-itineraries');
         Route::post('group-infos/batch-destroy', [GroupInfoController::class, 'batchDestroy'])->name('group-infos.batch-destroy');
@@ -117,6 +129,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::put('group-infos/{id}', [GroupInfoController::class, 'update'])->name('group-infos.update');
         Route::post('group-infos/{id}/delete-itinerary', [GroupInfoController::class, 'deleteItinerary'])->name('group-infos.delete-itinerary');
         Route::post('/group-infos/{id}/copy', [GroupInfoController::class, 'copy'])->name('group-infos.copy');
+        
         
         Route::get('operation-ledger', [OperationLedgerController::class, 'index'])->name('operation-ledger.index');
         
@@ -166,6 +179,8 @@ Route::prefix('masters')->name('masters.')->group(function () {
             Route::put('/{id}', [DailyReportController::class, 'update'])->name('update');
             Route::get('/{id}/pdf', [DailyReportController::class, 'exportPdf'])->name('export-pdf');
         });
+        
+        Route::resource('options', OptionController::class)->names('options');
         
 
         Route::resource('currencies', CurrencyController::class)->names('currencies');

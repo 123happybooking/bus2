@@ -53,6 +53,10 @@
                     @endif
                     
                     @if($isAdmin || $isOperationsManager || $isCoordinator || $isManager)
+                    <a href="{{ route('masters.options.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">オプション</a>
+                    @endif
+                    
+                    @if($isAdmin || $isOperationsManager || $isCoordinator || $isManager)
                     <a href="{{ route('masters.drivers.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">乗務指示一覧</a>
                     @endif
                     

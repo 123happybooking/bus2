@@ -158,7 +158,7 @@
                     <input type="text" name="vehicle_number" value="{{ $busAssignment->vehicle_number ?? '' }}" class="form-input" id="vehicle_number" placeholder="号車" {{ $readonlyAttr }}>
                 </div>
                 
-                <div class="label-width text-gray">ガイド</div>
+                <div class="label-width text-gray text-center">ガイド</div>
                 <div class="flex-1 position-relative">
                     <input type="text" name="guide_name_input" class="form-input" id="guide_search" 
                            value="{{ $busAssignment->guide ? $busAssignment->guide->name . ($busAssignment->guide->guide_code ? ' (' . $busAssignment->guide->guide_code . ')' : '') : '' }}" 
@@ -232,31 +232,53 @@
                             <input type="hidden" name="agency_phone" id="agency_phone" value="{{ $busAssignment->groupInfo->agency_phone ?? '' }}">
                             <div class="suggestions-container" id="agency_suggestions" style="display: none;"></div>
                         </div>
+                        
+                        <div class="d-flex align-items-center mb-1">
+                            <div class="label-width text-gray text-center">团体名</div>
+                            <div class="flex-1">
+                                <input type="text" name="group_name" value="{{ $busAssignment->groupInfo->group_name ?? '' }}" class="form-input" placeholder="团体名を入力" {{ $readonlyAttr }}>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="d-flex align-items-center mb-1">
                         <div class="label-width text-gray">大人</div>
                         <div class="input-width-number mr-4">
-                            <input type="number" name="adult_count" id="adult_count" value="{{ $busAssignment->adult_count ?? 0 }}" class="form-input" min="0" {{ $numberReadonly }}>
+                            <input type="text" name="adult_count" id="adult_count" value="{{ $busAssignment->adult_count ?? '' }}" class="form-input" {{ $numberReadonly }}>
                         </div>
-                        <div class="label-width text-gray mr-2">小人</div>
+                        <div class="label-width text-gray mr-2 text-center">小人</div>
                         <div class="input-width-number mr-4">
-                            <input type="number" name="child_count" value="{{ $busAssignment->child_count ?? 0 }}" class="form-input" min="0" {{ $numberReadonly }}>
+                            <input type="text" name="child_count" value="{{ $busAssignment->child_count ?? '' }}" class="form-input" {{ $numberReadonly }}>
                         </div>
-                        <div class="label-width text-gray mr-2">ガイド</div>
-                        <div class="input-width-number mr-4">
-                            <input type="number" name="guide_count" value="{{ $busAssignment->guide_count ?? 0 }}" class="form-input" min="0" {{ $numberReadonly }}>
-                        </div>
-                        <div class="label-width text-gray mr-2">その他</div>
-                        <div class="input-width-number">
-                            <input type="number" name="other_count" value="{{ $busAssignment->other_count ?? 0 }}" class="form-input" min="0" {{ $numberReadonly }}>
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="label-width-large text-gray text-center">荷物数</div>
+                            <div class="flex-1">
+                                <input type="text" name="luggage" value="{{ $busAssignment->luggage ?? '' }}" class="form-input" {{ $readonlyAttr }} style="width: 214px;">
+                            </div>
                         </div>
                     </div>
 
                     <div class="d-flex align-items-start">
                         <div class="label-width text-gray">備考</div>
                         <div class="flex-1">
-                            <textarea name="operation_remarks" rows="5" class="form-input" style="resize: vertical; height: auto;" {{ $remarksReadonly }}>{{ $busAssignment->operation_remarks ?? '' }}</textarea>
+                            <textarea name="operation_remarks" rows="3" class="form-input" style="resize: vertical; height: auto;" {{ $remarksReadonly }}>{{ $busAssignment->operation_remarks ?? '' }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-start mt-2">
+                        <div class="label-width text-gray">オプション</div>
+                        <div class="flex-1">
+                            <div class="options-container" style="display: flex; flex-wrap: wrap; gap: 12px;">
+                                @foreach($options ?? [] as $option)
+                                <label class="d-flex align-items-center" style="cursor: pointer;">
+                                    <input type="checkbox" name="options[]" value="{{ $option->id }}" 
+                                           class="mr-1" style="margin-right: 4px;"
+                                           {{ in_array($option->id, $selectedOptions ?? []) ? 'checked' : '' }}
+                                           {{ $checkboxDisabled }}>
+                                    <span style="font-size: 11px;">{{ $option->name }}</span>
+                                </label>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 </div>

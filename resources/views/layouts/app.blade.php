@@ -910,6 +910,7 @@
                     <li><a href="{{ route('masters.drivers.index') }}" data-route="drivers-operations">乗務指示一覧</a></li>
                     <li><a href="{{ route('masters.daily-itineraries.index') }}" data-route="daily-itineraries">日次一覧</a></li>
                     <li><a href="{{ route('masters.attendance-categories.index') }}" data-route="attendance-categories-operations">運転手勤怠</a></li>
+                    <li><a href="{{ route('masters.options.index') }}" data-route="options">オプション</a></li>
                 </ul>
             </div>
             @endif

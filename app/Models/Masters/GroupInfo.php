@@ -31,6 +31,8 @@ class GroupInfo extends Model
         'child_count',
         'other_count',
         'luggage_count',
+        'luggage',
+        'options',
         'reservation_channel',
         'reservation_categories',
         'vehicle_type',
@@ -107,5 +109,10 @@ class GroupInfo extends Model
     public function vehicleGrade()
     {
         return $this->belongsTo(VehicleGrade::class, 'vehicle_grade_id');
+    }
+    
+    public function files(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(GroupInfoFile::class, 'group_info_id', 'id');
     }
 }
