@@ -183,9 +183,23 @@
         border-color: #6c757d;
         color: #fff;
     }
+    .custom-fixed-bottom {
+        /* 默认状态：假设菜单收起，宽度为 60px */
+        left: 60px !important; 
+        width: calc(100% - 60px) !important;
+        transition: left 0.3s ease, width 0.3s ease; /* 添加动画过渡 */
+    }
+    .editor-compact {
+        left: 0 !important;      
+        right: 0 !important;      
+        width: auto !important;   
+        position: fixed;          
+        bottom: 0;               
+        z-index: 1000;
+    }
 </style>
 
-<div class="container-fluid py-2" style="padding-bottom: 280px;">
+<div class="container-fluid py-2" style="padding-bottom: 100px;">
     <div class="card shadow-sm mb-2 border-0">
         
         <!-- === 右上角：标题、新增、分页、行数选择器 === -->
@@ -407,104 +421,106 @@
     </div>
 
 {{-- 底部编辑器 --}}
-<div class="fixed-bottom bg-white border-top shadow-lg p-2 editor-compact" style="z-index: 1000; height: 330px; overflow: hidden; display: flex; flex-direction: column;">
-    <div class="d-flex justify-content-between align-items-center mb-1 flex-shrink-0">
-        <!-- 左侧区域：标题 + 按钮 -->
-        <div class="d-flex gap-2 align-items-center">
-            <h6 class="mb-0 text-success fw-bold" style="font-size: 0.9rem;"><i class="bi bi-keyboard"></i> クイック入力</h6>
+
+    <div class="position-relative bg-white border-top shadow-lg p-2 editor-compact" style="z-index: 1000; height: 330px; overflow: hidden; display: flex; flex-direction: column;">
+        <div class="d-flex justify-content-between align-items-center mb-1 flex-shrink-0">
+            <!-- 左侧区域：标题 + 按钮 -->
+            <div class="d-flex gap-2 align-items-center">
+                <h6 class="mb-0 text-success fw-bold" style="font-size: 0.9rem;"><i class="bi bi-keyboard"></i> クイック入力</h6>
+                
+                <!-- 插入位置：这里就是标题的右边 -->
+                <button type="button" 
+                    class="btn text-white py-1 ms-2" 
+                    style="font-size: 0.75rem; height: 22px; line-height: 1;
+                        background: linear-gradient(145deg, #6c757d, #495057);
+                        border: none;
+                        border-radius: 0.375rem;
+                        padding: 0 0.75rem;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);"
+                    onmouseover="this.style.background='linear-gradient(145deg, #5a6268, #343a40)'"
+                    onmouseout="this.style.background='linear-gradient(145deg, #6c757d, #495057)'"
+                    onclick="clearEditor()">
+                    <i class="bi bi-plus-lg me-1"></i> 新規
+                </button>
+                
+                <span id="editing-id-badge" class="badge bg-warning text-dark d-none" style="font-size: 0.75rem;">ID: <span id="editing-id-val"></span></span>
+            </div>
             
-            <!-- 插入位置：这里就是标题的右边 -->
-            <button type="button" 
-                class="btn text-white py-1 ms-2" 
-                style="font-size: 0.75rem; height: 22px; line-height: 1;
-                    background: linear-gradient(145deg, #6c757d, #495057);
-                    border: none;
-                    border-radius: 0.375rem;
-                    padding: 0 0.75rem;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);"
-                onmouseover="this.style.background='linear-gradient(145deg, #5a6268, #343a40)'"
-                onmouseout="this.style.background='linear-gradient(145deg, #6c757d, #495057)'"
-                onclick="clearEditor()">
-                <i class="bi bi-plus-lg me-1"></i> 新規
-            </button>
-            
-            <span id="editing-id-badge" class="badge bg-warning text-dark d-none" style="font-size: 0.75rem;">ID: <span id="editing-id-val"></span></span>
+            <!-- 右侧区域：只剩下金额和保存按钮 -->
+            <div class="d-flex gap-3 align-items-center">
+                <!-- 金额显示 -->
+                <div class="text-end" style="font-size: 0.8rem; line-height: 1.1;">
+                    <span class="text-danger">借方：<span id="total-debit-display" class="fw-bold">0</span></span> | 
+                    <span class="text-primary">貸方：<span id="total-credit-display" class="fw-bold">0</span></span>
+                    <br><span id="balance-status" class="badge bg-success" style="font-size: 0.7rem;">balanced</span>
+                </div>
+                <!-- 保存按钮 -->
+                <button type="button" class="btn btn-primary px-3 py-0" style="height: 28px; font-size: 0.85rem;" onclick="submitJournalEntry()"> 
+                    <i class="bi bi-save"></i> 保存 
+                </button>
+            </div>
         </div>
+
+        <input type="hidden" id="edit-entry-id" value="">
         
-        <!-- 右侧区域：只剩下金额和保存按钮 -->
-        <div class="d-flex gap-3 align-items-center">
-            <!-- 金额显示 -->
-            <div class="text-end" style="font-size: 0.8rem; line-height: 1.1;">
-                <span class="text-danger">借方：<span id="total-debit-display" class="fw-bold">0</span></span> | 
-                <span class="text-primary">貸方：<span id="total-credit-display" class="fw-bold">0</span></span>
-                <br><span id="balance-status" class="badge bg-success" style="font-size: 0.7rem;">balanced</span>
-            </div>
-            <!-- 保存按钮 -->
-            <button type="button" class="btn btn-primary px-3 py-0" style="height: 28px; font-size: 0.85rem;" onclick="submitJournalEntry()"> 
-                <i class="bi bi-save"></i> 保存 
-            </button>
-        </div>
-    </div>
-
-    <input type="hidden" id="edit-entry-id" value="">
-    
-    <div class="row g-1 flex-grow-1" style="overflow: hidden;">
-        <div class="col-md-12 mb-1">
-            <div class="row g-1">
-                <div class="col-md-2"><input type="date" id="post-date" class="form-control" value="{{ date('Y-m-d') }}"></div>
-                <div class="col-md-2">
-                    <input type="text" id="post-dept" class="form-control" autocomplete="off" list="dept-list-main" placeholder="部門を入力または選択" onchange="validateMainDeptInput()">
-                    <datalist id="dept-list-main">
-                        @foreach($departments as $dept)<option value="{{ $dept->name }}">{{ $dept->name }}</option>@endforeach
-                    </datalist>
-                </div>
-                <div class="col-md-2"><input type="text" id="post-source-type" class="form-control" placeholder="伝票種別"></div>
-                <div class="col-md-6"><input type="text" id="post-source-remark" class="form-control" placeholder="摘要"></div>
-            </div>
-        </div>
-
-        <div class="col-md-6 d-flex flex-column h-100">
-            <div class="card h-100 border-danger border-1">
-                <div class="card-header bg-danger text-white py-0 d-flex justify-content-between align-items-center editor-header">
-                    <span><i class="bi bi-arrow-down-right"></i> 借方</span>
-                    <button type="button" class="btn btn-sm btn-light text-danger py-0" style="height: 22px;" onclick="addLine(1)"><i class="bi bi-plus"></i> 行追加</button>
-                </div>
-                <div class="card-body p-1 overflow-auto" style="max-height: 220px;">
-                    <table class="table table-sm table-bordered mb-0" id="table-debit">
-                        <thead class="table-light sticky-top">
-                            <tr>
-                                <th width="30%">勘定科目</th>
-                                <th width="20%">補助科目</th>
-                                <th width="15%">取引先</th>
-                                <th width="15%">税区分</th>
-                                <th width="16%">金額</th>
-                            </tr>
-                        </thead>
-                        <tbody class="sortable-list" data-side="1"></tbody>
-                    </table>
+        <div class="row g-1 flex-grow-1" style="overflow: hidden;">
+            <div class="col-md-12 mb-1">
+                <div class="row g-1">
+                    <div class="col-md-2"><input type="date" id="post-date" class="form-control" value="{{ date('Y-m-d') }}"></div>
+                    <div class="col-md-2">
+                        <input type="text" id="post-dept" class="form-control" autocomplete="off" list="dept-list-main" placeholder="部門を入力または選択" onchange="validateMainDeptInput()">
+                        <datalist id="dept-list-main">
+                            @foreach($departments as $dept)<option value="{{ $dept->name }}">{{ $dept->name }}</option>@endforeach
+                        </datalist>
+                    </div>
+                    <div class="col-md-2"><input type="text" id="post-source-type" class="form-control" placeholder="伝票種別"></div>
+                    <div class="col-md-6"><input type="text" id="post-source-remark" class="form-control" placeholder="摘要"></div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-6 d-flex flex-column h-100">
-            <div class="card h-100 border-primary border-1">
-                <div class="card-header bg-primary text-white py-0 d-flex justify-content-between align-items-center editor-header">
-                    <span><i class="bi bi-arrow-up-right"></i> 貸方</span>
-                    <button type="button" class="btn btn-sm btn-light text-primary py-0" style="height: 22px;" onclick="addLine(2)"><i class="bi bi-plus"></i> 行追加</button>
+            <div class="col-md-6 d-flex flex-column h-100">
+                <div class="card h-100 border-danger border-1">
+                    <div class="card-header bg-danger text-white py-0 d-flex justify-content-between align-items-center editor-header">
+                        <span><i class="bi bi-arrow-down-right"></i> 借方</span>
+                        <button type="button" class="btn btn-sm btn-light text-danger py-0" style="height: 22px;" onclick="addLine(1)"><i class="bi bi-plus"></i> 行追加</button>
+                    </div>
+                    <div class="card-body p-1 overflow-auto" style="max-height: 220px;">
+                        <table class="table table-sm table-bordered mb-0" id="table-debit">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th width="30%">勘定科目</th>
+                                    <th width="20%">補助科目</th>
+                                    <th width="15%">取引先</th>
+                                    <th width="15%">税区分</th>
+                                    <th width="16%">金額</th>
+                                </tr>
+                            </thead>
+                            <tbody class="sortable-list" data-side="1"></tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="card-body p-1 overflow-auto" style="max-height: 220px;">
-                    <table class="table table-sm table-bordered mb-0" id="table-credit">
-                        <thead class="table-light sticky-top">
-                            <tr>
-                                <th width="30%">勘定科目</th>
-                                <th width="20%">補助科目</th>
-                                <th width="15%">取引先</th>
-                                <th width="15%">税区分</th>
-                                <th width="16%">金額</th>
-                            </tr>
-                        </thead>
-                        <tbody class="sortable-list" data-side="2"></tbody>
-                    </table>
+            </div>
+
+            <div class="col-md-6 d-flex flex-column h-100">
+                <div class="card h-100 border-primary border-1">
+                    <div class="card-header bg-primary text-white py-0 d-flex justify-content-between align-items-center editor-header">
+                        <span><i class="bi bi-arrow-up-right"></i> 貸方</span>
+                        <button type="button" class="btn btn-sm btn-light text-primary py-0" style="height: 22px;" onclick="addLine(2)"><i class="bi bi-plus"></i> 行追加</button>
+                    </div>
+                    <div class="card-body p-1 overflow-auto" style="max-height: 220px;">
+                        <table class="table table-sm table-bordered mb-0" id="table-credit">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th width="30%">勘定科目</th>
+                                    <th width="20%">補助科目</th>
+                                    <th width="15%">取引先</th>
+                                    <th width="15%">税区分</th>
+                                    <th width="16%">金額</th>
+                                </tr>
+                            </thead>
+                            <tbody class="sortable-list" data-side="2"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
