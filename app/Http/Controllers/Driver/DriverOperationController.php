@@ -87,9 +87,21 @@ class DriverOperationController extends Controller
             'action' => 'required|in:迎車,到着,空車,下車,終了',
             'mileage' => 'nullable|integer|min:0',
             'vehicle_id' => 'nullable|integer|exists:vehicles,id',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'address' => 'nullable|string',
         ]);
         
         $vehicleId = $request->vehicle_id ?? $itinerary->vehicle_id;
+        
+        $statusMap = [
+            '迎車' => '迎車中',
+            '到着' => '到着',
+            '空車' => '空車',
+            '下車' => '下車',
+            '終了' => '終了',
+        ];
+        $status = $statusMap[$request->action] ?? '空車';
         
         $log = DriverOperationLog::create([
             'driver_id' => $driverId,
@@ -97,7 +109,10 @@ class DriverOperationController extends Controller
             'itinerary_id' => $itinerary->id,
             'action' => $request->action,
             'mileage' => $request->mileage,
-            'status' => '空車',
+            'status' => $status,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'address' => $request->address,
             'logged_at' => Carbon::now(),
         ]);
         
@@ -111,6 +126,7 @@ class DriverOperationController extends Controller
                 'id' => $log->id,
                 'action' => $log->action,
                 'mileage' => $log->mileage,
+                'address' => $log->address,
                 'logged_at' => $log->logged_at->format('Y/m/d H:i:s'),
                 'status' => $log->status,
             ]
@@ -145,12 +161,27 @@ class DriverOperationController extends Controller
     
     public function updateLog($id, Request $request)
     {
-        $log = DriverOperationLog::findOrFail($id);
+        $driverId = session('driver_id');
+        
+        $log = DriverOperationLog::where('driver_id', $driverId)
+            ->findOrFail($id);
+        
+        $request->validate([
+            'action' => 'required|in:迎車,到着,空車,下車,終了',
+            'mileage' => 'nullable|integer|min:0',
+            'vehicle_id' => 'nullable|integer|exists:vehicles,id',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'address' => 'nullable|string',
+        ]);
         
         $log->update([
             'action' => $request->action,
             'mileage' => $request->mileage,
             'vehicle_id' => $request->vehicle_id,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'address' => $request->address,
         ]);
         
         return response()->json(['success' => true, 'log' => $log]);

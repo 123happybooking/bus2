@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Masters\GroupInfo;
 use App\Models\Masters\BusAssignment;
+use App\Models\Masters\Option;
+use App\Models\Masters\GroupInfoFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -138,7 +140,49 @@ class DriverDashboardController extends Controller
             ->where('driver_id', $driverId)
             ->findOrFail($id);
         
-        return view('driver.itinerary-show', compact('itinerary'));
+        $busAssignment = $itinerary->busAssignment;
+        
+        $options = Option::where('is_active', true)
+            ->orderBy('display_order')
+            ->orderBy('id')
+            ->get();
+        
+        $selectedOptionNames = [];
+        if ($busAssignment && $busAssignment->options) {
+            $selectedOptionIds = explode(',', $busAssignment->options);
+            foreach ($options as $option) {
+                if (in_array($option->id, $selectedOptionIds)) {
+                    $selectedOptionNames[] = $option->name;
+                }
+            }
+        }
+        $selectedOptionsText = !empty($selectedOptionNames) ? implode('、', $selectedOptionNames) : 'なし';
+        
+        $files = GroupInfoFile::where('bus_assignment_id', $busAssignment->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return view('driver.itinerary-show', compact('itinerary', 'busAssignment', 'selectedOptionsText', 'files'));
+    }
+    
+    public function downloadFile($id)
+    {
+        $driverId = session('driver_id');
+        
+        $file = GroupInfoFile::findOrFail($id);
+        
+        $busAssignment = BusAssignment::find($file->bus_assignment_id);
+        if (!$busAssignment || $busAssignment->driver_id != $driverId) {
+            abort(403, 'アクセス権限がありません。');
+        }
+        
+        $filePath = storage_path("app/public/{$file->file_path}");
+        
+        if (!file_exists($filePath)) {
+            abort(404, 'ファイルが見つかりません。');
+        }
+        
+        return response()->download($filePath, $file->file_name);
     }
     
     public function dailyItineraries($date)

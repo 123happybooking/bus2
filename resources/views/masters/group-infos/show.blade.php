@@ -418,14 +418,6 @@
                                                         <span class="file-name" style="font-size: 11px;">{{ $file->file_name }}</span>
                                                         <span class="file-size" style="font-size: 10px; color: #6b7280;">({{ $file->size_for_humans }})</span>
                                                     </div>
-                                                    <div class="file-actions" style="display: flex; gap: 6px;">
-                                                        <a href="{{ route('masters.group-files.download', $file->id) }}" class="btn-download" style="color: #2563eb; text-decoration: none;">
-                                                            <i class="bi bi-download" style="font-size: 12px;"></i>
-                                                        </a>
-                                                        <button type="button" class="btn-delete-file-bus" data-file-id="{{ $file->id }}" data-bus-id="{{ $busAssignment->id }}" style="background: none; border: none; color: #dc2626; cursor: pointer;">
-                                                            <i class="bi bi-trash" style="font-size: 12px;"></i>
-                                                        </button>
-                                                    </div>
                                                 </div>
                                                 @endforeach
                                             @else

@@ -223,6 +223,7 @@ Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\
     Route::get('itinerary/{id}', [DriverDashboardController::class, 'showItinerary'])->name('itinerary.show');
     Route::get('daily-itineraries/{date}', [DriverDashboardController::class, 'dailyItineraries'])->name('daily-itineraries');
     Route::get('tab-itineraries', [DriverDashboardController::class, 'getTabItineraries'])->name('tab-itineraries');
+    Route::get('files/{id}/download', [DriverDashboardController::class, 'downloadFile'])->name('files.download');
     
     Route::post('logout', [DriverAuthController::class, 'logout'])->name('logout');
     Route::get('settings', [DriverAuthController::class, 'settings'])->name('settings');
