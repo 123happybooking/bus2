@@ -3879,7 +3879,7 @@ function refreshFileList() {
                 fileList.innerHTML = html;
             } else {
                 fileList.innerHTML = `
-                    <div class="file-empty" style="text-align: center; padding: 50px 0 0 0; color: #9ca3af; font-size: 12px;">
+                    <div class="file-empty" style="text-align: center; padding: 60px 0 0 0; color: #9ca3af; font-size: 12px;">
                         <i class="bi bi-folder2-open"></i> ファイルはありません
                     </div>
                 `;
@@ -4083,7 +4083,7 @@ function refreshFileListForBus(busId) {
                 fileList.innerHTML = html;
             } else {
                 fileList.innerHTML = `
-                    <div class="file-empty-bus" style="text-align: center; padding: 20px 0; color: #9ca3af; font-size: 11px;">
+                    <div class="file-empty-bus" style="text-align: center; padding: 10px 0 0 0; color: #9ca3af; font-size: 11px;">
                         <i class="bi bi-folder2-open"></i> ファイルはありません
                     </div>
                 `;

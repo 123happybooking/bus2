@@ -54,8 +54,18 @@
             <div class="logs-list" id="logsList">
                 @foreach($logs as $log)
                 <div class="log-item" data-id="{{ $log->id }}" data-action="{{ $log->action }}" data-mileage="{{ $log->mileage }}" data-status="{{ $log->status }}">
-                    <span class="col-time">{{ \Carbon\Carbon::parse($log->logged_at)->format('Y/m/d H:i:s') }}</span>
-                    <span class="col-mileage">{{ $log->mileage ?? '' }}</span>
+                    <span class="col-time">
+                        {{ \Carbon\Carbon::parse($log->logged_at)->format('Y/m/d') }}<br>
+                        {{ \Carbon\Carbon::parse($log->logged_at)->format('H:i:s') }}
+                    </span>
+                    <span class="col-mileage">
+                        @if($log->mileage)
+                            {{ $log->mileage }} KM<br>
+                        @else
+                            {{ $log->mileage ?? '' }}
+                        @endif
+                        {{ $log->address ?? '' }}
+                    </span>
                     <span class="col-action">{{ $log->action }}</span>
                 </div>
                 @endforeach
@@ -239,7 +249,7 @@
 .col-mileage {
     width: 80px;
     flex-shrink: 0;
-    text-align: right;
+    text-align: center;
 }
 
 .col-action {
@@ -334,10 +344,43 @@
 
 @push('scripts')
 <script>
+let googleMapsReady = false;
+let pendingLocationResolvers = [];
+
+window.onGoogleMapsReady = function() {
+    googleMapsReady = true;
+    console.log('✅ Google Maps API 加载完成');
+    pendingLocationResolvers.forEach(resolver => resolver());
+    pendingLocationResolvers = [];
+};
+
+function waitForGoogleMaps() {
+    return new Promise((resolve) => {
+        if (googleMapsReady && typeof google !== 'undefined' && google.maps) {
+            resolve();
+        } else {
+            pendingLocationResolvers.push(resolve);
+        }
+    });
+}
+
+function cleanAddress(address) {
+    if (!address) return '';
+    
+    let cleaned = address;
+    cleaned = cleaned.replace(/[ ]*邮政编码[：:]\s*\d+/g, '');
+    cleaned = cleaned.replace(/\s*[A-Z0-9]{3,7}\+[A-Z0-9]{3,5}\s*/gi, '');
+    cleaned = cleaned.replace(/[\s,，]+$/, '');
+    cleaned = cleaned.replace(/\s+/g, ' ');
+    
+    return cleaned.trim();
+}
+
 let currentAction = null;
 let currentItineraryId = {{ $itinerary->id }};
 let currentEditingLogId = null;
 let completedActions = new Set();
+let currentLocationData = null;
 
 function getSelectedVehicleId() {
     return document.getElementById('vehicleSelect').value;
@@ -352,19 +395,87 @@ function markButtonCompleted(action) {
     });
 }
 
-function addLog(action, mileage = null) {
+async function getCurrentLocation() {
+    await waitForGoogleMaps();
+    
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject('お使いのブラウザは Geolocation に対応していません。');
+            return;
+        }
+        
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+        };
+        
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                const geocoder = new google.maps.Geocoder();
+                const latlng = { lat: lat, lng: lng };
+                
+                geocoder.geocode({ location: latlng }, (results, status) => {
+                    if (status === 'OK' && results[0]) {
+                        let rawAddress = results[0].formatted_address;
+                        let cleanedAddress = cleanAddress(rawAddress);
+                        
+                        resolve({
+                            latitude: lat,
+                            longitude: lng,
+                            address: cleanedAddress
+                        });
+                    } else {
+                        reject('住所の取得に失敗しました。');
+                    }
+                });
+            },
+            (error) => {
+                let msg = '';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        msg = '位置情報の利用が許可されていません。';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        msg = '位置情報を取得できませんでした。';
+                        break;
+                    case error.TIMEOUT:
+                        msg = '位置情報の取得がタイムアウトしました。';
+                        break;
+                    default:
+                        msg = '不明なエラーが発生しました。';
+                }
+                reject(msg);
+            },
+            options
+        );
+    });
+}
+
+function addLog(action, mileage = null, location = null) {
     const vehicleId = getSelectedVehicleId();
+    const requestBody = {
+        action: action,
+        mileage: mileage,
+        vehicle_id: vehicleId
+    };
+    
+    if (location) {
+        requestBody.latitude = location.latitude;
+        requestBody.longitude = location.longitude;
+        requestBody.address = location.address;
+    }
+    
     fetch(`/driver/operation/log/${currentItineraryId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         },
-        body: JSON.stringify({
-            action: action,
-            mileage: mileage,
-            vehicle_id: vehicleId
-        })
+        body: JSON.stringify(requestBody)
     })
     .then(response => response.json())
     .then(data => {
@@ -398,9 +509,32 @@ function addLogToList(log) {
     logItem.setAttribute('data-action', log.action);
     logItem.setAttribute('data-mileage', log.mileage || '');
     logItem.setAttribute('data-status', log.status);
+    
+    const loggedAt = log.logged_at;
+    let date = loggedAt;
+    let time = '';
+    if (loggedAt && loggedAt.includes(' ')) {
+        const parts = loggedAt.split(' ');
+        date = parts[0];
+        time = parts[1];
+    } else {
+        time = loggedAt;
+    }
+    
+    let mileageHtml = '';
+    if (log.mileage) {
+        mileageHtml = `${log.mileage} KM<br>`;
+    }
+    const addressHtml = log.address || '';
+    
     logItem.innerHTML = `
-        <span class="col-time">${log.logged_at}</span>
-        <span class="col-mileage">${log.mileage || ''}</span>
+        <span class="col-time">
+            ${date}<br>
+            ${time}
+        </span>
+        <span class="col-mileage">
+            ${mileageHtml}${addressHtml}
+        </span>
         <span class="col-action">${log.action}</span>
     `;
     logsList.insertBefore(logItem, logsList.firstChild);
@@ -416,23 +550,31 @@ function updateLogInList(logId, newAction, newMileage) {
     if (logItem) {
         logItem.setAttribute('data-action', newAction);
         logItem.setAttribute('data-mileage', newMileage || '');
+        
         const mileageSpan = logItem.querySelector('.col-mileage');
         const actionSpan = logItem.querySelector('.col-action');
-        if (mileageSpan) mileageSpan.textContent = newMileage || '';
+        
+        if (mileageSpan) {
+            const currentHtml = mileageSpan.innerHTML;
+            const addressMatch = currentHtml.match(/(?:<br>)?([^<]*?)(?:<br>)?$/);
+            const address = addressMatch && addressMatch[1] !== mileageSpan.textContent ? addressMatch[1] : '';
+            const newMileageHtml = newMileage ? `${newMileage} KM<br>` : '';
+            mileageSpan.innerHTML = newMileageHtml + address;
+        }
         if (actionSpan) actionSpan.textContent = newAction;
     }
 }
 
 function openEditModal(logItem) {
     currentEditingLogId = logItem.getAttribute('data-id');
-    const currentAction = logItem.getAttribute('data-action');
+    const logAction = logItem.getAttribute('data-action');
     const currentMileage = logItem.getAttribute('data-mileage');
     
-    document.getElementById('editActionSelect').value = currentAction;
+    document.getElementById('editActionSelect').value = logAction;
     document.getElementById('editMileageInput').value = currentMileage;
     
     const editMileageField = document.getElementById('editMileageField');
-    if (currentAction === '到着' || currentAction === '下車') {
+    if (logAction === '到着' || logAction === '下車') {
         editMileageField.style.display = 'block';
     } else {
         editMileageField.style.display = 'none';
@@ -442,22 +584,52 @@ function openEditModal(logItem) {
 }
 
 document.querySelectorAll('.action-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', async function() {
         const action = this.getAttribute('data-action');
         
         if (completedActions.has(action)) {
             return;
         }
         
-        if (action === '到着' || action === '下車') {
-            currentAction = action;
-            const modal = document.getElementById('mileageModal');
-            const modalTitle = document.getElementById('modalTitle');
-            modalTitle.textContent = action === '到着' ? '到着時の走行距離を入力' : '下車時の走行距離を入力';
-            document.getElementById('mileageInput').value = '';
-            modal.classList.add('show');
-        } else {
-            addLog(action);
+        const originalText = this.innerHTML;
+        this.innerHTML = '位置取得中...';
+        this.disabled = true;
+        
+        try {
+            const location = await getCurrentLocation();
+            console.log('現在地:', location);
+            
+            this.innerHTML = originalText;
+            this.disabled = false;
+            
+            if (action === '到着' || action === '下車') {
+                currentAction = action;
+                currentLocationData = location;
+                const modal = document.getElementById('mileageModal');
+                const modalTitle = document.getElementById('modalTitle');
+                modalTitle.textContent = action === '到着' ? '到着時の走行距離を入力' : '下車時の走行距離を入力';
+                document.getElementById('mileageInput').value = '';
+                
+                const addressHint = document.createElement('p');
+                addressHint.style.fontSize = '12px';
+                addressHint.style.color = 'var(--text-secondary)';
+                addressHint.style.marginBottom = '12px';
+                addressHint.style.wordBreak = 'break-all';
+                addressHint.innerHTML = `📍 ${location.address}`;
+                
+                const existingHint = modal.querySelector('.location-hint');
+                if (existingHint) existingHint.remove();
+                modal.querySelector('.modal-content').insertBefore(addressHint, document.getElementById('mileageInput'));
+                addressHint.classList.add('location-hint');
+                
+                modal.classList.add('show');
+            } else {
+                addLog(action, null, location);
+            }
+        } catch (error) {
+            this.innerHTML = originalText;
+            this.disabled = false;
+            alert(error);
         }
     });
 });
@@ -465,15 +637,19 @@ document.querySelectorAll('.action-btn').forEach(btn => {
 document.getElementById('confirmBtn').addEventListener('click', function() {
     const mileage = document.getElementById('mileageInput').value;
     if (currentAction && mileage) {
-        addLog(currentAction, parseInt(mileage));
+        addLog(currentAction, parseInt(mileage), currentLocationData);
         document.getElementById('mileageModal').classList.remove('show');
         currentAction = null;
+        currentLocationData = null;
+    } else if (currentAction && !mileage) {
+        alert('走行距離を入力してください。');
     }
 });
 
 document.getElementById('cancelModalBtn').addEventListener('click', function() {
     document.getElementById('mileageModal').classList.remove('show');
     currentAction = null;
+    currentLocationData = null;
 });
 
 document.getElementById('editConfirmBtn').addEventListener('click', function() {
@@ -564,4 +740,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=geocoding&callback=onGoogleMapsReady" async defer></script>
 @endpush

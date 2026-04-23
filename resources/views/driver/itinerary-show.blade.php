@@ -56,12 +56,12 @@
 
         <div class="detail-list">
             <div class="detail-item">
-                <div class="detail-label">開始時間</div>
+                <div class="detail-label">開始</div>
                 <div class="detail-value">{{ \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') }}</div>
                 <div class="detail-value-right">{{ $itinerary->start_location ?? '未設定' }}</div>
             </div>
             <div class="detail-item">
-                <div class="detail-label">終了時間</div>
+                <div class="detail-label">終了</div>
                 <div class="detail-value">{{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }}</div>
                 <div class="detail-value-right">{{ $itinerary->end_location ?? '未設定' }}</div>
             </div>
@@ -70,21 +70,19 @@
                 <div class="detail-value-full">{{ $itinerary->itinerary ?? '未設定' }}</div>
             </div>
             <div class="detail-item">
-                <div class="detail-label">お客様人数</div>
+                <div class="detail-label">人数</div>
                 <div class="detail-value-full">
-                    大人: {{ $busAssignment->adult_count ?? 0 }}　
-                    小人: {{ $busAssignment->child_count ?? 0 }}　
-                    ガイド: {{ $busAssignment->guide_count ?? 0 }}　
-                    その他: {{ $busAssignment->other_count ?? 0 }}
+                    大: {{ $busAssignment->adult_count ?? 0 }}　
+                    小: {{ $busAssignment->child_count ?? 0 }}
                 </div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">荷物数</div>
-                <div class="detail-value-full">{{ $busAssignment->luggage_count ?? 0 }}</div>
+                <div class="detail-value-full">{{ $busAssignment->luggage ?? '未設定' }}</div>
             </div>
             <div class="detail-item">
-                <div class="detail-label">注意事項</div>
-                <div class="detail-value-full">{{ $busAssignment->attention ?? '未設定' }}</div>
+                <div class="detail-label">注意</div>
+                <div class="detail-value-full">{{ $selectedOptionsText }}</div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">備考</div>
@@ -101,6 +99,22 @@
                 </div>
             </div>
         </div>
+        
+        
+        @if($files->count() > 0)
+        <div class="detail-list files-list">
+            @foreach($files as $file)
+            <div class="detail-item">
+                <div class="detail-value">{{ $file->file_name }}</div>
+                <div class="detail-value-right">
+                    <a href="{{ route('driver.files.download', $file->id) }}" style="color: #2563eb; text-decoration: none;">
+                        <i class="bi bi-download" style="font-size: 18px;"></i>
+                    </a>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
 
         <div class="button-container">
             <button class="start-operation-btn" id="startOperationBtn" {{ $isCompleted ? 'disabled' : '' }}>運行開始</button>
@@ -112,6 +126,7 @@
 
 @push('styles')
 <style>
+.files-list .detail-value-right { text-align: right;}
 .itinerary-detail-section {
     padding: 12px;
 }

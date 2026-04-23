@@ -15,6 +15,9 @@ class DriverOperationLog extends Model
         'itinerary_id',
         'action',
         'mileage',
+        'latitude',
+        'longitude',
+        'address',
         'status',
         'logged_at',
     ];
