@@ -15,6 +15,7 @@ class AccountPlController extends Controller
         $endDate = $request->input('end_date');
 
         // 初始化总计
+        $totalTaxes = 0; 
         $totalRevenue = $totalCogs = $totalExpenses = 0;
         $totalOIncome = $totalOExpenses = 0;
         $totalSOIncome = $totalSOExpenses = 0;
@@ -23,6 +24,8 @@ class AccountPlController extends Controller
         $operatingIncome = 0;
         $ordinaryIncome = 0;
         $profitBeforeTax = 0;
+
+        $netIncome = 0;  // 净利润
 
         // 初始化为空集合，防止 View 报错
         $groupedData = collect();
@@ -40,7 +43,7 @@ class AccountPlController extends Controller
                     ])
                     ->join('accounts as acc', 'ajl.account_id', '=', 'acc.id')
                     ->join('account_journal_entries as aje', 'ajl.journal_entry_id', '=', 'aje.id')
-                    ->whereIn('acc.category_id', [7, 8, 9, 10, 11, 12, 13])
+                    ->whereIn('acc.category_id', [7, 8, 9, 10, 11, 12, 13,14])
                     ->whereDate('aje.posting_date', '>=', $startDate)
                     ->whereDate('aje.posting_date', '<=', $endDate)
                     ->whereNotNull('ajl.account_id')
@@ -54,7 +57,7 @@ class AccountPlController extends Controller
                     // 根据分类ID决定取借方还是贷方
                     if (in_array($row->category_id, [7, 10, 12])) { // 收入类: 取贷方
                         $netAmount = $row->credit;
-                    } elseif (in_array($row->category_id, [8, 9, 11, 13])) { // 费用类: 取借方
+                    } elseif (in_array($row->category_id, [8, 9, 11, 13,14])) { // 费用类: 取借方
                         $netAmount = $row->debit;
                     }
 
@@ -67,6 +70,7 @@ class AccountPlController extends Controller
                         case 11: $totalOExpenses += $netAmount; break;
                         case 12: $totalSOIncome += $netAmount; break;
                         case 13: $totalSOExpenses += $netAmount; break;
+                        case 14: $totalTaxes += $netAmount; break;
                     }
 
                     // 推入集合，供 View 显示明细
@@ -83,6 +87,7 @@ class AccountPlController extends Controller
                 $operatingIncome = $totalRevenue - $totalCogs - $totalExpenses;
                 $ordinaryIncome = $operatingIncome + $totalOIncome - $totalOExpenses;
                 $profitBeforeTax = $ordinaryIncome + $totalSOIncome - $totalSOExpenses;
+                $netIncome = $profitBeforeTax - $totalTaxes;
 
             } catch (\Exception $e) {
                 Log::error('PL Report Error: ' . $e->getMessage());
@@ -94,7 +99,8 @@ class AccountPlController extends Controller
             'totalRevenue', 'totalCogs', 'totalExpenses',
             'totalOIncome', 'totalOExpenses',
             'totalSOIncome', 'totalSOExpenses',
-            'operatingIncome', 'ordinaryIncome', 'profitBeforeTax'
+            'operatingIncome', 'ordinaryIncome', 'profitBeforeTax',
+            'totalTaxes','netIncome'
         ));
     }
 }
