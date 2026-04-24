@@ -144,6 +144,15 @@
                                     @endif
                                 @endforeach
 
+                                            <tr>
+                                                <td style="padding-left: 2.5rem;">
+                                                    綠越利益剰余金
+                                                </td>
+                                                <td class="text-end">
+                                                    {{ number_format($netIncome) }}
+                                                </td>
+                                            </tr>
+
                                 <!-- 负债与权益总计 -->
                                 <tr class="table-danger fw-bold fs-5">
                                     <td class="text-end pe-4">【負債・純資産 合計】</td>

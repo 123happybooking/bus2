@@ -7,6 +7,7 @@ use App\Models\Masters\Account;
 use App\Models\Masters\AccountCategory;
 use App\Models\Masters\AccountJournalEntry;
 use App\Models\Masters\AccountJournalLine;
+use App\Models\Masters\AccountMonthDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -61,17 +62,25 @@ class AccountLedgerController extends Controller
 
     function makeData($startDate, $endDate, $account)
     { 
+        
         $datas = [];
         $datas['account_name'] = $account->name ?? '';
         $datas['start_date'] = $startDate;
         $datas['end_date'] = $endDate;
+        $datas['opening_balance'] = 0;
+        if($startDate){
+            $yearmonth = explode("-",  $startDate);
+
+            $start_data = AccountMonthDetail::where('account_id', $account->id)->where('year',$yearmonth[0])->where('month',$yearmonth[1])->first();
+            $datas['opening_balance'] = $start_data->money_start ?? 0;
+        }
 
         $query = AccountJournalEntry::query();
         if ($startDate) {
-            $query->where('posting_date','>=',$startDate);
+            $query->where('posting_date','>=',$startDate."-01");
         }
         if ($endDate) {
-            $query->where('posting_date','<=',$endDate);
+            $query->where('posting_date','<=',$endDate."-31");
         }
         $entry_id = $query->orderBy("posting_date",'asc')->pluck('id')->toArray();
         if (empty($entry_id)) {

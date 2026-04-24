@@ -123,6 +123,50 @@ class AccountBsController extends Controller
             }
         }
 
+        $netIncome = 0;
+        
+        $baseQuery = DB::table('account_journal_lines as ajl')
+            ->join('accounts as acc', 'ajl.account_id', '=', 'acc.id')
+            ->join('account_journal_entries as aje', 'ajl.journal_entry_id', '=', 'aje.id')
+            // 【修复点 1】补全了分类 ID 数组
+            ->whereIn('acc.category_id', [7, 8, 9, 10, 11, 12, 13, 14])
+            ->whereDate('aje.posting_date', '<=', $date)
+            ->whereNotNull('ajl.account_id');
+
+        // 营业收入 (7) - 贷方
+        $rev_7 = (clone $baseQuery)->where('ajl.side', 2)->where('acc.category_id', 7)->sum('ajl.amount');
+        
+        // 营业成本 (8) - 借方
+        $exp_8 = (clone $baseQuery)->where('ajl.side', 1)->where('acc.category_id', 8)->sum('ajl.amount');
+        
+        // 营业费用 (9) - 借方
+        $exp_9 = (clone $baseQuery)->where('ajl.side', 1)->where('acc.category_id', 9)->sum('ajl.amount');
+        
+        // 营业外收入 (10) - 贷方
+        $rev_10 = (clone $baseQuery)->where('ajl.side', 2)->where('acc.category_id', 10)->sum('ajl.amount');
+        
+        // 营业外支出 (11) - 借方
+        $exp_11 = (clone $baseQuery)->where('ajl.side', 1)->where('acc.category_id', 11)->sum('ajl.amount');
+        
+        // 其他收入 (12) - 贷方
+        $rev_12 = (clone $baseQuery)->where('ajl.side', 2)->where('acc.category_id', 12)->sum('ajl.amount');
+        
+        // 其他支出 (13) - 借方
+        $exp_13 = (clone $baseQuery)->where('ajl.side', 1)->where('acc.category_id', 13)->sum('ajl.amount');
+        
+        // 税金 (14) - 借方
+        $exp_14 = (clone $baseQuery)->where('ajl.side', 1)->where('acc.category_id', 14)->sum('ajl.amount');
+
+        // 3. 按照原逻辑计算净利润
+        $operatingIncome = $rev_7 - $exp_8 - $exp_9;
+        $ordinaryIncome = $operatingIncome + $rev_10 - $exp_11;
+        $profitBeforeTax = $ordinaryIncome + $rev_12 - $exp_13;
+        
+        $netIncome = $profitBeforeTax - $exp_14;
+
+
+        $totalLiabilities+=$netIncome;
+
         // 6. 传递数据到视图
         // 注意：这里传递的是 'date'，而不是 'current'
         return view('masters.account-bs.index', compact(
@@ -132,7 +176,8 @@ class AccountBsController extends Controller
             'totalAssets', 
             'totalLiabilities',
             'assetOrder',
-            'liabilityOrder'
+            'liabilityOrder',
+            'netIncome'
         ));
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Masters\AccountMonthSum;
 use App\Models\Masters\AccountMonthDetail;
 use App\Models\Masters\AccountJournalEntry;
 use App\Models\Masters\AccountJournalLine;
+use App\Models\Masters\Account;
 use Illuminate\Support\Str; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -38,23 +39,27 @@ class AccountMonthSumController extends Controller
         $sums = $query->orderBy('year', 'desc')->orderBy('month', 'desc')->paginate($perPage);
         $sums->appends($request->except('page'));
 
-        return view('masters.account-month-sums.index', compact('sums'));
+        $id = AccountMonthSum::orderBy('year', 'desc')->orderBy('month', 'desc')->first()->id ?? 0;
+
+        return view('masters.account-month-sums.index', compact('sums','id'));
     }
 
-    /**
-     * 显示创建表单
-     * 只有年份和月份
-     */
+
     public function create()
     {
         $res = $this->makeData();
+        if (empty($res['year_month'])) {
+            return redirect()->route('masters.account-month-sums.index')
+            ->with([
+                'success' => '数据已是最新！',
+                'alert-type' => 'success'
+            ]);
+        }
 
         DB::beginTransaction();
         
         try {
-            if (empty($res['year_month'])) {
-                throw new \Exception('没有需要保存的数据');
-            }
+
 
             $now = now();
             // --- 2. 批量存入 account_month_sums (汇总表) ---
@@ -141,7 +146,9 @@ class AccountMonthSumController extends Controller
 
        // dump($startDate."....".$endDate);exit;
         $datas=[];
-        $account_ids = [121,122,123,131];
+
+        $account_ids  = Account::where('is_active', 1)->pluck('id')->toArray();
+
         $tempYearMonths = []; 
 
         for ($i = 0; $i < count($account_ids); $i++) {
