@@ -8,6 +8,7 @@ use App\Models\Masters\AccountCategory;
 use App\Models\Masters\AccountJournalEntry;
 use App\Models\Masters\AccountJournalLine;
 use App\Models\Masters\AccountMonthDetail;
+use App\Models\Masters\AccountPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -56,8 +57,44 @@ class AccountLedgerController extends Controller
         // 保留查询参数用于分页链接
         $accounts->appends(['search' => $request->search, 'is_active' => $request->is_active, 'category_name' => $request->category_name, 'start_date' => $request->start_date, 'end_date' => $request->end_date,'per_page' => $perPage]);
         $categories = AccountCategory::get();
+
+        $periods = AccountPeriod::orderBy('created_at','desc')->get();
+        $period = AccountPeriod::orderBy('created_at','desc')->first();
+        if($request->period_id){
+            $period = AccountPeriod::find($request->period_id);
+        }
+
+        $period_id = $period->id ?? 0;
+        $period_start = $period->start;
+        $start_year = explode('-', $period_start)[0];
+        $start_month = explode('-', $period_start)[1];
+        $moren_month = explode('-', $period_start)[1];
+
+        if (!$request->filled('yearmonth')) {
+            $yearmonth = $start_year . '-' . $start_month;
+        }else{
+            if ($request->yearmonth == "13") {
+                $yearmonth = $request->yearmonth;
+            }else{
+                $start_year = substr($request->yearmonth, 0, 4);
+                $start_month = substr($request->yearmonth, 5, 2);
+                $yearmonth = $request->yearmonth;
+            }
+        }
+
+
+        $months = [];
+        for ($i = 0; $i < 12; $i++) {
+            $current_month = $moren_month + $i;
+            $year = $start_year + floor(($current_month - 1) / 12);
+            $month_num = (($current_month - 1) % 12) + 1;
+            $key = sprintf('%02d', $month_num);
+            $value = sprintf('%d-%02d', $year, $month_num);
+            $months[$key] = $value;
+        }
+        $months["全期"] = "13";
         
-        return view('masters.account-ledgers.index', compact('accounts','categories'));
+        return view('masters.account-ledgers.index', compact('accounts','categories','periods','months','period_id','yearmonth'));
     }
 
     function makeData($startDate, $endDate, $account)
@@ -129,8 +166,21 @@ class AccountLedgerController extends Controller
     }
 
     public function generate($id){
-        $startDate = request()->input('start_date');
-        $endDate = request()->input('end_date');
+        $period_id = request()->input('period_id');
+        $yearmonth = request()->input('yearmonth');
+        $period = AccountPeriod::find($period_id);
+        $period_start = $period->start;
+        $start_year = explode('-', $period_start)[0];
+        $start_month = explode('-', $period_start)[1];
+
+        if ($yearmonth == "13" ){
+            $tmp = $start_year."-".$start_month;
+            $startDate = date('Y-m', strtotime("first day of $tmp"));
+            $endDate = date('Y-m', strtotime("+1 year -1 month", strtotime($startDate)));
+        }else{
+            $startDate = date('Y-m', strtotime("first day of $yearmonth"));
+            $endDate = date('Y-m', strtotime("first day of $yearmonth"));
+        }
 
         $account = Account::findOrFail($id);
         $datas = $this->makeData($startDate, $endDate, $account);
@@ -140,8 +190,21 @@ class AccountLedgerController extends Controller
 
     public function generatePdf()
     {
-        $startDate = request()->input('start_date');
-        $endDate = request()->input('end_date');
+        $period_id = request()->input('period_id');
+        $yearmonth = request()->input('yearmonth');
+        $period = AccountPeriod::find($period_id);
+        $period_start = $period->start;
+        $start_year = explode('-', $period_start)[0];
+        $start_month = explode('-', $period_start)[1];
+
+        if ($yearmonth == "13" ){
+            $tmp = $start_year."-".$start_month;
+            $startDate = date('Y-m', strtotime("first day of $tmp"));
+            $endDate = date('Y-m', strtotime("+1 year -1 month", strtotime($startDate)));
+        }else{
+            $startDate = date('Y-m', strtotime("first day of $yearmonth"));
+            $endDate = date('Y-m', strtotime("first day of $yearmonth"));
+        }
         $account = Account::findOrFail( request()->input('id'));
         $datas = $this->makeData($startDate, $endDate, $account);
 

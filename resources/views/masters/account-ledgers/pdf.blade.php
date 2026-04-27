@@ -114,11 +114,12 @@
         </tr>
     @else
         @php
-            $currentBalance = 0;
+            $currentBalance = $opening_balance;
             $monthlyJieTotal = 0;
             $monthlyDaiTotal = 0;
             $lastMonthKey = '';
             $rowCount = 0;
+            $initialOpeningBalance = $opening_balance;
         @endphp
 
         @forelse($rows as $index => $row)
@@ -166,6 +167,15 @@
                     $monthlyJieTotal = $jieVal;
                     $monthlyDaiTotal = $daiVal;
                 @endphp
+            @endif
+
+            @if($index === 0)
+                <tr style="background-color: #f8f9fa;">
+                    <td colspan="3" class="text-end fw-bold text-primary">前月繰越</td>
+                    <td class="text-right">{{ number_format($initialOpeningBalance) }}</td>
+                    <td class="text-right"></td>
+                    <td class="text-right fw-bold">{{ number_format($initialOpeningBalance) }}</td>
+                </tr>
             @endif
 
             {{-- 2. 渲染 "前月繰越" 行 (如果需要) --}}

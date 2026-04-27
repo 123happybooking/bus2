@@ -10,6 +10,7 @@ use App\Models\Masters\AccountSub;
 use App\Models\Masters\AccountDepartment;
 use App\Models\Masters\AccountPartner; 
 use App\Models\Masters\AccountTax; 
+use App\Models\Masters\AccountPeriod; 
 use App\Models\Masters\Staff; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,13 @@ class AccountJournalEntryController extends Controller
 {
     public function index(Request $request)
     {
+        $periods = AccountPeriod::orderBy('created_at','desc')->get();
+        $period = AccountPeriod::orderBy('created_at','desc')->first();
+        if($request->period_id){
+            $period = AccountPeriod::find($request->period_id);
+        }
+        $period_id = $period->id ?? 0;
+        $period_start = $period->start;
         $inputs = $request->all();
         if(count($inputs)==1){
             $filters = session(auth()->user()->id.'.filters');
@@ -30,9 +38,12 @@ class AccountJournalEntryController extends Controller
             }
         }
 
-        $start_year = 2025;
-        $start_month = "02";
-        $moren_month = "02";
+        $start_year = explode('-', $period_start)[0];
+        $start_month = explode('-', $period_start)[1];
+        $moren_month = explode('-', $period_start)[1];
+
+        
+
         $months = [];
         for ($i = 0; $i < 12; $i++) {
             $current_month = $moren_month + $i;
@@ -42,38 +53,62 @@ class AccountJournalEntryController extends Controller
             $value = sprintf('%d-%02d', $year, $month_num);
             $months[$key] = $value;
         }
+        $months["全期"] = "13";
 
         $start_year = $request->start_year ?? $start_year;
         $start_month = $request->start_month ?? $start_month;
         if (!$request->filled('yearmonth')) {
             $yearmonth = $start_year . '-' . $start_month;
         }else{
-            $start_year = substr($request->yearmonth, 0, 4);
-            $start_month = substr($request->yearmonth, 5, 2);
-            $yearmonth = $request->yearmonth;
+            if ($request->yearmonth == "13") {
+                $yearmonth = $request->yearmonth;
+            }else{
+                $start_year = substr($request->yearmonth, 0, 4);
+                $start_month = substr($request->yearmonth, 5, 2);
+                $yearmonth = $request->yearmonth;
+            }
         }
 
         $inputs = $request->all();
+
         if(count($inputs)==1){
             $filters = session(auth()->user()->id.'.filters');
             if($filters){
                 $start_year = $filters['start_year'];
                 $start_month = $filters['start_month'];
                 $yearmonth = $filters['yearmonth'];
+                $period_id = $filters['period_id'];
+                $period = AccountPeriod::find($period_id);
+                $period_start = $period->start;
+                $start_year = explode('-', $period_start)[0];
+                $start_month = explode('-', $period_start)[1];
+                $moren_month = explode('-', $period_start)[1];
+                if($filters['yearmonth'] == "13"){
+                    $yearmonth = "13";
+                }
+
             }
         }
+
+
 
         $inputs = [
             'start_year' => $start_year,
             'start_month' => $start_month,
             'yearmonth' => $yearmonth,
             'account_id' => $request->account_id,
+            'period_id' => $period_id,
         ];
         session([auth()->user()->id.'.filters' => $inputs]);
 
-        
-        $firstDay = date('Y-m-d', strtotime("first day of $yearmonth"));
-        $lastDay = date('Y-m-d', strtotime("last day of $yearmonth"));
+        if ($yearmonth == "13" ){
+            $tmp = $start_year."-".$start_month;
+            $firstDay = date('Y-m-d', strtotime("first day of $tmp"));
+            $lastDay = date('Y-m-d', strtotime('+1 year', strtotime($firstDay)));
+        }else{
+            $firstDay = date('Y-m-d', strtotime("first day of $yearmonth"));
+            $lastDay = date('Y-m-d', strtotime("first day of next month", strtotime("$yearmonth-01")));
+        }
 
 
         $sortOrder = $request->input('sort_order') ?? 'desc'; 
@@ -104,7 +139,7 @@ class AccountJournalEntryController extends Controller
             $query->where('posting_date', '<=', $request->date_to);
         }
 
-        $query->where('posting_date', '>=', $firstDay)->where('posting_date', '<=', $lastDay);
+        $query->where('posting_date', '>=', $firstDay)->where('posting_date', '<', $lastDay);
 
         if ($request->filled('account_id')) {
             $entry_ids = AccountJournalLine::where('account_id',$request->account_id)->pluck("journal_entry_id");
@@ -137,9 +172,7 @@ class AccountJournalEntryController extends Controller
                 $query->where('mark', '貸');
             })->get();
 
-
-
-        return view('masters.journal_entries.index', compact('entries',  'departments', 'staffs','accounts','partners','taxes','accountsJie','accountsDai','start_year','start_month','months','yearmonth'));
+        return view('masters.journal_entries.index', compact('entries',  'departments', 'staffs','accounts','partners','taxes','accountsJie','accountsDai','start_year','start_month','months','yearmonth','periods','period_id'));
     }
 
     public function create(Request $request)

@@ -60,6 +60,7 @@ use App\Http\Controllers\Masters\AccountJournalEntryController;
 use App\Http\Controllers\Masters\AccountLedgerController;
 use App\Http\Controllers\Masters\AccountPlController;
 use App\Http\Controllers\Masters\AccountBsController;
+use App\Http\Controllers\Masters\AccountPeriodController;
 use App\Http\Controllers\Masters\AccountMonthSumController;
 
 Route::get('/', function() {
@@ -210,6 +211,8 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::get('/account-pl/index', [AccountPlController::class, 'index'])->name('account-pl.index');
         Route::get('/account-bs/index', [AccountBsController::class, 'index'])->name('account-bs.index');
         Route::resource('account-month-sums', AccountMonthSumController::class)->names('account-month-sums');//月次決算
+
+        Route::resource('account-periods', AccountPeriodController::class)->names('account-periods');//周期
         
     });
 });

@@ -135,15 +135,7 @@
                                                 </td>
                                             </tr>
                                         @endforeach
-
-                                        <!-- 小计 -->
-                                        <tr class="fw-bold border-top">
-                                            <td class="text-end pe-4">{{ $categoryName }} 合計</td>
-                                            <td class="text-end pe-4">{{ number_format($liabilities[$categoryName]['total']) }}</td>
-                                        </tr>
-                                    @endif
-                                @endforeach
-
+                                        
                                             <tr>
                                                 <td style="padding-left: 2.5rem;">
                                                     綠越利益剰余金
@@ -152,6 +144,15 @@
                                                     {{ number_format($netIncome) }}
                                                 </td>
                                             </tr>
+
+                                        <!-- 小计 -->
+                                        <tr class="fw-bold border-top">
+                                            <td class="text-end pe-4">{{ $categoryName }} 合計</td>
+                                            <td class="text-end pe-4">{{ number_format($liabilities[$categoryName]['total'] + $netIncome) }}</td>
+                                        </tr>
+                                    @endif
+                                @endforeach
+
 
                                 <!-- 负债与权益总计 -->
                                 <tr class="table-danger fw-bold fs-5">

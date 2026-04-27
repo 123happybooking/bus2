@@ -96,6 +96,7 @@
                 </div>
                 <div class="card-body p-2">
                     @if($canViewAccounting)
+                        <a href="{{ route('masters.account-periods.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">仕訳帳</a>
                         <!-- 仕訳帳 -->
                         <a href="{{ route('masters.journal_entries.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">仕訳帳</a>
                         

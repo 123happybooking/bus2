@@ -982,6 +982,7 @@
                     <i class="bi bi-chevron-down menu-arrow"></i>
                 </div>
                 <ul class="submenu submenu-s">
+                    <li><a href="{{ route('masters.account-periods.index') }}" data-route="account-periods">周期</a></li>
                     <li><a href="{{ route('masters.journal_entries.index') }}" data-route="journal-entries">仕訳帳</a></li>
                     <li><a href="{{ route('masters.products.index') }}" data-route="products-cash">現金出納帳</a></li>
                     <li><a href="{{ route('masters.products.index') }}" data-route="products-deposit">預金出納帳</a></li>
