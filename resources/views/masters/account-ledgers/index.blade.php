@@ -69,24 +69,26 @@
                         <div class="d-flex align-items-end gap-2" style="margin-left: auto;">
                             <div style="min-width: 120px;">
                                 <label class="form-label small text-muted mb-1" style="display: block; margin-bottom: 4px;">開始日</label>
+                                <!-- ✅ 修改点：type="month" -->
                                 <input 
-                                    type="text" 
+                                    type="month" 
                                     id="start_date"
+                                    name="start_date" 
                                     value="{{ request('start_date') }}"
-                                    class="form-control form-control-sm datepicker-3months" 
+                                    class="form-control form-control-sm" 
                                     style="border-color: #E5E7EB;" 
-                                    placeholder=""
                                 >
                             </div>
                             <div style="min-width: 120px;">
                                 <label class="form-label small text-muted mb-1" style="display: block; margin-bottom: 4px;">終了日</label>
+                                <!-- ✅ 修改点：type="month" -->
                                 <input 
-                                    type="text" 
+                                    type="month" 
                                     id="end_date"
+                                    name="end_date" 
                                     value="{{ request('end_date') }}"
-                                    class="form-control form-control-sm datepicker-3months" 
+                                    class="form-control form-control-sm" 
                                     style="border-color: #E5E7EB;" 
-                                    placeholder=""
                                 >
                             </div>
                         </div>
@@ -131,13 +133,13 @@
                                         </a>
 
                                         <!-- 新增的 PDF 下载按钮 -->
-<a href="javascript:void(0)" 
-   class="btn btn-sm btn-outline-primary open-pdf-btn" 
-   data-base-url="{{ route('masters.account-ledgers.pdf') }}"
-   title="PDFダウンロード"
-   data-account-id="{{ $account->id }}">
-   <i class="bi bi-file-earmark-pdf"></i> PDF
-</a>
+                                        <a href="javascript:void(0)" 
+                                        class="btn btn-sm btn-outline-primary open-pdf-btn" 
+                                        data-base-url="{{ route('masters.account-ledgers.pdf') }}"
+                                        title="PDFダウンロード"
+                                        data-account-id="{{ $account->id }}">
+                                        <i class="bi bi-file-earmark-pdf"></i> PDF
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -293,7 +295,7 @@
             modal.show();
 
             // --- 关键：开始 AJAX 请求 ---
-            const requestUrl = `${url}? start_date=${startDateValue}&end_date=${endDateValue}`;
+            const requestUrl = `${url}?start_date=${startDateValue}&end_date=${endDateValue}`;
             document.querySelector('#ledgerTable tbody').innerHTML = '<tr><td colspan="6" class="text-center">データ読み込み中...</td></tr>';
 
             fetch(requestUrl)
@@ -303,7 +305,24 @@
                 })
                 .then(data => {
                     const tbody = document.querySelector('#ledgerTable tbody');
+                    let currentBalance = 0;
                     tbody.innerHTML = '';
+
+                    if (data.opening_balance) {
+
+                        const openingTr = document.createElement('tr');
+                        openingTr.className = 'table-warning';
+                        openingTr.innerHTML = `
+                            <td colspan="3" class="text-center fw-bold text-success">前月繰越</td>
+                            <td class="text-end">${data.opening_balance >= 0 ? Math.abs(data.opening_balance).toLocaleString('ja-JP') : ''}</td>
+                            <td class="text-end">${data.opening_balance < 0 ? Math.abs(data.opening_balance).toLocaleString('ja-JP') : ''}</td>
+                            <td class="text-end fw-bold">${data.opening_balance.toLocaleString('ja-JP')}</td>
+                        `;
+                        tbody.appendChild(openingTr);
+                        
+                        // 更新初始余额变量
+                        currentBalance = data.opening_balance;
+                    }
 
                     // 如果没有数据
                     if (!data.rows || data.rows.length === 0) {
@@ -312,7 +331,7 @@
                     }
 
                     // --- 单次循环处理逻辑 (性能最优) ---
-                    let currentBalance = 0;
+                    
                     let monthlyJieTotal = 0; // 当月借方累计
                     let monthlyDaiTotal = 0; // 当月贷方累计
                     let lastMonthKey = '';  // 记录上一行的月份

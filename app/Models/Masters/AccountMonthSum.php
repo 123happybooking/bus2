@@ -42,5 +42,12 @@ class AccountMonthSum extends Model
         });
     }
 
+    public function details()
+    {
+        return $this->hasMany(AccountMonthDetail::class, 'year', 'year')
+                    ->whereColumn('month', 'month'); 
+
+    }
+
 }
 

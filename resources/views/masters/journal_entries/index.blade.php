@@ -197,6 +197,9 @@
         bottom: 0;               
         z-index: 1000;
     }
+    .custom-input:focus {
+        box-shadow: none;   /* 2. 去除 Bootstrap 默认的蓝色阴影 */
+    }
 </style>
 
 <div class="container-fluid py-2" style="padding-bottom: 100px;">
@@ -271,79 +274,76 @@
 
         <div class="card-body p-2">
             <!-- 搜索表单 (保持原样) -->
-            <form method="GET" action="{{ route('masters.journal_entries.index') }}" class="row g-2 mb-3 search-form" id="searchForm">
-                <!-- 日期区间组 -->
-                <div class="col-md-auto">
-                    <!-- 标签部分 -->
-                    <label class="form-label mb-1 text-muted" style="font-size: 0.75rem;">仕訳日</label>
-                    <div class="d-flex flex-nowrap align-items-center">
-                        <!-- 左侧日期输入框 -->
-                        <input 
-                            type="text" 
-                            name="date_from" 
-                            class="form-control form-control-sm datepicker-3months" 
-                            value="{{ request('date_from') }}" 
-                            placeholder=""
-                            autocomplete="off"
-                            style="border-color: #E5E7EB;"
-                        >
-                        <!-- 分隔符 -->
-                        <span class="mx-1 text-muted" style="font-size: 0.75rem;">～</span>
-                        <!-- 右侧日期输入框 -->
-                        <input 
-                            type="text" 
-                            name="date_to" 
-                            class="form-control form-control-sm datepicker-3months" 
-                            value="{{ request('date_to') }}" 
-                            placeholder=""
-                            autocomplete="off"
-                            style="border-color: #E5E7EB;"
-                        >
-                    </div>
-                </div>
+<form method="GET" action="{{ route('masters.journal_entries.index') }}" class="row g-2 mb-3 search-form" id="searchForm">
+    <!-- 日期区间组 -->
+    <div class="col-md-auto">
+        <!-- 标签 -->
+        <label class="form-label mb-1 text-muted" style="font-size: 0.75rem;">仕訳日</label>
+        
+        <div class="d-flex align-items-center">
+            <!-- 开始：年/月 -->
+            <!-- 修改点：添加了 id 用于 JS 控制 -->
+            <div class="d-flex align-items-center">
+                <input type="number" id="start_year_input" name="start_year" class="form-control form-control-sm" placeholder="年" value="{{ $start_year }}" style="width: 70px; border-color: #E5E7EB;">
+                <input type="number" id="start_month_input" name="start_month" class="form-control form-control-sm" placeholder="月" value="{{ $start_month }}" style="width: 60px; border-color: #E5E7EB;">
+            </div>
 
-                <!-- 勘定科目搜索组 (模仿明细样式) -->
-                <div class="col-md-3">
-                    <label class="form-label mb-1 text-muted" style="font-size: 0.75rem;">勘定科目</label>
-                    <div class="position-relative">
-                        
-                        <input type="text" style="display: none;" tabindex="-1" autocomplete="off">
+            <!-- 循环12个月份按钮 -->
+            @foreach($months as $key => $monthName)
+                <!-- 修改点：添加 onclick 事件 -->
+                @php
+                    $isActive = ($yearmonth == $monthName);
+                @endphp
+                <button type="submit" 
+                        name="yearmonth" 
+                        value="{{ $monthName }}"
+                        onclick="submitByYearMonth()"
+                        class="btn btn-sm btn-outline-primary ms-1 p-0 px-1  {{ $isActive ? 'btn-primary' : 'btn-outline-primary' }}" 
+                        style="min-width: 28px; font-size: 0.8rem;{{ $isActive ? 'background-color: #0d6efd; border-color: transparent; color: white !important;' : 'border-color: #E5E7EB;' }}">
+                    {{ $key }}
+                </button>
+            @endforeach
+        </div>
+    </div>
 
-                        <input type="text" 
-                            id="search-account-input" 
-                            class="form-control form-control-sm account-input" 
-                            list="account-list-search" 
-                            placeholder="科目コードまたは名前を入力" 
-                            style="font-size: 0.85rem;"
-                            autocomplete="off"
-                            value="{{ $accounts->find(request('account_id')) ? $accounts->find(request('account_id'))->code . ' - ' . $accounts->find(request('account_id'))->name : '' }}"
-                            oninput="if(this.value === '') document.getElementById('search-account-id').value = ''">
+    <!-- 勘定科目搜索组 (保持不变) -->
+    <div class="col-md-3">
+        <label class="form-label mb-1 text-muted" style="font-size: 0.75rem;">勘定科目</label>
+        <div class="position-relative">
+            <input type="text" style="display: none;" tabindex="-1" autocomplete="off">
+            <input type="text" 
+                id="search-account-input" 
+                class="form-control form-control-sm account-input" 
+                list="account-list-search" 
+                placeholder="科目コードまたは名前を入力" 
+                style="font-size: 0.85rem;"
+                autocomplete="off"
+                value="{{ $accounts->find(request('account_id')) ? $accounts->find(request('account_id'))->code . ' - ' . $accounts->find(request('account_id'))->name : '' }}"
+                oninput="if(this.value === '') document.getElementById('search-account-id').value = ''">
 
-                        <!-- 隐藏字段：保持原样 -->
-                        <input type="hidden" id="search-account-id" name="account_id" value="{{ request('account_id') }}">
+            <input type="hidden" id="search-account-id" name="account_id" value="{{ request('account_id') }}">
 
-                        <!-- datalist 保持原样 -->
-                        <datalist id="account-list-search">
-                            @foreach($accounts as $account)
-                                <option value="{{ $account->code }} - {{ $account->name }}"></option>
-                            @endforeach
-                        </datalist>
+            <datalist id="account-list-search">
+                @foreach($accounts as $account)
+                    <option value="{{ $account->code }} - {{ $account->name }}"></option>
+                @endforeach
+            </datalist>
+        </div>
+    </div>
 
-                    </div>
-                </div>
-
-                <!-- 操作按钮组 -->
-                <div class="col-md-auto d-flex align-items-end"  style="padding-top: 2px;">
-                    <button type="submit" class="btn btn-outline-primary btn-sm d-flex align-items-center">
-                        <i class="bi bi-search me-1"></i> 検索
-                    </button>
-                    @if(request()->hasAny(['date_from', 'date_to', 'account_id']))
-                        <a href="{{ route('masters.journal_entries.index') }}" class="btn btn-outline-secondary btn-sm ms-1 d-flex align-items-center">
-                            <i class="bi bi-x-circle me-1"></i> クリア
-                        </a>
-                    @endif
-                </div>
-            </form>
+    <!-- 操作按钮组 -->
+    <div class="col-md-auto d-flex align-items-end"  style="padding-top: 2px;">
+        <!-- 修改点：添加 onclick 事件，确保提交时 yearmonth 被禁用 -->
+        <button type="submit" class="btn btn-outline-primary btn-sm d-flex align-items-center" onclick="submitByDateRange()">
+            <i class="bi bi-search me-1"></i> 検索
+        </button>
+        @if(request()->hasAny(['date_from', 'date_to', 'account_id']))
+            <a href="{{ route('masters.journal_entries.index') }}" class="btn btn-outline-secondary btn-sm ms-1 d-flex align-items-center">
+                <i class="bi bi-x-circle me-1"></i> クリア
+            </a>
+        @endif
+    </div>
+</form>
 
             <!-- 列表表格 -->
             <div class="table-responsive dynamic-height" style="max-height: 550px !important;">
@@ -528,6 +528,30 @@
 </div>
 
 <script>
+    function submitByYearMonth() {
+        // 1. 点击月份按钮时：禁用具体的年月输入框
+        // 这样它们就不会包含在 GET 请求参数中
+        document.getElementById('start_year_input').disabled = true;
+        document.getElementById('start_month_input').disabled = true;
+        
+        // 确保 yearmonth 按钮本身是启用的（默认就是启用的）
+        // 表单会自动提交
+    }
+
+    function submitByDateRange() {
+        // 2. 点击检索按钮时：
+        
+        // 第一步：先恢复年月输入框的启用状态（如果之前被禁用了）
+        document.getElementById('start_year_input').disabled = false;
+        document.getElementById('start_month_input').disabled = false;
+
+        // 第二步：我们需要阻止 'yearmonth' 参数被提交
+        // 方法：找到当前表单内所有 name="yearmonth" 的元素并临时禁用它们
+        var yearMonthButtons = document.querySelectorAll('button[name="yearmonth"]');
+        yearMonthButtons.forEach(function(btn) {
+            btn.disabled = true;
+        });
+    }
     // 全局变量
     const accountsData = @json($accounts);
     const accountsDataJie = @json($accountsJie ?? []); // 借方科目数据

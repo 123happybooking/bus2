@@ -16,11 +16,66 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
+use Illuminate\Support\Facades\Cache; 
 
 class AccountJournalEntryController extends Controller
 {
     public function index(Request $request)
     {
+        $inputs = $request->all();
+        if(count($inputs)==1){
+            $filters = session(auth()->user()->id.'.filters');
+            if($filters){
+                $inputs = $filters;
+            }
+        }
+
+        $start_year = 2025;
+        $start_month = "02";
+        $moren_month = "02";
+        $months = [];
+        for ($i = 0; $i < 12; $i++) {
+            $current_month = $moren_month + $i;
+            $year = $start_year + floor(($current_month - 1) / 12);
+            $month_num = (($current_month - 1) % 12) + 1;
+            $key = sprintf('%02d', $month_num);
+            $value = sprintf('%d-%02d', $year, $month_num);
+            $months[$key] = $value;
+        }
+
+        $start_year = $request->start_year ?? $start_year;
+        $start_month = $request->start_month ?? $start_month;
+        if (!$request->filled('yearmonth')) {
+            $yearmonth = $start_year . '-' . $start_month;
+        }else{
+            $start_year = substr($request->yearmonth, 0, 4);
+            $start_month = substr($request->yearmonth, 5, 2);
+            $yearmonth = $request->yearmonth;
+        }
+
+        $inputs = $request->all();
+        if(count($inputs)==1){
+            $filters = session(auth()->user()->id.'.filters');
+            if($filters){
+                $start_year = $filters['start_year'];
+                $start_month = $filters['start_month'];
+                $yearmonth = $filters['yearmonth'];
+            }
+        }
+
+        $inputs = [
+            'start_year' => $start_year,
+            'start_month' => $start_month,
+            'yearmonth' => $yearmonth,
+            'account_id' => $request->account_id,
+        ];
+        session([auth()->user()->id.'.filters' => $inputs]);
+
+        
+        $firstDay = date('Y-m-d', strtotime("first day of $yearmonth"));
+        $lastDay = date('Y-m-d', strtotime("last day of $yearmonth"));
+
+
         $sortOrder = $request->input('sort_order') ?? 'desc'; 
         $query = AccountJournalEntry::query();
         
@@ -48,6 +103,8 @@ class AccountJournalEntryController extends Controller
         if ($request->filled('date_to')) {
             $query->where('posting_date', '<=', $request->date_to);
         }
+
+        $query->where('posting_date', '>=', $firstDay)->where('posting_date', '<=', $lastDay);
 
         if ($request->filled('account_id')) {
             $entry_ids = AccountJournalLine::where('account_id',$request->account_id)->pluck("journal_entry_id");
@@ -80,7 +137,9 @@ class AccountJournalEntryController extends Controller
                 $query->where('mark', '貸');
             })->get();
 
-        return view('masters.journal_entries.index', compact('entries',  'departments', 'staffs','accounts','partners','taxes','accountsJie','accountsDai'));
+
+
+        return view('masters.journal_entries.index', compact('entries',  'departments', 'staffs','accounts','partners','taxes','accountsJie','accountsDai','start_year','start_month','months','yearmonth'));
     }
 
     public function create(Request $request)

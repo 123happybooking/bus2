@@ -263,12 +263,45 @@
                         <td class="text-end">¥{{ number_format($totalSOExpenses) }}</td>
                     </tr>
 
+
+
                     <!-- 税引前当期純利益 -->
                     <tr class="table-secondary">
                         <td class="ps-4 fw-bold">税引前当期純利益</td>
                         <td colspan="2"></td>
                         <td class="text-end h4 fw-bold">
                             ¥{{ number_format($profitBeforeTax) }}
+                        </td>
+                    </tr>
+
+                    <!-- 税金等 (ID 14) -->
+                    <tr class="fw-bold bg-light">
+                        <td colspan="4"><span class="badge bg-secondary">税等</span></td>
+                    </tr>
+                    @foreach($groupedData as $row)
+                        @if($row['category_id'] == 14)
+                        <tr class="border-bottom">
+                            <td class="ps-5 small">{{ $row['account_name'] }}</td>
+                            <!-- 税金属于费用，金额在借方 -->
+                            <td class="text-end fw-bold">¥{{ number_format($row['debit']) }}</td>
+                            <td class="text-end text-muted">¥{{ number_format($row['credit']) }}</td>
+                            <td class="text-end fw-bold">¥{{ number_format($row['debit']) }}</td>
+                        </tr>
+                        @endif
+                    @endforeach
+                    <tr class="fw-bold border-top border-bottom">
+                        <td class="ps-4">税等 合计</td>
+                        <td class="text-end">¥{{ number_format($totalTaxes) }}</td>
+                        <td></td>
+                        <td class="text-end">¥{{ number_format($totalTaxes) }}</td>
+                    </tr>
+
+                    <!-- 当期純利益 (最终净利润) -->
+                    <tr class="table-success">
+                        <td class="ps-4 fw-bold fs-5">当期純利益 (净利润)</td>
+                        <td colspan="2"></td>
+                        <td class="text-end h4 fw-bold">
+                            ¥{{ number_format($netIncome) }}
                         </td>
                     </tr>
 

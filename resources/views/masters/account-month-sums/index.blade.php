@@ -74,6 +74,7 @@
                         <th class="text-center" style="width: 150px;">年份</th>
                         <th class="text-center" style="width: 150px;">月份</th>
                         <th class="text-center" style="width: 200px;">操作人</th>
+                        <th class="text-center" style="width: 200px;">创建时间</th>
                         <th class="text-center" style="width: 160px;">操作</th>
                     </tr>
                 </thead>
@@ -84,6 +85,7 @@
                         <td class="text-center fw-medium text-dark">{{ $sum->year }}</td>
                         <td class="text-center text-primary fw-bold">{{ $sum->month }}</td>
                         <td class="text-center small">{{ $sum->created_by }}</td>
+                        <td class="text-center small">{{ $sum->created_at }}</td>
                         <td>
                             <div class="d-flex gap-1 justify-content-center">
                                 <!-- 查看详情 -->
@@ -95,13 +97,15 @@
                                     <i class="bi bi-pencil"></i>
                                 </a> -->
                                 <!-- 删除 -->
-                                <!-- <form action="{{ route('masters.account-month-sums.destroy', $sum) }}" method="POST" class="d-inline" onsubmit="return confirm('本当にこのデータ「{{ $sum->year }}年{{ $sum->month }}月」を削除しますか？\nこの操作は元に戻せません。')">
+                                 @if($id == $sum->id)
+                                <form action="{{ route('masters.account-month-sums.destroy', $sum) }}" method="POST" class="d-inline" onsubmit="return confirm('本当にこのデータ「{{ $sum->year }}年{{ $sum->month }}月」を削除しますか？\nこの操作は元に戻せません。')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="削除">
                                         <i class="bi bi-trash"></i>
                                     </button>
-                                </form> -->
+                                </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
