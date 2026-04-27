@@ -61,6 +61,10 @@
                     @endif
                     
                     @if($isAdmin || $isOperationsManager || $isCoordinator || $isManager)
+                    <a href="{{ route('masters.driver-operation-status.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">操作ステータス</a>
+                    @endif
+                    
+                    @if($isAdmin || $isOperationsManager || $isCoordinator || $isManager)
                     <div class="dropdown-divider my-1"></div>
                     <a href="{{ route('masters.basicinfo.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">デジタコデータアップロード</a>
                     <a href="{{ route('masters.basicinfo.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">アップロード履歴</a>

@@ -14,41 +14,36 @@
         </div>
     </div>
 
-    @if($report)
     <div class="report-form">
         <div class="form-group">
             <label class="form-label">車両</label>
-            <select id="vehicle_id" class="form-input" {{ $isToday ? '' : 'disabled' }}>
-                @foreach($vehicles as $vehicle)
-                <option value="{{ $vehicle->id }}" {{ $defaultVehicleId == $vehicle->id ? 'selected' : '' }}>
-                    {{ $vehicle->registration_number }}
-                </option>
-                @endforeach
-            </select>
+            <input type="text" class="form-input" value="{{ $vehicles->first()->registration_number ?? '' }}" readonly disabled>
+            <input type="hidden" id="vehicle_id" value="{{ $defaultVehicleId }}">
         </div>
-        
+
+        @if($report)
         <div class="form-group">
             <label class="form-label">出庫時間</label>
-            <input type="time" id="start_time" class="form-input" value="{{ $report->start_time ? \Carbon\Carbon::parse($report->start_time)->format('H:i') : '' }}" {{ $isToday ? '' : 'readonly disabled' }}>
+            <input type="time" id="start_time" class="form-input" value="{{ $report->start_time ? \Carbon\Carbon::parse($report->start_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
         </div>
 
         <div class="form-group">
             <label class="form-label">出庫時メーター</label>
             <div class="input-with-unit">
-                <input type="number" id="start_mileage" class="form-input" value="{{ $report->start_mileage }}" min="0" {{ $isToday ? '' : 'readonly disabled' }}>
+                <input type="number" id="start_mileage" class="form-input" value="{{ $report->start_mileage }}" min="0" {{ $allowEdit ? '' : 'readonly disabled' }}>
                 <span class="unit">km</span>
             </div>
         </div>
 
         <div class="form-group">
             <label class="form-label">帰庫時間</label>
-            <input type="time" id="end_time" class="form-input" value="{{ $report->end_time ? \Carbon\Carbon::parse($report->end_time)->format('H:i') : '' }}" {{ $isToday ? '' : 'readonly disabled' }}>
+            <input type="time" id="end_time" class="form-input" value="{{ $report->end_time ? \Carbon\Carbon::parse($report->end_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
         </div>
 
         <div class="form-group">
             <label class="form-label">帰庫時メーター</label>
             <div class="input-with-unit">
-                <input type="number" id="end_mileage" class="form-input" value="{{ $report->end_mileage }}" min="0" {{ $isToday ? '' : 'readonly disabled' }}>
+                <input type="number" id="end_mileage" class="form-input" value="{{ $report->end_mileage }}" min="0" {{ $allowEdit ? '' : 'readonly disabled' }}>
                 <span class="unit">km</span>
             </div>
         </div>
@@ -61,49 +56,19 @@
             </div>
         </div>
 
-        @if($completedItineraries && count($completedItineraries) > 0)
-        <div class="completed-tasks-section">
-            <div class="section-title">完了した運行</div>
-            @foreach($completedItineraries as $itinerary)
-            <div class="completed-task-card">
-                <div class="task-header">
-                    <span class="task-id">{{ $itinerary->busAssignment->groupInfo->id ?? '' }}-{{ $itinerary->bus_assignment_id ?? '' }}</span>
-                    <span class="task-time">{{ \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') }} {{ $itinerary->start_location ?? '' }} → {{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }} {{ $itinerary->end_location ?? '' }}</span>
-                </div>
-                <div class="task-logs">
-                    <div class="logs-header">
-                        <span class="log-time">時間</span>
-                        <span class="log-mileage">走行距離</span>
-                        <span class="log-action">操作</span>
-                    </div>
-                    @foreach($itinerary->operationLogs as $log)
-                    <div class="log-row">
-                        <span class="log-time">{{ \Carbon\Carbon::parse($log->logged_at)->format('H:i:s') }}</span>
-                        <span class="log-mileage">{{ $log->mileage ?? '-' }}</span>
-                        <span class="log-action">{{ $log->action }}</span>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-            @endforeach
-        </div>
-        @endif
-
-        @if($isToday)
+        @if($allowEdit)
         <button class="save-btn" id="saveBtn">保存</button>
         @else
         <button class="save-btn" id="backToListBtn">戻る</button>
         @endif
-    </div>
-    @else
-    <div class="empty-state">
-        <div class="empty-icon">📋</div>
-        <div class="empty-text">本日の運転日報がありません</div>
-        @if($isToday)
-        <button class="create-btn" id="createBtn">作成する</button>
+        @else
+        <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div class="empty-text">この車両の運転日報はありません</div>
+            <button class="create-btn" id="createBtn">作成する</button>
+        </div>
         @endif
     </div>
-    @endif
 </div>
 @endsection
 
@@ -307,7 +272,9 @@
 <script>
 const reportId = {{ $report ? $report->id : 'null' }};
 const currentDate = '{{ $date }}';
-const isToday = {{ $isToday ? 'true' : 'false' }};
+const allowEdit = {{ $allowEdit ? 'true' : 'false' }};
+const currentVehicleId = '{{ $vehicleId ?? '' }}';
+const totalReports = {{ $totalReports ?? 1 }};
 
 function updateDistance() {
     const startMileage = parseInt(document.getElementById('start_mileage').value) || 0;
@@ -322,12 +289,23 @@ function updateDistance() {
     }
 }
 
+function changeVehicle(vehicleId) {
+    window.location.href = `/driver/daily-reports/${currentDate}/${vehicleId}`;
+}
+
 document.getElementById('backBtn').addEventListener('click', function() {
     window.location.href = '/driver/daily-itineraries/' + currentDate;
 });
 
 if (document.getElementById('createBtn')) {
     document.getElementById('createBtn').addEventListener('click', function() {
+        const vehicleId = document.getElementById('vehicle_id').value;
+        
+        if (!vehicleId) {
+            alert('車両を選択してください。');
+            return;
+        }
+        
         fetch(`/driver/daily-reports/create`, {
             method: 'POST',
             headers: {
@@ -335,7 +313,8 @@ if (document.getElementById('createBtn')) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             },
             body: JSON.stringify({
-                date: currentDate
+                date: currentDate,
+                vehicle_id: vehicleId
             })
         })
         .then(response => response.json())
@@ -397,9 +376,12 @@ if (document.getElementById('saveBtn')) {
 }
 
 if (document.getElementById('backToListBtn')) {
-    document.getElementById('backToListBtn').addEventListener('click', function() {
-        window.location.href = '/driver/daily-itineraries/' + currentDate;
-    });
+    if (totalReports > 1) {
+        document.getElementById('backToListBtn').style.display = 'block';
+        document.getElementById('backToListBtn').addEventListener('click', function() {
+            window.location.href = `/driver/daily-reports/${currentDate}`;
+        });
+    }
 }
 
 @if(session('error_alert'))

@@ -911,6 +911,7 @@
                     <li><a href="{{ route('masters.daily-itineraries.index') }}" data-route="daily-itineraries">日次一覧</a></li>
                     <li><a href="{{ route('masters.attendance-categories.index') }}" data-route="attendance-categories-operations">運転手勤怠</a></li>
                     <li><a href="{{ route('masters.options.index') }}" data-route="options">オプション</a></li>
+                    <li><a href="{{ route('masters.driver-operation-status.index') }}" data-route="driver-operation-status">操作ステータス</a></li>
                 </ul>
             </div>
             @endif

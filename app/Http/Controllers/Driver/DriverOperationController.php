@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Driver\DriverOperationLog;
 use App\Models\Driver\DriverDailyReport;
+use App\Models\Driver\DriverOperationStatus;
 use App\Models\Masters\Vehicle;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -22,27 +23,44 @@ class DriverOperationController extends Controller
             ->findOrFail($id);
         
         $itineraryDate = Carbon::parse($itinerary->date)->format('Y-m-d');
+        $vehicleId = $itinerary->vehicle_id;
         
-        if ($itineraryDate !== $today) {
-            return redirect()->route('driver.daily-itineraries', $today)
-                ->with('error_alert', '本日以外の運行は操作できません。');
+        if ($vehicleId) {
+            $dailyReport = DriverDailyReport::where('driver_id', $driverId)
+                ->where('date', $itineraryDate)
+                ->where('vehicle_id', $vehicleId)
+                ->first();
+            
+            if (!$dailyReport) {
+                return redirect("/driver/daily-reports/{$itineraryDate}/{$vehicleId}")
+                    ->with('info_alert', 'この車両の運転日報を作成してください。');
+            }
+        } else {
+            $dailyReport = DriverDailyReport::where('driver_id', $driverId)
+                ->where('date', $itineraryDate)
+                ->first();
+            
+            if (!$dailyReport) {
+                return redirect()->route('driver.daily-reports', $itineraryDate)
+                    ->with('info_alert', '本日の運転日報を作成してください。');
+            }
         }
         
-        $dailyReport = DriverDailyReport::where('driver_id', $driverId)
-            ->where('date', $today)
-            ->first();
+        $allowEdit = $dailyReport && $dailyReport->allow_edit;
         
-        if (!$dailyReport) {
-            return redirect()->route('driver.daily-itineraries', $today)
-                ->with('error_alert', '本日の運転日報が作成されていません。先に日報を作成してください。');
-        }
+        $operationButtons = DriverOperationStatus::orderBy('display_order', 'asc')->get();
+        
+        $lastStatus = DriverOperationStatus::orderBy('display_order', 'desc')->first();
+        $lastStatusName = $lastStatus ? $lastStatus->name : null;
         
         $previousIncompleteItinerary = DailyItinerary::where('driver_id', $driverId)
             ->whereDate('date', $today)
             ->where('time_start', '<', $itinerary->time_start)
-            ->where(function($query) {
-                $query->whereNull('operation_status')
-                    ->orWhere('operation_status', '!=', '終了');
+            ->where(function($query) use ($lastStatusName) {
+                $query->whereNull('operation_status');
+                if ($lastStatusName) {
+                    $query->orWhere('operation_status', '!=', $lastStatusName);
+                }
             })
             ->first();
         
@@ -73,7 +91,7 @@ class DriverOperationController extends Controller
             $defaultVehicleId = $dailyReport->vehicle_id;
         }
         
-        return view('driver.operation-run', compact('itinerary', 'logs', 'currentStatus', 'vehicles', 'defaultVehicleId'));
+        return view('driver.operation-run', compact('itinerary', 'logs', 'currentStatus', 'vehicles', 'defaultVehicleId','operationButtons', 'allowEdit'));
     }
     
     public function logAction(Request $request, $id)
@@ -84,24 +102,16 @@ class DriverOperationController extends Controller
             ->findOrFail($id);
         
         $request->validate([
-            'action' => 'required|in:迎車,到着,空車,下車,終了',
-            'mileage' => 'nullable|integer|min:0',
+            'action' => 'required|string',
+            'mileage' => 'required|integer|min:0',
             'vehicle_id' => 'nullable|integer|exists:vehicles,id',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'address' => 'nullable|string',
+            'address' => 'required|string',
         ]);
         
         $vehicleId = $request->vehicle_id ?? $itinerary->vehicle_id;
         
-        $statusMap = [
-            '迎車' => '迎車中',
-            '到着' => '到着',
-            '空車' => '空車',
-            '下車' => '下車',
-            '終了' => '終了',
-        ];
-        $status = $statusMap[$request->action] ?? '空車';
+        $operationStatus = DriverOperationStatus::where('name', $request->action)->first();
+        $status = $operationStatus ? $operationStatus->description : '';
         
         $log = DriverOperationLog::create([
             'driver_id' => $driverId,
@@ -110,8 +120,6 @@ class DriverOperationController extends Controller
             'action' => $request->action,
             'mileage' => $request->mileage,
             'status' => $status,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
             'address' => $request->address,
             'logged_at' => Carbon::now(),
         ]);
@@ -127,7 +135,8 @@ class DriverOperationController extends Controller
                 'action' => $log->action,
                 'mileage' => $log->mileage,
                 'address' => $log->address,
-                'logged_at' => $log->logged_at->format('Y/m/d H:i:s'),
+                'date' => $log->logged_at->format('Y/m/d'),
+                'time' => $log->logged_at->format('H:i'),
                 'status' => $log->status,
             ]
         ]);
@@ -148,7 +157,9 @@ class DriverOperationController extends Controller
                     'id' => $log->id,
                     'action' => $log->action,
                     'mileage' => $log->mileage,
-                    'logged_at' => $log->logged_at->format('Y/m/d H:i:s'),
+                    'address' => $log->address,
+                    'date' => $log->logged_at->format('Y/m/d'),
+                    'time' => $log->logged_at->format('H:i'),
                     'status' => $log->status,
                 ];
             });
@@ -166,24 +177,62 @@ class DriverOperationController extends Controller
         $log = DriverOperationLog::where('driver_id', $driverId)
             ->findOrFail($id);
         
+        if ($request->has('_delete') && $request->_delete) {
+            $log->delete();
+            return response()->json(['success' => true]);
+        }
+        
         $request->validate([
-            'action' => 'required|in:迎車,到着,空車,下車,終了',
-            'mileage' => 'nullable|integer|min:0',
+            'action' => 'required|string',
+            'mileage' => 'required|integer|min:0',
+            'address' => 'required|string',
+            'time' => 'nullable|string',
             'vehicle_id' => 'nullable|integer|exists:vehicles,id',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'address' => 'nullable|string',
         ]);
         
-        $log->update([
+        $operationStatus = DriverOperationStatus::where('name', $request->action)->first();
+        $status = $operationStatus ? $operationStatus->description : '';
+        
+        $updateData = [
             'action' => $request->action,
+            'status' => $status,
             'mileage' => $request->mileage,
-            'vehicle_id' => $request->vehicle_id,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
             'address' => $request->address,
-        ]);
+            'vehicle_id' => $request->vehicle_id ?? $log->vehicle_id,
+        ];
         
-        return response()->json(['success' => true, 'log' => $log]);
+        if ($request->filled('time')) {
+            $itinerary = DailyItinerary::find($log->itinerary_id);
+            $date = Carbon::parse($itinerary->date)->format('Y-m-d');
+            $loggedAt = Carbon::parse($date . ' ' . $request->time);
+            $updateData['logged_at'] = $loggedAt;
+        }
+        
+        $log->update($updateData);
+        
+        return response()->json([
+            'success' => true,
+            'log' => [
+                'id' => $log->id,
+                'action' => $log->action,
+                'mileage' => $log->mileage,
+                'address' => $log->address,
+                'date' => $log->logged_at->format('Y/m/d'),
+                'time' => $log->logged_at->format('H:i'),
+                'status' => $log->status,
+            ]
+        ]);
+    }
+    
+    public function deleteLog($id, Request $request)
+    {
+        $driverId = session('driver_id');
+        
+        $log = DriverOperationLog::where('driver_id', $driverId)
+            ->findOrFail($id);
+        
+        $log->delete();
+        
+        return response()->json(['success' => true]);
     }
 }

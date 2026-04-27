@@ -382,6 +382,26 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                        
+                            <div class="col-md-6 mb-3">
+                                <label for="start_year" class="form-label">開始年</label>
+                                <input type="number" class="form-control @error('start_year') is-invalid @enderror" 
+                                       id="start_year" name="start_year" value="{{ old('start_year', $UserCompanyInfo->start_year ?? '') }}" 
+                                       min="2000" max="2099" step="1">
+                                @error('start_year')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        
+                            <div class="col-md-6 mb-3">
+                                <label for="fiscal_month" class="form-label">決算月</label>
+                                <input type="number" class="form-control @error('fiscal_month') is-invalid @enderror" 
+                                       id="fiscal_month" name="fiscal_month" value="{{ old('fiscal_month', $UserCompanyInfo->fiscal_month ?? '') }}" 
+                                       min="1" max="12" step="1">
+                                @error('fiscal_month')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">

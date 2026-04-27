@@ -4,10 +4,7 @@ namespace App\Http\Controllers\Driver;
 
 use App\Http\Controllers\Controller;
 use App\Models\Masters\DailyItinerary;
-use App\Models\Masters\GroupInfo;
-use App\Models\Masters\BusAssignment;
-use App\Models\Masters\Option;
-use App\Models\Masters\GroupInfoFile;
+use App\Models\Driver\DriverOperationStatus; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -65,154 +62,19 @@ class DriverDashboardController extends Controller
             'month' => $month
         ]);
     }
-
-    public function getItineraries(Request $request, $date)
-    {
-        $driverId = session('driver_id');
-        
-        if (!$driverId) {
-            return response()->json([
-                'success' => true,
-                'date' => $date,
-                'itineraries' => []
-            ]);
-        }
-        
-        $itineraries = DailyItinerary::with(['busAssignment.groupInfo'])
-            ->where('driver_id', $driverId)
-            ->whereDate('date', $date)
-            ->orderBy('time_start', 'asc')
-            ->get();
-        
-        $formattedItineraries = [];
-        foreach ($itineraries as $itinerary) {
-            $formattedItineraries[] = [
-                'id' => $itinerary->id,
-                'time_start' => substr($itinerary->time_start, 0, 5),
-                'time_end' => substr($itinerary->time_end, 0, 5),
-                'itinerary' => $itinerary->itinerary,
-                'group_name' => $itinerary->busAssignment->groupInfo->group_name ?? '',
-                'start_location' => $itinerary->start_location,
-                'end_location' => $itinerary->end_location,
-                'vehicle' => $itinerary->vehicle ?? '',
-                'date' => $itinerary->date ? \Carbon\Carbon::parse($itinerary->date)->format('m月d日') : '',
-            ];
-        }
-        
-        return response()->json([
-            'success' => true,
-            'date' => $date,
-            'itineraries' => $formattedItineraries
-        ]);
-    }
-
-    public function search(Request $request)
-    {
-        $driverId = session('driver_id');
-        $keyword = $request->input('keyword', '');
-        
-        $query = DailyItinerary::with(['busAssignment.groupInfo'])
-            ->where('driver_id', $driverId);
-        
-        if ($keyword) {
-            $query->where(function($q) use ($keyword) {
-                $q->where('itinerary', 'like', "%{$keyword}%")
-                  ->orWhere('start_location', 'like', "%{$keyword}%")
-                  ->orWhere('end_location', 'like', "%{$keyword}%")
-                  ->orWhereHas('busAssignment.groupInfo', function($sub) use ($keyword) {
-                      $sub->where('group_name', 'like', "%{$keyword}%");
-                  });
-            });
-        }
-        
-        $itineraries = $query->orderBy('date', 'asc')
-            ->orderBy('time_start', 'asc')
-            ->paginate(20);
-        
-        return view('driver.search', compact('itineraries', 'keyword'));
-    }
-
-    public function showItinerary($id)
-    {
-        $driverId = session('driver_id');
-        
-        $itinerary = DailyItinerary::with(['busAssignment.groupInfo'])
-            ->where('driver_id', $driverId)
-            ->findOrFail($id);
-        
-        $busAssignment = $itinerary->busAssignment;
-        
-        $options = Option::where('is_active', true)
-            ->orderBy('display_order')
-            ->orderBy('id')
-            ->get();
-        
-        $selectedOptionNames = [];
-        if ($busAssignment && $busAssignment->options) {
-            $selectedOptionIds = explode(',', $busAssignment->options);
-            foreach ($options as $option) {
-                if (in_array($option->id, $selectedOptionIds)) {
-                    $selectedOptionNames[] = $option->name;
-                }
-            }
-        }
-        $selectedOptionsText = !empty($selectedOptionNames) ? implode('、', $selectedOptionNames) : 'なし';
-        
-        $files = GroupInfoFile::where('bus_assignment_id', $busAssignment->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-        
-        return view('driver.itinerary-show', compact('itinerary', 'busAssignment', 'selectedOptionsText', 'files'));
-    }
     
-    public function downloadFile($id)
+    private function getFinalStatusName()
     {
-        $driverId = session('driver_id');
-        
-        $file = GroupInfoFile::findOrFail($id);
-        
-        $busAssignment = BusAssignment::find($file->bus_assignment_id);
-        if (!$busAssignment || $busAssignment->driver_id != $driverId) {
-            abort(403, 'アクセス権限がありません。');
-        }
-        
-        $filePath = storage_path("app/public/{$file->file_path}");
-        
-        if (!file_exists($filePath)) {
-            abort(404, 'ファイルが見つかりません。');
-        }
-        
-        return response()->download($filePath, $file->file_name);
+        $lastStatus = DriverOperationStatus::orderBy('display_order', 'desc')->first();
+        return $lastStatus ? $lastStatus->name : null;
     }
-    
-    public function dailyItineraries($date)
-    {
-        $driverId = session('driver_id');
-        
-        if (!$driverId) {
-            return redirect()->route('driver.dashboard');
-        }
-        
-        $itineraries = DailyItinerary::with(['busAssignment.groupInfo'])
-            ->where('driver_id', $driverId)
-            ->whereDate('date', $date)
-            ->orderBy('time_start', 'asc')
-            ->get();
-        
-        $dateObj = Carbon::parse($date);
-        $weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-        $weekday = $weekdays[$dateObj->dayOfWeek];
-        $formattedDate = $dateObj->format('Y年m月d日') . " ({$weekday})";
-        
-        return view('driver.daily-itineraries', compact('itineraries', 'formattedDate', 'date'));
-    }
-    
     
     public function getTabItineraries(Request $request)
     {
         $driverId = session('driver_id');
         $tab = $request->input('tab', 'upcoming');
         $today = date('Y-m-d');
+        $finalStatusName = $this->getFinalStatusName();
         
         if (!$driverId) {
             return response()->json([
@@ -227,25 +89,31 @@ class DriverDashboardController extends Controller
         switch ($tab) {
             case 'upcoming':
                 $query->whereDate('date', '>=', $today)
-                      ->where(function($q) {
-                          $q->whereNull('operation_status')
-                            ->orWhere('operation_status', '!=', '終了');
+                      ->where(function($q) use ($finalStatusName) {
+                          $q->whereNull('operation_status');
+                          if ($finalStatusName) {
+                              $q->orWhere('operation_status', '!=', $finalStatusName);
+                          }
                       });
                 break;
             case 'today':
                 $query->whereDate('date', '=', $today);
                 break;
             case 'completed':
-                $query->where(function($q) use ($today) {
-                    $q->whereDate('date', '<', $today)
-                      ->orWhere('operation_status', '=', '終了');
+                $query->where(function($q) use ($today, $finalStatusName) {
+                    $q->whereDate('date', '<', $today);
+                    if ($finalStatusName) {
+                        $q->orWhere('operation_status', '=', $finalStatusName);
+                    }
                 });
                 break;
             default:
                 $query->whereDate('date', '>=', $today)
-                      ->where(function($q) {
-                          $q->whereNull('operation_status')
-                            ->orWhere('operation_status', '!=', '終了');
+                      ->where(function($q) use ($finalStatusName) {
+                          $q->whereNull('operation_status');
+                          if ($finalStatusName) {
+                              $q->orWhere('operation_status', '!=', $finalStatusName);
+                          }
                       });
                 break;
         }
@@ -274,13 +142,14 @@ class DriverDashboardController extends Controller
                 'start_location' => $itinerary->start_location,
                 'end_location' => $itinerary->end_location,
                 'vehicle' => $itinerary->vehicle,
-                'date' => \Carbon\Carbon::parse($itinerary->date)->format('m月d日'),
+                'date' => Carbon::parse($itinerary->date)->format('m月d日'),
                 'itinerary' => $itinerary->itinerary,
                 'group_name' => $itinerary->busAssignment->groupInfo->group_name ?? '',
                 'group_info_id' => $groupInfo->id ?? '',
                 'bus_assignment_id' => $itinerary->bus_assignment_id ?? '',
                 'category_name' => $reservationCategory->category_name ?? '',
                 'operation_status' => $itinerary->operation_status,
+                'is_completed' => $finalStatusName && $itinerary->operation_status === $finalStatusName,
             ];
         }
         

@@ -71,41 +71,6 @@
 @endsection
 
 @push('styles')
-<script>
-    document.getElementById('backBtn').addEventListener('click', function() {
-        window.location.href = '{{ route("driver.dashboard") }}';
-    });
-
-    document.querySelectorAll('.itinerary-card').forEach(card => {
-        card.addEventListener('click', function() {
-            const id = this.getAttribute('data-id');
-            window.location.href = `/driver/itinerary/${id}`;
-        });
-    });
-
-    const searchInput = document.getElementById('searchKeyword');
-    const clearBtn = document.getElementById('clearSearch');
-
-    if (searchInput && clearBtn) {
-        searchInput.addEventListener('input', function() {
-            if (this.value.length > 0) {
-                clearBtn.style.display = 'flex';
-            } else {
-                clearBtn.style.display = 'none';
-            }
-        });
-        
-        clearBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            clearBtn.style.display = 'none';
-            searchInput.focus();
-            searchForm.submit();
-        });
-    }
-</script>
-@endpush
-
-@push('scripts')
 <style>
 .search-form-container {
     padding: 12px;
@@ -345,4 +310,39 @@
     border-color: var(--accent-color);
 }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+    document.getElementById('backBtn').addEventListener('click', function() {
+        window.location.href = '{{ route("driver.dashboard") }}';
+    });
+
+    document.querySelectorAll('.itinerary-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            window.location.href = `/driver/itinerary/${id}`;
+        });
+    });
+
+    const searchInput = document.getElementById('searchKeyword');
+    const clearBtn = document.getElementById('clearSearch');
+
+    if (searchInput && clearBtn) {
+        searchInput.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                clearBtn.style.display = 'flex';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+        });
+        
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            searchInput.focus();
+            searchForm.submit();
+        });
+    }
+</script>
 @endpush

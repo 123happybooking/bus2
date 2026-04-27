@@ -79,6 +79,7 @@
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 90px;">帰庫時間</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">帰庫距離</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">走行距離</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 80px;">編集許可</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 80px;">操作</th>
                 </tr>
             </thead>
@@ -100,6 +101,13 @@
                     <td class="text-end px-2 py-1 align-middle">{{ $report->end_mileage ? number_format($report->end_mileage) : '-' }}</td>
                     <td class="text-end px-2 py-1 align-middle">{{ $distance !== null ? number_format($distance) : '-' }}</td>
                     <td class="text-center px-2 py-1 align-middle">
+                        @if($report->allow_edit)
+                            <span class="badge bg-success" style="background-color: #10b981 !important;">ON</span>
+                        @else
+                            <span class="badge bg-secondary" style="background-color: #6c757d !important;">OFF</span>
+                        @endif
+                    </td>
+                    <td class="text-center px-2 py-1 align-middle">
                         <a href="{{ route('masters.daily-reports.edit', $report->id) }}" 
                            style="color: #2563eb; text-decoration: none;">
                             編集
@@ -108,7 +116,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="text-center py-3" style="color: #9ca3af;">データがありません</td>
+                    <td colspan="10" class="text-center py-3" style="color: #9ca3af;">データがありません</td>
                 </tr>
                 @endforelse
             </tbody>

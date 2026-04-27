@@ -34,9 +34,11 @@ use App\Http\Controllers\Masters\OperationLedgerController;
 use App\Http\Controllers\Masters\DriverLedgerController;
 use App\Http\Controllers\Masters\DriverAttendanceController;
 use App\Http\Controllers\Masters\DailyReportController;
+use App\Http\Controllers\Masters\DriverOperationStatusController;
 use App\Http\Controllers\Masters\OptionController;
 
 use App\Http\Controllers\Driver\DriverDashboardController;
+use App\Http\Controllers\Driver\DriverItineraryController;
 use App\Http\Controllers\Driver\DriverProfileController;
 use App\Http\Controllers\Driver\DriverDailyReportController;
 use App\Http\Controllers\Driver\DriverOperationController;
@@ -179,7 +181,10 @@ Route::prefix('masters')->name('masters.')->group(function () {
             Route::get('/{id}/edit', [DailyReportController::class, 'edit'])->name('edit');
             Route::put('/{id}', [DailyReportController::class, 'update'])->name('update');
             Route::get('/{id}/pdf', [DailyReportController::class, 'exportPdf'])->name('export-pdf');
+            Route::put('/operation-log/{id}', [DailyReportController::class, 'updateOperationLog'])->name('update-operation-log');
         });
+        
+        Route::resource('driver-operation-status', DriverOperationStatusController::class)->names('driver-operation-status');
         
         Route::resource('options', OptionController::class)->names('options');
         
@@ -219,14 +224,24 @@ Route::prefix('masters')->name('masters.')->group(function () {
 
 
 Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\Middleware\SetUserDatabase::class])->group(function () {
+    // Route::get('dashboard', [DriverDashboardController::class, 'index'])->name('dashboard');
+    // Route::get('calendar-data', [DriverDashboardController::class, 'getCalendarData'])->name('calendar-data');
+    // Route::get('itineraries/{date}', [DriverDashboardController::class, 'getItineraries'])->name('itineraries');
+    // Route::get('search', [DriverDashboardController::class, 'search'])->name('search');
+    // Route::get('itinerary/{id}', [DriverDashboardController::class, 'showItinerary'])->name('itinerary.show');
+    // Route::get('daily-itineraries/{date}', [DriverDashboardController::class, 'dailyItineraries'])->name('daily-itineraries');
+    // Route::get('tab-itineraries', [DriverDashboardController::class, 'getTabItineraries'])->name('tab-itineraries');
+    // Route::get('files/{id}/download', [DriverDashboardController::class, 'downloadFile'])->name('files.download');
+    
     Route::get('dashboard', [DriverDashboardController::class, 'index'])->name('dashboard');
     Route::get('calendar-data', [DriverDashboardController::class, 'getCalendarData'])->name('calendar-data');
-    Route::get('itineraries/{date}', [DriverDashboardController::class, 'getItineraries'])->name('itineraries');
-    Route::get('search', [DriverDashboardController::class, 'search'])->name('search');
-    Route::get('itinerary/{id}', [DriverDashboardController::class, 'showItinerary'])->name('itinerary.show');
-    Route::get('daily-itineraries/{date}', [DriverDashboardController::class, 'dailyItineraries'])->name('daily-itineraries');
     Route::get('tab-itineraries', [DriverDashboardController::class, 'getTabItineraries'])->name('tab-itineraries');
-    Route::get('files/{id}/download', [DriverDashboardController::class, 'downloadFile'])->name('files.download');
+    
+    Route::get('itineraries/{date}', [DriverItineraryController::class, 'getItineraries'])->name('itineraries');
+    Route::get('search', [DriverItineraryController::class, 'search'])->name('search');
+    Route::get('itinerary/{id}', [DriverItineraryController::class, 'showItinerary'])->name('itinerary.show');
+    Route::get('daily-itineraries/{date}', [DriverItineraryController::class, 'dailyItineraries'])->name('daily-itineraries');
+    Route::get('files/{id}/download', [DriverItineraryController::class, 'downloadFile'])->name('files.download');
     
     Route::post('logout', [DriverAuthController::class, 'logout'])->name('logout');
     Route::get('settings', [DriverAuthController::class, 'settings'])->name('settings');
@@ -236,7 +251,7 @@ Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\
     Route::get('profile', [DriverProfileController::class, 'editProfile'])->name('profile');
     Route::post('profile', [DriverProfileController::class, 'updateProfile'])->name('update-profile');
     
-    Route::get('daily-reports/{date}', [DriverDailyReportController::class, 'index'])->name('daily-reports');
+    Route::get('daily-reports/{date}/{vehicleId?}', [DriverDailyReportController::class, 'index'])->name('daily-reports');
     Route::post('daily-reports/create', [DriverDailyReportController::class, 'create'])->name('daily-reports.create');
     Route::put('daily-reports/{id}', [DriverDailyReportController::class, 'update'])->name('daily-reports.update');
     
@@ -244,6 +259,7 @@ Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\
     Route::post('operation/log/{id}', [DriverOperationController::class, 'logAction'])->name('operation.log');
     Route::get('operation/logs/{id}', [DriverOperationController::class, 'getLogs'])->name('operation.logs');
     Route::put('operation/log/{id}', [DriverOperationController::class, 'updateLog'])->name('operation.log.update');
+    Route::delete('operation/log/{id}', [DriverOperationController::class, 'deleteLog'])->name('operation.log.delete');
 });
 
 

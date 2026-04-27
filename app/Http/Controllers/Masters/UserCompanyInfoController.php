@@ -48,6 +48,8 @@ class UserCompanyInfoController extends Controller
                 'setup_end_time' => 'nullable|date_format:H:i',
                 'setup_bank_name' => 'nullable|string|max:255',
                 'setup_company_seal' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'start_year' => 'nullable|integer|min:2000|max:2099',
+                'fiscal_month' => 'nullable|integer|min:1|max:12',
             ];
 
             $messages = [
@@ -94,6 +96,12 @@ class UserCompanyInfoController extends Controller
                 'setup_company_seal.image' => '社印は画像ファイルをアップロードしてください。',
                 'setup_company_seal.mimes' => '社印はjpeg、png、jpg、gif形式のファイルをアップロードしてください。',
                 'setup_company_seal.max' => '社印のファイルサイズは2MB以内でアップロードしてください。',
+                'start_year.integer' => '開始年は整数で入力してください。',
+                'start_year.min' => '開始年は2000以上で入力してください。',
+                'start_year.max' => '開始年は2099以下で入力してください。',
+                'fiscal_month.integer' => '決算月は整数で入力してください。',
+                'fiscal_month.min' => '決算月は1以上で入力してください。',
+                'fiscal_month.max' => '決算月は12以下で入力してください。',
             ];
 
             $validated = $request->validate($rules, $messages);

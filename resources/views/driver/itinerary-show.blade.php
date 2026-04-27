@@ -77,7 +77,7 @@
                 </div>
             </div>
             <div class="detail-item">
-                <div class="detail-label">荷物数</div>
+                <div class="detail-label">荷物</div>
                 <div class="detail-value-full">{{ $busAssignment->luggage ?? '未設定' }}</div>
             </div>
             <div class="detail-item">

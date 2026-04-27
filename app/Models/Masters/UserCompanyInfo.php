@@ -44,6 +44,8 @@ class UserCompanyInfo extends Model
         'setup_end_time',         // 終了時刻初期設定値
         'setup_bank_name',        // 入金銀行初期設定値
         'setup_company_seal',     // 社印
+        'start_year',
+        'fiscal_month',  
         'created_by',             // 创建者
         'updated_by'              // 更新者
     ];
@@ -60,6 +62,8 @@ class UserCompanyInfo extends Model
         'report_car_count' => 'integer',
         'report_employee_count' => 'integer',
         'report_drv_count' => 'integer',
+        'start_year' => 'integer',
+        'fiscal_month' => 'integer', 
         'user_start_day' => 'date',
         'work_license_day' => 'date',
         'setup_start_time' => 'datetime:H:i:s',
