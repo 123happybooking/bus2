@@ -10,7 +10,9 @@
         </button>
         <div class="page-title">{{ $formattedDate }}</div>
         <div class="header-right">
-            <button class="report-btn" id="reportBtn">运行日报</button>
+            <button class="report-btn" id="reportBtn">
+                运行日报
+            </button>
         </div>
     </div>
 
@@ -28,7 +30,7 @@
             $group_info_id = $groupInfo ? $groupInfo->id : '';
             $bus_assignment_id = $itinerary->bus_assignment_id ?? '';
             $categoryName = $reservationCategory ? $reservationCategory->category_name : '';
-            $isCompleted = $itinerary->operation_status === '終了';
+            $isCompleted = $itinerary->is_completed ?? false;
         @endphp
         <div class="itinerary-card" data-id="{{ $itinerary->id }}" data-status="{{ $isCompleted ? 'completed' : 'pending' }}">
             <div class="card-header-row">

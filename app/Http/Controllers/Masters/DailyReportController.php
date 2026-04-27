@@ -1,17 +1,18 @@
 <?php
+
 namespace App\Http\Controllers\Masters;
 
 use App\Http\Controllers\Controller;
 use App\Models\Driver\DriverDailyReport;
+use App\Models\Driver\DriverOperationLog;
+use App\Models\Driver\DriverOperationStatus;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Masters\Driver;
 use App\Models\Masters\Vehicle;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\View;
-use Spatie\Browsershot\Browsershot;
 use Carbon\Carbon;
-use Mpdf\Mpdf;
 use Illuminate\Support\Facades\DB;
+use Mpdf\Mpdf;
 
 class DailyReportController extends Controller
 {
@@ -54,7 +55,21 @@ class DailyReportController extends Controller
     {
         $report = DriverDailyReport::with(['driver', 'vehicle'])->findOrFail($id);
         
-        return view('masters.daily-reports.edit', compact('report'));
+        $itineraries = DailyItinerary::with(['busAssignment.groupInfo'])
+            ->where('driver_id', $report->driver_id)
+            ->whereDate('date', $report->date)
+            ->orderBy('time_start', 'asc')
+            ->get();
+        
+        foreach ($itineraries as $itinerary) {
+            $itinerary->operationLogs = DriverOperationLog::where('itinerary_id', $itinerary->id)
+                ->orderBy('logged_at', 'asc')
+                ->get();
+        }
+        
+        $operationTypes = DriverOperationStatus::orderBy('display_order', 'asc')->get();
+        
+        return view('masters.daily-reports.edit', compact('report', 'itineraries', 'operationTypes'));
     }
     
     public function update(Request $request, $id)
@@ -66,17 +81,77 @@ class DailyReportController extends Controller
             'start_mileage' => 'nullable|integer|min:0',
             'end_time' => 'nullable|date_format:H:i',
             'end_mileage' => 'nullable|integer|min:0',
+            'allow_edit' => 'nullable|boolean',
         ]);
+        
+        $userId = session('user_id', auth()->id() ?? 0);
         
         $report->update([
             'start_time' => $request->start_time,
             'start_mileage' => $request->start_mileage,
             'end_time' => $request->end_time,
             'end_mileage' => $request->end_mileage,
+            'allow_edit' => $request->has('allow_edit'),
+            'updated_by' => $userId,
         ]);
         
         return redirect()->route('masters.daily-reports.index')
             ->with('success', '運行日報を更新しました。');
+    }
+    
+    public function updateOperationLog(Request $request, $id)
+    {
+        $log = DriverOperationLog::findOrFail($id);
+        
+        $request->validate([
+            'daily_report_id' => 'required|exists:driver_daily_reports,id',
+            'logged_at' => 'nullable|string',
+            'mileage' => 'nullable|integer|min:0',
+            'address' => 'nullable|string',
+            'action' => 'required|string',
+        ]);
+        
+        $updateData = [
+            'action' => $request->action,
+            'mileage' => $request->mileage,
+            'address' => $request->address,
+        ];
+        
+        if ($request->filled('logged_at')) {
+            $updateData['logged_at'] = Carbon::parse($request->logged_at);
+        }
+        
+        $log->update($updateData);
+        
+        $userId = session('user_id', auth()->id() ?? 0);
+        
+        DriverDailyReport::where('id', $request->daily_report_id)
+            ->update([
+                'updated_by' => $userId,
+                'updated_at' => Carbon::now(),
+            ]);
+        
+        $itinerary = DailyItinerary::find($log->itinerary_id);
+        if ($itinerary) {
+            $latestLog = DriverOperationLog::where('itinerary_id', $itinerary->id)
+                ->orderBy('logged_at', 'desc')
+                ->first();
+            if ($latestLog) {
+                $itinerary->update(['operation_status' => $latestLog->action]);
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'log' => [
+                'id' => $log->id,
+                'action' => $log->action,
+                'mileage' => $log->mileage,
+                'address' => $log->address,
+                'logged_at' => $log->logged_at->format('Y/m/d H:i:s'),
+                'time' => $log->logged_at->format('H:i:s'),
+            ]
+        ]);
     }
     
     public function exportPdf($id)

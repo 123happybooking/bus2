@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        <div class="vehicle-selector">
+        <div class="vehicle-selector" style="display:none;">
             <span class="vehicle-label">車両</span>
             <select id="vehicleSelect" class="vehicle-select">
                 @foreach($vehicles as $vehicle)
@@ -38,11 +38,13 @@
         </div>
 
         <div class="action-buttons">
-            <button class="action-btn" data-action="迎車">迎車</button>
-            <button class="action-btn" data-action="到着">到着</button>
-            <button class="action-btn" data-action="空車">空車</button>
-            <button class="action-btn" data-action="下車">下車</button>
-            <button class="action-btn" data-action="終了">終了</button>
+            @foreach($operationButtons as $button)
+            <button class="action-btn" 
+                    data-action="{{ $button->name }}" 
+                    data-description="{{ $button->description }}">
+                {{ $button->name }}
+            </button>
+            @endforeach
         </div>
 
         <div class="logs-container">
@@ -53,10 +55,9 @@
             </div>
             <div class="logs-list" id="logsList">
                 @foreach($logs as $log)
-                <div class="log-item" data-id="{{ $log->id }}" data-action="{{ $log->action }}" data-mileage="{{ $log->mileage }}" data-status="{{ $log->status }}">
+                <div class="log-item" data-id="{{ $log->id }}" data-action="{{ $log->action }}" data-mileage="{{ $log->mileage }}" data-status="{{ $log->status }}" data-address="{{ $log->address }}" data-date="{{ \Carbon\Carbon::parse($log->logged_at)->format('Y/m/d') }}" data-time="{{ \Carbon\Carbon::parse($log->logged_at)->format('H:i') }}">
                     <span class="col-time">
-                        {{ \Carbon\Carbon::parse($log->logged_at)->format('Y/m/d') }}<br>
-                        {{ \Carbon\Carbon::parse($log->logged_at)->format('H:i:s') }}
+                        {{ \Carbon\Carbon::parse($log->logged_at)->format('H:i') }}
                     </span>
                     <span class="col-mileage">
                         @if($log->mileage)
@@ -74,13 +75,20 @@
     </div>
 </div>
 
-<div class="mileage-modal" id="mileageModal">
+<div class="action-input-modal" id="actionInputModal">
     <div class="modal-content">
-        <h4 id="modalTitle">走行距離を入力</h4>
-        <input type="number" id="mileageInput" placeholder="走行距離 (km)" min="0">
+        <h4 id="actionModalTitle">情報入力</h4>
+        <div class="edit-field">
+            <label>住所</label>
+            <input type="text" id="actionAddressInput" placeholder="住所" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 14px; background-color: var(--bg-color); color: var(--text-primary); margin-bottom: 16px;">
+        </div>
+        <div class="edit-field">
+            <label>走行距離 (km)</label>
+            <input type="number" id="actionMileageInput" placeholder="走行距離" min="0" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 14px; background-color: var(--bg-color); color: var(--text-primary); margin-bottom: 16px;">
+        </div>
         <div class="modal-buttons">
-            <button class="modal-confirm" id="confirmBtn">確認</button>
-            <button class="modal-cancel" id="cancelModalBtn">キャンセル</button>
+            <button class="modal-confirm" id="actionConfirmBtn">確認</button>
+            <button class="modal-cancel" id="actionCancelBtn">キャンセル</button>
         </div>
     </div>
 </div>
@@ -89,22 +97,29 @@
     <div class="modal-content">
         <h4>ログを編集</h4>
         <div class="edit-field">
+            <label>時間</label>
+            <input type="time" id="editTimeInput" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 14px; background-color: var(--bg-color); color: var(--text-primary); margin-bottom: 16px;">
+        </div>
+        <div class="edit-field">
+            <label>住所</label>
+            <input type="text" id="editAddressInput" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 14px; background-color: var(--bg-color); color: var(--text-primary); margin-bottom: 16px;">
+        </div>
+        <div class="edit-field">
+            <label>走行距離 (km)</label>
+            <input type="number" id="editMileageInput" placeholder="走行距離" min="0" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 14px; background-color: var(--bg-color); color: var(--text-primary); margin-bottom: 16px;">
+        </div>
+        <div class="edit-field">
             <label>操作</label>
-            <select id="editActionSelect">
-                <option value="迎車">迎車</option>
-                <option value="到着">到着</option>
-                <option value="空車">空車</option>
-                <option value="下車">下車</option>
-                <option value="終了">終了</option>
+            <select id="editActionSelect" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 14px; background-color: var(--bg-color); color: var(--text-primary); margin-bottom: 16px;">
+                @foreach($operationButtons as $button)
+                <option value="{{ $button->name }}">{{ $button->name }}</option>
+                @endforeach
             </select>
         </div>
-        <div class="edit-field" id="editMileageField">
-            <label>走行距離 (km)</label>
-            <input type="number" id="editMileageInput" placeholder="走行距離" min="0">
-        </div>
-        <div class="modal-buttons">
-            <button class="modal-confirm" id="editConfirmBtn">更新</button>
-            <button class="modal-cancel" id="cancelEditModalBtn">キャンセル</button>
+        <div class="modal-buttons" style="display: flex; gap: 12px; justify-content: space-between;">
+            <button class="modal-delete" id="editDeleteBtn" style="flex: 1; padding: 10px; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; background-color: #dc2626; color: white;">削除</button>
+            <button class="modal-confirm" id="editConfirmBtn" style="flex: 1; padding: 10px; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; background-color: var(--accent-color); color: var(--accent-text);">更新</button>
+            <button class="modal-cancel" id="cancelEditModalBtn" style="flex: 1; padding: 10px; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; background-color: var(--bg-color); color: var(--text-secondary); border: 1px solid var(--border-color);">キャンセル</button>
         </div>
     </div>
 </div>
@@ -218,11 +233,6 @@
     color: var(--text-secondary);
 }
 
-.logs-list {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
 .log-item {
     display: flex;
     padding: 12px 16px;
@@ -257,7 +267,7 @@
     text-align: right;
 }
 
-.mileage-modal, .edit-log-modal {
+.action-input-modal, .edit-log-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -273,7 +283,7 @@
     transition: all 0.3s;
 }
 
-.mileage-modal.show, .edit-log-modal.show {
+.action-input-modal.show, .edit-log-modal.show {
     visibility: visible;
     opacity: 1;
 }
@@ -282,7 +292,7 @@
     background-color: var(--card-bg);
     border-radius: 16px;
     padding: 20px;
-    width: 280px;
+    width: 320px;
     text-align: center;
 }
 
@@ -290,17 +300,6 @@
     font-size: 16px;
     margin-bottom: 16px;
     color: var(--text-primary);
-}
-
-.modal-content input, .modal-content select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    font-size: 14px;
-    background-color: var(--bg-color);
-    color: var(--text-primary);
-    margin-bottom: 16px;
 }
 
 .edit-field {
@@ -339,6 +338,11 @@
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
 }
+
+.modal-delete {
+    background-color: #dc2626;
+    color: white;
+}
 </style>
 @endpush
 
@@ -346,6 +350,7 @@
 <script>
 let googleMapsReady = false;
 let pendingLocationResolvers = [];
+const allowEdit = {{ $allowEdit ? 'true' : 'false' }};
 
 window.onGoogleMapsReady = function() {
     googleMapsReady = true;
@@ -366,21 +371,18 @@ function waitForGoogleMaps() {
 
 function cleanAddress(address) {
     if (!address) return '';
-    
     let cleaned = address;
     cleaned = cleaned.replace(/[ ]*邮政编码[：:]\s*\d+/g, '');
     cleaned = cleaned.replace(/\s*[A-Z0-9]{3,7}\+[A-Z0-9]{3,5}\s*/gi, '');
     cleaned = cleaned.replace(/[\s,，]+$/, '');
     cleaned = cleaned.replace(/\s+/g, ' ');
-    
     return cleaned.trim();
 }
 
-let currentAction = null;
+let currentPendingAction = null;
 let currentItineraryId = {{ $itinerary->id }};
 let currentEditingLogId = null;
 let completedActions = new Set();
-let currentLocationData = null;
 
 function getSelectedVehicleId() {
     return document.getElementById('vehicleSelect').value;
@@ -395,34 +397,36 @@ function markButtonCompleted(action) {
     });
 }
 
+function bindLogItemClickEvent(logItem) {
+    logItem.style.cursor = 'pointer';
+    logItem.addEventListener('click', function(e) {
+        e.stopPropagation();
+        openEditModal(this);
+    });
+}
+
 async function getCurrentLocation() {
     await waitForGoogleMaps();
-    
     return new Promise((resolve, reject) => {
         if (!navigator.geolocation) {
             reject('お使いのブラウザは Geolocation に対応していません。');
             return;
         }
-        
         const options = {
             enableHighAccuracy: true,
             timeout: 15000,
             maximumAge: 0
         };
-        
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
-                
                 const geocoder = new google.maps.Geocoder();
                 const latlng = { lat: lat, lng: lng };
-                
                 geocoder.geocode({ location: latlng }, (results, status) => {
                     if (status === 'OK' && results[0]) {
                         let rawAddress = results[0].formatted_address;
                         let cleanedAddress = cleanAddress(rawAddress);
-                        
                         resolve({
                             latitude: lat,
                             longitude: lng,
@@ -455,21 +459,16 @@ async function getCurrentLocation() {
     });
 }
 
-function addLog(action, mileage = null, location = null) {
+function submitLog(action, mileage, address) {
     const vehicleId = getSelectedVehicleId();
     const requestBody = {
         action: action,
         mileage: mileage,
-        vehicle_id: vehicleId
+        vehicle_id: vehicleId,
+        address: address
     };
     
-    if (location) {
-        requestBody.latitude = location.latitude;
-        requestBody.longitude = location.longitude;
-        requestBody.address = location.address;
-    }
-    
-    fetch(`/driver/operation/log/${currentItineraryId}`, {
+    return fetch(`/driver/operation/log/${currentItineraryId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -481,11 +480,13 @@ function addLog(action, mileage = null, location = null) {
     .then(data => {
         if (data.success) {
             addLogToList(data.log);
-            if (!completedActions.has(action)) {
-                completedActions.add(action);
-                markButtonCompleted(action);
+            if (!completedActions.has(data.log.action)) {
+                completedActions.add(data.log.action);
+                markButtonCompleted(data.log.action);
             }
-            if (action === '終了') {
+            const buttons = document.querySelectorAll('.action-btn');
+            const isLastButton = buttons.length > 0 && document.querySelector(`.action-btn[data-action="${action}"]`) === buttons[buttons.length - 1];
+            if (isLastButton) {
                 const date = '{{ \Carbon\Carbon::parse($itinerary->date)->format('Y-m-d') }}';
                 setTimeout(() => {
                     window.location.href = `/driver/daily-itineraries/${date}`;
@@ -509,17 +510,8 @@ function addLogToList(log) {
     logItem.setAttribute('data-action', log.action);
     logItem.setAttribute('data-mileage', log.mileage || '');
     logItem.setAttribute('data-status', log.status);
-    
-    const loggedAt = log.logged_at;
-    let date = loggedAt;
-    let time = '';
-    if (loggedAt && loggedAt.includes(' ')) {
-        const parts = loggedAt.split(' ');
-        date = parts[0];
-        time = parts[1];
-    } else {
-        time = loggedAt;
-    }
+    logItem.setAttribute('data-address', log.address || '');
+    logItem.setAttribute('data-time', log.time);
     
     let mileageHtml = '';
     if (log.mileage) {
@@ -529,133 +521,190 @@ function addLogToList(log) {
     
     logItem.innerHTML = `
         <span class="col-time">
-            ${date}<br>
-            ${time}
+            ${log.time}
         </span>
         <span class="col-mileage">
             ${mileageHtml}${addressHtml}
         </span>
         <span class="col-action">${log.action}</span>
     `;
+    
+    bindLogItemClickEvent(logItem);
     logsList.insertBefore(logItem, logsList.firstChild);
     
-    logItem.addEventListener('click', function(e) {
-        e.stopPropagation();
-        openEditModal(this);
-    });
+    sortLogsList();
 }
 
-function updateLogInList(logId, newAction, newMileage) {
+function updateLogInList(logId, newAction, newMileage, newAddress, newTime) {
     const logItem = document.querySelector(`.log-item[data-id="${logId}"]`);
     if (logItem) {
         logItem.setAttribute('data-action', newAction);
         logItem.setAttribute('data-mileage', newMileage || '');
+        logItem.setAttribute('data-address', newAddress || '');
+        logItem.setAttribute('data-time', newTime);
+        
+        const timeSpan = logItem.querySelector('.col-time');
+        if (timeSpan) {
+            timeSpan.innerHTML = newTime;
+        }
         
         const mileageSpan = logItem.querySelector('.col-mileage');
         const actionSpan = logItem.querySelector('.col-action');
         
         if (mileageSpan) {
-            const currentHtml = mileageSpan.innerHTML;
-            const addressMatch = currentHtml.match(/(?:<br>)?([^<]*?)(?:<br>)?$/);
-            const address = addressMatch && addressMatch[1] !== mileageSpan.textContent ? addressMatch[1] : '';
             const newMileageHtml = newMileage ? `${newMileage} KM<br>` : '';
-            mileageSpan.innerHTML = newMileageHtml + address;
+            mileageSpan.innerHTML = newMileageHtml + (newAddress || '');
         }
-        if (actionSpan) actionSpan.textContent = newAction;
+        if (actionSpan) {
+            actionSpan.textContent = newAction;
+        }
+        
+        sortLogsList();
     }
 }
 
+function sortLogsList() {
+    const logsList = document.getElementById('logsList');
+    const items = Array.from(logsList.children);
+    
+    items.sort((a, b) => {
+        const timeA = a.getAttribute('data-time') || '';
+        const timeB = b.getAttribute('data-time') || '';
+        return timeB.localeCompare(timeA);
+    });
+    
+    items.forEach(item => logsList.appendChild(item));
+}
+
+function deleteLogFromList(logId, action) {
+    const logItem = document.querySelector(`.log-item[data-id="${logId}"]`);
+    if (logItem) {
+        logItem.remove();
+    }
+    
+    const remainingLogsWithSameAction = document.querySelectorAll(`.log-item[data-action="${action}"]`);
+    if (remainingLogsWithSameAction.length === 0) {
+        const button = document.querySelector(`.action-btn[data-action="${action}"]`);
+        if (button) {
+            button.classList.remove('completed');
+        }
+        completedActions.delete(action);
+    }
+    
+    sortLogsList();
+}
+
 function openEditModal(logItem) {
+    if (!allowEdit) {
+        alert('この日報は編集できません。管理者にお問い合わせください。');
+        return false;
+    }
+    
     currentEditingLogId = logItem.getAttribute('data-id');
     const logAction = logItem.getAttribute('data-action');
     const currentMileage = logItem.getAttribute('data-mileage');
+    const currentAddress = logItem.getAttribute('data-address') || '';
+    const currentTime = logItem.getAttribute('data-time') || '';
     
     document.getElementById('editActionSelect').value = logAction;
     document.getElementById('editMileageInput').value = currentMileage;
-    
-    const editMileageField = document.getElementById('editMileageField');
-    if (logAction === '到着' || logAction === '下車') {
-        editMileageField.style.display = 'block';
-    } else {
-        editMileageField.style.display = 'none';
-    }
+    document.getElementById('editAddressInput').value = currentAddress;
+    document.getElementById('editTimeInput').value = currentTime;
     
     document.getElementById('editLogModal').classList.add('show');
 }
 
 document.querySelectorAll('.action-btn').forEach(btn => {
     btn.addEventListener('click', async function() {
-        const action = this.getAttribute('data-action');
+        if (!allowEdit) {
+            alert('この日報は編集できません。管理者に連絡してください。');
+            return;
+        }
         
+        const action = this.getAttribute('data-action');
         if (completedActions.has(action)) {
             return;
         }
         
-        const originalText = this.innerHTML;
-        this.innerHTML = '位置取得中...';
-        this.disabled = true;
+        currentPendingAction = action;
+        const modal = document.getElementById('actionInputModal');
+        const modalTitle = document.getElementById('actionModalTitle');
+        modalTitle.textContent = `${action} - 情報入力`;
+        
+        document.getElementById('actionMileageInput').value = '';
+        document.getElementById('actionAddressInput').value = '';
+        
+        modal.classList.add('show');
         
         try {
             const location = await getCurrentLocation();
-            console.log('現在地:', location);
-            
-            this.innerHTML = originalText;
-            this.disabled = false;
-            
-            if (action === '到着' || action === '下車') {
-                currentAction = action;
-                currentLocationData = location;
-                const modal = document.getElementById('mileageModal');
-                const modalTitle = document.getElementById('modalTitle');
-                modalTitle.textContent = action === '到着' ? '到着時の走行距離を入力' : '下車時の走行距離を入力';
-                document.getElementById('mileageInput').value = '';
-                
-                const addressHint = document.createElement('p');
-                addressHint.style.fontSize = '12px';
-                addressHint.style.color = 'var(--text-secondary)';
-                addressHint.style.marginBottom = '12px';
-                addressHint.style.wordBreak = 'break-all';
-                addressHint.innerHTML = `📍 ${location.address}`;
-                
-                const existingHint = modal.querySelector('.location-hint');
-                if (existingHint) existingHint.remove();
-                modal.querySelector('.modal-content').insertBefore(addressHint, document.getElementById('mileageInput'));
-                addressHint.classList.add('location-hint');
-                
-                modal.classList.add('show');
-            } else {
-                addLog(action, null, location);
+            if (location && location.address) {
+                document.getElementById('actionAddressInput').value = location.address;
             }
         } catch (error) {
-            this.innerHTML = originalText;
-            this.disabled = false;
-            alert(error);
+            console.error('位置情報取得エラー:', error);
         }
     });
 });
 
-document.getElementById('confirmBtn').addEventListener('click', function() {
-    const mileage = document.getElementById('mileageInput').value;
-    if (currentAction && mileage) {
-        addLog(currentAction, parseInt(mileage), currentLocationData);
-        document.getElementById('mileageModal').classList.remove('show');
-        currentAction = null;
-        currentLocationData = null;
-    } else if (currentAction && !mileage) {
+document.getElementById('actionConfirmBtn').addEventListener('click', function() {
+    const mileage = document.getElementById('actionMileageInput').value;
+    const address = document.getElementById('actionAddressInput').value;
+    
+    if (!mileage) {
         alert('走行距離を入力してください。');
+        return;
+    }
+    
+    if (!address) {
+        alert('住所を入力してください。');
+        return;
+    }
+    
+    if (currentPendingAction) {
+        const btn = this;
+        const originalText = btn.textContent;
+        btn.textContent = '送信中...';
+        btn.disabled = true;
+        
+        submitLog(currentPendingAction, parseInt(mileage), address)
+            .then(() => {
+                document.getElementById('actionInputModal').classList.remove('show');
+                currentPendingAction = null;
+            })
+            .finally(() => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            });
     }
 });
 
-document.getElementById('cancelModalBtn').addEventListener('click', function() {
-    document.getElementById('mileageModal').classList.remove('show');
-    currentAction = null;
-    currentLocationData = null;
+document.getElementById('actionCancelBtn').addEventListener('click', function() {
+    document.getElementById('actionInputModal').classList.remove('show');
+    currentPendingAction = null;
 });
 
 document.getElementById('editConfirmBtn').addEventListener('click', function() {
     const newAction = document.getElementById('editActionSelect').value;
     const newMileage = document.getElementById('editMileageInput').value;
+    const newAddress = document.getElementById('editAddressInput').value;
+    const newTime = document.getElementById('editTimeInput').value;
+    
+    if (!newMileage) {
+        alert('走行距離を入力してください。');
+        return;
+    }
+    
+    if (!newAddress) {
+        alert('住所を入力してください。');
+        return;
+    }
+    
     const vehicleId = getSelectedVehicleId();
+    const btn = this;
+    const originalText = btn.textContent;
+    btn.textContent = '更新中...';
+    btn.disabled = true;
     
     fetch(`/driver/operation/log/${currentEditingLogId}`, {
         method: 'PUT',
@@ -665,14 +714,16 @@ document.getElementById('editConfirmBtn').addEventListener('click', function() {
         },
         body: JSON.stringify({
             action: newAction,
-            mileage: newMileage ? parseInt(newMileage) : null,
+            mileage: parseInt(newMileage),
+            address: newAddress,
+            time: newTime,
             vehicle_id: vehicleId
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            updateLogInList(currentEditingLogId, newAction, newMileage);
+            updateLogInList(currentEditingLogId, newAction, parseInt(newMileage), newAddress, data.log.time);
             document.getElementById('editLogModal').classList.remove('show');
             currentEditingLogId = null;
         } else {
@@ -682,6 +733,48 @@ document.getElementById('editConfirmBtn').addEventListener('click', function() {
     .catch(error => {
         console.error('Error:', error);
         alert('エラーが発生しました');
+    })
+    .finally(() => {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    });
+});
+
+document.getElementById('editDeleteBtn').addEventListener('click', function() {
+    if (!confirm('このログを削除してもよろしいですか？')) {
+        return;
+    }
+    
+    const action = document.getElementById('editActionSelect').value;
+    const btn = this;
+    const originalText = btn.textContent;
+    btn.textContent = '削除中...';
+    btn.disabled = true;
+    
+    fetch(`/driver/operation/log/${currentEditingLogId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            deleteLogFromList(currentEditingLogId, action);
+            document.getElementById('editLogModal').classList.remove('show');
+            currentEditingLogId = null;
+        } else {
+            alert('削除に失敗しました');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('エラーが発生しました');
+    })
+    .finally(() => {
+        btn.textContent = originalText;
+        btn.disabled = false;
     });
 });
 
@@ -690,54 +783,26 @@ document.getElementById('cancelEditModalBtn').addEventListener('click', function
     currentEditingLogId = null;
 });
 
-document.getElementById('editActionSelect').addEventListener('change', function() {
-    const action = this.value;
-    const editMileageField = document.getElementById('editMileageField');
-    if (action === '到着' || action === '下車') {
-        editMileageField.style.display = 'block';
-    } else {
-        editMileageField.style.display = 'none';
-        document.getElementById('editMileageInput').value = '';
-    }
-});
-
 document.getElementById('backBtn').addEventListener('click', function() {
     window.history.back();
 });
 
-document.querySelectorAll('.log-item').forEach(item => {
-    item.addEventListener('click', function(e) {
-        e.stopPropagation();
-        openEditModal(this);
-    });
-});
-
 document.addEventListener('DOMContentLoaded', function() {
-    const currentStatus = '{{ $currentStatus }}';
+    const existingLogItems = document.querySelectorAll('.log-item');
+    existingLogItems.forEach(logItem => {
+        bindLogItemClickEvent(logItem);
+    });
     
-    if (currentStatus) {
-        const statusOrder = ['迎車', '到着', '空車', '下車', '終了'];
-        const statusIndex = statusOrder.indexOf(currentStatus);
-        
-        for (let i = 0; i <= statusIndex; i++) {
-            const action = statusOrder[i];
-            if (!completedActions.has(action)) {
-                completedActions.add(action);
-                markButtonCompleted(action);
-            }
+    const existingLogs = document.querySelectorAll('.log-item .col-action');
+    const uniqueActions = new Set();
+    existingLogs.forEach(log => {
+        const action = log.textContent;
+        if (!uniqueActions.has(action)) {
+            uniqueActions.add(action);
+            completedActions.add(action);
+            markButtonCompleted(action);
         }
-    } else {
-        const existingLogs = document.querySelectorAll('.log-item .col-action');
-        const uniqueActions = new Set();
-        existingLogs.forEach(log => {
-            const action = log.textContent;
-            if (!uniqueActions.has(action)) {
-                uniqueActions.add(action);
-                completedActions.add(action);
-                markButtonCompleted(action);
-            }
-        });
-    }
+    });
 });
 </script>
 <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=geocoding&callback=onGoogleMapsReady" async defer></script>

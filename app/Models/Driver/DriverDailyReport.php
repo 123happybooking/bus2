@@ -5,6 +5,7 @@ namespace App\Models\Driver;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Masters\Driver as MasterDriver;
 use App\Models\Masters\Vehicle;
+use App\Models\Masters\Staff;
 
 class DriverDailyReport extends Model
 {
@@ -18,12 +19,20 @@ class DriverDailyReport extends Model
         'start_mileage',
         'end_time',
         'end_mileage',
+        'allow_edit',
+        'created_by',
+        'updated_by',
     ];
     
     protected $casts = [
         'date' => 'date',
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
+        'start_time' => 'string',
+        'end_time' => 'string',
+        'start_mileage' => 'integer',
+        'end_mileage' => 'integer',
+        'allow_edit' => 'boolean',
+        'created_by' => 'integer',
+        'updated_by' => 'integer',
     ];
     
     public function driver()
@@ -42,5 +51,15 @@ class DriverDailyReport extends Model
             return $this->end_mileage - $this->start_mileage;
         }
         return null;
+    }
+    
+    public function creator()
+    {
+        return $this->belongsTo(Staff::class, 'created_by');
+    }
+    
+    public function updater()
+    {
+        return $this->belongsTo(Staff::class, 'updated_by');
     }
 }

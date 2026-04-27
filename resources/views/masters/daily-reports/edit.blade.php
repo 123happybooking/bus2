@@ -102,6 +102,132 @@
                     </div>
                 </div>
                 
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" 
+                                   class="form-check-input" 
+                                   name="allow_edit" 
+                                   id="allowEditSwitch" 
+                                   value="1" 
+                                   style="width: 40px; height: 20px; cursor: pointer;"
+                                   {{ old('allow_edit', $report->allow_edit ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label ms-2" for="allowEditSwitch" style="font-weight: 500;">
+                                ドライバー編集を許可する
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                @foreach($itineraries as $itineraryIndex => $itinerary)
+                <div class="card mb-3" style="background-color: #f8f9fa;">
+                    <div class="card-header" style="background-color: #e9ecef;">
+                        <strong>行程 {{ $itineraryIndex + 1 }}</strong>
+                        <span class="ms-3 text-muted">
+                            {{ $itinerary->start_location ?? '?' }} → {{ $itinerary->end_location ?? '?' }}
+                        </span>
+                        <span class="ms-3 text-muted">
+                            {{ \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') }} - {{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }}
+                        </span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered mb-0" style="font-size: 0.8rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 15%;">時間</th>
+                                        <th style="width: 10%;">走行距離</th>
+                                        <th style="width: 45%;">住所</th>
+                                        <th style="width: 15%;">操作</th>
+                                        <th style="width: 15%;">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($itinerary->operationLogs as $log)
+                                    <tr class="log-row" data-log-id="{{ $log->id }}">
+                                        <td>
+                                            <input type="time" class="form-control form-control-sm log-time-input" value="{{ \Carbon\Carbon::parse($log->logged_at)->format('H:i') }}" style="font-size: 0.75rem;">
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm log-mileage-input" value="{{ $log->mileage }}" min="0" style="font-size: 0.75rem;">
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm log-address-input" value="{{ $log->address ?? '' }}" style="font-size: 0.75rem;">
+                                        </td>
+                                        <td>
+                                            <select class="form-select form-select-sm log-action-select" style="font-size: 0.75rem;">
+                                                @foreach($operationTypes as $type)
+                                                <option value="{{ $type->name }}" {{ $log->action == $type->name ? 'selected' : '' }}>
+                                                    {{ $type->name }}
+                                                </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-primary save-log-btn" data-log-id="{{ $log->id }}">
+                                                <i class="bi bi-save"></i> 保存
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-3">
+                                            操作ログはありません
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+                
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="info-bar">
+                            <div class="row g-3">
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="info-item">
+                                        <i class="bi bi-person-circle info-icon"></i>
+                                        <div>
+                                            <div class="info-label">作成者</div>
+                                            <div class="info-value">{{ $report->creator ? $report->creator->name : '-' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="info-item">
+                                        <i class="bi bi-calendar-plus info-icon"></i>
+                                        <div>
+                                            <div class="info-label">作成日時</div>
+                                            <div class="info-value">{{ $report->created_at ? \Carbon\Carbon::parse($report->created_at)->format('Y/m/d H:i:s') : '-' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="info-item">
+                                        <i class="bi bi-person-check info-icon"></i>
+                                        <div>
+                                            <div class="info-label">更新者</div>
+                                            <div class="info-value">{{ $report->updater ? $report->updater->name : '-' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="info-item">
+                                        <i class="bi bi-calendar-check info-icon"></i>
+                                        <div>
+                                            <div class="info-label">更新日時</div>
+                                            <div class="info-value">{{ $report->updated_at ? \Carbon\Carbon::parse($report->updated_at)->format('Y/m/d H:i:s') : '-' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="row mt-4">
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary btn-sm px-4">
@@ -135,8 +261,81 @@
     
     startMileageInput.addEventListener('input', calculateDistance);
     endMileageInput.addEventListener('input', calculateDistance);
-    
     calculateDistance();
+    
+    document.querySelectorAll('.save-log-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const logId = this.getAttribute('data-log-id');
+            const dailyReportId = {{ $report->id }};
+            const row = this.closest('tr');
+            const timeInput = row.querySelector('.log-time-input');
+            const mileageInput = row.querySelector('.log-mileage-input');
+            const addressInput = row.querySelector('.log-address-input');
+            const actionSelect = row.querySelector('.log-action-select');
+            
+            let loggedAt = null;
+            if (timeInput && timeInput.value) {
+                const dateStr = @json($report->date);
+                let dateOnly = dateStr;
+                if (dateStr.includes('T')) {
+                    dateOnly = dateStr.split('T')[0];
+                } else if (dateStr.includes(' ')) {
+                    dateOnly = dateStr.split(' ')[0];
+                }
+                let timeValue = timeInput.value;
+                if (timeValue.includes(' ')) {
+                    const parts = timeValue.split(' ');
+                    timeValue = parts[parts.length - 1];
+                }
+                loggedAt = `${dateOnly} ${timeValue}:00`;
+            }
+            
+            const mileage = mileageInput ? parseInt(mileageInput.value) : null;
+            const address = addressInput ? addressInput.value : '';
+            const action = actionSelect ? actionSelect.value : '';
+            
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+            btn.disabled = true;
+            
+            fetch(`/masters/daily-reports/operation-log/${logId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    daily_report_id: dailyReportId,
+                    logged_at: loggedAt,
+                    mileage: mileage,
+                    address: address,
+                    action: action
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('保存しました');
+                    location.reload(); 
+                    // btn.innerHTML = '<i class="bi bi-check-circle"></i> 保存';
+                    // setTimeout(() => {
+                    //     btn.innerHTML = '<i class="bi bi-save"></i> 保存';
+                    //     btn.disabled = false;
+                    // }, 1000);
+                } else {
+                    alert('更新に失敗しました: ' + (data.message || '不明なエラー'));
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('エラーが発生しました: ' + error.message);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        });
+    });
 </script>
 @endsection
 
@@ -156,6 +355,46 @@
 }
 .bg-light {
     background-color: #f8f9fa !important;
+}
+
+.info-bar {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px 20px;
+    border: 1px solid #e9ecef;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-icon {
+    font-size: 1.25rem;
+    color: #6c757d;
+}
+
+.info-label {
+    font-size: 0.7rem;
+    color: #6c757d;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+@media (max-width: 768px) {
+    .info-item {
+        margin-bottom: 12px;
+    }
+}
+
+.table td, .table th {
+    vertical-align: middle;
 }
 </style>
 @endpush

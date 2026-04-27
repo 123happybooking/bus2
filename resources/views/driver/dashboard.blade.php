@@ -736,7 +736,7 @@ function loadTabData() {
                 if (data.success && data.itineraries && data.itineraries.length > 0) {
                     let listHtml = '';
                     data.itineraries.forEach(item => {
-                        const isCompleted = item.operation_status === '終了';
+                        const isCompleted = item.is_completed === true;
                         const completedBadgeHtml = isCompleted ? '<span class="completed-badge">完了</span>' : '';
                         
                         listHtml += `
