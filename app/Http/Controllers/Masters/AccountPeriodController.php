@@ -71,6 +71,8 @@ class AccountPeriodController extends Controller
             // 可以在这里添加检查周期重叠的逻辑
             // if ($this->isOverlapping($validated['start'], $validated['end'])) { ... }
 
+            $validated['start'] = date('Y-m-01', strtotime($validated['start']));
+            $validated['end'] = date('Y-m-t', strtotime("+11 months", strtotime($validated['start'])));
             AccountPeriod::create($validated);
 
             return redirect()->route('masters.account-periods.index')
@@ -105,6 +107,7 @@ class AccountPeriodController extends Controller
     public function edit($id)
     {
         $period = AccountPeriod::findOrFail($id);
+        $period->start = date('Y-m', strtotime($period->start));
         return view('masters.account-periods.edit', compact('period'));
     }
 
@@ -130,6 +133,8 @@ class AccountPeriodController extends Controller
         $validated = $request->validate($rules, $messages);
 
         try {
+            $validated['start'] = date('Y-m-01', strtotime($validated['start']));
+            $validated['end'] = date('Y-m-t', strtotime("+11 months", strtotime($validated['start'])));
             $period->update($validated);
 
             return redirect()->route('masters.account-periods.index')

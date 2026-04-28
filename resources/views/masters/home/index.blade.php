@@ -120,6 +120,7 @@
                         <a href="{{ route('masters.account-ledgers.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">勘定元帳</a>
 
                         <a href="{{ route('masters.account-month-sums.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">月次決算</a>
+                        <a href="{{ route('masters.account-sums.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">試算表</a>
                         
                         <!-- 貸借対照表 -->
                         <a href="{{ route('masters.account-bs.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">貸借対照表</a>

@@ -101,7 +101,7 @@
                                                         value="{{ $monthName }}"
                                                         onclick="document.getElementById('searchForm').submit();"
                                                         class="btn btn-sm ms-1 p-0 px-1 {{ $isActive ? 'btn-primary' : 'btn-outline-primary' }}" 
-                                                        style="min-width: 28px; font-size: 0.8rem; {{ $isActive ? 'background-color: #0d6efd; border-color: transparent; color: white !important;' : 'border-color: #E5E7EB;' }}">
+                                                        style="min-width: 30px; font-size: 1.0rem; {{ $isActive ? 'background-color: #0d6efd; border-color: transparent; color: white !important;' : 'border-color: #E5E7EB;' }}">
                                                     {{ $key }}
                                                 </button>
                                             @endforeach
@@ -109,6 +109,7 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
                     </form>
                 </div>
@@ -492,10 +493,6 @@ document.addEventListener('DOMContentLoaded', function () {
             // 重新构建当前页面的 URL
             let newUrl = window.location.pathname + '?period_id=' + this.value;
             
-            // 如果存在 yearmonth，带上它
-            if (yearMonthValue) {
-                newUrl += '&yearmonth=' + yearMonthValue;
-            }
             
             // 跳转页面，触发后端查询
             window.location.href = newUrl;

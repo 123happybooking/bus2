@@ -64,6 +64,7 @@ use App\Http\Controllers\Masters\AccountPlController;
 use App\Http\Controllers\Masters\AccountBsController;
 use App\Http\Controllers\Masters\AccountPeriodController;
 use App\Http\Controllers\Masters\AccountMonthSumController;
+use App\Http\Controllers\Masters\AccountSumController;
 
 Route::get('/', function() {
     return redirect('/masters');
@@ -218,6 +219,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::resource('account-month-sums', AccountMonthSumController::class)->names('account-month-sums');//月次決算
 
         Route::resource('account-periods', AccountPeriodController::class)->names('account-periods');//周期
+        Route::resource('account-sums', AccountSumController::class)->names('account-sums');//月次決算
         
     });
 });

@@ -69,7 +69,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <!-- <div class="col-md-6 mb-3">
                                 <label for="end" class="form-label required">終了年月</label>
                                 <input type="month" class="form-control @error('end') is-invalid @enderror" 
                                        id="end" name="end" 
@@ -78,7 +78,7 @@
                                 @error('end')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                            </div>
+                            </div> -->
                         </div>
                         
                         <div class="d-flex justify-content-between mt-4">

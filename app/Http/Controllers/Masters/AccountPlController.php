@@ -6,13 +6,46 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\Masters\AccountPeriod;
 
 class AccountPlController extends Controller
 {
     public function index(Request $request)
     {
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+
+        $periods = AccountPeriod::orderBy('created_at','desc')->get();
+        $period = AccountPeriod::orderBy('created_at','desc')->first();
+        if($request->period_id){
+            $period = AccountPeriod::find($request->period_id);
+        }
+
+        $period_id = $period->id ?? 0;
+        $period_start = $period->start;
+        $start_year = explode('-', $period_start)[0];
+        $moren_month = explode('-', $period_start)[1];
+
+        $yearmonth = $request->yearmonth;
+
+
+        $months = [];
+        for ($i = 0; $i < 12; $i++) {
+            $current_month = $moren_month + $i;
+            $year = $start_year + floor(($current_month - 1) / 12);
+            $month_num = (($current_month - 1) % 12) + 1;
+            $key = sprintf('%02d', $month_num);
+            $value = sprintf('%d-%02d', $year, $month_num);
+            $months[$key] = $value;
+        }
+        $months["全期"] = "13";
+
+        if ($yearmonth == "13" ){
+            $startDate = $period->start;
+            $endDate = $period->end;
+        }else{
+            $startDate = date('Y-m-d', strtotime("first day of $yearmonth"));
+            $endDate = date('Y-m-d', strtotime("last day of $yearmonth"));
+        }
+
 
         // 初始化总计
         $totalTaxes = 0; 
@@ -94,13 +127,14 @@ class AccountPlController extends Controller
             }
         }
 
+
         return view('masters.account-pl.index', compact(
             'startDate', 'endDate', 'groupedData',
             'totalRevenue', 'totalCogs', 'totalExpenses',
             'totalOIncome', 'totalOExpenses',
             'totalSOIncome', 'totalSOExpenses',
             'operatingIncome', 'ordinaryIncome', 'profitBeforeTax',
-            'totalTaxes','netIncome'
+            'totalTaxes','netIncome','periods','months','period_id','yearmonth'
         ));
     }
 }

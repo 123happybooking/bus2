@@ -10,7 +10,8 @@ class AccountPeriod extends Model
 
     protected $fillable = [
         'title',
-        'start'
+        'start',
+        'end',
     ];
 
 

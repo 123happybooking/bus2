@@ -107,7 +107,7 @@ class AccountJournalEntryController extends Controller
             $lastDay = date('Y-m-d', strtotime('+1 year', strtotime($firstDay)));
         }else{
             $firstDay = date('Y-m-d', strtotime("first day of $yearmonth"));
-            $lastDay = date('Y-m-d', strtotime("first day of next month", strtotime("$yearmonth-01")));
+            $lastDay = date('Y-m-d', strtotime("last day of $yearmonth"));
         }
 
 
@@ -139,7 +139,7 @@ class AccountJournalEntryController extends Controller
             $query->where('posting_date', '<=', $request->date_to);
         }
 
-        $query->where('posting_date', '>=', $firstDay)->where('posting_date', '<', $lastDay);
+        $query->where('posting_date', '>=', $firstDay)->where('posting_date', '<=', $lastDay);
 
         if ($request->filled('account_id')) {
             $entry_ids = AccountJournalLine::where('account_id',$request->account_id)->pluck("journal_entry_id");
