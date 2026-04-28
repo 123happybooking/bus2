@@ -42,7 +42,7 @@
                 </div>
             @endif
             
-            <div class="card shadow-sm">
+            <div class="card shadow-sm card-edit">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="bi bi-car-front"></i> 車両編集
@@ -54,9 +54,9 @@
                         @csrf
                         @method('PUT')
 
-                        <div class="row mb-4">
-                            <div class="col-md-6 mb-3">
-                                <label for="branch_id" class="form-label required">所属営業所</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="branch_id" class="form-label">所属営業所</label>
                                 <select name="branch_id" id="branch_id" 
                                         class="form-select @error('branch_id') is-invalid @enderror" required>
                                     <option value="">選択してください</option>
@@ -72,8 +72,8 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="vehicle_code" class="form-label required">車両コード</label>
+                            <div class="col-md-6">
+                                <label for="vehicle_code" class="form-label">車両コード</label>
                                 <input type="text" name="vehicle_code" id="vehicle_code" 
                                        class="form-control @error('vehicle_code') is-invalid @enderror"
                                        value="{{ old('vehicle_code', $vehicle->vehicle_code) }}" 
@@ -83,9 +83,9 @@
                                 @enderror
                             </div>
 
-                            <div class="row mb-3">
+                            <div class="row">
                                 <div class="col-md-4">
-                                    <label for="vehicle_type_id" class="form-label required">車両種類</label>
+                                    <label for="vehicle_type_id" class="form-label">車両種類</label>
                                     <select name="vehicle_type_id" id="vehicle_type_id" 
                                             class="form-select @error('vehicle_type_id') is-invalid @enderror" required>
                                         <option value="">選択してください</option>
@@ -103,7 +103,7 @@
                                 </div>
                             
                                 <div class="col-md-4">
-                                    <label for="vehicle_model_id" class="form-label required">モデル</label>
+                                    <label for="vehicle_model_id" class="form-label">モデル</label>
                                     <select name="vehicle_model_id" id="vehicle_model_id" 
                                             class="form-select @error('vehicle_model_id') is-invalid @enderror" required>
                                         <option value="">先に車両種類を選択してください</option>
@@ -114,7 +114,7 @@
                                 </div>
                             
                                 <div class="col-md-4">
-                                    <label for="vehicle_grade_id" class="form-label required">車両等級</label>
+                                    <label for="vehicle_grade_id" class="form-label">車両等級</label>
                                     <select name="vehicle_grade_id" id="vehicle_grade_id" 
                                             class="form-select @error('vehicle_grade_id') is-invalid @enderror" required>
                                         <option value="">選択してください</option>
@@ -131,8 +131,8 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="registration_number" class="form-label required">登録番号</label>
+                            <div class="col-md-6">
+                                <label for="registration_number" class="form-label">登録番号</label>
                                 <input type="text" name="registration_number" id="registration_number" 
                                        class="form-control @error('registration_number') is-invalid @enderror"
                                        value="{{ old('registration_number', $vehicle->registration_number) }}" 
@@ -142,8 +142,8 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6 mb-3">
-                                <label for="seating_capacity" class="form-label required">乗車定員</label>
+                            <div class="col-md-6">
+                                <label for="seating_capacity" class="form-label">乗車定員</label>
                                 <div class="input-group">
                                     <input type="number" name="seating_capacity" id="seating_capacity" 
                                            class="form-control @error('seating_capacity') is-invalid @enderror"
@@ -156,8 +156,8 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="ownership_type" class="form-label required">所有形態</label>
+                            <div class="col-md-6">
+                                <label for="ownership_type" class="form-label">所有形態</label>
                                 <select name="ownership_type" id="ownership_type" 
                                         class="form-select @error('ownership_type') is-invalid @enderror" required>
                                     <option value="">選択してください</option>
@@ -170,8 +170,8 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="inspection_expiration_date" class="form-label required">車検満了日</label>
+                            <div class="col-md-6">
+                                <label for="inspection_expiration_date" class="form-label">車検満了日</label>
                                 <input type="date" name="inspection_expiration_date" id="inspection_expiration_date" 
                                        class="form-control @error('inspection_expiration_date') is-invalid @enderror"
                                        value="{{ old('inspection_expiration_date', $vehicle->inspection_expiration_date) }}" required>
@@ -180,7 +180,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="display_order" class="form-label">表示順序</label>
                                 <input type="number" class="form-control @error('display_order') is-invalid @enderror" 
                                        id="display_order" name="display_order" 
@@ -191,7 +191,7 @@
                                 @enderror
                             </div>
                         
-                            <div class="col-md-12 mb-3">
+                            <div class="col-md-12">
                                 <label for="remarks" class="form-label">備考</label>
                                 <textarea class="form-control @error('remarks') is-invalid @enderror" 
                                           id="remarks" name="remarks" 
@@ -201,8 +201,7 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label required">ステータス</label>
+                            <div class="col-md-6">
                                 <div class="mt-2">
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="is_active" id="is_active_true" 

@@ -36,7 +36,8 @@ class DriverController extends Controller
             $query->where('is_active', $request->is_active);
         }
         
-        $drivers = $query->orderBy('display_order')->orderBy('driver_code')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $drivers = $query->orderBy('display_order')->orderBy('driver_code')->paginate($perPage);
         
         $branches = Branch::orderBy('branch_code')->get(['id', 'branch_code', 'branch_name']);
         

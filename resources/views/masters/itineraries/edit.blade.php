@@ -46,7 +46,7 @@
                 @csrf
                 @method('PUT')
                 
-                <div class="card shadow-sm mb-4">
+                <div class="card shadow-sm mb-4 card-edit">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
                             <i class="bi bi-info-circle"></i> 行程基本情報
@@ -57,10 +57,10 @@
                         <table class="table table-bordered mb-0">
                             <tbody>
                                 <tr>
-                                    <td class="bg-light" style="width: 25%; padding: 0.5rem;">
+                                    <td class="bg-light" style="width: 15%;">
                                         <label for="itinerary_code" class="form-label required mb-0">行程コード</label>
                                     </td>
-                                    <td class="bg-white" style="width: 50%; padding: 0.5rem;">
+                                    <td class="bg-white">
                                         <input type="text" class="form-control @error('itinerary_code') is-invalid @enderror" 
                                                id="itinerary_code" name="itinerary_code" 
                                                value="{{ old('itinerary_code', $itinerary->itinerary_code) }}" 
@@ -69,16 +69,16 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </td>
-                                    <td class="bg-light" style="width: 25%; padding: 0.5rem;">
+                                    <td class="bg-light" style="width: 25%;">
                                         <small class="form-text text-muted mb-0">※ 必須、20文字以内、他と重複不可</small>
                                     </td>
                                 </tr>
                                 
                                 <tr>
-                                    <td class="bg-light" style="padding: 0.5rem;">
+                                    <td class="bg-light">
                                         <label for="itinerary_name" class="form-label required mb-0">行程名</label>
                                     </td>
-                                    <td class="bg-white" style="padding: 0.5rem;">
+                                    <td class="bg-white">
                                         <input type="text" class="form-control @error('itinerary_name') is-invalid @enderror" 
                                                id="itinerary_name" name="itinerary_name" 
                                                value="{{ old('itinerary_name', $itinerary->itinerary_name) }}" 
@@ -87,16 +87,16 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </td>
-                                    <td class="bg-light" style="padding: 0.5rem;">
+                                    <td class="bg-light">
                                         <small class="form-text text-muted mb-0">※ 必須、100文字以内</small>
                                     </td>
                                 </tr>
                                 
                                 <tr>
-                                    <td class="bg-light" style="padding: 0.5rem;">
+                                    <td class="bg-light">
                                         <label for="category" class="form-label mb-0">カテゴリー</label>
                                     </td>
-                                    <td class="bg-white" style="padding: 0.5rem;">
+                                    <td class="bg-white">
                                         <input type="text" class="form-control @error('category') is-invalid @enderror" 
                                                id="category" name="category" 
                                                value="{{ old('category', $itinerary->category) }}"
@@ -105,16 +105,16 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </td>
-                                    <td class="bg-light" style="padding: 0.5rem;">
+                                    <td class="bg-light">
                                         <small class="form-text text-muted mb-0">50文字以内</small>
                                     </td>
                                 </tr>
                                 
                                 <tr>
-                                    <td class="bg-light align-middle" style="padding: 0.5rem;">
+                                    <td class="bg-light align-middle">
                                         <label for="remarks" class="form-label mb-0">備考</label>
                                     </td>
-                                    <td class="bg-white" style="padding: 0.5rem;">
+                                    <td class="bg-white">
                                         <textarea class="form-control @error('remarks') is-invalid @enderror" 
                                                   id="remarks" name="remarks" rows="3"
                                                   maxlength="500" placeholder="例: 行程の詳細説明、注意事項など">{{ old('remarks', $itinerary->remarks) }}</textarea>
@@ -122,7 +122,7 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </td>
-                                    <td class="bg-light align-middle" style="padding: 0.5rem;">
+                                    <td class="bg-light align-middle">
                                         <small class="form-text text-muted mb-0">500文字以内</small>
                                     </td>
                                 </tr>
@@ -131,8 +131,9 @@
                     </div>
                 </div>
                 
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                
+                <div class="card shadow-sm mb-4 card-edit">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
                             <i class="bi bi-calendar-day"></i> 行程詳細（日次行程）
                         </h5>

@@ -42,7 +42,7 @@
                 </div>
             @endif
             
-            <div class="card shadow-sm">
+            <div class="card shadow-sm card-edit">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="bi bi-tag-gear"></i> 予約分類編集
@@ -54,10 +54,8 @@
                         @csrf
                         @method('PUT')
                         
-                        <h6 class="mb-3 border-bottom pb-2">基本情報</h6>
-                        
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="category_code" class="form-label required">カテゴリコード</label>
                                 <input type="text" class="form-control @error('category_code') is-invalid @enderror" 
                                        id="category_code" name="category_code" 
@@ -66,10 +64,9 @@
                                 @error('category_code')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 20文字以内、他と重複不可</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="category_name" class="form-label required">分類名</label>
                                 <input type="text" class="form-control @error('category_name') is-invalid @enderror" 
                                        id="category_name" name="category_name" 
@@ -78,12 +75,11 @@
                                 @error('category_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 100文字以内</small>
                             </div>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="color_code" class="form-label required">カラーコード</label>
                                 <div class="input-group">
                                     <input type="color" class="form-control form-control-color @error('color_code') is-invalid @enderror" 
@@ -96,10 +92,9 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <small class="form-text text-muted">※ HEXカラーコード (#RRGGBB)</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="display_order" class="form-label">表示順</label>
                                 <input type="number" class="form-control @error('display_order') is-invalid @enderror" 
                                        id="display_order" name="display_order" 
@@ -108,13 +103,12 @@
                                 @error('display_order')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 数値を入力</small>
                             </div>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check mt-4 pt-2">
+                            <div class="col-md-6">
+                                <div class="form-check">
                                     <input class="form-check-input @error('is_active') is-invalid @enderror" 
                                            type="checkbox" id="is_active" name="is_active" value="1" 
                                            {{ old('is_active', $reservationCategory->is_active) ? 'checked' : '' }}>
@@ -124,9 +118,6 @@
                                     @error('is_active')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
-                                    <small class="form-text text-muted d-block">
-                                        ※ チェックを外すとこのカテゴリは使用できなくなります
-                                    </small>
                                 </div>
                             </div>
                         </div>

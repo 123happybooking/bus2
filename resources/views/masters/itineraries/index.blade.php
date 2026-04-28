@@ -17,25 +17,26 @@
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
     
-    <div class="mb-3">
-        <div class="card-body">
-            <form method="GET" action="{{ route('masters.itineraries.index') }}" class="row g-2">
-                <div class="col-md-4">
-                    <input type="text" name="search" class="form-control" placeholder="行程コード、行程名、カテゴリーで検索"
-                           value="{{ request('search') }}">
-                </div>
-                <div class="col-md-auto">
-                    <button type="submit" class="btn btn-outline-primary">
-                        <i class="bi bi-search"></i> 検索
-                    </button>
-                    @if(request('search'))
-                        <a href="{{ route('masters.itineraries.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle"></i> クリア
-                        </a>
-                    @endif
-                </div>
-            </form>
-        </div>
+    <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">
+        <form method="GET" action="{{ route('masters.itineraries.index') }}" class="row g-2">
+            <div class="col">
+                <input type="text" name="search" class="form-control form-control-sm" style="border-color: #E5E7EB;" 
+                       placeholder="行程コード、行程名、カテゴリーで検索"
+                       value="{{ request('search') }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-sm px-3" 
+                        style="background-color: #2563eb; color: white; border-color: #2563eb; font-size: 0.875rem;">
+                    検索
+                </button>
+            </div>
+            <div class="col-auto">
+                <a href="{{ route('masters.itineraries.index') }}" class="btn btn-sm btn-outline-secondary px-3" 
+                   style="border-color: #E5E7EB; color: #374151; font-size: 0.875rem;">
+                    クリア
+                </a>
+            </div>
+        </form>
     </div>
     
     @if(request('search'))
@@ -52,20 +53,22 @@
 
     <div class="mb-3">
         <div class="table-responsive">
-            <table class="table table-bordered mb-0 table-striped">
-                <thead class="table-secondary align-middle">
+            <table class="table table-sm table-bordered mb-0 table-list">
+                <thead>
                     <tr>
+                        <th>No.</th>
                         <th width="100">コード</th>
                         <th width="120">区分</th>
                         <th>行程名</th>
                         <th>備考</th>
-                        <th width="150" class="text-center">最終更新</th>
-                        <th width="140" class="text-center">操作</th>
+                        <th width="150">最終更新</th>
+                        <th width="140">操作</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($itineraries as $itinerary)
+                    @forelse($itineraries as $index => $itinerary)
                     <tr>
+                        <td>{{ $itineraries->firstItem() + $index }}</td>
                         <td>
                             <span class="badge bg-secondary">{{ $itinerary->itinerary_code }}</span>
                         </td>
@@ -141,80 +144,88 @@
         </div>
     </div>
     
-    @if($itineraries->hasPages())
+    @if($itineraries->hasPages() || $itineraries->total() > 0)
         <div class="mt-3">
-            <nav>
-                <ul class="pagination justify-content-center mb-0">
-                    <li class="page-item {{ $itineraries->onFirstPage() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $itineraries->previousPageUrl() }}">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-
-                    @php
-                        $current = $itineraries->currentPage();
-                        $last = $itineraries->lastPage();
-                        $start = max(1, $current - 2);
-                        $end = min($last, $current + 2);
-                    @endphp
-
-                    @if($start > 1)
-                        <li class="page-item">
-                            <a class="page-link" href="{{ $itineraries->url(1) }}">1</a>
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                
+                <div class="d-flex align-items-center">
+                    <label for="per_page_select" class="form-label small text-muted mb-0 me-2" style="white-space: nowrap;">
+                        表示件数:
+                    </label>
+                    <select id="per_page_select" class="form-select form-select-sm" style="font-size: 0.75rem; min-width: 80px;">
+                        <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20 行</option>
+                        <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30 行</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 行</option>
+                    </select>
+                </div>
+    
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item {{ $itineraries->onFirstPage() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $itineraries->previousPageUrl() }}" aria-label="Previous" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
                         </li>
-                        @if($start > 2)
-                            <li class="page-item disabled">
-                                <span class="page-link">...</span>
+    
+                        @php
+                            $current = $itineraries->currentPage();
+                            $last = $itineraries->lastPage();
+                            $start = max(1, $current - 2);
+                            $end = min($last, $current + 2);
+                        @endphp
+    
+                        @if($start > 1)
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $itineraries->url(1) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">1</a>
+                            </li>
+                            @if($start > 2)
+                                <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                            @endif
+                        @endif
+    
+                        @for($i = $start; $i <= $end; $i++)
+                            <li class="page-item {{ $i == $current ? 'active' : '' }}">
+                                <a class="page-link" href="{{ $itineraries->url($i) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $i }}</a>
+                            </li>
+                        @endfor
+    
+                        @if($end < $last)
+                            @if($end < $last - 1)
+                                <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                            @endif
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $itineraries->url($last) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $last }}</a>
                             </li>
                         @endif
-                    @endif
-
-                    @for($i = $start; $i <= $end; $i++)
-                        <li class="page-item {{ $i == $current ? 'active' : '' }}">
-                            <a class="page-link" href="{{ $itineraries->url($i) }}">{{ $i }}</a>
+    
+                        <li class="page-item {{ !$itineraries->hasMorePages() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $itineraries->nextPageUrl() }}" aria-label="Next" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
                         </li>
-                    @endfor
-
-                    @if($end < $last)
-                        @if($end < $last - 1)
-                            <li class="page-item disabled">
-                                <span class="page-link">...</span>
-                            </li>
-                        @endif
-                        <li class="page-item">
-                            <a class="page-link" href="{{ $itineraries->url($last) }}">{{ $last }}</a>
-                        </li>
-                    @endif
-
-                    <li class="page-item {{ !$itineraries->hasMorePages() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $itineraries->nextPageUrl() }}">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            <div class="text-center text-muted small mt-2">
-                表示中: {{ $itineraries->firstItem() ?? 0 }} - {{ $itineraries->lastItem() ?? 0 }} / 全 {{ $itineraries->total() }} 件
+                    </ul>
+                </nav>
+            </div>
+    
+            <div class="text-center text-muted mt-2" style="font-size: 0.75rem;">
+                表示中：{{ $itineraries->firstItem() ?? 0 }} - {{ $itineraries->lastItem() ?? 0 }} / 全 {{ $itineraries->total() }} 件
             </div>
         </div>
     @endif
 </div>
 @endsection
 
-@push('styles')
-<style>
-.text-truncate {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
 
-.badge {
-    font-size: 0.85em;
-}
-
-.table th {
-    font-weight: 600;
-}
-</style>
+@push('scripts')
+<script>
+document.getElementById('per_page_select').addEventListener('change', function() {
+    const url = new URL(window.location.href);
+    const search = document.querySelector('input[name="search"]')?.value;
+    url.searchParams.set('per_page', this.value);
+    if (search) {
+        url.searchParams.set('search', search);
+    }
+    window.location.href = url.toString();
+});
+</script>
 @endpush

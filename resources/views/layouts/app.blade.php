@@ -794,6 +794,117 @@
             border-radius: 4px !important;
         }
         
+        
+        .table-list {
+            border: 1px solid #E5E7EB !important;
+        }
+        
+        .table-list th, .table-list td {
+            padding: 0.2rem 0.2rem !important;
+            vertical-align: middle;
+            border-color: #E5E7EB;
+            color: #111827;
+            font-size: 0.8rem;
+        }
+        
+        .table-list thead th {
+            border-bottom-width: 1px;
+            font-weight: 500;
+            background-color: #F3F4F6;
+            color: #374151;
+            white-space: nowrap;
+        }
+        
+        .table-list tr th,
+        .table-list tr td{
+            text-align: center !important;
+        }
+        
+        .table-list tr th div,
+        .table-list tr td div {
+            justify-content: center!important;
+        }
+        
+        .table-list tr th:first-child,
+        .table-list tr td:first-child {
+            width: 60px;
+        }
+        
+        .table-list tr th:last-child,
+        .table-list tr td:last-child {
+            width: 150px;
+        }
+        
+        .table-list>tbody>tr:nth-of-type(odd)>* {
+            --bs-table-color-type: white;
+            --bs-table-bg-type: white;
+        }
+        .table-list>tbody>tr:nth-of-type(even)>* {
+            --bs-table-color-type: #F3F4F6;
+            --bs-table-bg-type: #F3F4F6;
+        }
+        
+        .table-list tbody tr:hover td,
+        .table-list tbody tr:hover th {
+            --bs-table-color-type: #d8e1e9 !important;
+            --bs-table-bg-type: #d8e1e9 !important;
+            cursor: pointer !important;
+            position: relative !important;
+            z-index: 1 !important;
+            font-weight: 500 !important;
+        }
+        
+        .table-list>.btn-group-sm>.btn, .btn-sm {
+            --bs-btn-padding-y: 0.1rem !important;
+            --bs-btn-padding-x: 0.3rem !important;
+        }
+        
+        .pagination {
+            margin-bottom: 0;
+            gap: 2px;
+        }
+        
+        .pagination .page-link {
+            color: #374151;
+            border-color: #E5E7EB;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: #2563eb;
+            border-color: #2563eb;
+            color: white;
+        }
+        
+        
+        
+        .card-edit {
+            font-size: 0.85rem;
+            background-color: #F9FAFB;
+        }
+        .card-edit input,
+        .card-edit select,
+        .card-edit textarea {
+            padding: 0.1rem 0.3rem;
+            font-size: 0.85rem;
+        }
+        .card-edit input:focus,
+        .card-edit textarea:focus {
+            border-color: #0d6efd;
+            box-shadow: none;
+        }
+        .card-edit .form-label {
+            margin-bottom: 0.1rem;
+        }
+        .card-edit .row,
+        .card-edit .col-md-6 {
+            margin-bottom: 4px;
+        }
+        .card-edit .input-group-text {
+            padding: 0 10px;
+            font-size: 0.85rem;
+        }
 
 
         @media (max-width: 768px) {

@@ -40,7 +40,8 @@ class LoginHistoryController extends Controller
             $query->whereDate('logged_at', '<=', $request->end_date);
         }
         
-        $loginHistories = $query->orderBy('logged_at', 'desc')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $loginHistories = $query->orderBy('logged_at', 'desc')->paginate($perPage);
         $staffList = Staff::orderBy('name')->pluck('name', 'id');
         
         if ($request->hasAny(['search', 'staff_id', 'status', 'start_date', 'end_date'])) {

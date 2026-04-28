@@ -46,7 +46,7 @@
                 @csrf
                 @method('PUT')
                 
-                <div class="card shadow-sm mb-4">
+                <div class="card shadow-sm mb-4 card-edit">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
                             <i class="bi bi-truck"></i> 車両種類基本情報
@@ -57,10 +57,10 @@
                         <table class="table table-bordered mb-0">
                             <tbody>
                                 <tr>
-                                    <td class="bg-light" style="width: 25%; padding: 0.5rem;">
+                                    <td class="bg-light" style="width: 15%;">
                                         <label for="type_name" class="form-label required mb-0">車両種類名</label>
                                     </td>
-                                    <td class="bg-white" style="width: 50%; padding: 0.5rem;">
+                                    <td class="bg-white">
                                         <input type="text" class="form-control @error('type_name') is-invalid @enderror" 
                                                id="type_name" name="type_name" 
                                                value="{{ old('type_name', $vehicleType->type_name) }}" 
@@ -69,7 +69,7 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </td>
-                                    <td class="bg-light" style="width: 25%; padding: 0.5rem;">
+                                    <td class="bg-light" style="width: 25%;">
                                         <small class="form-text text-muted mb-0">※ 必須、255文字以内、他と重複不可</small>
                                     </td>
                                 </tr>
@@ -78,8 +78,8 @@
                     </div>
                 </div>
                 
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <div class="card shadow-sm mb-4 card-edit">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
                             <i class="bi bi-grid-3x3-gap-fill"></i> 車両モデル一覧
                         </h5>

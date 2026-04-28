@@ -22,7 +22,8 @@ class PartnerController extends Controller
             });
         }
         
-        $partners = $query->orderBy('partner_code')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $partners = $query->orderBy('partner_code')->paginate($perPage);
         
         if ($request->has('search')) {
             $partners->appends(['search' => $request->search]);

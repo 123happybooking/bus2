@@ -33,7 +33,8 @@ class VehicleController extends Controller
             });
         }
         
-        $vehicles = $query->orderBy('display_order')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $vehicles = $query->orderBy('display_order')->paginate($perPage);
         
         if ($request->has('search')) {
             $vehicles->appends(['search' => $request->search]);

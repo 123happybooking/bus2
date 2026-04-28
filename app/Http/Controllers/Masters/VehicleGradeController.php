@@ -20,7 +20,8 @@ class VehicleGradeController extends Controller
             });
         }
         
-        $grades = $query->orderBy('code')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $grades = $query->orderBy('code')->paginate($perPage);
         
         if ($request->has('search')) {
             $grades->appends(['search' => $request->search]);

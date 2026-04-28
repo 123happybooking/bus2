@@ -42,8 +42,8 @@
     </div>
 
     <div class="table-responsive">
-        <table class="table table-sm table-bordered mb-0" style="border-color: #E5E7EB; font-size: 0.875rem;">
-            <thead style="background-color: #F3F4F6;">
+        <table class="table table-sm table-bordered mb-0 table-list">
+            <thead>
                 <tr>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 60px;">No.</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 160px;">初始</th>
@@ -134,15 +134,74 @@
          </table>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mt-2">
-        <div style="color: #6b7280; font-size: 0.875rem;">
-            全 {{ $groupInfos->total() }} 件中 
-            {{ $groupInfos->firstItem() ?? 0 }} - {{ $groupInfos->lastItem() ?? 0 }} 件表示
+    @if($groupInfos->hasPages() || $groupInfos->total() > 0)
+        <div class="mt-3">
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                
+                <div class="d-flex align-items-center">
+                    <label for="per_page_select" class="form-label small text-muted mb-0 me-2" style="white-space: nowrap;">
+                        表示件数:
+                    </label>
+                    <select id="per_page_select" class="form-select form-select-sm" style="font-size: 0.75rem; min-width: 80px;">
+                        <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20 行</option>
+                        <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30 行</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 行</option>
+                    </select>
+                </div>
+    
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item {{ $groupInfos->onFirstPage() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $groupInfos->previousPageUrl() }}" aria-label="Previous" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+    
+                        @php
+                            $current = $groupInfos->currentPage();
+                            $last = $groupInfos->lastPage();
+                            $start = max(1, $current - 2);
+                            $end = min($last, $current + 2);
+                        @endphp
+    
+                        @if($start > 1)
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $groupInfos->url(1) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">1</a>
+                            </li>
+                            @if($start > 2)
+                                <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                            @endif
+                        @endif
+    
+                        @for($i = $start; $i <= $end; $i++)
+                            <li class="page-item {{ $i == $current ? 'active' : '' }}">
+                                <a class="page-link" href="{{ $groupInfos->url($i) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $i }}</a>
+                            </li>
+                        @endfor
+    
+                        @if($end < $last)
+                            @if($end < $last - 1)
+                                <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                            @endif
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $groupInfos->url($last) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $last }}</a>
+                            </li>
+                        @endif
+    
+                        <li class="page-item {{ !$groupInfos->hasMorePages() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $groupInfos->nextPageUrl() }}" aria-label="Next" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+    
+            <div class="text-center text-muted mt-2" style="font-size: 0.75rem;">
+                表示中：{{ $groupInfos->firstItem() ?? 0 }} - {{ $groupInfos->lastItem() ?? 0 }} / 全 {{ $groupInfos->total() }} 件
+            </div>
         </div>
-        <div>
-            {{ $groupInfos->withQueryString()->links('pagination::bootstrap-4') }}
-        </div>
-    </div>
+    @endif
 </div>
 
 <form id="deleteForm" method="POST" style="display: none;">
@@ -166,7 +225,11 @@
 
 @push('styles')
 <style>
-.table-sm th, .table-sm td {
+.table-list {
+    border: 1px solid #E5E7EB !important;
+}
+
+.table-list th, .table-list td {
     padding: 0.2rem 0.2rem !important;
     vertical-align: middle;
     border-color: #E5E7EB;
@@ -174,16 +237,21 @@
     font-size: 0.8rem;
 }
 
-.table-bordered {
-    border: 1px solid #E5E7EB;
-}
-
-.table thead th {
+.table-list thead th {
     border-bottom-width: 1px;
     font-weight: 500;
     background-color: #F3F4F6;
     color: #374151;
     white-space: nowrap;
+}
+
+.table-list tbody tr:hover td,
+.table-list tbody tr:hover th {
+    background-color: #d8e1e9  !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 1 !important;
+    font-weight: 500 !important;
 }
 
 .pagination {
@@ -334,6 +402,18 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && document.getElementById('iframeModal').style.display === 'block') {
         closeIframeModal();
     }
+});
+
+document.getElementById('per_page_select').addEventListener('change', function() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', this.value);
+    const search = document.querySelector('input[name="search"]')?.value;
+    const dateFrom = document.querySelector('input[name="date_from"]')?.value;
+    const dateEnd = document.querySelector('input[name="date_end"]')?.value;
+    if (search) url.searchParams.set('search', search);
+    if (dateFrom) url.searchParams.set('date_from', dateFrom);
+    if (dateEnd) url.searchParams.set('date_end', dateEnd);
+    window.location.href = url.toString();
 });
 
 

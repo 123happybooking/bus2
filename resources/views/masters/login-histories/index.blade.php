@@ -10,54 +10,51 @@
                 <h4><i class="bi bi-clock-history"></i>ログイン履歴</h4>
             </div>
             
-            <div class="mb-3">
-                <div class="card-body">
-                    <form method="GET" action="{{ route('masters.login-histories.index') }}" class="row g-2">
-                        <div class="col-md-2">
-                            <input type="text" name="search" class="form-control" 
-                                   placeholder="ログインID・IPアドレス・スタッフ名で検索"
-                                   value="{{ request('search') }}">
+            <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">
+                <form method="GET" action="{{ route('masters.login-histories.index') }}" class="row g-2 align-items-center">
+                    <div class="col-auto">
+                        <input type="text" name="search" class="form-control form-control-sm" style="border-color: #E5E7EB; width: 180px;" 
+                               placeholder="ログインID・IPアドレス・スタッフ名"
+                               value="{{ request('search') }}">
+                    </div>
+                    <div class="col-auto">
+                        <select name="staff_id" class="form-select form-select-sm" style="border-color: #E5E7EB; width: 150px;">
+                            <option value="">スタッフを選択</option>
+                            @foreach($staffList as $id => $name)
+                                <option value="{{ $id }}" {{ request('staff_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <select name="status" class="form-select form-select-sm" style="border-color: #E5E7EB; width: 100px;">
+                            <option value="">ステータス</option>
+                            <option value="success" {{ request('status') == 'success' ? 'selected' : '' }}>成功</option>
+                            <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>失敗</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <input type="date" name="start_date" class="form-control form-control-sm" style="border-color: #E5E7EB; width: 140px;" 
+                               value="{{ request('start_date') }}" placeholder="開始日">
+                    </div>
+                    <div class="col-auto">
+                        <input type="date" name="end_date" class="form-control form-control-sm" style="border-color: #E5E7EB; width: 140px;" 
+                               value="{{ request('end_date') }}" placeholder="終了日">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-sm px-3" 
+                                style="background-color: #2563eb; color: white; border-color: #2563eb; font-size: 0.875rem;">
+                            検索
+                        </button>
+                    </div>
+                    @if(request()->anyFilled(['search', 'staff_id', 'status', 'start_date', 'end_date']))
+                        <div class="col-auto">
+                            <a href="{{ route('masters.login-histories.index') }}" class="btn btn-sm btn-outline-secondary px-3" 
+                               style="border-color: #E5E7EB; color: #374151; font-size: 0.875rem;">
+                                クリア
+                            </a>
                         </div>
-                        <div class="col-md-2">
-                            <select name="staff_id" class="form-control">
-                                <option value="">スタッフを選択</option>
-                                @foreach($staffList as $id => $name)
-                                    <option value="{{ $id }}" {{ request('staff_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <select name="status" class="form-control">
-                                <option value="">ステータス</option>
-                                <option value="success" {{ request('status') == 'success' ? 'selected' : '' }}>成功</option>
-                                <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>失敗</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <input type="date" name="start_date" class="form-control" 
-                                   value="{{ request('start_date') }}" 
-                                   placeholder="開始日">
-                        </div>
-                        <div class="col-md-2">
-                            <input type="date" name="end_date" class="form-control" 
-                                   value="{{ request('end_date') }}" 
-                                   placeholder="終了日">
-                        </div>
-                        <div class="col-md-1">
-                            <button type="submit" class="btn btn-outline-primary w-100">
-                                <i class="bi bi-search"></i> 検索
-                            </button>
-                        </div>
-                    
-                        @if(request()->anyFilled(['search', 'staff_id', 'status', 'start_date', 'end_date']))
-                            <div class="col-md-1">
-                                <a href="{{ route('masters.login-histories.index') }}" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center px-2" style="height:100%;">
-                                    <i class="bi bi-x-circle me-1"></i> クリア
-                                </a>
-                            </div>
-                        @endif
-                    </form>
-                </div>
+                    @endif
+                </form>
             </div>
             
             @if(request()->anyFilled(['search', 'staff_id', 'status', 'start_date', 'end_date']))
@@ -74,22 +71,22 @@
             
             <div class="mb-3">
                 <div class="table-responsive">
-                    <table class="table table-bordered mb-0 table-striped">
-                        <thead class="table-secondary">
+                    <table class="table table-sm table-bordered mb-0 table-list">
+                        <thead>
                             <tr>
-                                <th width="80">ID</th>
+                                <th>No.</th>
                                 <th>スタッフ</th>
                                 <th>ログインID</th>
                                 <th>日時</th>
                                 <th>IPアドレス</th>
                                 <th>ステータス</th>
-                                <th>ユーザーエージェント</th>
+                                <th style="width: 30%;">ユーザーエージェント</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($loginHistories as $history)
+                            @forelse($loginHistories as $index => $history)
                             <tr>
-                                <td class="text-center">{{ $history->id }}</td>
+                                <td>{{ $loginHistories->firstItem() + $index }}</td>
                                 <td>
                                     @if($history->staff)
                                         {{ $history->staff->name }}
@@ -133,60 +130,71 @@
                     </table>
                 </div>
                 
-                @if($loginHistories->hasPages())
+                @if($loginHistories->hasPages() || $loginHistories->total() > 0)
                     <div class="mt-3">
-                        <nav>
-                            <ul class="pagination justify-content-center mb-0">
-                                <li class="page-item {{ $loginHistories->onFirstPage() ? 'disabled' : '' }}">
-                                    <a class="page-link" href="{{ $loginHistories->previousPageUrl() }}">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-            
-                                @php
-                                    $current = $loginHistories->currentPage();
-                                    $last = $loginHistories->lastPage();
-                                    $start = max(1, $current - 2);
-                                    $end = min($last, $current + 2);
-                                @endphp
-            
-                                @if($start > 1)
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ $loginHistories->url(1) }}">1</a>
+                        <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                            
+                            <div class="d-flex align-items-center">
+                                <label for="per_page_select" class="form-label small text-muted mb-0 me-2" style="white-space: nowrap;">
+                                    表示件数:
+                                </label>
+                                <select id="per_page_select" class="form-select form-select-sm" style="font-size: 0.75rem; min-width: 80px;">
+                                    <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20 行</option>
+                                    <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30 行</option>
+                                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 行</option>
+                                </select>
+                            </div>
+                
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item {{ $loginHistories->onFirstPage() ? 'disabled' : '' }}">
+                                        <a class="page-link" href="{{ $loginHistories->previousPageUrl() }}" aria-label="Previous" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
                                     </li>
-                                    @if($start > 2)
-                                        <li class="page-item disabled">
-                                            <span class="page-link">...</span>
+                
+                                    @php
+                                        $current = $loginHistories->currentPage();
+                                        $last = $loginHistories->lastPage();
+                                        $start = max(1, $current - 2);
+                                        $end = min($last, $current + 2);
+                                    @endphp
+                
+                                    @if($start > 1)
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $loginHistories->url(1) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">1</a>
+                                        </li>
+                                        @if($start > 2)
+                                            <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                                        @endif
+                                    @endif
+                
+                                    @for($i = $start; $i <= $end; $i++)
+                                        <li class="page-item {{ $i == $current ? 'active' : '' }}">
+                                            <a class="page-link" href="{{ $loginHistories->url($i) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $i }}</a>
+                                        </li>
+                                    @endfor
+                
+                                    @if($end < $last)
+                                        @if($end < $last - 1)
+                                            <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                                        @endif
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $loginHistories->url($last) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $last }}</a>
                                         </li>
                                     @endif
-                                @endif
-            
-                                @for($i = $start; $i <= $end; $i++)
-                                    <li class="page-item {{ $i == $current ? 'active' : '' }}">
-                                        <a class="page-link" href="{{ $loginHistories->url($i) }}">{{ $i }}</a>
+                
+                                    <li class="page-item {{ !$loginHistories->hasMorePages() ? 'disabled' : '' }}">
+                                        <a class="page-link" href="{{ $loginHistories->nextPageUrl() }}" aria-label="Next" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
                                     </li>
-                                @endfor
-            
-                                @if($end < $last)
-                                    @if($end < $last - 1)
-                                        <li class="page-item disabled">
-                                            <span class="page-link">...</span>
-                                        </li>
-                                    @endif
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ $loginHistories->url($last) }}">{{ $last }}</a>
-                                    </li>
-                                @endif
-            
-                                <li class="page-item {{ !$loginHistories->hasMorePages() ? 'disabled' : '' }}">
-                                    <a class="page-link" href="{{ $loginHistories->nextPageUrl() }}">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                        <div class="text-center text-muted small mt-2">
-                            表示中: {{ $loginHistories->firstItem() ?? 0 }} - {{ $loginHistories->lastItem() ?? 0 }} / 全 {{ $loginHistories->total() }} 件
+                                </ul>
+                            </nav>
+                        </div>
+                
+                        <div class="text-center text-muted mt-2" style="font-size: 0.75rem;">
+                            表示中：{{ $loginHistories->firstItem() ?? 0 }} - {{ $loginHistories->lastItem() ?? 0 }} / 全 {{ $loginHistories->total() }} 件
                         </div>
                     </div>
                 @endif
@@ -195,3 +203,18 @@
     </div>
 </div>
 @endsection
+
+
+@push('scripts')
+<script>
+document.getElementById('per_page_select').addEventListener('change', function() {
+    const url = new URL(window.location.href);
+    const search = document.querySelector('input[name="search"]')?.value;
+    url.searchParams.set('per_page', this.value);
+    if (search) {
+        url.searchParams.set('search', search);
+    }
+    window.location.href = url.toString();
+});
+</script>
+@endpush

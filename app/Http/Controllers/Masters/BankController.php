@@ -22,7 +22,8 @@ class BankController extends Controller
             });
         }
         
-        $banks = $query->orderBy('display_order')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $banks = $query->orderBy('display_order')->paginate($perPage);
         
         if ($request->has('search')) {
             $banks->appends(['search' => $request->search]);

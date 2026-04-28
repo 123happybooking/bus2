@@ -44,7 +44,7 @@
             </div>
             @endif
             
-            <div class="card shadow-sm">
+            <div class="card shadow-sm card-edit">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="bi bi-building-add"></i> 新規営業所登録
@@ -56,7 +56,7 @@
                         @csrf
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="branch_code" class="form-label required">営業所コード</label>
                                 <input type="text" class="form-control @error('branch_code') is-invalid @enderror" 
                                        id="branch_code" name="branch_code" 
@@ -65,10 +65,9 @@
                                 @error('branch_code')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 必須、20文字以内、他と重複不可</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="branch_name" class="form-label required">営業所名</label>
                                 <input type="text" class="form-control @error('branch_name') is-invalid @enderror" 
                                        id="branch_name" name="branch_name" 
@@ -77,12 +76,11 @@
                                 @error('branch_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 必須、100文字以内</small>
                             </div>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-4">
                                 <label for="postal_code" class="form-label">郵便番号</label>
                                 <input type="text" class="form-control @error('postal_code') is-invalid @enderror" 
                                        id="postal_code" name="postal_code" 
@@ -91,10 +89,9 @@
                                 @error('postal_code')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">10文字以内</small>
                             </div>
                             
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-4">
                                 <label for="phone_number" class="form-label">電話番号</label>
                                 <input type="tel" class="form-control @error('phone_number') is-invalid @enderror" 
                                        id="phone_number" name="phone_number" 
@@ -103,10 +100,9 @@
                                 @error('phone_number')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">20文字以内</small>
                             </div>
                             
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-4">
                                 <label for="fax_number" class="form-label">FAX番号</label>
                                 <input type="tel" class="form-control @error('fax_number') is-invalid @enderror" 
                                        id="fax_number" name="fax_number" 
@@ -115,11 +111,10 @@
                                 @error('fax_number')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">20文字以内</small>
                             </div>
                         </div>
                         
-                        <div class="mb-3">
+                        <div class="mb-1">
                             <label for="address" class="form-label">住所</label>
                             <textarea class="form-control @error('address') is-invalid @enderror" 
                                       id="address" name="address" rows="2"
@@ -127,11 +122,10 @@
                             @error('address')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <small class="form-text text-muted">200文字以内（都道府県・市区町村・番地を含めて入力）</small>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="manager_name" class="form-label">担当者名</label>
                                 <input type="text" class="form-control @error('manager_name') is-invalid @enderror" 
                                        id="manager_name" name="manager_name" 
@@ -140,10 +134,9 @@
                                 @error('manager_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">50文字以内</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="display_order" class="form-label">表示順</label>
                                 <input type="number" class="form-control @error('display_order') is-invalid @enderror" 
                                        id="display_order" name="display_order" 
@@ -152,7 +145,6 @@
                                 @error('display_order')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">0-999、数字が小さいほど上位に表示</small>
                             </div>
                         </div>
                         

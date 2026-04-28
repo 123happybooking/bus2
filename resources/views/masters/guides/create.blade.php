@@ -42,7 +42,7 @@
                 </div>
             @endif
             
-            <div class="card shadow-sm">
+            <div class="card shadow-sm card-edit">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="bi bi-person-video3"></i> ガイド新規登録
@@ -53,10 +53,8 @@
                     <form action="{{ route('masters.guides.store') }}" method="POST" id="guideForm">
                         @csrf
                         
-                        <h6 class="mb-3 border-bottom pb-2">基本情報</h6>
-                        
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="branch_id" class="form-label required">所属営業所</label>
                                 <select class="form-select @error('branch_id') is-invalid @enderror" 
                                         id="branch_id" name="branch_id" required>
@@ -73,7 +71,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="guide_code" class="form-label required">ガイドコード</label>
                                 <input type="text" class="form-control @error('guide_code') is-invalid @enderror" 
                                        id="guide_code" name="guide_code" 
@@ -82,12 +80,11 @@
                                 @error('guide_code')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 20文字以内、他と重複不可</small>
                             </div>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="name" class="form-label required">氏名</label>
                                 <input type="text" class="form-control @error('name') is-invalid @enderror" 
                                        id="name" name="name" 
@@ -96,10 +93,9 @@
                                 @error('name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 100文字以内</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="name_kana" class="form-label">氏名（カナ）</label>
                                 <input type="text" class="form-control @error('name_kana') is-invalid @enderror" 
                                        id="name_kana" name="name_kana" 
@@ -108,14 +104,11 @@
                                 @error('name_kana')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 100文字以内</small>
                             </div>
                         </div>
                         
-                        <h6 class="mb-3 border-bottom pb-2 mt-4">連絡先情報</h6>
-                        
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="phone_number" class="form-label">電話番号</label>
                                 <input type="tel" class="form-control @error('phone_number') is-invalid @enderror" 
                                        id="phone_number" name="phone_number" 
@@ -126,7 +119,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="email" class="form-label">メールアドレス</label>
                                 <input type="email" class="form-control @error('email') is-invalid @enderror" 
                                        id="email" name="email" 
@@ -135,14 +128,11 @@
                                 @error('email')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 100文字以内</small>
                             </div>
                         </div>
                         
-                        <h6 class="mb-3 border-bottom pb-2 mt-4">雇用情報</h6>
-                        
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="employment_type" class="form-label required">雇用区分</label>
                                 <select class="form-select @error('employment_type') is-invalid @enderror" 
                                         id="employment_type" name="employment_type" required>
@@ -156,7 +146,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="display_order" class="form-label">表示順序</label>
                                 <input type="number" class="form-control @error('display_order') is-invalid @enderror" 
                                        id="display_order" name="display_order" 
@@ -165,14 +155,11 @@
                                 @error('display_order')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 数値を入力（未設定の場合は自動設定）</small>
                             </div>
                         </div>
                         
-                        <h6 class="mb-3 border-bottom pb-2 mt-4">その他情報</h6>
-                        
                         <div class="row">
-                            <div class="col-md-12 mb-3">
+                            <div class="col-md-12">
                                 <label for="remarks" class="form-label">備考</label>
                                 <textarea class="form-control @error('remarks') is-invalid @enderror" 
                                           id="remarks" name="remarks" 
@@ -180,12 +167,11 @@
                                 @error('remarks')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 500文字以内</small>
                             </div>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <div class="form-check mt-2">
                                     <input class="form-check-input @error('is_active') is-invalid @enderror" 
                                            type="checkbox" id="is_active" name="is_active" value="1" 
@@ -196,9 +182,6 @@
                                     @error('is_active')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
-                                    <small class="form-text text-muted d-block">
-                                        ※ チェックを外すとこのガイドは選択できなくなります
-                                    </small>
                                 </div>
                             </div>
                         </div>

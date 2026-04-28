@@ -26,7 +26,8 @@ class AgencyController extends Controller
             });
         }
         
-        $agencies = $query->orderBy('display_order')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $agencies = $query->orderBy('display_order')->paginate($perPage);
         
         return view('masters.agencies.index', compact('agencies'));
     }
