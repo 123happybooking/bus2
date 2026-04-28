@@ -326,7 +326,7 @@
                     let currentBalance = 0;
                     tbody.innerHTML = '';
 
-                    if (data.opening_balance) {
+                    if (data.opening_balance > 0) {
 
                         const openingTr = document.createElement('tr');
                         openingTr.className = 'table-warning';
@@ -334,12 +334,12 @@
                             <td colspan="3" class="text-center fw-bold text-success">前月繰越</td>
                             <td class="text-end">${data.opening_balance >= 0 ? Math.abs(data.opening_balance).toLocaleString('ja-JP') : ''}</td>
                             <td class="text-end">${data.opening_balance < 0 ? Math.abs(data.opening_balance).toLocaleString('ja-JP') : ''}</td>
-                            <td class="text-end fw-bold">${data.opening_balance.toLocaleString('ja-JP')}</td>
+                            <td class="text-end fw-bold">${Math.abs(data.opening_balance).toLocaleString('ja-JP')}</td>
                         `;
                         tbody.appendChild(openingTr);
                         
                         // 更新初始余额变量
-                        currentBalance = data.opening_balance;
+                        currentBalance = Math.abs(data.opening_balance);
                     }
 
                     // 如果没有数据
@@ -353,7 +353,7 @@
                     let monthlyJieTotal = 0; // 当月借方累计
                     let monthlyDaiTotal = 0; // 当月贷方累计
                     let lastMonthKey = '';  // 记录上一行的月份
-                    let initialBalance = 0; 
+                    let initialBalance = currentBalance; 
 
                     data.rows.forEach((row, index) => {
                         // --- A. 日期与月份处理 ---
