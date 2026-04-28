@@ -5,11 +5,47 @@ namespace App\Http\Controllers\Masters;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\Masters\AccountPeriod;
 
 class AccountBsController extends Controller
 {
     public function index(Request $request)
     {
+
+        $periods = AccountPeriod::orderBy('created_at','desc')->get();
+        $period = AccountPeriod::orderBy('created_at','desc')->first();
+        if($request->period_id){
+            $period = AccountPeriod::find($request->period_id);
+        }
+
+        $period_id = $period->id ?? 0;
+        $period_start = $period->start;
+        $start_year = explode('-', $period_start)[0];
+        $moren_month = explode('-', $period_start)[1];
+
+        $yearmonth = $request->yearmonth;
+
+
+        $months = [];
+        for ($i = 0; $i < 12; $i++) {
+            $current_month = $moren_month + $i;
+            $year = $start_year + floor(($current_month - 1) / 12);
+            $month_num = (($current_month - 1) % 12) + 1;
+            $key = sprintf('%02d', $month_num);
+            $value = sprintf('%d-%02d', $year, $month_num);
+            $months[$key] = $value;
+        }
+        $months["全期"] = "13";
+
+        if ($yearmonth == "13" ){
+            $startDate = $period->start;
+            $endDate = $period->end;
+        }else{
+            $startDate = date('Y-m-d', strtotime("first day of $yearmonth"));
+            $endDate = date('Y-m-d', strtotime("last day of $yearmonth"));
+        }
+
+
         // 1. 获取日期参数，默认为今天
         // 使用 ?? 确保即使输入为空，也不会报错
         $date = $request->input('date') ?? date('Y-m-d');
@@ -47,13 +83,13 @@ class AccountBsController extends Controller
                 FROM account_journal_lines ajl
                 INNER JOIN account_journal_entries aje 
                     ON ajl.journal_entry_id = aje.id
-                WHERE aje.posting_date <= ?  -- 这里的日期过滤是强制性的
+                WHERE aje.posting_date BETWEEN ? AND ?
                 GROUP BY ajl.account_id
             ) sub ON acc.id = sub.account_id
             WHERE ac.id IN (1, 2, 3, 4, 5, 6) 
             AND acc.is_active = 1
             ORDER BY ac.id, acc.code
-        ", [$date]);
+        ", [$startDate, $endDate]);
 
         // 5. 数据重组逻辑（核心）
         foreach ($rawData as $row) {
@@ -130,7 +166,8 @@ class AccountBsController extends Controller
             ->join('account_journal_entries as aje', 'ajl.journal_entry_id', '=', 'aje.id')
             // 【修复点 1】补全了分类 ID 数组
             ->whereIn('acc.category_id', [7, 8, 9, 10, 11, 12, 13, 14])
-            ->whereDate('aje.posting_date', '<=', $date)
+            ->whereDate('aje.posting_date', '>=', $startDate)
+            ->whereDate('aje.posting_date', '<=', $endDate)
             ->whereNotNull('ajl.account_id');
 
         // 营业收入 (7) - 贷方
@@ -177,7 +214,8 @@ class AccountBsController extends Controller
             'totalLiabilities',
             'assetOrder',
             'liabilityOrder',
-            'netIncome'
+            'netIncome',
+            'periods','months','period_id','yearmonth'
         ));
     }
 }

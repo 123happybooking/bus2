@@ -64,32 +64,50 @@
 
                         <!-- 3. 占位符 (将日期框推到最右边) -->
                         <div class="flex-grow-1"></div>
+                            <!-- 外层容器：靠右对齐 -->
+                            <div class="d-flex justify-content-end align-items-center gap-3">
+                                
+                                <div class="flex-shrink-0">
+                                    <!-- 标题 -->
+                                    <label class="form-label mb-1 text-muted d-block" style="font-size: 0.75rem;">周期/月份</label>
+                                    
+                                    <div class="d-flex align-items-center">
+                                        <!-- 1. 周期下拉框 -->
+                                        <div class="position-relative me-2">
+                                            <!-- 防止自动填充 -->
+                                            <input type="text" style="display: none;" tabindex="-1" autocomplete="off">
+                                            
+                                            <select id="periodSelect" name="period_id" class="form-control form-control-sm" 
+                                                style="font-size: 0.85rem; padding-right: 25px; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-color: #fff; min-width: 120px;">
+                                                @foreach($periods as $period)
+                                                    <option value="{{ $period->id }}" 
+                                                        data-start="{{ $period->start }}" 
+                                                        data-end="{{ $period->end }}"
+                                                        {{ $period_id == $period->id ? 'selected' : '' }}>
+                                                        {{ $period->title }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
 
-                        <!-- 4. 时间区间 (靠右显示，注意没有 name 属性，所以不提交) -->
-                        <div class="d-flex align-items-end gap-2" style="margin-left: auto;">
-                            <div style="min-width: 120px;">
-                                <label class="form-label small text-muted mb-1" style="display: block; margin-bottom: 4px;">開始日</label>
-                                <!-- ✅ 修改点：type="month" -->
-                                <input 
-                                    type="month" 
-                                    id="start_date"
-                                    name="start_date" 
-                                    value="{{ request('start_date') }}"
-                                    class="form-control form-control-sm" 
-                                    style="border-color: #E5E7EB;" 
-                                >
-                            </div>
-                            <div style="min-width: 120px;">
-                                <label class="form-label small text-muted mb-1" style="display: block; margin-bottom: 4px;">終了日</label>
-                                <!-- ✅ 修改点：type="month" -->
-                                <input 
-                                    type="month" 
-                                    id="end_date"
-                                    name="end_date" 
-                                    value="{{ request('end_date') }}"
-                                    class="form-control form-control-sm" 
-                                    style="border-color: #E5E7EB;" 
-                                >
+                                        <!-- 2. 循环12个月份按钮 -->
+                                        <div id="month-select-container" class="d-flex align-items-center">
+                                            @foreach($months as $key => $monthName)
+                                                @php
+                                                    $isActive =  ($yearmonth == $monthName);;
+                                                @endphp
+                                                <button type="submit" 
+                                                        name="yearmonth" 
+                                                        value="{{ $monthName }}"
+                                                        onclick="document.getElementById('searchForm').submit();"
+                                                        class="btn btn-sm ms-1 p-0 px-1 {{ $isActive ? 'btn-primary' : 'btn-outline-primary' }}" 
+                                                        style="min-width: 30px; font-size: 1.0rem; {{ $isActive ? 'background-color: #0d6efd; border-color: transparent; color: white !important;' : 'border-color: #E5E7EB;' }}">
+                                                    {{ $key }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -276,16 +294,15 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
     // 1. 获取日期输入框 (你之前的年份选择框)
-    const startDate = document.getElementById('start_date');
-    const endDate = document.getElementById('end_date');
+    const periodSelect = document.getElementById('periodSelect'); // 获取周期下拉框元素
+    const urlParams = new URLSearchParams(window.location.search); // 从当前URL中获取参数
+    const yearMonthValue = urlParams.get('yearmonth'); // 获取URL中的 yearmonth 参数 (格式如: 2026-04)
 
     // 2. 为所有“元帳作成”按钮添加点击事件
     document.querySelectorAll('.open-ledger-modal').forEach(button => {
         button.addEventListener('click', function () {
             const url = this.getAttribute('data-url');
             const accountName = this.getAttribute('data-account-name');
-            const startDateValue = startDate.value;
-            const endDateValue = endDate.value;
 
             // 设置模态框标题
             document.getElementById('ledgerModalLabel').textContent = `総勘定元帳 - ${accountName}`;
@@ -295,7 +312,8 @@
             modal.show();
 
             // --- 关键：开始 AJAX 请求 ---
-            const requestUrl = `${url}?start_date=${startDateValue}&end_date=${endDateValue}`;
+            const periodId = periodSelect ? periodSelect.value : '';
+            const requestUrl = `${url}?period_id=${periodId}&yearmonth=${yearMonthValue}`;
             document.querySelector('#ledgerTable tbody').innerHTML = '<tr><td colspan="6" class="text-center">データ読み込み中...</td></tr>';
 
             fetch(requestUrl)
@@ -442,26 +460,44 @@
     }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-    initDateRangePicker('input[id="start_date"]', 'input[id="end_date"]');
-});
-
 document.querySelectorAll('.open-pdf-btn').forEach(button => {
     button.addEventListener('click', function () {
         const baseUrl = this.getAttribute('data-base-url');
-        const startDate = document.getElementById('start_date');
-        const endDate = document.getElementById('end_date');
         const accountId = this.getAttribute('data-account-id');
+        const periodSelect = document.getElementById('periodSelect'); // 获取周期下拉框元素
+        const urlParams = new URLSearchParams(window.location.search); // 从当前URL中获取参数
+        const yearMonthValue = urlParams.get('yearmonth'); // 获取URL中的 yearmonth 参数 (格式如: 2026-04)
         
         const params = new URLSearchParams({
             id: accountId,
-            start_date: startDate.value,
-            end_date: endDate.value
+            period_id: periodSelect.value, 
+            yearmonth: yearMonthValue 
         });
         
         const url = `${baseUrl}?${params}`;
         window.open(url, '_blank'); // 在新标签页打开，避免打断当前页面操作
     });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const periodSelect = document.getElementById('periodSelect');
+    
+    // 检查元素是否存在（防止报错）
+    if (periodSelect) {
+        periodSelect.addEventListener('change', function() {
+            // 获取当前的 yearmonth 参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const yearMonthValue = urlParams.get('yearmonth');
+            
+            // 如果没有选择月份，可以给个默认值或者提示，这里假设直接提交
+            // 重新构建当前页面的 URL
+            let newUrl = window.location.pathname + '?period_id=' + this.value;
+            
+            
+            // 跳转页面，触发后端查询
+            window.location.href = newUrl;
+        });
+    }
 });
 </script>
 @endsection

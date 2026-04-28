@@ -1094,6 +1094,7 @@
                     <i class="bi bi-chevron-down menu-arrow"></i>
                 </div>
                 <ul class="submenu submenu-s">
+                    <li><a href="{{ route('masters.account-periods.index') }}" data-route="account-periods">周期</a></li>
                     <li><a href="{{ route('masters.journal_entries.index') }}" data-route="journal-entries">仕訳帳</a></li>
                     <li><a href="{{ route('masters.products.index') }}" data-route="products-cash">現金出納帳</a></li>
                     <li><a href="{{ route('masters.products.index') }}" data-route="products-deposit">預金出納帳</a></li>
@@ -1101,6 +1102,7 @@
                     <li><a href="{{ route('masters.products.index') }}" data-route="products-payable">買掛帳</a></li>
                     <li><a href="{{ route('masters.account-ledgers.index') }}" data-route="account-ledgers">勘定元帳</a></li>
                     <li><a href="{{ route('masters.account-month-sums.index') }}" data-route="account-month-sums">月次決算</a></li>
+                    <li><a href="{{ route('masters.account-sums.index') }}" data-route="account-sums">試算表</a></li>
                     <li><a href="{{ route('masters.account-bs.index') }}" data-route="account-bs">貸借対照表</a></li>
                     <li><a href="{{ route('masters.account-pl.index') }}" data-route="account-pl">損益計算書</a></li>
                     <li><a href="{{ route('masters.products.index') }}" data-route="products-cashflow">キャッシュフロー計算書</a></li>

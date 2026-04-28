@@ -12,66 +12,68 @@
     <!-- 2. 搜索区域 -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('masters.account-pl.index') }}" class="d-flex align-items-end gap-2">
-                <div class="col-md-auto">
-                    <!-- 标签部分：完全复用上方样式 -->
-                    <label class="form-label mb-1 text-muted" style="font-size: 0.75rem;">期間</label>
+            <!-- 表单开始 -->
+            <form id="searchForm" method="GET" action="{{ route('masters.account-pl.index') }}">
+                
+                <div class="row g-3 align-items-end">
                     
-                    <div class="d-flex flex-nowrap align-items-center">
-                        <!-- 开始日输入框 -->
-                        <input 
-                            type="text" 
-                            name="start_date" 
-                            id="start_date"
-                            class="form-control form-control-sm datepicker-3months" 
-                            value="{{ request('start_date') }}" 
-                            placeholder="開始日"
-                            autocomplete="off"
-                            style="border-color: #E5E7EB; width: 130px;"
-                            required
-                        >
-                        
-                        <!-- 分隔符 -->
-                        <span class="mx-2 text-muted" style="font-size: 0.75rem;">～</span>
-                        
-                        <!-- 结束日输入框 -->
-                        <input 
-                            type="text" 
-                            name="end_date" 
-                            id="end_date"
-                            class="form-control form-control-sm datepicker-3months" 
-                            value="{{ request('end_date') }}" 
-                            placeholder="終了日"
-                            autocomplete="off"
-                            style="border-color: #E5E7EB; width: 130px;"
-                            required
-                        >
+                    <!-- 左侧/主要筛选区域：周期与月份 -->
+                    <div class="col-auto">
+                        <div class="d-flex flex-column">
+                            <!-- 标签 -->
+                            <label class="form-label mb-1 text-muted small">
+                                <i class="bi bi-calendar-event"></i> 周期/月份
+                            </label>
+                            
+                            <!-- 控件容器 -->
+                            <div class="d-flex align-items-center gap-2">
+                                
+                                <!-- 1. 周期下拉框 -->
+                                <div class="position-relative">
+                                    <select id="periodSelect" name="period_id" class="form-select form-select-sm" 
+                                        style="min-width: 140px;"
+                                        > 
+                                        @foreach($periods as $period)
+                                            <option value="{{ $period->id }}" 
+                                                data-start="{{ $period->start }}" 
+                                                data-end="{{ $period->end }}"
+                                                {{ $period_id == $period->id ? 'selected' : '' }}>
+                                                {{ $period->title }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- 2. 月份快速筛选 (1-12月) -->
+                                <div id="month-select-container" class="d-flex align-items-center">
+                                    @foreach($months as $key => $monthName)
+                                        @php
+                                            $isActive =  ($yearmonth == $monthName);;
+                                        @endphp
+                                        <button type="submit" 
+                                                name="yearmonth" 
+                                                value="{{ $monthName }}"
+                                                onclick="document.getElementById('searchForm').submit();"
+                                                class="btn btn-sm ms-1 p-0 px-1 {{ $isActive ? 'btn-primary' : 'btn-outline-primary' }}" 
+                                                style="min-width: 30px; font-size: 1.0rem; {{ $isActive ? 'background-color: #0d6efd; border-color: transparent; color: white !important;' : 'border-color: #E5E7EB;' }}">
+                                            {{ $key }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                                <!-- 隐藏的月份输入框，用于提交表单 -->
+                                <!-- <input type="hidden" name="yearmonth" id="hiddenMonthInput" value="{{ $yearmonth }}"> -->
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-auto d-flex align-items-end">
-                    <!-- 标签部分：添加 margin-bottom: 4px 以匹配输入框的视觉重心 -->
-                    <div>
-                        <button type="submit" class="btn btn-primary btn-sm" style="height: 31px; padding: 0 1rem; white-space: nowrap;">
-                            <i class="bi bi-search"></i> 計算
-                        </button>
-                    </div>
+
                 </div>
             </form>
         </div>
     </div>
 
     <!-- 3. 损益表主体 -->
-    @if(request()->hasAny(['start_date', 'end_date']))
+    @if(request()->hasAny(['yearmonth']))
     <div class="card shadow-sm">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <!-- 修改点：添加 d-flex 和 align-items-center -->
-            <h5 class="mb-0 d-flex align-items-center text-white">
-                損益計算書 (期間: {{ $startDate }} ～ {{ $endDate }})
-            </h5>
-            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-printer"></i> PDF
-            </button>
-        </div>
         
         <div class="table-responsive">
             <table class="table table-borderless mb-0">
@@ -321,8 +323,25 @@
 }
 </style>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    initDateRangePicker('input[id="start_date"]', 'input[id="end_date"]');
-});    
+document.addEventListener('DOMContentLoaded', function () {
+    const periodSelect = document.getElementById('periodSelect');
+    
+    // 检查元素是否存在（防止报错）
+    if (periodSelect) {
+        periodSelect.addEventListener('change', function() {
+            // 获取当前的 yearmonth 参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const yearMonthValue = urlParams.get('yearmonth');
+            
+            // 如果没有选择月份，可以给个默认值或者提示，这里假设直接提交
+            // 重新构建当前页面的 URL
+            let newUrl = window.location.pathname + '?period_id=' + this.value;
+            
+            
+            // 跳转页面，触发后端查询
+            window.location.href = newUrl;
+        });
+    }
+});
 </script>
 @endsection
