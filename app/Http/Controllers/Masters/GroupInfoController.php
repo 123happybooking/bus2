@@ -44,9 +44,10 @@ class GroupInfoController extends Controller
             $query->whereDate('end_date', '<=', $request->date_to);
         }
 
+        $perPage = $request->input('per_page', 20);
         $groupInfos = $query->orderBy('start_date', 'asc')
                            ->orderBy('start_time')
-                           ->paginate(20)
+                           ->paginate($perPage)
                            ->withQueryString();
 
         return view('masters.group-infos.index', compact('groupInfos'));

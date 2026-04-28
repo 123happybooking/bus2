@@ -45,7 +45,7 @@
             <form action="{{ route('masters.itineraries.store') }}" method="POST" id="itineraryForm">
                 @csrf
                 
-                <div class="card shadow-sm mb-4">
+                <div class="card shadow-sm mb-4 card-edit">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
                             <i class="bi bi-info-circle"></i> 行程基本情報
@@ -56,10 +56,10 @@
                         <table class="table table-bordered mb-0">
                             <tbody>
                                 <tr>
-                                    <td class="bg-light" style="width: 25%; padding: 0.5rem;">
+                                    <td class="bg-light" style="width: 15%;">
                                         <label for="itinerary_code" class="form-label required mb-0">行程コード</label>
                                     </td>
-                                    <td class="bg-white" style="width: 50%; padding: 0.5rem;">
+                                    <td class="bg-white">
                                         <input type="text" class="form-control @error('itinerary_code') is-invalid @enderror" 
                                                id="itinerary_code" name="itinerary_code" 
                                                value="{{ old('itinerary_code') }}" 
@@ -68,7 +68,7 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </td>
-                                    <td class="bg-light" style="width: 25%; padding: 0.5rem;">
+                                    <td class="bg-light" style="width: 25%;">
                                         <small class="form-text text-muted mb-0">※ 必須、20文字以内、他と重複不可</small>
                                     </td>
                                 </tr>
@@ -130,8 +130,8 @@
                     </div>
                 </div>
                 
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <div class="card shadow-sm mb-4 card-edit">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
                             <i class="bi bi-calendar-day"></i> 行程詳細（日次行程）
                         </h5>

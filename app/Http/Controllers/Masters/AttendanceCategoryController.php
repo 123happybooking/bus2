@@ -20,7 +20,8 @@ class AttendanceCategoryController extends Controller
             });
         }
         
-        $categories = $query->orderBy('display_order')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $categories = $query->orderBy('display_order')->paginate($perPage);
         
         if ($request->has('search')) {
             $categories->appends(['search' => $request->search]);

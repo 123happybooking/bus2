@@ -17,28 +17,25 @@
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
     
-    <div class="mb-3">
-        <div class="card-body">
-            <form method="GET" action="{{ route('masters.branches.index') }}" class="row g-2">
-                <div class="col-md-4">
-                    <input type="text" name="search" class="form-control" placeholder="営業所名、住所、電話番号で検索"
-                           value="{{ request('search') }}">
-                </div>
-                <div class="col-md-auto">
-                    <button type="submit" class="btn btn-outline-primary">
-                        <i class="bi bi-search"></i> 検索
-                    </button>
-                    <!--<a href="{{ route('masters.branches.index') }}" class="ms-3">-->
-                    <!--    リセット-->
-                    <!--</a>-->
-                    @if(request('search'))
-                        <a href="{{ route('masters.branches.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle"></i> クリア
-                        </a>
-                    @endif
-                </div>
-            </form>
-        </div>
+    <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">
+        <form method="GET" action="{{ route('masters.branches.index') }}" class="row g-2">
+            <div class="col">
+                <input type="text" name="search" class="form-control form-control-sm" style="border-color: #E5E7EB;" placeholder="営業所名、住所、電話番号で検索"
+                       value="{{ request('search') }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-sm px-3" 
+                        style="background-color: #2563eb; color: white; border-color: #2563eb; font-size: 0.875rem;">
+                    検索
+                </button>
+            </div>
+            <div class="col-auto">
+                <a href="{{ route('masters.branches.index') }}" class="btn btn-sm btn-outline-secondary px-3" 
+                   style="border-color: #E5E7EB; color: #374151; font-size: 0.875rem;">
+                    クリア
+                </a>
+            </div>
+        </form>
     </div>
     
     @if(request('search'))
@@ -56,21 +53,23 @@
 
     <div class="mb-3">
         <div class="table-responsive">
-            <table class="table table-bordered mb-0 table-striped">
-                <thead class="table-secondary align-middle">
+        <table class="table table-sm table-bordered mb-0 table-list">
+            <thead>
                     <tr>
+                        <th>No.</th>
                         <th>営業所ID</th>
                         <th>営業所名</th>
                         <th>郵便番号</th>
                         <th>住所</th>
                         <th>電話</th>
                         <th>FAX</th>
-                        <th class="text-center">操作</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($branches as $branch)
+                    @forelse($branches as $index => $branch)
                     <tr>
+                        <td>{{ $branches->firstItem() + $index }}</td>
                         <td>{{ $branch->branch_code }}</td>
                         <td>{{ $branch->branch_name }}</td>
                         <td>{{ $branch->postal_code ?? '--' }}</td>
@@ -130,62 +129,88 @@
     </div>
     
     
-    @if($branches->hasPages())
+    @if($branches->hasPages() || $branches->total() > 0)
         <div class="mt-3">
-            <nav>
-                <ul class="pagination justify-content-center mb-0">
-                    <li class="page-item {{ $branches->onFirstPage() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $branches->previousPageUrl() }}">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-
-                    @php
-                        $current = $branches->currentPage();
-                        $last = $branches->lastPage();
-                        $start = max(1, $current - 2);
-                        $end = min($last, $current + 2);
-                    @endphp
-
-                    @if($start > 1)
-                        <li class="page-item">
-                            <a class="page-link" href="{{ $branches->url(1) }}">1</a>
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                
+                <div class="d-flex align-items-center">
+                    <label for="per_page_select" class="form-label small text-muted mb-0 me-2" style="white-space: nowrap;">
+                        表示件数:
+                    </label>
+                    <select id="per_page_select" class="form-select form-select-sm" style="font-size: 0.75rem; min-width: 80px;">
+                        <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20 行</option>
+                        <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30 行</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 行</option>
+                    </select>
+                </div>
+    
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item {{ $branches->onFirstPage() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $branches->previousPageUrl() }}" aria-label="Previous" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
                         </li>
-                        @if($start > 2)
-                            <li class="page-item disabled">
-                                <span class="page-link">...</span>
+    
+                        @php
+                            $current = $branches->currentPage();
+                            $last = $branches->lastPage();
+                            $start = max(1, $current - 2);
+                            $end = min($last, $current + 2);
+                        @endphp
+    
+                        @if($start > 1)
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $branches->url(1) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">1</a>
+                            </li>
+                            @if($start > 2)
+                                <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                            @endif
+                        @endif
+    
+                        @for($i = $start; $i <= $end; $i++)
+                            <li class="page-item {{ $i == $current ? 'active' : '' }}">
+                                <a class="page-link" href="{{ $branches->url($i) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $i }}</a>
+                            </li>
+                        @endfor
+    
+                        @if($end < $last)
+                            @if($end < $last - 1)
+                                <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                            @endif
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $branches->url($last) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $last }}</a>
                             </li>
                         @endif
-                    @endif
-
-                    @for($i = $start; $i <= $end; $i++)
-                        <li class="page-item {{ $i == $current ? 'active' : '' }}">
-                            <a class="page-link" href="{{ $branches->url($i) }}">{{ $i }}</a>
+    
+                        <li class="page-item {{ !$branches->hasMorePages() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $branches->nextPageUrl() }}" aria-label="Next" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
                         </li>
-                    @endfor
-
-                    @if($end < $last)
-                        @if($end < $last - 1)
-                            <li class="page-item disabled">
-                                <span class="page-link">...</span>
-                            </li>
-                        @endif
-                        <li class="page-item">
-                            <a class="page-link" href="{{ $branches->url($last) }}">{{ $last }}</a>
-                        </li>
-                    @endif
-
-                    <li class="page-item {{ !$branches->hasMorePages() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $branches->nextPageUrl() }}">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            <div class="text-center text-muted small mt-2">
-                表示中: {{ $branches->firstItem() ?? 0 }} - {{ $branches->lastItem() ?? 0 }} / 全 {{ $branches->total() }} 件
+                    </ul>
+                </nav>
+            </div>
+    
+            <div class="text-center text-muted mt-2" style="font-size: 0.75rem;">
+                表示中：{{ $branches->firstItem() ?? 0 }} - {{ $branches->lastItem() ?? 0 }} / 全 {{ $branches->total() }} 件
             </div>
         </div>
     @endif
 </div>
 @endsection
+
+
+@push('scripts')
+<script>
+document.getElementById('per_page_select').addEventListener('change', function() {
+    const url = new URL(window.location.href);
+    const search = document.querySelector('input[name="search"]')?.value;
+    url.searchParams.set('per_page', this.value);
+    if (search) {
+        url.searchParams.set('search', search);
+    }
+    window.location.href = url.toString();
+});
+</script>
+@endpush

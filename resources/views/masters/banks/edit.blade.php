@@ -42,7 +42,7 @@
             </div>
             @endif
             
-            <div class="card shadow-sm">
+            <div class="card shadow-sm card-edit">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="bi bi-bank"></i> Bank編集
@@ -55,7 +55,7 @@
                         @method('PUT')
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="bank_name" class="form-label required">Bank名</label>
                                 <input type="text" class="form-control @error('bank_name') is-invalid @enderror" 
                                        id="bank_name" name="bank_name" 
@@ -64,10 +64,9 @@
                                 @error('bank_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 必須、255文字以内、他と重複不可</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="display_order" class="form-label">表示順</label>
                                 <input type="number" class="form-control @error('display_order') is-invalid @enderror" 
                                        id="display_order" name="display_order" 
@@ -76,23 +75,20 @@
                                 @error('display_order')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">数字が小さいほど上位に表示</small>
                             </div>
                         </div>
                         
-                        <div class="mb-3">
+                        <div class="mb-2">
                             <label for="bank_info" class="form-label">口座情報</label>
                             <textarea class="form-control @error('bank_info') is-invalid @enderror" 
-                                      id="bank_info" name="bank_info" rows="3"
-                                      placeholder="例: 支店名: 東京支店&#13;&#10;口座番号: 1234567&#13;&#10;口座種別: 普通預金">{{ old('bank_info', $bank->bank_info) }}</textarea>
+                                      id="bank_info" name="bank_info" rows="3">{{ old('bank_info', $bank->bank_info) }}</textarea>
                             @error('bank_info')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <small class="form-text text-muted">支店名、口座番号、口座種別などを入力</small>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="is_active" class="form-label">状態</label>
                                 <select class="form-control @error('is_active') is-invalid @enderror" 
                                         id="is_active" name="is_active">
@@ -102,10 +98,9 @@
                                 @error('is_active')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">Bank情報の利用状態を選択</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="remarks" class="form-label">備考</label>
                                 <textarea class="form-control @error('remarks') is-invalid @enderror" 
                                           id="remarks" name="remarks" rows="1"
@@ -113,7 +108,6 @@
                                 @error('remarks')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">Bankに関する補足情報</small>
                             </div>
                         </div>
                         

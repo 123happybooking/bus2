@@ -26,7 +26,8 @@ class StaffController extends Controller
             });
         }
         
-        $staffs = $query->orderBy('display_order')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $staffs = $query->orderBy('display_order')->paginate($perPage);
         
         if ($request->has('search')) {
             $staffs->appends(['search' => $request->search]);

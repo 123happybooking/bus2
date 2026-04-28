@@ -27,7 +27,8 @@ class BranchController extends Controller
             });
         }
         
-        $branches = $query->orderBy('display_order')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $branches = $query->orderBy('display_order')->paginate($perPage);
         
         if ($request->has('search')) {
             $branches->appends(['search' => $request->search]);

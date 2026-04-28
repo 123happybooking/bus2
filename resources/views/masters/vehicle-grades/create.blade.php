@@ -28,7 +28,7 @@
                 </div>
             @endif
             
-            <div class="card shadow-sm">
+            <div class="card shadow-sm card-edit">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="bi bi-plus-circle"></i> 新規車両グレード登録
@@ -40,7 +40,7 @@
                         @csrf
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="code" class="form-label required">コード</label>
                                 <input type="text" class="form-control @error('code') is-invalid @enderror" 
                                        id="code" name="code" value="{{ old('code') }}" 
@@ -50,7 +50,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="grade_name" class="form-label required">グレード名</label>
                                 <input type="text" class="form-control @error('grade_name') is-invalid @enderror" 
                                        id="grade_name" name="grade_name" value="{{ old('grade_name') }}" 
@@ -62,7 +62,7 @@
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-12 mb-3">
+                            <div class="col-md-12">
                                 <label for="description" class="form-label">説明</label>
                                 <textarea class="form-control @error('description') is-invalid @enderror" 
                                           id="description" name="description" rows="3" 

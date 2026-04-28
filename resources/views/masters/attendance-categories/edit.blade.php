@@ -42,7 +42,7 @@
                 </div>
             @endif
             
-            <div class="card shadow-sm">
+            <div class="card shadow-sm card-edit">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="bi bi-calendar-gear"></i> 勤怠分類編集
@@ -54,10 +54,8 @@
                         @csrf
                         @method('PUT')
                         
-                        <h6 class="mb-3 border-bottom pb-2">基本情報</h6>
-                        
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="attendance_code" class="form-label required">勤怠コード</label>
                                 <input type="text" class="form-control @error('attendance_code') is-invalid @enderror" 
                                        id="attendance_code" name="attendance_code" 
@@ -66,10 +64,9 @@
                                 @error('attendance_code')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 20文字以内、他と重複不可</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="attendance_name" class="form-label required">勤怠名</label>
                                 <input type="text" class="form-control @error('attendance_name') is-invalid @enderror" 
                                        id="attendance_name" name="attendance_name" 
@@ -78,12 +75,11 @@
                                 @error('attendance_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 100文字以内</small>
                             </div>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="color_code" class="form-label required">カラーコード</label>
                                 <div class="input-group">
                                     <input type="color" class="form-control form-control-color @error('color_code') is-invalid @enderror" 
@@ -96,10 +92,9 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <small class="form-text text-muted">※ HEXカラーコード (#RRGGBB)</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="display_order" class="form-label">表示順</label>
                                 <input type="number" class="form-control @error('display_order') is-invalid @enderror" 
                                        id="display_order" name="display_order" 
@@ -108,13 +103,12 @@
                                 @error('display_order')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 数値を入力</small>
                             </div>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check mt-4 pt-2">
+                            <div class="col-md-6">
+                                <div class="form-check">
                                     <input class="form-check-input @error('is_work_day') is-invalid @enderror" 
                                            type="checkbox" id="is_work_day" name="is_work_day" value="1" 
                                            {{ old('is_work_day', $attendanceCategory->is_work_day) ? 'checked' : '' }}>
@@ -124,9 +118,6 @@
                                     @error('is_work_day')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
-                                    <small class="form-text text-muted d-block">
-                                        ※ チェックするとこの勤怠分類は勤務日とみなされます
-                                    </small>
                                 </div>
                             </div>
                         </div>

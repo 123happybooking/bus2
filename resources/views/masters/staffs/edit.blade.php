@@ -42,7 +42,7 @@
                 </div>
             @endif
             
-            <div class="card shadow-sm">
+            <div class="card shadow-sm card-edit">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="bi bi-person-gear"></i> スタッフ編集
@@ -54,11 +54,9 @@
                         @csrf
                         @method('PUT')
                         
-                        <h6 class="mb-3 border-bottom pb-2">基本情報</h6>
-                        
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="branch_id" class="form-label required">所属営業所</label>
+                            <div class="col-md-6">
+                                <label for="branch_id" class="form-label">所属営業所</label>
                                 <select class="form-select @error('branch_id') is-invalid @enderror" 
                                         id="branch_id" name="branch_id" required>
                                     <option value="">選択してください</option>
@@ -74,8 +72,8 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6 mb-3">
-                                <label for="staff_code" class="form-label required">スタッフコード</label>
+                            <div class="col-md-6">
+                                <label for="staff_code" class="form-label">スタッフコード</label>
                                 <input type="text" class="form-control @error('staff_code') is-invalid @enderror" 
                                        id="staff_code" name="staff_code" 
                                        value="{{ old('staff_code', $staff->staff_code) }}" 
@@ -83,13 +81,12 @@
                                 @error('staff_code')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 20文字以内、他と重複不可</small>
                             </div>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="name" class="form-label required">スタッフ名</label>
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">スタッフ名</label>
                                 <input type="text" class="form-control @error('name') is-invalid @enderror" 
                                        id="name" name="name" 
                                        value="{{ old('name', $staff->name) }}" 
@@ -97,10 +94,9 @@
                                 @error('name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 100文字以内</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="display_order" class="form-label">表示順序</label>
                                 <input type="number" class="form-control @error('display_order') is-invalid @enderror" 
                                        id="display_order" name="display_order" 
@@ -109,14 +105,11 @@
                                 @error('display_order')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 数値を入力</small>
                             </div>
                         </div>
                         
-                        <h6 class="mb-3 border-bottom pb-2 mt-4">連絡先情報</h6>
-                        
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="email" class="form-label">メールアドレス</label>
                                 <input type="email" class="form-control @error('email') is-invalid @enderror" 
                                        id="email" name="email" 
@@ -125,10 +118,9 @@
                                 @error('email')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 100文字以内、他と重複不可</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="phone_number" class="form-label">電話番号</label>
                                 <input type="tel" class="form-control @error('phone_number') is-invalid @enderror" 
                                        id="phone_number" name="phone_number" 
@@ -137,15 +129,12 @@
                                 @error('phone_number')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 20文字以内</small>
                             </div>
                         </div>
                         
-                        <h6 class="mb-3 border-bottom pb-2 mt-4">ログイン情報</h6>
-                        
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="login_id" class="form-label required">ログインID</label>
+                            <div class="col-md-6">
+                                <label for="login_id" class="form-label">ログインID</label>
                                 <input type="text" class="form-control @error('login_id') is-invalid @enderror" 
                                        id="login_id" name="login_id" 
                                        value="{{ old('login_id', $staff->login_id) }}" 
@@ -153,11 +142,10 @@
                                 @error('login_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 50文字以内、他と重複不可</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
-                                <label for="role" class="form-label required">権限</label>
+                            <div class="col-md-6">
+                                <label for="role" class="form-label">権限</label>
                                 <select class="form-select @error('role') is-invalid @enderror" 
                                         id="role" name="role" required>
                                     <option value="">選択してください</option>
@@ -166,7 +154,6 @@
                                     <option value="coordinator" {{ old('role', $staff->role) == 'coordinator' ? 'selected' : '' }}>運行手配</option>
                                     <option value="manager" {{ old('role', $staff->role) == 'manager' ? 'selected' : '' }}>経理</option>
                                     <option value="driver" {{ old('role', $staff->role) == 'driver' ? 'selected' : '' }}>運転手</option>
-                                    <!--<option value="staff" {{ old('role', $staff->role) == 'staff' ? 'selected' : '' }}>一般スタッフ</option>-->
                                 </select>
                                 @error('role')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -175,7 +162,7 @@
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="password" class="form-label">パスワード</label>
                                 <input type="password" class="form-control @error('password') is-invalid @enderror" 
                                        id="password" name="password" 
@@ -183,10 +170,9 @@
                                 @error('password')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 変更する場合のみ入力（8文字以上）</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="password_confirmation" class="form-label">パスワード確認</label>
                                 <input type="password" class="form-control" 
                                        id="password_confirmation" name="password_confirmation">
@@ -194,8 +180,8 @@
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check mt-4 pt-2">
+                            <div class="col-md-6">
+                                <div class="form-check">
                                     <input class="form-check-input @error('is_active') is-invalid @enderror" 
                                            type="checkbox" id="is_active" name="is_active" value="1" 
                                            {{ old('is_active', $staff->is_active) ? 'checked' : '' }}>
@@ -205,9 +191,6 @@
                                     @error('is_active')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
-                                    <small class="form-text text-muted d-block">
-                                        ※ チェックを外すとこのスタッフはログインできなくなります
-                                    </small>
                                 </div>
                             </div>
                         </div>

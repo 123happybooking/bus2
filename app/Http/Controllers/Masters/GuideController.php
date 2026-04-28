@@ -24,7 +24,8 @@ class GuideController extends Controller
             });
         }
         
-        $guides = $query->orderBy('display_order')->orderBy('guide_code')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $guides = $query->orderBy('display_order')->orderBy('guide_code')->paginate($perPage);
         
         return view('masters.guides.index', compact('guides'));
     }
