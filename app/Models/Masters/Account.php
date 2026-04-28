@@ -38,4 +38,5 @@ class Account extends Model
     {
         return $this->belongsTo(AccountTax::class, 'tax_id');
     }
+
 }
