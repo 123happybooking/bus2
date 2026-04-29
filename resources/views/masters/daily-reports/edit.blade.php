@@ -15,6 +15,20 @@
             </a>
         </div>
     </div>
+            
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
 
     @if($errors->any())
     <div class="alert alert-danger alert-dismissible fade show py-2 mb-3 error-alert" role="alert">
@@ -30,13 +44,13 @@
     </div>
     @endif
 
-    <div class="card shadow-sm">
+    <div class="card shadow-sm card-edit">
         <div class="card-body p-4">
-            <form method="POST" action="{{ route('masters.daily-reports.update', $report->id) }}">
+            <form method="POST" action="{{ route('masters.daily-reports.update', $report->id) }}" id="dailyReportForm">
                 @csrf
                 @method('PUT')
                 
-                <div class="row mb-3">
+                <div class="row">
                     <div class="col-md-4">
                         <label class="form-label">日付</label>
                         <input type="text" class="form-control bg-light" value="{{ \Carbon\Carbon::parse($report->date)->format('Y年m月d日') }}" readonly>
@@ -51,7 +65,7 @@
                     </div>
                 </div>
                 
-                <div class="row mb-3">
+                <div class="row">
                     <div class="col-md-4">
                         <label for="start_time" class="form-label">出庫時間</label>
                         <input type="time" name="start_time" id="start_time" class="form-control @error('start_time') is-invalid @enderror" 
@@ -73,7 +87,7 @@
                     </div>
                 </div>
                 
-                <div class="row mb-3">
+                <div class="row">
                     <div class="col-md-4">
                         <label for="end_time" class="form-label">帰庫時間</label>
                         <input type="time" name="end_time" id="end_time" class="form-control @error('end_time') is-invalid @enderror" 
@@ -132,30 +146,35 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-sm table-bordered mb-0" style="font-size: 0.8rem;">
+                            <table class="table table-sm table-bordered mb-0 logs-table" style="font-size: 0.8rem;" data-itinerary-index="{{ $itineraryIndex }}">
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width: 15%;">時間</th>
                                         <th style="width: 10%;">走行距離</th>
-                                        <th style="width: 45%;">住所</th>
+                                        <th style="width: 40%;">住所</th>
                                         <th style="width: 15%;">操作</th>
-                                        <th style="width: 15%;">操作</th>
+                                        <th style="width: 10%; text-align: center;">行操作</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @forelse($itinerary->operationLogs as $log)
-                                    <tr class="log-row" data-log-id="{{ $log->id }}">
+                                <tbody class="logs-tbody">
+                                    @php
+                                        $logIndex = 0;
+                                    @endphp
+                                    @foreach($itinerary->operationLogs as $log)
+                                    <tr class="log-row" data-log-id="{{ $log->id }}" data-index="{{ $logIndex }}">
                                         <td>
-                                            <input type="time" class="form-control form-control-sm log-time-input" value="{{ \Carbon\Carbon::parse($log->logged_at)->format('H:i') }}" style="font-size: 0.75rem;">
+                                            <input type="time" class="form-control form-control-sm log-time-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][logged_at]" value="{{ \Carbon\Carbon::parse($log->logged_at)->format('H:i') }}" style="font-size: 0.75rem;">
+                                            <input type="hidden" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][id]" value="{{ $log->id }}">
+                                            <input type="hidden" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][display_order]" value="{{ $logIndex }}">
                                         </td>
                                         <td>
-                                            <input type="number" class="form-control form-control-sm log-mileage-input" value="{{ $log->mileage }}" min="0" style="font-size: 0.75rem;">
+                                            <input type="number" class="form-control form-control-sm log-mileage-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][mileage]" value="{{ $log->mileage }}" min="0" style="font-size: 0.75rem;">
                                         </td>
                                         <td>
-                                            <input type="text" class="form-control form-control-sm log-address-input" value="{{ $log->address ?? '' }}" style="font-size: 0.75rem;">
+                                            <input type="text" class="form-control form-control-sm log-address-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][address]" value="{{ $log->address ?? '' }}" style="font-size: 0.75rem;">
                                         </td>
                                         <td>
-                                            <select class="form-select form-select-sm log-action-select" style="font-size: 0.75rem;">
+                                            <select class="form-select form-select-sm log-action-select" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][action]" style="font-size: 0.75rem;">
                                                 @foreach($operationTypes as $type)
                                                 <option value="{{ $type->name }}" {{ $log->action == $type->name ? 'selected' : '' }}>
                                                     {{ $type->name }}
@@ -164,18 +183,18 @@
                                             </select>
                                         </td>
                                         <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-primary save-log-btn" data-log-id="{{ $log->id }}">
-                                                <i class="bi bi-save"></i> 保存
-                                            </button>
+                                            <div class="d-flex justify-content-center gap-1">
+                                                <button type="button" class="btn btn-outline-success btn-sm add-log-btn" title="行を追加">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm delete-log-btn" title="行を削除">
+                                                    <i class="bi bi-dash-lg"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
-                                    @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-3">
-                                            操作ログはありません
-                                        </td>
-                                    </tr>
-                                    @endforelse
+                                    @php $logIndex++; @endphp
+                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
@@ -263,77 +282,138 @@
     endMileageInput.addEventListener('input', calculateDistance);
     calculateDistance();
     
-    document.querySelectorAll('.save-log-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const logId = this.getAttribute('data-log-id');
-            const dailyReportId = {{ $report->id }};
-            const row = this.closest('tr');
+    function reindexRows(table) {
+        const tbody = table.querySelector('.logs-tbody');
+        const rows = tbody.querySelectorAll('.log-row');
+        const itineraryIndex = table.getAttribute('data-itinerary-index');
+        
+        rows.forEach((row, newIndex) => {
+            row.setAttribute('data-index', newIndex);
+            
             const timeInput = row.querySelector('.log-time-input');
+            const idInput = row.querySelector('input[name*="[id]"]');
             const mileageInput = row.querySelector('.log-mileage-input');
             const addressInput = row.querySelector('.log-address-input');
             const actionSelect = row.querySelector('.log-action-select');
+            const displayOrderInput = row.querySelector('input[name*="[display_order]"]');
             
-            let loggedAt = null;
-            if (timeInput && timeInput.value) {
-                const dateStr = @json($report->date);
-                let dateOnly = dateStr;
-                if (dateStr.includes('T')) {
-                    dateOnly = dateStr.split('T')[0];
-                } else if (dateStr.includes(' ')) {
-                    dateOnly = dateStr.split(' ')[0];
-                }
-                let timeValue = timeInput.value;
-                if (timeValue.includes(' ')) {
-                    const parts = timeValue.split(' ');
-                    timeValue = parts[parts.length - 1];
-                }
-                loggedAt = `${dateOnly} ${timeValue}:00`;
+            if (timeInput) {
+                const oldName = timeInput.getAttribute('name');
+                timeInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][logged_at]`);
             }
-            
-            const mileage = mileageInput ? parseInt(mileageInput.value) : null;
-            const address = addressInput ? addressInput.value : '';
-            const action = actionSelect ? actionSelect.value : '';
-            
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
-            btn.disabled = true;
-            
-            fetch(`/masters/daily-reports/operation-log/${logId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({
-                    daily_report_id: dailyReportId,
-                    logged_at: loggedAt,
-                    mileage: mileage,
-                    address: address,
-                    action: action
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('保存しました');
-                    location.reload(); 
-                    // btn.innerHTML = '<i class="bi bi-check-circle"></i> 保存';
-                    // setTimeout(() => {
-                    //     btn.innerHTML = '<i class="bi bi-save"></i> 保存';
-                    //     btn.disabled = false;
-                    // }, 1000);
-                } else {
-                    alert('更新に失敗しました: ' + (data.message || '不明なエラー'));
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('エラーが発生しました: ' + error.message);
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            });
+            if (idInput) {
+                idInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][id]`);
+            }
+            if (mileageInput) {
+                mileageInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][mileage]`);
+            }
+            if (addressInput) {
+                addressInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][address]`);
+            }
+            if (actionSelect) {
+                actionSelect.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][action]`);
+            }
+            if (displayOrderInput) {
+                displayOrderInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][display_order]`);
+                displayOrderInput.value = newIndex;
+            } else {
+                const newDisplayOrder = document.createElement('input');
+                newDisplayOrder.type = 'hidden';
+                newDisplayOrder.name = `logs[${itineraryIndex}][${newIndex}][display_order]`;
+                newDisplayOrder.value = newIndex;
+                row.cells[0].appendChild(newDisplayOrder);
+            }
+        });
+    }
+    
+    function addLogRow(button) {
+        const row = button.closest('.log-row');
+        const tbody = row.parentNode;
+        const table = row.closest('.logs-table');
+        const itineraryIndex = table.getAttribute('data-itinerary-index');
+        
+        const newRow = document.createElement('tr');
+        newRow.className = 'log-row';
+        newRow.setAttribute('data-log-id', '');
+        newRow.setAttribute('data-index', '');
+        
+        const currentRowCount = tbody.querySelectorAll('.log-row').length;
+        const newIndex = currentRowCount;
+        
+        newRow.innerHTML = `
+            <td>
+                <input type="time" class="form-control form-control-sm log-time-input" name="logs[${itineraryIndex}][${newIndex}][logged_at]" style="font-size: 0.75rem;">
+                <input type="hidden" name="logs[${itineraryIndex}][${newIndex}][id]" value="">
+                <input type="hidden" name="logs[${itineraryIndex}][${newIndex}][display_order]" value="${newIndex}">
+            </td>
+            <td>
+                <input type="number" class="form-control form-control-sm log-mileage-input" name="logs[${itineraryIndex}][${newIndex}][mileage]" min="0" style="font-size: 0.75rem;">
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm log-address-input" name="logs[${itineraryIndex}][${newIndex}][address]" style="font-size: 0.75rem;">
+            </td>
+            <td>
+                <select class="form-select form-select-sm log-action-select" name="logs[${itineraryIndex}][${newIndex}][action]" style="font-size: 0.75rem;">
+                    @foreach($operationTypes as $type)
+                    <option value="{{ $type->name }}">{{ $type->name }}</option>
+                    @endforeach
+                </select>
+            </td>
+            <td class="text-center">
+                <div class="d-flex justify-content-center gap-1">
+                    <button type="button" class="btn btn-outline-success btn-sm add-log-btn" title="行を追加">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm delete-log-btn" title="行を削除">
+                        <i class="bi bi-dash-lg"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        
+        const referenceRow = button.closest('.log-row');
+        referenceRow.parentNode.insertBefore(newRow, referenceRow.nextSibling);
+        
+        const newAddBtn = newRow.querySelector('.add-log-btn');
+        const newDeleteBtn = newRow.querySelector('.delete-log-btn');
+        
+        newAddBtn.addEventListener('click', function() { addLogRow(this); });
+        newDeleteBtn.addEventListener('click', function() { deleteLogRow(this); });
+        
+        reindexRows(table);
+    }
+    
+    function deleteLogRow(button) {
+        const row = button.closest('.log-row');
+        const tbody = row.parentNode;
+        const table = row.closest('.logs-table');
+        
+        if (tbody.querySelectorAll('.log-row').length <= 1) {
+            if (confirm('最後の行を削除しますか？')) {
+                row.remove();
+                reindexRows(table);
+            }
+        } else {
+            row.remove();
+            reindexRows(table);
+        }
+    }
+    
+    document.querySelectorAll('.logs-table').forEach(table => {
+        const tbody = table.querySelector('.logs-tbody');
+        const addButtons = tbody.querySelectorAll('.add-log-btn');
+        const deleteButtons = tbody.querySelectorAll('.delete-log-btn');
+        
+        addButtons.forEach(btn => {
+            btn.removeEventListener('click', btn._addHandler);
+            btn._addHandler = function() { addLogRow(this); };
+            btn.addEventListener('click', btn._addHandler);
+        });
+        
+        deleteButtons.forEach(btn => {
+            btn.removeEventListener('click', btn._deleteHandler);
+            btn._deleteHandler = function() { deleteLogRow(this); };
+            btn.addEventListener('click', btn._deleteHandler);
         });
     });
 </script>

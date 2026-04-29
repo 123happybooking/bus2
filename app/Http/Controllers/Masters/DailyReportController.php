@@ -82,6 +82,7 @@ class DailyReportController extends Controller
             'end_time' => 'nullable|date_format:H:i',
             'end_mileage' => 'nullable|integer|min:0',
             'allow_edit' => 'nullable|boolean',
+            'logs' => 'nullable|array',
         ]);
         
         $userId = session('user_id', auth()->id() ?? 0);
@@ -95,63 +96,76 @@ class DailyReportController extends Controller
             'updated_by' => $userId,
         ]);
         
-        return redirect()->route('masters.daily-reports.index')
-            ->with('success', '運行日報を更新しました。');
-    }
-    
-    public function updateOperationLog(Request $request, $id)
-    {
-        $log = DriverOperationLog::findOrFail($id);
+        $itineraries = DailyItinerary::with(['busAssignment.groupInfo'])
+            ->where('driver_id', $report->driver_id)
+            ->whereDate('date', $report->date)
+            ->orderBy('time_start', 'asc')
+            ->get();
         
-        $request->validate([
-            'daily_report_id' => 'required|exists:driver_daily_reports,id',
-            'logged_at' => 'nullable|string',
-            'mileage' => 'nullable|integer|min:0',
-            'address' => 'nullable|string',
-            'action' => 'required|string',
-        ]);
+        $submittedLogIds = [];
+        $dateOnly = Carbon::parse($report->date)->format('Y-m-d');
         
-        $updateData = [
-            'action' => $request->action,
-            'mileage' => $request->mileage,
-            'address' => $request->address,
-        ];
-        
-        if ($request->filled('logged_at')) {
-            $updateData['logged_at'] = Carbon::parse($request->logged_at);
+        if ($request->has('logs')) {
+            foreach ($request->logs as $itineraryIndex => $logs) {
+                if (!isset($itineraries[$itineraryIndex])) {
+                    continue;
+                }
+                
+                $itinerary = $itineraries[$itineraryIndex];
+                
+                foreach ($logs as $logIndex => $logData) {
+                    $logId = $logData['id'] ?? null;
+                    
+                    $loggedAt = null;
+                    if (!empty($logData['logged_at'])) {
+                        $loggedAt = Carbon::parse($dateOnly . ' ' . $logData['logged_at'] . ':00');
+                    }
+                    
+                    if ($logId) {
+                        $log = DriverOperationLog::find($logId);
+                        if ($log) {
+                            $log->update([
+                                'logged_at' => $loggedAt,
+                                'mileage' => $logData['mileage'] ?? null,
+                                'address' => $logData['address'] ?? null,
+                                'action' => $logData['action'] ?? '',
+                            ]);
+                            $submittedLogIds[] = $logId;
+                        }
+                    } else {
+                        $newLog = DriverOperationLog::create([
+                            'itinerary_id' => $itinerary->id,
+                            'driver_id' => $report->driver_id,
+                            'logged_at' => $loggedAt,
+                            'mileage' => $logData['mileage'] ?? null,
+                            'address' => $logData['address'] ?? null,
+                            'action' => $logData['action'] ?? '',
+                            // 'display_order' => $displayOrder,
+                        ]);
+                        $submittedLogIds[] = $newLog->id;
+                    }
+                }
+            }
         }
         
-        $log->update($updateData);
+        DriverOperationLog::where('driver_id', $report->driver_id)
+            ->whereDate('logged_at', $report->date)
+            ->whereNotIn('id', $submittedLogIds)
+            ->delete();
         
-        $userId = session('user_id', auth()->id() ?? 0);
-        
-        DriverDailyReport::where('id', $request->daily_report_id)
-            ->update([
-                'updated_by' => $userId,
-                'updated_at' => Carbon::now(),
-            ]);
-        
-        $itinerary = DailyItinerary::find($log->itinerary_id);
-        if ($itinerary) {
+        foreach ($itineraries as $itinerary) {
             $latestLog = DriverOperationLog::where('itinerary_id', $itinerary->id)
                 ->orderBy('logged_at', 'desc')
                 ->first();
             if ($latestLog) {
                 $itinerary->update(['operation_status' => $latestLog->action]);
+            } else {
+                $itinerary->update(['operation_status' => null]);
             }
         }
         
-        return response()->json([
-            'success' => true,
-            'log' => [
-                'id' => $log->id,
-                'action' => $log->action,
-                'mileage' => $log->mileage,
-                'address' => $log->address,
-                'logged_at' => $log->logged_at->format('Y/m/d H:i:s'),
-                'time' => $log->logged_at->format('H:i:s'),
-            ]
-        ]);
+        return redirect()->route('masters.daily-reports.edit', $report->id)
+            ->with('success', '運行日報を更新しました。');
     }
     
     public function exportPdf($id)

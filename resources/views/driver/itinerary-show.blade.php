@@ -4,13 +4,21 @@
 
 @section('content')
 <div class="mobile-container">
+    @php
+        $startDate = \Carbon\Carbon::parse($busAssignment->start_date);
+        $endDate = \Carbon\Carbon::parse($busAssignment->end_date);
+        $totalDays = $startDate->diffInDays($endDate) + 1;
+        $currentDate = \Carbon\Carbon::parse($itinerary->date);
+        $currentDay = $startDate->diffInDays($currentDate) + 1;
+        $dayInfo = $currentDay . '/' . $totalDays;
+    @endphp
     <div class="header">
         <button class="menu-btn" id="backBtn">
             <div class="back-arrow"></div>
         </button>
-        <div class="page-title">行程詳細</div>
+        <div class="page-title">{{ \Carbon\Carbon::parse($itinerary->date)->format('m月d日') }}</div>
         <div class="header-right">
-            <div style="width: 32px;"></div>
+            <div style="width: 32px;">{{ $dayInfo }}</div>
         </div>
     </div>
 
@@ -23,14 +31,22 @@
             $categoryName = $reservationCategory ? $reservationCategory->category_name : '';
             $busAssignment = $itinerary->busAssignment;
             $isCompleted = $itinerary->operation_status === '終了';
+            $guideName = $itinerary->busAssignment->guide->name ?? '';
         @endphp
 
         <div class="itinerary-card">
             <div class="card-header-row">
-                <span class="booking-operation-id">{{ $bookingId }}-{{ $operationId }}</span>
-                <span class="category-name">{{ $categoryName }}</span>
+                <div class="left-group">
+                    <span class="booking-operation-id">{{ $bookingId }}-{{ $operationId }}</span>
+                    @if($isCompleted)
+                    <span class="completed-badge">完了</span>
+                    @endif
+                </div>
+                <div class="right-group">
+                    <span class="category-name">{{ $categoryName }}</span>
+                    <span class="guide-name">{{ $guideName }}</span>
+                </div>
             </div>
-            <div class="divider"></div>
 
             <div class="itinerary-row">
                 <div class="itinerary-left">
@@ -44,7 +60,6 @@
                         <div class="arrow-line"></div>
                         <div class="arrow-triangle"></div>
                     </div>
-                    <div class="itinerary-date">{{ \Carbon\Carbon::parse($itinerary->date)->format('m月d日') }}</div>
                 </div>
 
                 <div class="itinerary-right">
@@ -56,29 +71,16 @@
 
         <div class="detail-list">
             <div class="detail-item">
-                <div class="detail-label">開始</div>
-                <div class="detail-value">{{ \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') }}</div>
-                <div class="detail-value-right">{{ $itinerary->start_location ?? '未設定' }}</div>
+                <div class="detail-value-full" style="text-align: center;">{{ $itinerary->itinerary ?? '未設定' }}</div>
             </div>
             <div class="detail-item">
-                <div class="detail-label">終了</div>
-                <div class="detail-value">{{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }}</div>
-                <div class="detail-value-right">{{ $itinerary->end_location ?? '未設定' }}</div>
-            </div>
-            <div class="detail-item">
-                <div class="detail-label">行程</div>
-                <div class="detail-value-full">{{ $itinerary->itinerary ?? '未設定' }}</div>
-            </div>
-            <div class="detail-item">
-                <div class="detail-label">人数</div>
-                <div class="detail-value-full">
+                <div class="detail-value-full" style="text-align: center;">
                     大: {{ $busAssignment->adult_count ?? 0 }}　
                     小: {{ $busAssignment->child_count ?? 0 }}
                 </div>
-            </div>
-            <div class="detail-item">
-                <div class="detail-label">荷物</div>
-                <div class="detail-value-full">{{ $busAssignment->luggage ?? '未設定' }}</div>
+                <div class="detail-value-full" style="text-align: center;">
+                    荷物：{{ $busAssignment->luggage ?? '未設定' }}
+                </div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">注意</div>
@@ -145,6 +147,35 @@
     margin-bottom: 8px;
 }
 
+.left-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.right-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.completed-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    background-color: #10b981;
+    color: white;
+    border-radius: 20px;
+}
+
+.guide-name {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background-color: var(--border-color);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
 .booking-operation-id {
     font-size: 12px;
     color: var(--text-secondary);
@@ -153,6 +184,9 @@
 .category-name {
     font-size: 12px;
     color: var(--accent-color);
+    background-color: var(--border-color);
+    padding: 2px 8px;
+    border-radius: 12px;
 }
 
 .divider {
