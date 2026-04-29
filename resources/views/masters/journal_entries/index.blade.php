@@ -217,8 +217,8 @@
                 <div class="d-flex align-items-center text-white">
                     <select id="perPageSelect" class="form-select form-select-sm bg-dark text-white border-secondary" style="font-size: 0.75rem; height: 26px;">
                         <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20</option>
-                        <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30</option>
-                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        <!-- <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option> -->
                     </select>
                 </div>
 
