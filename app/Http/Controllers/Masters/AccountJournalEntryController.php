@@ -588,7 +588,6 @@ class AccountJournalEntryController extends Controller
     public function destroy(Request $request, $id)
     {
         $entry = AccountJournalEntry::findOrFail($id);
-        $groupId = $request->query('group_id');
 
         // 检查是否允许删除 (例如：已过账的凭证不能删除)
         // if ($entry->is_posted) { ... }
@@ -600,7 +599,7 @@ class AccountJournalEntryController extends Controller
             $entry->delete();
 
             return redirect()
-                ->route('masters.journal_entries.index' ,request()->only(['date_from', 'date_to', 'account_id']))
+                ->route('masters.journal_entries.index' , request()->query())
                 ->with([
                     'success' => '仕訳伝票を削除しました。',
                     'alert-type' => 'success'
@@ -609,7 +608,7 @@ class AccountJournalEntryController extends Controller
         } catch (\Exception $e) {
             Log::error('Journal Entry delete error: ' . $e->getMessage());
             return redirect()
-                ->route('masters.journal_entries.index',request()->only(['date_from', 'date_to', 'account_id']))
+                ->route('masters.journal_entries.index',request()->only(['period_id', 'yearmonth', 'account_id']))
                 ->with([
                     'error' => '削除に失敗しました。',
                     'alert-type' => 'danger'

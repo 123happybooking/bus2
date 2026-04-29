@@ -69,13 +69,14 @@ class AccountMonthSumController extends Controller
                 $sumData[] = [
                     'year'       => $ym['year'],
                     'month'      => $ym['month'],
+                   
                     'created_by' => session('staff_name'),
                     'sn'         => (string) Str::uuid(), // 【修改点】手动生成 UUID，替代 Model 的 boot 逻辑
                     'created_at' => $now,                 // 【修改点】必须手动传入
                     'updated_at' => $now,                 // 【修改点】必须手动传入
                 ];
             }
-           // dump($sumData);exit;
+         
             // 批量插入汇总表
             if (!empty($sumData)) {
                 AccountMonthSum::insert($sumData);
@@ -92,6 +93,7 @@ class AccountMonthSumController extends Controller
                         'account_id'   => $rowData['account_id'],
                         'year'         => $dateParts[0],
                         'month'        => $dateParts[1],
+                         'year_month' => $dateParts[0]. '-' .$dateParts[1],
                         'money_start'  => $rowData['opening'],
                         'money_end'    => $rowData['closing'],
                         'money_jie'    => $rowData['jie_money'],
@@ -123,14 +125,16 @@ class AccountMonthSumController extends Controller
             ->orderBy('month', 'desc')
             ->first();
 
+
         // 2. 确定 $endDate (现实时间上个月最后一天)
         // 无论哪种情况，结束时间都是固定的：上个月月底
         $endDate = Carbon::now()->subMonth()->endOfMonth()->format('Y-m-d');
 
+
         // 3. 确定 $startDate
         if (empty($list)) {
             // --- 情况 A: 数据库为空，从 2025-01-01 开始 ---
-            $startDate = '2025-01-01';
+            $startDate = '2024-01-01';
         } else {
             // --- 情况 B: 数据库有值，从该数据的下个月1号开始 ---
             
@@ -144,7 +148,6 @@ class AccountMonthSumController extends Controller
             $startDate = $nextMonthDate->format('Y-m-d');
         }
 
-       // dump($startDate."....".$endDate);exit;
         $datas=[];
 
         $account_ids  = Account::where('is_active', 1)->pluck('id')->toArray();
