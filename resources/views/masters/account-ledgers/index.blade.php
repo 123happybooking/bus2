@@ -32,34 +32,34 @@
                         <!-- 1. 区分下拉 (放在左侧) -->
                         <div style="min-width: 200px;">
                             <label class="form-label small text-muted mb-1" style="display: block; margin-bottom: 4px;">区分</label>
-                            <input 
-                                type="text" 
-                                name="category_name" 
-                                class="form-control form-control-sm" 
-                                list="category-list" 
-                                placeholder="区分を入力..."
-                                value="{{ request('category_name') }}"
-                                style="border-color: #E5E7EB;"
-                            >
-                            <datalist id="category-list">
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->name }}">
-                                @endforeach
-                            </datalist>
-                        </div>
-
-                        <!-- 2. 按钮区域 (紧挨着区分) -->
-                        <div class="d-flex gap-2" style="margin-top: 8px;">
-                            <button type="submit" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-search"></i> 表示
-                            </button>
                             
-                            <!-- 清除按钮 -->
-                            @if(request()->hasAny(['category_name']))
-                                <a href="{{ route('masters.account-ledgers.index') }}" class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-x-circle"></i> クリア
-                                </a>
-                            @endif
+                            <div class="input-group input-group-sm">
+                                <input 
+                                    type="text" 
+                                    name="category_name" 
+                                    class="form-control" 
+                                    list="category-list" 
+                                    placeholder="区分を入力..."
+                                    value="{{ request('category_name') }}"
+                                    style="border-color: #E5E7EB;"
+                                >
+                                <datalist id="category-list">
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->name }}">
+                                    @endforeach
+                                </datalist>
+
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="bi bi-search"></i> 表示
+                                </button>
+                                
+                                <!-- 清除按钮 -->
+                                @if(request()->hasAny(['category_name']))
+                                    <a href="{{ route('masters.account-ledgers.index') }}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> クリア
+                                    </a>
+                                @endif
+                            </div>
                         </div>
 
                         <!-- 3. 占位符 (将日期框推到最右边) -->
@@ -194,7 +194,8 @@
                         <label for="per_page_select" class="form-label small text-muted mb-0 me-2">
                             表示件数:
                         </label>
-                        <select id="per_page_select" class="form-select form-select-sm" style="width: auto;">
+                        <select id="per_page_select" class="form-select form-select-sm" style="width: auto;" 
+                            onchange="window.location.href = '{{ request()->fullUrlWithQuery(['per_page' => '__PER_PAGE__', 'page' => 1]) }}'.replace('__PER_PAGE__', this.value)">
                             <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20 行</option>
                             <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30 行</option>
                             <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 行</option>

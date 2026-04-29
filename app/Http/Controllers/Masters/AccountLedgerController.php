@@ -51,12 +51,7 @@ class AccountLedgerController extends Controller
             $perPage = (int)$request->per_page;
         }
         
-        // 排序：默认按 ID 降序 (新注册的在后)，也可改为按 code 升序
-        $accounts = $query->orderBy('id', 'asc')->paginate($perPage);
-        
-        // 保留查询参数用于分页链接
-        $accounts->appends(['search' => $request->search, 'is_active' => $request->is_active, 'category_name' => $request->category_name, 'start_date' => $request->start_date, 'end_date' => $request->end_date,'per_page' => $perPage]);
-        $categories = AccountCategory::get();
+
 
         $periods = AccountPeriod::orderBy('created_at','desc')->get();
         $period = AccountPeriod::orderBy('created_at','desc')->first();
@@ -82,6 +77,14 @@ class AccountLedgerController extends Controller
             $months[$key] = $value;
         }
         $months["全期"] = "13";
+
+
+        // 排序：默认按 ID 降序 (新注册的在后)，也可改为按 code 升序
+        $accounts = $query->orderBy('id', 'asc')->paginate($perPage);
+        
+        // 保留查询参数用于分页链接
+        $accounts->appends($request->except('page'));
+        $categories = AccountCategory::get();
 
         return view('masters.account-ledgers.index', compact('accounts','categories','periods','months','period_id','yearmonth'));
     }

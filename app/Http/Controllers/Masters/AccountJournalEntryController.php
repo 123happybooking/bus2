@@ -145,8 +145,8 @@ class AccountJournalEntryController extends Controller
             $perPage = (int)$request->per_page;
         }
 
-        $entries = $query->orderBy('posting_date', $sortOrder)->paginate($perPage);
-        $entries->appends($request->only(['search', 'posting_date',  'account_id', 'period_id','yearmonth','per_page']));
+        $entries = $query->orderBy('posting_date', $sortOrder)->paginate($perPage)->withQueryString();
+        //$entries->appends($request->only(['search', 'posting_date',  'account_id', 'period_id','yearmonth','per_page']));
 
         // 预加载一些基础数据用于筛选下拉框 (可选)
         $departments = AccountDepartment::get();
