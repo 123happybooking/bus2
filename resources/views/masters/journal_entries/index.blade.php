@@ -217,56 +217,14 @@
                 <div class="d-flex align-items-center text-white">
                     <select id="perPageSelect" class="form-select form-select-sm bg-dark text-white border-secondary" style="font-size: 0.75rem; height: 26px;">
                         <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20</option>
-                        <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30</option>
-                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        <!-- <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option> -->
                     </select>
                 </div>
 
                 <!-- 2. 分页导航 -->
                 <nav>
-                    <ul class="pagination pagination-sm mb-0">
-                        <!-- 上一页 -->
-                        <li class="page-item {{ $entries->onFirstPage() ? 'disabled' : '' }}">
-                            <a class="page-link" href="{{ $entries->previousPageUrl() }}" aria-label="Previous">
-                                <span>&laquo;</span>
-                            </a>
-                        </li>
-                        
-                        <!-- 页码 -->
-                        @php
-                            $current = $entries->currentPage();
-                            $last = $entries->lastPage();
-                            $start = max(1, $current - 1);
-                            $end = min($last, $current + 1);
-                        @endphp
-                        
-                        @if($start > 1)
-                            <li class="page-item"><a class="page-link" href="{{ $entries->url(1) }}">1</a></li>
-                            @if($start > 2)
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            @endif
-                        @endif
-                        
-                        @for($i = $start; $i <= $end; $i++)
-                            <li class="page-item {{ $i == $current ? 'active' : '' }}">
-                                <a class="page-link" href="{{ $entries->url($i) }}">{{ $i }}</a>
-                            </li>
-                        @endfor
-                        
-                        @if($end < $last)
-                            @if($end < $last - 1)
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            @endif
-                            <li class="page-item"><a class="page-link" href="{{ $entries->url($last) }}">{{ $last }}</a></li>
-                        @endif
-
-                        <!-- 下一页 -->
-                        <li class="page-item {{ !$entries->hasMorePages() ? 'disabled' : '' }}">
-                            <a class="page-link" href="{{ $entries->nextPageUrl() }}" aria-label="Next">
-                                <span>&raquo;</span>
-                            </a>
-                        </li>
-                    </ul>
+                    {{ $entries->withQueryString()->links('pagination::bootstrap-4') }}
                 </nav>
 
             </div>

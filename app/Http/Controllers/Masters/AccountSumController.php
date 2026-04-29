@@ -56,12 +56,14 @@ public function index(Request $request)
         // 1. 关联余额表（用于获取期末余额）
         ->leftJoin('account_month_details as amd_end', function ($join) use ($end) {
             $join->on('acc.id', '=', 'amd_end.account_id')
-                ->where('amd_end.year_month', '=', $end);
+                ->where('amd_end.year_month', '=', $end)
+                ->whereNull('amd_end.deleted_at');
         })
         // 2. 关联明细表（用于计算区间合计）
         ->leftJoin('account_month_details as amd_sum', function ($join) use ($start, $end) {
             $join->on('acc.id', '=', 'amd_sum.account_id')
-                ->whereBetween('amd_sum.year_month', [$start, $end]);
+                ->whereBetween('amd_sum.year_month', [$start, $end])
+                ->whereNull('amd_sum.deleted_at');
         })
         ->select([
             'acc.id',

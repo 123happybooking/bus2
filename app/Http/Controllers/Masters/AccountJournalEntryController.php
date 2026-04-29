@@ -90,21 +90,20 @@ class AccountJournalEntryController extends Controller
             }
         }
 
-
+        $account_id = $request->account_id;
 
         $inputs = [
             'start_year' => $start_year,
             'start_month' => $start_month,
             'yearmonth' => $yearmonth,
-            'account_id' => $request->account_id,
+            'account_id' => $account_id,
             'period_id' => $period_id,
         ];
         session([auth()->user()->id.'.filters' => $inputs]);
 
         if ($yearmonth == "13" ){
-            $tmp = $start_year."-".$start_month;
-            $firstDay = date('Y-m-d', strtotime("first day of $tmp"));
-            $lastDay = date('Y-m-d', strtotime('+1 year', strtotime($firstDay)));
+            $firstDay = $period->start;
+            $lastDay =  $period->end;
         }else{
             $firstDay = date('Y-m-d', strtotime("first day of $yearmonth"));
             $lastDay = date('Y-m-d', strtotime("last day of $yearmonth"));
@@ -132,12 +131,6 @@ class AccountJournalEntryController extends Controller
             $query->where('posting_date', '=', $request->posting_date);
         }
 
-        if ($request->filled('date_from')) {
-            $query->where('posting_date', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->where('posting_date', '<=', $request->date_to);
-        }
 
         $query->where('posting_date', '>=', $firstDay)->where('posting_date', '<=', $lastDay);
 
@@ -152,8 +145,8 @@ class AccountJournalEntryController extends Controller
             $perPage = (int)$request->per_page;
         }
 
-        $entries = $query->orderBy('posting_date', $sortOrder)->paginate($perPage);
-        $entries->appends($request->only(['search', 'posting_date',  'account_id', 'date_from','date_to','per_page']));
+        $entries = $query->orderBy('posting_date', $sortOrder)->paginate($perPage)->withQueryString();
+        //$entries->appends($request->only(['search', 'posting_date',  'account_id', 'period_id','yearmonth','per_page']));
 
         // 预加载一些基础数据用于筛选下拉框 (可选)
         $departments = AccountDepartment::get();
@@ -595,7 +588,6 @@ class AccountJournalEntryController extends Controller
     public function destroy(Request $request, $id)
     {
         $entry = AccountJournalEntry::findOrFail($id);
-        $groupId = $request->query('group_id');
 
         // 检查是否允许删除 (例如：已过账的凭证不能删除)
         // if ($entry->is_posted) { ... }
@@ -607,7 +599,7 @@ class AccountJournalEntryController extends Controller
             $entry->delete();
 
             return redirect()
-                ->route('masters.journal_entries.index' ,request()->only(['date_from', 'date_to', 'account_id']))
+                ->route('masters.journal_entries.index' , request()->query())
                 ->with([
                     'success' => '仕訳伝票を削除しました。',
                     'alert-type' => 'success'
@@ -616,7 +608,7 @@ class AccountJournalEntryController extends Controller
         } catch (\Exception $e) {
             Log::error('Journal Entry delete error: ' . $e->getMessage());
             return redirect()
-                ->route('masters.journal_entries.index',request()->only(['date_from', 'date_to', 'account_id']))
+                ->route('masters.journal_entries.index',request()->only(['period_id', 'yearmonth', 'account_id']))
                 ->with([
                     'error' => '削除に失敗しました。',
                     'alert-type' => 'danger'

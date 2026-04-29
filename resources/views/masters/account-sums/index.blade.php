@@ -123,12 +123,12 @@
                                 $grandTotalBalanceDai += $balanceDai;
                             @endphp
                             <tr>
-                                <td>{{ $balanceJie > 0 ? number_format($balanceJie, 2) : '-' }}</td>
-                                <td>{{ number_format($row->total_jie, 2) }}</td>
+                                <td>{{ $balanceJie > 0 ? number_format($balanceJie, 0) : '-' }}</td>
+                                <td>{{ number_format($row->total_jie, 0) }}</td>
                                 <td class="text-center">{{ $row->name }}</td>
-                                <td>{{ number_format($row->total_dai, 2) }}</td>
+                                <td>{{ number_format($row->total_dai, 0) }}</td>
                                 
-                                <td>{{ $balanceDai > 0 ? number_format($balanceDai, 2) : '-' }}</td>
+                                <td>{{ $balanceDai > 0 ? number_format($balanceDai, 0) : '-' }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -141,13 +141,13 @@
                     </tbody>
                     <tfoot class="table-light fw-bold">
                         <tr>
-                            <td>{{ number_format($grandTotalBalanceJie, 2) }}</td>
+                            <td>{{ number_format($grandTotalBalanceJie, 0) }}</td>
                             
-                            <td>{{ number_format($grandTotalJie, 2) }}</td>
+                            <td>{{ number_format($grandTotalJie, 0) }}</td>
                             <td class="text-center">合计</td>
-                            <td>{{ number_format($grandTotalDai, 2) }}</td>
+                            <td>{{ number_format($grandTotalDai, 0) }}</td>
                             
-                            <td>{{ number_format($grandTotalBalanceDai, 2) }}</td>
+                            <td>{{ number_format($grandTotalBalanceDai, 0) }}</td>
                         </tr>
                     </tfoot>
                 </table>
