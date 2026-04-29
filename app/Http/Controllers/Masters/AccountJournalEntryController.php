@@ -157,14 +157,8 @@ class AccountJournalEntryController extends Controller
         $partners = AccountPartner::get(); // 交易伙伴
         $taxes = AccountTax::get();       // 税区分
 
-        $accountsJie = Account::where('is_active', 1)
-            ->whereHas('category', function ($query) {
-                $query->where('mark', '借');
-            })->get();
-        $accountsDai = Account::where('is_active', 1)
-            ->whereHas('category', function ($query) {
-                $query->where('mark', '貸');
-            })->get();
+        $accountsJie = Account::where('is_active', 1)->get();
+        $accountsDai = Account::where('is_active', 1)->get();
 
         return view('masters.journal_entries.index', compact('entries',  'departments', 'staffs','accounts','partners','taxes','accountsJie','accountsDai','start_year','start_month','months','yearmonth','periods','period_id'));
     }
