@@ -31,6 +31,7 @@
             $bus_assignment_id = $itinerary->bus_assignment_id ?? '';
             $categoryName = $reservationCategory ? $reservationCategory->category_name : '';
             $isCompleted = $itinerary->is_completed ?? false;
+            $guideName = $itinerary->busAssignment->guide->name ?? '';
         @endphp
         <div class="itinerary-card" data-id="{{ $itinerary->id }}" data-status="{{ $isCompleted ? 'completed' : 'pending' }}">
             <div class="card-header-row">
@@ -40,7 +41,10 @@
                     <span class="completed-badge">完了</span>
                     @endif
                 </div>
-                <span class="category-name">{{ $categoryName }}</span>
+                <div class="right-group">
+                    <span class="category-name">{{ $categoryName }}</span>
+                    <span class="guide-name">{{ $guideName }}</span>
+                </div>
             </div>
             <div class="divider"></div>
             <div class="itinerary-row">
@@ -61,10 +65,6 @@
                     <div class="end-time">{{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }}</div>
                     <div class="end-location">{{ $itinerary->end_location ?? '' }}</div>
                 </div>
-            </div>
-
-            <div class="itinerary-footer">
-                <span class="detail-link">行程详情 &gt;</span>
             </div>
         </div>
         @empty
@@ -178,6 +178,14 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
+    gap: 8px;
+}
+
+.right-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
 .left-group {
@@ -202,6 +210,17 @@
 .category-name {
     font-size: 12px;
     color: var(--accent-color);
+    background-color: var(--border-color);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.guide-name {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background-color: var(--border-color);
+    padding: 2px 8px;
+    border-radius: 12px;
 }
 
 .divider {

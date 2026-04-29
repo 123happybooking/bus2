@@ -17,15 +17,32 @@
 
     <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">
         <form method="GET" action="{{ route('masters.bus-assignments.index') }}" class="row g-1" id="searchForm">
+            <input type="hidden" name="display_days" id="display_days" value="{{ $displayDays ?? 7 }}">
+            
             <div class="col-12">
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     <div class="d-flex align-items-center">
                         <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">運行日</span>
-                        <input type="text" name="start_date" value="{{ request('start_date', \Carbon\Carbon::today()->format('Y-m-d')) }}"
-                               class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" placeholder="YYYY-MM-DD" readonly>
+                        <input type="text" name="start_date" value="{{ request('start_date', \Carbon\Carbon::today()->format('Y-m-d')) }}" 
+                               class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" placeholder="YYYY-MM-DD" id="start_date">
                         <span class="mx-1">~</span>
-                        <input type="text" name="end_date" value="{{ request('end_date', \Carbon\Carbon::today()->format('Y-m-d')) }}"
-                               class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" placeholder="YYYY-MM-DD" readonly>
+                        <input type="text" name="end_date" value="{{ request('end_date', \Carbon\Carbon::today()->addDays(6)->format('Y-m-d')) }}" 
+                               class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" placeholder="YYYY-MM-DD" id="end_date">
+                        
+                        <select name="period" class="form-select form-select-sm" style="width: 100px; margin-left: 8px;" id="period_select">
+                            <option value="1" {{ request('period') == 1 ? 'selected' : '' }}>1週間</option>
+                            <option value="2" {{ request('period') == 2 ? 'selected' : '' }}>2週間</option>
+                            <option value="3" {{ request('period') == 3 ? 'selected' : '' }}>3週間</option>
+                            <option value="4" {{ request('period') == 4 ? 'selected' : '' }}>1ヶ月</option>
+                        </select>
+                        
+                        <div class="btn-group btn-group-sm ms-2">
+                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', -1)">&lt;&lt;</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', -1)">&lt;</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setToday()">今日</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', 1)">&gt;</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', 1)">&gt;&gt;</button>
+                        </div>
                     </div>
 
                     <div class="d-flex align-items-center">
@@ -278,7 +295,7 @@
                                 <br><span>{{ $assignment->vehicle_number }}</span>
                             @endif
                         @endif
-                    </td>
+                     </td>
                     <td class="px-1 py-1 align-middle">
                         @if($assignment->temporary_driver)
                             <span style="color: #f59e0b; font-weight: 600;">仮</span>
@@ -286,7 +303,7 @@
                         @else
                             {{ $assignment->driver?->name ?? '---' }}
                         @endif
-                    </td>
+                     </td>
                     <td class="px-1 py-1 align-middle text-center">
                         <a href="{{ route('masters.bus-assignments.index', ['reservation_id' => $assignment->group_info_id]) }}" class="text-decoration-none">
                             {{ $assignment->group_info_id ?? '---' }}
@@ -296,11 +313,11 @@
                         @endif
                         <br>
                         {{ $assignment->id }}
-                    </td>
+                     </td>
                     <td class="px-1 py-1 align-middle">
                         <div>{{ $assignment->start_time ? \Carbon\Carbon::parse($assignment->start_time)->format('H:i') : '--:--' }} {{ $startLocation ?: '' }}</div>
                         <div>{{ $assignment->end_time ? \Carbon\Carbon::parse($assignment->end_time)->format('H:i') : '--:--' }} {{ $endLocation ?: '' }}</div>
-                    </td>
+                     </td>
                     <td class="text-center px-1 py-1 align-middle">
                         @php
                             $statusColor = '#fee2e2';
@@ -319,19 +336,19 @@
                         <span style="background-color: {{ $statusColor }}; border-radius: 12px; padding: 2px 8px; font-size: 0.7rem; display: inline-block;">
                             {{ $statusText }}
                         </span>
-                    </td>
+                     </td>
                     <td class="px-1 py-1 align-middle">
                         {{ $groupInfo->category_name ?? '---' }}<br>
                         <small>{{ $groupInfo?->itinerary_name ?? '---' }}</small>
-                    </td>
+                     </td>
                     <td class="px-1 py-1 align-middle">
                         <span class="fw-bold">{{ $groupInfo?->group_name ?? '---' }}</span><br>
                         <small class="text-muted">{{ $assignment->step_car ?? '---' }}</small>
-                    </td>
+                     </td>
                     <td class="px-1 py-1 align-middle">
                         {{ $groupInfo?->agency ?? '---' }}<br>
                         <small>{{ $groupInfo?->agency_country ?? '---' }}</small>
-                    </td>
+                     </td>
                     <td class="px-1 py-1 align-middle">
                         @php
                             $statusBgColor = '#ffffff';
@@ -379,7 +396,7 @@
                         <span style="background-color: {{ $statusBgColor }}; color: {{ $statusTextColor }}; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; display: inline-block; white-space: nowrap;">
                             {{ $groupInfo?->reservation_status ?? '---' }}
                         </span>
-                    </td>
+                     </td>
                     <td class="text-center px-1 py-1 align-middle">--<br>--</td>
                     <td class="text-center px-1 py-1 align-middle">--</td>
                     <td class="text-center px-1 py-1 align-middle">
@@ -387,13 +404,13 @@
                             <a href="{{ route('masters.bus-assignments.show', $assignment->id) }}" style="color: #2563eb; text-decoration: none; font-size: 0.7rem;">詳細</a>
                             <a href="{{ route('masters.group-infos.edit', $assignment->groupInfo?->id) }}" style="color: #2563eb; text-decoration: none; font-size: 0.7rem;">編集</a>
                         </div>
-                    </td>
+                     </td>
                 </tr>
                 @empty
                 <tr><td colspan="14" class="text-center py-3" style="color: #9ca3af;">運行データがありません</td></tr>
                 @endforelse
             </tbody>
-         <table>
+         </table>
     </div>
 
     <div class="d-flex justify-content-between align-items-center mt-2">
@@ -629,7 +646,6 @@ span.flatpickr-weekday {
     width: 514px !important;
 }
 
-
 .selected-count {
     background-color: #0d6efd;
     color: white;
@@ -640,6 +656,29 @@ span.flatpickr-weekday {
     display: inline-block;
     min-width: 20px;
     text-align: center;
+}
+
+.btn-group .btn-outline-secondary {
+    background-color: #fff;
+    border-color: #ced4da;
+    color: #212529;
+}
+
+.btn-group .btn-outline-secondary:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: #212529;
+}
+
+.btn-group .btn-check:checked + .btn-outline-secondary {
+    background-color: #cfe2ff !important;
+    color: #212529;
+    font-weight: 500 !important;
+}
+
+.btn-group .btn-check:checked + .btn-outline-secondary:hover {
+    background-color: #b6d4fe !important;
+    color: #212529;
 }
 
 .status-dropdown .btn-outline-secondary {
@@ -663,6 +702,176 @@ span.flatpickr-weekday {
 
 @push('scripts')
 <script>
+function getCurrentDisplayDays() {
+    let displayDays = document.getElementById('display_days')?.value;
+    if (displayDays) {
+        return parseInt(displayDays);
+    }
+    
+    const startDate = document.getElementById('start_date')?.value;
+    const endDate = document.getElementById('end_date')?.value;
+    if (startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        return Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    }
+    
+    return 7;
+}
+
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function submitWithEndDate() {
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const displayDaysInput = document.getElementById('display_days');
+    
+    if (!startDateInput.value) return;
+    
+    let displayDays = getCurrentDisplayDays();
+    
+    const newStart = new Date(startDateInput.value);
+    const newEnd = new Date(newStart);
+    newEnd.setDate(newStart.getDate() + displayDays - 1);
+    
+    endDateInput.value = formatDate(newEnd);
+    
+    if (displayDaysInput) {
+        displayDaysInput.value = displayDays;
+    }
+    
+    document.getElementById('searchForm').submit();
+}
+
+function moveDate(unit, direction) {
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const displayDaysInput = document.getElementById('display_days');
+    const periodSelect = document.getElementById('period_select');
+    
+    let currentStart = startDateInput.value ? new Date(startDateInput.value) : new Date();
+    let currentEnd = endDateInput.value ? new Date(endDateInput.value) : new Date();
+    
+    let newStart = new Date(currentStart);
+    let newEnd = new Date(currentEnd);
+    
+    if (unit === 'week') {
+        const weekDays = 7 * direction;
+        newStart.setDate(currentStart.getDate() + weekDays);
+        newEnd.setDate(currentEnd.getDate() + weekDays);
+    } else if (unit === 'month') {
+        newStart.setMonth(currentStart.getMonth() + direction);
+        newEnd.setMonth(currentEnd.getMonth() + direction);
+        
+        if (newStart.getDate() !== currentStart.getDate()) {
+            newStart.setDate(0);
+        }
+        if (newEnd.getDate() !== currentEnd.getDate()) {
+            newEnd.setDate(0);
+        }
+    }
+    
+    startDateInput.value = formatDate(newStart);
+    endDateInput.value = formatDate(newEnd);
+    
+    const newDisplayDays = Math.round((newEnd - newStart) / (1000 * 60 * 60 * 24)) + 1;
+    if (displayDaysInput) {
+        displayDaysInput.value = newDisplayDays;
+    }
+    
+    if (periodSelect) {
+        if (newDisplayDays === 7) {
+            periodSelect.value = '1';
+        } else if (newDisplayDays === 14) {
+            periodSelect.value = '2';
+        } else if (newDisplayDays === 21) {
+            periodSelect.value = '3';
+        } else if (newDisplayDays >= 28 && newDisplayDays <= 31) {
+            periodSelect.value = '4';
+        } else {
+            periodSelect.value = '';
+        }
+    }
+    
+    document.getElementById('searchForm').submit();
+}
+
+function setToday() {
+    const today = new Date();
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const displayDaysInput = document.getElementById('display_days');
+    const periodSelect = document.getElementById('period_select');
+    
+    let period = periodSelect ? parseInt(periodSelect.value) : 1;
+    let endDate = new Date(today);
+    
+    if (period === 1) {
+        endDate.setDate(today.getDate() + 6);
+    } else if (period === 2) {
+        endDate.setDate(today.getDate() + 13);
+    } else if (period === 3) {
+        endDate.setDate(today.getDate() + 20);
+    } else if (period === 4) {
+        endDate = new Date(today);
+        endDate.setMonth(today.getMonth() + 1);
+        endDate.setDate(endDate.getDate() - 1);
+    } else {
+        endDate.setDate(today.getDate() + 6);
+    }
+    
+    startDateInput.value = formatDate(today);
+    endDateInput.value = formatDate(endDate);
+    
+    const actualDays = Math.round((endDate - today) / (1000 * 60 * 60 * 24)) + 1;
+    if (displayDaysInput) {
+        displayDaysInput.value = actualDays;
+    }
+    
+    document.getElementById('searchForm').submit();
+}
+
+function submitPeriod() {
+    const periodSelect = document.getElementById('period_select');
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const displayDaysInput = document.getElementById('display_days');
+    
+    const period = parseInt(periodSelect.value);
+    const today = new Date();
+    let startDate = new Date(today);
+    let endDate = new Date(today);
+    
+    if (period === 1) {
+        endDate.setDate(today.getDate() + 6);
+    } else if (period === 2) {
+        endDate.setDate(today.getDate() + 13);
+    } else if (period === 3) {
+        endDate.setDate(today.getDate() + 20);
+    } else if (period === 4) {
+        endDate = new Date(today);
+        endDate.setMonth(today.getMonth() + 1);
+        endDate.setDate(endDate.getDate() - 1);
+    } else {
+        endDate.setDate(today.getDate() + 6);
+    }
+    
+    startDateInput.value = formatDate(startDate);
+    endDateInput.value = formatDate(endDate);
+    
+    const actualDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    if (displayDaysInput) {
+        displayDaysInput.value = actualDays;
+    }
+    
+    document.getElementById('searchForm').submit();
+}
+
 function openIframeModal(url, title = '新規グループ作成') {
     const iframe = document.getElementById('modalIframe');
     const modal = document.getElementById('iframeModal');
@@ -696,8 +905,6 @@ function confirmDelete(id, name) {
         form.submit();
     }
 }
-
-
 
 function initStatusSelect() {
     const checkboxes = document.querySelectorAll('.status-checkbox');
@@ -794,13 +1001,18 @@ function initStatusSelect() {
     updateStatusDisplay();
 }
 
-
-
 document.addEventListener('DOMContentLoaded', function() {
     let startDateValue = null;
     let endDateValue = null;
     
     initStatusSelect();
+    
+    const periodSelect = document.getElementById('period_select');
+    if (periodSelect) {
+        periodSelect.addEventListener('change', function() {
+            submitPeriod();
+        });
+    }
     
     const startDatePicker = flatpickr('input[name="start_date"]', {
         locale: 'ja',

@@ -84,7 +84,7 @@ class DriverItineraryController extends Controller
     {
         $driverId = session('driver_id');
         
-        $itinerary = DailyItinerary::with(['busAssignment.groupInfo'])
+        $itinerary = DailyItinerary::with(['busAssignment.groupInfo', 'busAssignment.guide'])
             ->where('driver_id', $driverId)
             ->findOrFail($id);
         
@@ -141,7 +141,7 @@ class DriverItineraryController extends Controller
             return redirect()->route('driver.dashboard');
         }
         
-        $itineraries = DailyItinerary::with(['busAssignment.groupInfo'])
+        $itineraries = DailyItinerary::with(['busAssignment.groupInfo', 'busAssignment.guide'])
             ->where('driver_id', $driverId)
             ->whereDate('date', $date)
             ->orderBy('time_start', 'asc')
