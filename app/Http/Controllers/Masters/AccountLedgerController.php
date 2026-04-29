@@ -171,8 +171,10 @@ class AccountLedgerController extends Controller
         }
 
         $account = Account::findOrFail($id);
+        $mark = $account->category->mark  == "借" ? 1 : 2;
         $datas = $this->makeData($startDate, $endDate, $account);
-         return response()->json($datas);
+        $datas['mark'] = $mark;
+        return response()->json($datas);
 
     }
 
@@ -191,7 +193,9 @@ class AccountLedgerController extends Controller
             $endDate = date('Y-m-d', strtotime("last day of $yearmonth"));
         }
         $account = Account::findOrFail( request()->input('id'));
+        $mark = $account->category->mark  == "借" ? 1 : 2;
         $datas = $this->makeData($startDate, $endDate, $account);
+        $datas['mark'] = $mark;
 
 
         try {

@@ -153,6 +153,7 @@
 
             {{-- --- 视图渲染 --- --}}
 
+
             {{-- 1. 渲染上个月的汇总行 (如果需要) --}}
             @if($shouldRenderSummary)
                 <tr class="summary-row">
@@ -171,21 +172,20 @@
 
             @if($index === 0)
                 <tr style="background-color: #f8f9fa;">
-                    <td colspan="3" class="text-end fw-bold text-primary">前月繰越</td>
-                    <td class="text-right">{{ number_format($initialOpeningBalance) }}</td>
+                    <td colspan="3" class="text-end fw-bold text-primary">前月繰越1</td>
                     <td class="text-right"></td>
-                    <td class="text-right fw-bold">{{ number_format($initialOpeningBalance) }}</td>
+                    <td class="text-right"></td>
+                    <td class="text-right fw-bold">{{ $mark==1 ? number_format($initialOpeningBalance) : number_format(abs($initialOpeningBalance)) }}</td>
                 </tr>
             @endif
 
-            {{-- 2. 渲染 "前月繰越" 行 (如果需要) --}}
             {{-- 逻辑：如果是新月份的第一行，在显示数据前，先显示期初余额 --}}
             @if($shouldRenderSummary)
                 <tr style="background-color: #f8f9fa;">
-                    <td colspan="3" class="text-end fw-bold text-primary">前月繰越</td>
-                    <td class="text-right">{{ number_format($currentBalance - $jieVal + $daiVal) }}</td>
+                    <td colspan="3" class="text-end fw-bold text-primary">前月繰越2</td>
                     <td class="text-right"></td>
-                    <td class="text-right fw-bold">{{ number_format($currentBalance - $jieVal + $daiVal) }}</td>
+                    <td class="text-right"></td>
+                    <td class="text-right fw-bold">{{ $mark==1 ? number_format($currentBalance - $jieVal + $daiVal) : number_format(abs($currentBalance - $jieVal + $daiVal)) }}</td>
                 </tr>
             @endif
 
@@ -205,7 +205,7 @@
                 <td class="text-right col-credit">
                     @if($daiVal > 0) {{ number_format($daiVal) }} @endif
                 </td>
-                <td class="text-right col-balance">{{ number_format($currentBalance) }}</td>
+                <td class="text-right col-balance">{{ $mark==1 ? number_format($currentBalance) : number_format(abs($currentBalance)) }}</td>
             </tr>
 
             @php

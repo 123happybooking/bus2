@@ -27,7 +27,7 @@
         <div class="mb-3">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <form method="GET" action="{{ route('masters.account-ledgers.index') }}" class="d-flex align-items-end gap-2">
+                    <form method="GET" id="searchForm" action="{{ route('masters.account-ledgers.index') }}" class="d-flex align-items-end gap-2">
 
                         <!-- 1. 区分下拉 (放在左侧) -->
                         <div style="min-width: 200px;">
@@ -89,17 +89,23 @@
                                                 @endforeach
                                             </select>
                                         </div>
-
+                                        <input type="hidden" name="page" id="pageInput" value="1">
                                         <!-- 2. 循环12个月份按钮 -->
                                         <div id="month-select-container" class="d-flex align-items-center">
                                             @foreach($months as $key => $monthName)
                                                 @php
-                                                    $isActive =  ($yearmonth == $monthName);;
+                                                    $isActive = ($yearmonth == $monthName);
                                                 @endphp
+                                                <!-- 修改了 onclick 事件 -->
                                                 <button type="submit" 
                                                         name="yearmonth" 
                                                         value="{{ $monthName }}"
-                                                        onclick="document.getElementById('searchForm').submit();"
+                                                        onclick="
+                                                            const urlParams = new URLSearchParams(window.location.search);
+                                                            const currentPage = urlParams.get('page') || 1; // 获取当前页码，没有则默认为1
+                                                            document.getElementById('pageInput').value = currentPage; // 赋值给隐藏域
+                                                            document.getElementById('searchForm').submit(); // 提交表单
+                                                        "
                                                         class="btn btn-sm ms-1 p-0 px-1 {{ $isActive ? 'btn-primary' : 'btn-outline-primary' }}" 
                                                         style="min-width: 30px; font-size: 1.0rem; {{ $isActive ? 'background-color: #0d6efd; border-color: transparent; color: white !important;' : 'border-color: #E5E7EB;' }}">
                                                     {{ $key }}
@@ -327,21 +333,32 @@
                     let currentBalance = 0;
                     tbody.innerHTML = '';
 
-                    if (data.opening_balance > 0) {
+                    let mark = data.mark;
 
-                        const openingTr = document.createElement('tr');
-                        openingTr.className = 'table-warning';
-                        openingTr.innerHTML = `
-                            <td colspan="3" class="text-center fw-bold text-success">前月繰越</td>
-                            <td class="text-end">${data.opening_balance >= 0 ? Math.abs(data.opening_balance).toLocaleString('ja-JP') : ''}</td>
-                            <td class="text-end">${data.opening_balance < 0 ? Math.abs(data.opening_balance).toLocaleString('ja-JP') : ''}</td>
-                            <td class="text-end fw-bold">${Math.abs(data.opening_balance).toLocaleString('ja-JP')}</td>
+                    const openingTr = document.createElement('tr');
+                    openingTr.className = 'table-warning';
+
+                    if (mark == 1) {
+                         openingTr.innerHTML = `
+                        <td colspan="3" class="text-center fw-bold text-success">前月繰越</td>
+                        <td class="text-end"></td>
+                        <td class="text-end"></td>
+                        <td class="text-end fw-bold">${Number(data.opening_balance).toLocaleString('ja-JP', { maximumFractionDigits: 0 })}</td>
                         `;
-                        tbody.appendChild(openingTr);
-                        
-                        // 更新初始余额变量
-                        currentBalance = Math.abs(data.opening_balance);
+                         currentBalance = Math.trunc(data.opening_balance);
+                    }else{
+                         openingTr.innerHTML = `
+                        <td colspan="3" class="text-center fw-bold text-success">前月繰越</td>
+                        <td class="text-end"></td>
+                        <td class="text-end"></td>
+                        <td class="text-end fw-bold">${Math.abs(data.opening_balance).toLocaleString('ja-JP')}</td>
+                        `;
+                         currentBalance = Math.abs(data.opening_balance);
                     }
+                   
+                    tbody.appendChild(openingTr);
+                
+                
 
                     // 如果没有数据
                     if (!data.rows || data.rows.length === 0) {
@@ -389,9 +406,9 @@
                             openingTr.className = 'table-warning'; // 可以加个背景色区分
                             openingTr.innerHTML = `
                                 <td colspan="3" class="text-center fw-bold text-success">前月繰越</td>
-                                <td class="text-end">${currentBalance >= 0 ? Math.abs(currentBalance).toLocaleString('ja-JP') : ''}</td>
-                                <td class="text-end">${currentBalance < 0 ? Math.abs(currentBalance).toLocaleString('ja-JP') : ''}</td>
-                                <td class="text-end fw-bold">${currentBalance.toLocaleString('ja-JP')}</td>
+                                <td class="text-end"></td>
+                                <td class="text-end"></td>
+                                <td class="text-end fw-bold">${mark == 1 ? currentBalance : Math.abs(currentBalance).toLocaleString('ja-JP')}</td>
                             `;
                             tbody.appendChild(openingTr);
                         }
@@ -405,7 +422,12 @@
                         monthlyDaiTotal += daiVal;
 
                         // 计算总余额 (带格式显示)
-                        currentBalance = currentBalance + jieVal - daiVal;
+                        if (mark == 1) {
+                            currentBalance = currentBalance + jieVal - daiVal;
+                        }else{
+                            currentBalance = currentBalance - jieVal + daiVal;
+                        }
+
 
                         // --- D. 渲染当前数据行 ---
                         const tr = document.createElement('tr');
@@ -468,7 +490,6 @@ document.querySelectorAll('.open-pdf-btn').forEach(button => {
         const periodSelect = document.getElementById('periodSelect'); // 获取周期下拉框元素
         const urlParams = new URLSearchParams(window.location.search); // 从当前URL中获取参数
         const yearMonthValue = urlParams.get('yearmonth'); // 获取URL中的 yearmonth 参数 (格式如: 2026-04)
-        
         const params = new URLSearchParams({
             id: accountId,
             period_id: periodSelect.value, 
@@ -489,10 +510,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // 获取当前的 yearmonth 参数
             const urlParams = new URLSearchParams(window.location.search);
             const yearMonthValue = urlParams.get('yearmonth');
+            const pageValue = urlParams.get('page') || 1; 
             
             // 如果没有选择月份，可以给个默认值或者提示，这里假设直接提交
             // 重新构建当前页面的 URL
-            let newUrl = window.location.pathname + '?period_id=' + this.value;
+            let newUrl = window.location.pathname + '?period_id=' + this.value + '&page=' + pageValue;
             
             
             // 跳转页面，触发后端查询

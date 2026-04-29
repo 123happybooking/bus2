@@ -103,10 +103,10 @@
                                             @foreach($detail as $item)
                                                 <tr>
                                                     <td class="fw-bold">{{ $item->account->name ?? '' }}</td>
-                                                    <td class="text-end">{{ number_format($item->money_start, 0) }}</td>
+                                                    <td class="text-end">{{$item->account->category->remark=="借" ? number_format($item->money_start, 0) : number_format(abs($item->money_start), 0) }}</td>
                                                     <td class="text-end text-primary">{{ number_format($item->money_jie, 0) }}</td>
                                                     <td class="text-end text-danger">{{ number_format($item->money_dai, 0) }}</td>
-                                                    <td class="text-end fw-bold">{{ number_format($item->money_end, 0) }}</td>
+                                                    <td class="text-end fw-bold">{{$item->account->category->remark=="借" ? number_format($item->money_end, 0) : number_format(abs($item->money_end), 0) }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>

@@ -23,6 +23,7 @@ class AccountJournalEntryController extends Controller
 {
     public function index(Request $request)
     {
+        session()->put('journal_entries_previous_url', $request->fullUrl());
         $periods = AccountPeriod::orderBy('created_at','desc')->get();
         $period = AccountPeriod::orderBy('created_at','desc')->first();
         if($request->period_id){
@@ -598,8 +599,7 @@ class AccountJournalEntryController extends Controller
             
             $entry->delete();
 
-            return redirect()
-                ->route('masters.journal_entries.index' , request()->query())
+            return redirect(session('journal_entries_previous_url', route('masters.journal_entries.index')))
                 ->with([
                     'success' => '仕訳伝票を削除しました。',
                     'alert-type' => 'success'

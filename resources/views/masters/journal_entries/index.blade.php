@@ -224,7 +224,7 @@
 
                 <!-- 2. 分页导航 -->
                 <nav>
-                    {{ $entries->withQueryString()->links('pagination::bootstrap-4') }}
+                    {{ $entries->appends(request()->except('page'))->links('pagination::bootstrap-4') }}
                 </nav>
 
             </div>

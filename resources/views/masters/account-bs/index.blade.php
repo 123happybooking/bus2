@@ -175,15 +175,23 @@
                                                     {{ number_format($netIncome) }}
                                                 </td>
                                             </tr>
+
                                         @endif
                                         
 
 
                                         <!-- 小计 -->
+                                         @if($categoryName == '純資産')
+                                            <tr class="fw-bold border-top">
+                                                <td class="text-end pe-4">{{ $categoryName }} 合計</td>
+                                                <td class="text-end pe-4">{{ number_format($liabilities[$categoryName]['total'] + $netIncome) }}</td>
+                                            </tr>
+                                         @else
                                         <tr class="fw-bold border-top">
                                             <td class="text-end pe-4">{{ $categoryName }} 合計</td>
-                                            <td class="text-end pe-4">{{ number_format($liabilities[$categoryName]['total'] + $netIncome) }}</td>
+                                            <td class="text-end pe-4">{{ number_format($liabilities[$categoryName]['total'] ) }}</td>
                                         </tr>
+                                        @endif
                                     @endif
                                 @endforeach
 

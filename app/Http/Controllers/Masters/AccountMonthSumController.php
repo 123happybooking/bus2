@@ -93,7 +93,7 @@ class AccountMonthSumController extends Controller
                         'account_id'   => $rowData['account_id'],
                         'year'         => $dateParts[0],
                         'month'        => $dateParts[1],
-                         'year_month' => $dateParts[0]. '-' .$dateParts[1],
+                        'year_month' => $dateParts[0]. '-' .$dateParts[1],
                         'money_start'  => $rowData['opening'],
                         'money_end'    => $rowData['closing'],
                         'money_jie'    => $rowData['jie_money'],
