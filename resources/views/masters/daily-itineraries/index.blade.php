@@ -38,8 +38,8 @@
     </div>
 
     <div class="table-responsive">
-        <table class="table table-sm table-bordered mb-0" style="border-color: #E5E7EB; font-size: 0.875rem;">
-            <thead style="background-color: #F3F4F6;">
+        <table class="table table-sm table-bordered mb-0 table-list">
+            <thead>
                 <tr>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 60px;">No.</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 120px;">日付</th>
@@ -112,15 +112,74 @@
         </table>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mt-2">
-        <div style="color: #6b7280; font-size: 0.875rem;">
-            全 {{ $dailyItineraries->total() }} 件中 
-            {{ $dailyItineraries->firstItem() ?? 0 }} - {{ $dailyItineraries->lastItem() ?? 0 }} 件表示
+    @if($dailyItineraries->hasPages() || $dailyItineraries->total() > 0)
+        <div class="mt-3">
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                
+                <div class="d-flex align-items-center">
+                    <label for="per_page_select" class="form-label small text-muted mb-0 me-2" style="white-space: nowrap;">
+                        表示件数:
+                    </label>
+                    <select id="per_page_select" class="form-select form-select-sm" style="font-size: 0.75rem; min-width: 80px;">
+                        <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20 行</option>
+                        <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30 行</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 行</option>
+                    </select>
+                </div>
+    
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item {{ $dailyItineraries->onFirstPage() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $dailyItineraries->previousPageUrl() }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+    
+                        @php
+                            $current = $dailyItineraries->currentPage();
+                            $last = $dailyItineraries->lastPage();
+                            $start = max(1, $current - 2);
+                            $end = min($last, $current + 2);
+                        @endphp
+    
+                        @if($start > 1)
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $dailyItineraries->url(1) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">1</a>
+                            </li>
+                            @if($start > 2)
+                                <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                            @endif
+                        @endif
+    
+                        @for($i = $start; $i <= $end; $i++)
+                            <li class="page-item {{ $i == $current ? 'active' : '' }}">
+                                <a class="page-link" href="{{ $dailyItineraries->url($i) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $i }}</a>
+                            </li>
+                        @endfor
+    
+                        @if($end < $last)
+                            @if($end < $last - 1)
+                                <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                            @endif
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $dailyItineraries->url($last) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $last }}</a>
+                            </li>
+                        @endif
+    
+                        <li class="page-item {{ !$dailyItineraries->hasMorePages() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $dailyItineraries->nextPageUrl() }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+    
+            <div class="text-center text-muted mt-2" style="font-size: 0.75rem;">
+                表示中：{{ $dailyItineraries->firstItem() ?? 0 }} - {{ $dailyItineraries->lastItem() ?? 0 }} / 全 {{ $dailyItineraries->total() }} 件
+            </div>
         </div>
-        <div>
-            {{ $dailyItineraries->withQueryString()->links('pagination::bootstrap-4') }}
-        </div>
-    </div>
+    @endif
 </div>
 
 <div id="iframeModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; overflow: auto;">
@@ -351,6 +410,16 @@ window.addEventListener('message', function(event) {
     } else if (event.data === 'refresh-list') {
         location.reload();
     }
+});
+
+document.getElementById('per_page_select').addEventListener('change', function() {
+    const url = new URL(window.location.href);
+    const search = document.querySelector('input[name="search"]')?.value;
+    url.searchParams.set('per_page', this.value);
+    if (search) {
+        url.searchParams.set('search', search);
+    }
+    window.location.href = url.toString();
 });
 
 document.addEventListener('DOMContentLoaded', function() {

@@ -51,10 +51,14 @@ class DailyItineraryController extends Controller
             $query->where('accommodation', $request->accommodation);
         }
 
+        $perPage = $request->input('per_page', 20);
         $dailyItineraries = $query->orderBy('date', 'asc')
                                  ->orderBy('time_start')
-                                 ->paginate(20)
-                                 ->withQueryString();
+                                 ->paginate($perPage);
+        
+        if ($request->has('search')) {
+            $dailyItineraries->appends(['search' => $request->search]);
+        }
 
         return view('masters.daily-itineraries.index', compact('dailyItineraries'));
     }

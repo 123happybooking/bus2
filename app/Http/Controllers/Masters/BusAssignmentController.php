@@ -147,11 +147,12 @@ class BusAssignmentController extends Controller
         }
     
         $query->orWhereDoesntHave('groupInfo');
-    
+        
+        $perPage = $request->input('per_page', 20);
         $assignments = $query->orderBy('vehicle_index', 'asc')
             ->orderBy('start_date', 'asc')
             ->orderBy('start_time', 'asc')
-            ->paginate(20)
+            ->paginate($perPage)
             ->withQueryString();
     
         $categoryIds = $assignments->getCollection()->filter(function($assignment) {

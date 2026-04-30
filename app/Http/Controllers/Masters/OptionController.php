@@ -20,7 +20,8 @@ class OptionController extends Controller
             });
         }
         
-        $options = $query->orderBy('display_order')->orderBy('id')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $options = $query->orderBy('display_order')->orderBy('id')->paginate($perPage);
         
         if ($request->has('search')) {
             $options->appends(['search' => $request->search]);

@@ -84,9 +84,12 @@ class DriverItineraryController extends Controller
     {
         $driverId = session('driver_id');
         
-        $itinerary = DailyItinerary::with(['busAssignment.groupInfo', 'busAssignment.guide'])
+        $itinerary = DailyItinerary::with(['busAssignment.groupInfo'])
             ->where('driver_id', $driverId)
             ->findOrFail($id);
+            
+        $finalStatusName = $this->getFinalStatusName();
+        $itinerary->is_completed = $finalStatusName && $itinerary->operation_status === $finalStatusName;
         
         $busAssignment = $itinerary->busAssignment;
         

@@ -36,8 +36,9 @@ class DailyReportController extends Controller
             $query->where('vehicle_id', $request->vehicle_id);
         }
         
+        $perPage = $request->input('per_page', 20);
         $reports = $query->orderBy('date', 'desc')
-            ->paginate(20)
+            ->paginate($perPage)
             ->withQueryString();
         
         $drivers = Driver::where('is_active', true)

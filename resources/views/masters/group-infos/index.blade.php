@@ -404,17 +404,20 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-document.getElementById('per_page_select').addEventListener('change', function() {
-    const url = new URL(window.location.href);
-    url.searchParams.set('per_page', this.value);
-    const search = document.querySelector('input[name="search"]')?.value;
-    const dateFrom = document.querySelector('input[name="date_from"]')?.value;
-    const dateEnd = document.querySelector('input[name="date_end"]')?.value;
-    if (search) url.searchParams.set('search', search);
-    if (dateFrom) url.searchParams.set('date_from', dateFrom);
-    if (dateEnd) url.searchParams.set('date_end', dateEnd);
-    window.location.href = url.toString();
-});
+const perPageSelect = document.getElementById('per_page_select');
+if (perPageSelect) {
+    perPageSelect.addEventListener('change', function() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('per_page', this.value);
+        const search = document.querySelector('input[name="search"]')?.value;
+        const dateFrom = document.querySelector('input[name="date_from"]')?.value;
+        const dateEnd = document.querySelector('input[name="date_end"]')?.value;
+        if (search) url.searchParams.set('search', search);
+        if (dateFrom) url.searchParams.set('date_from', dateFrom);
+        if (dateEnd) url.searchParams.set('date_end', dateEnd);
+        window.location.href = url.toString();
+    });
+}
 
 
 document.addEventListener('DOMContentLoaded', function() {

@@ -1022,6 +1022,10 @@
                     <li><a href="{{ route('masters.daily-itineraries.index') }}" data-route="daily-itineraries">日次一覧</a></li>
                     <li><a href="{{ route('masters.attendance-categories.index') }}" data-route="attendance-categories-operations">運転手勤怠</a></li>
                     <li><a href="{{ route('masters.options.index') }}" data-route="options">オプション</a></li>
+                    <li><a href="{{ route('masters.driver-payment-methods.index') }}" data-route="driver-payment-methods">支払方法</a></li>
+                    <li><a href="{{ route('masters.driver-expense-types.index') }}" data-route="driver-expense-types">経費種別</a></li>
+                    <li><a href="{{ route('masters.driver-compensation-types.index') }}" data-route="driver-compensation-types">報酬種別</a></li>
+                    <li><a href="{{ route('masters.driver-compensations.index') }}" data-route="driver-compensations">ドライバー報酬</a></li>
                     <li><a href="{{ route('masters.driver-operation-status.index') }}" data-route="driver-operation-status">操作ステータス</a></li>
                 </ul>
             </div>

@@ -150,6 +150,7 @@ class DriverDashboardController extends Controller
                 'category_name' => $reservationCategory->category_name ?? '',
                 'operation_status' => $itinerary->operation_status,
                 'is_completed' => $finalStatusName && $itinerary->operation_status === $finalStatusName,
+                'agency_contact_name' => $itinerary->busAssignment->groupInfo->agency_contact_name ?? '',
             ];
         }
         

@@ -19,7 +19,8 @@ class DriverOperationStatusController extends Controller
             });
         }
         
-        $operationStatuses = $query->orderBy('display_order')->orderBy('id')->paginate(20);
+        $perPage = $request->input('per_page', 20);
+        $operationStatuses = $query->orderBy('display_order')->orderBy('id')->paginate($perPage);
         
         if ($request->has('search')) {
             $operationStatuses->appends(['search' => $request->search]);

@@ -68,9 +68,10 @@
     @endif
 
     <div class="table-responsive">
-        <table class="table table-sm table-bordered mb-0" style="border-color: #E5E7EB; font-size: 0.875rem;">
-            <thead style="background-color: #F3F4F6;">
+        <table class="table table-sm table-bordered mb-0 table-list">
+            <thead>
                 <tr>
+                    <th>No.</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">日付</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500;">運転手</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500;">車両</th>
@@ -84,7 +85,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($reports as $report)
+                @forelse($reports as $index => $report)
                 @php
                     $distance = null;
                     if ($report->start_mileage && $report->end_mileage) {
@@ -92,6 +93,7 @@
                     }
                 @endphp
                 <tr>
+                    <td>{{ $reports->firstItem() + $index }}</td>
                     <td class="text-center px-2 py-1 align-middle">{{ \Carbon\Carbon::parse($report->date)->format('Y/m/d') }}</td>
                     <td class="px-2 py-1 align-middle">{{ $report->driver->name ?? '-' }}</td>
                     <td class="px-2 py-1 align-middle">{{ $report->vehicle->registration_number ?? '-' }}</td>
@@ -123,15 +125,74 @@
         </table>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mt-2">
-        <div style="color: #6b7280; font-size: 0.875rem;">
-            全 {{ $reports->total() }} 件中 
-            {{ $reports->firstItem() ?? 0 }} - {{ $reports->lastItem() ?? 0 }} 件表示
+    @if($reports->hasPages() || $reports->total() > 0)
+        <div class="mt-3">
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                
+                <div class="d-flex align-items-center">
+                    <label for="per_page_select" class="form-label small text-muted mb-0 me-2" style="white-space: nowrap;">
+                        表示件数:
+                    </label>
+                    <select id="per_page_select" class="form-select form-select-sm" style="font-size: 0.75rem; min-width: 80px;">
+                        <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20 行</option>
+                        <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30 行</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 行</option>
+                    </select>
+                </div>
+    
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item {{ $reports->onFirstPage() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $reports->previousPageUrl() }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+    
+                        @php
+                            $current = $reports->currentPage();
+                            $last = $reports->lastPage();
+                            $start = max(1, $current - 2);
+                            $end = min($last, $current + 2);
+                        @endphp
+    
+                        @if($start > 1)
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $reports->url(1) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">1</a>
+                            </li>
+                            @if($start > 2)
+                                <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                            @endif
+                        @endif
+    
+                        @for($i = $start; $i <= $end; $i++)
+                            <li class="page-item {{ $i == $current ? 'active' : '' }}">
+                                <a class="page-link" href="{{ $reports->url($i) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $i }}</a>
+                            </li>
+                        @endfor
+    
+                        @if($end < $last)
+                            @if($end < $last - 1)
+                                <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                            @endif
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $reports->url($last) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $last }}</a>
+                            </li>
+                        @endif
+    
+                        <li class="page-item {{ !$reports->hasMorePages() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $reports->nextPageUrl() }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+    
+            <div class="text-center text-muted mt-2" style="font-size: 0.75rem;">
+                表示中：{{ $reports->firstItem() ?? 0 }} - {{ $reports->lastItem() ?? 0 }} / 全 {{ $reports->total() }} 件
+            </div>
         </div>
-        <div>
-            {{ $reports->withQueryString()->links('pagination::bootstrap-4') }}
-        </div>
-    </div>
+    @endif
 </div>
 @endsection
 
@@ -203,6 +264,27 @@ a:hover {
 <script>
 let startDateValue = null;
 let endDateValue = null;
+
+
+const perPageSelect = document.getElementById('per_page_select');
+if (perPageSelect) {
+    perPageSelect.addEventListener('change', function() {
+        const url = new URL(window.location.href);
+        const search = document.querySelector('input[name="search"]')?.value;
+        const dateFrom = document.querySelector('input[name="date_from"]')?.value;
+        const dateTo = document.querySelector('input[name="date_to"]')?.value;
+        const driverId = document.querySelector('select[name="driver_id"]')?.value;
+        const vehicleId = document.querySelector('select[name="vehicle_id"]')?.value;
+        url.searchParams.set('per_page', this.value);
+        if (search) url.searchParams.set('search', search);
+        if (dateFrom) url.searchParams.set('date_from', dateFrom);
+        if (dateTo) url.searchParams.set('date_to', dateTo);
+        if (driverId) url.searchParams.set('driver_id', driverId);
+        if (vehicleId) url.searchParams.set('vehicle_id', vehicleId);
+        window.location.href = url.toString();
+    });
+}
+
 
 const startDatePicker = flatpickr('input[name="date_from"]', {
     locale: 'ja',

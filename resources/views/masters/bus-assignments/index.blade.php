@@ -243,7 +243,7 @@
     </div>
 
     <div class="table-responsive">
-        <table class="table table-sm table-bordered mb-0 table-hover" style="border-color: #E5E7EB; font-size: 0.75rem;">
+        <table class="table table-sm table-bordered mb-0 table-list">
             <thead>
                 <tr>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 60px;">No.</th>
@@ -413,12 +413,74 @@
          </table>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mt-2">
-        <div style="color: #6b7280; font-size: 0.875rem;">
-            全 {{ $assignments->total() }} 件中 {{ $assignments->firstItem() ?? 0 }} - {{ $assignments->lastItem() ?? 0 }} 件表示
+    @if($assignments->hasPages() || $assignments->total() > 0)
+        <div class="mt-3">
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                
+                <div class="d-flex align-items-center">
+                    <label for="per_page_select" class="form-label small text-muted mb-0 me-2" style="white-space: nowrap;">
+                        表示件数:
+                    </label>
+                    <select id="per_page_select" class="form-select form-select-sm" style="font-size: 0.75rem; min-width: 80px;">
+                        <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20 行</option>
+                        <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30 行</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 行</option>
+                    </select>
+                </div>
+    
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item {{ $assignments->onFirstPage() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $assignments->previousPageUrl() }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+    
+                        @php
+                            $current = $assignments->currentPage();
+                            $last = $assignments->lastPage();
+                            $start = max(1, $current - 2);
+                            $end = min($last, $current + 2);
+                        @endphp
+    
+                        @if($start > 1)
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $assignments->url(1) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">1</a>
+                            </li>
+                            @if($start > 2)
+                                <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                            @endif
+                        @endif
+    
+                        @for($i = $start; $i <= $end; $i++)
+                            <li class="page-item {{ $i == $current ? 'active' : '' }}">
+                                <a class="page-link" href="{{ $assignments->url($i) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $i }}</a>
+                            </li>
+                        @endfor
+    
+                        @if($end < $last)
+                            @if($end < $last - 1)
+                                <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
+                            @endif
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $assignments->url($last) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $last }}</a>
+                            </li>
+                        @endif
+    
+                        <li class="page-item {{ !$assignments->hasMorePages() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $assignments->nextPageUrl() }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+    
+            <div class="text-center text-muted mt-2" style="font-size: 0.75rem;">
+                表示中：{{ $assignments->firstItem() ?? 0 }} - {{ $assignments->lastItem() ?? 0 }} / 全 {{ $assignments->total() }} 件
+            </div>
         </div>
-        <div>{{ $assignments->withQueryString()->links('pagination::bootstrap-4') }}</div>
-    </div>
+    @endif
 </div>
 
 <form id="deleteForm" method="POST" action="">
@@ -1142,6 +1204,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
 document.getElementById('newGroupBtn').addEventListener('click', function() {
     openIframeModal('{{ route('masters.group-infos.create') }}', '新規グループ作成');
+});
+
+
+document.getElementById('per_page_select').addEventListener('change', function() {
+    const url = new URL(window.location.href);
+    const search = document.querySelector('input[name="search"]')?.value;
+    const groupName = document.querySelector('input[name="group_name"]')?.value;
+    const startDate = document.querySelector('input[name="start_date"]')?.value;
+    const endDate = document.querySelector('input[name="end_date"]')?.value;
+    const dateType = document.querySelector('select[name="date_type"]')?.value;
+    const reservationId = document.querySelector('input[name="reservation_id"]')?.value;
+    const operationId = document.querySelector('input[name="operation_id"]')?.value;
+    const branchId = document.querySelector('select[name="branch_id"]')?.value;
+    const vehicleTypeId = document.querySelector('select[name="vehicle_type_id"]')?.value;
+    const vehicleId = document.querySelector('select[name="vehicle_id"]')?.value;
+    const driverId = document.querySelector('select[name="driver_id"]')?.value;
+    const agencyId = document.querySelector('select[name="agency_id"]')?.value;
+    const reservationCategoriesId = document.querySelector('select[name="reservation_categories_id"]')?.value;
+    const showCancelEstimate = document.querySelector('input[name="show_cancel_estimate"]')?.checked;
+    
+    url.searchParams.set('per_page', this.value);
+    if (search) url.searchParams.set('search', search);
+    if (groupName) url.searchParams.set('group_name', groupName);
+    if (startDate) url.searchParams.set('start_date', startDate);
+    if (endDate) url.searchParams.set('end_date', endDate);
+    if (dateType) url.searchParams.set('date_type', dateType);
+    if (reservationId) url.searchParams.set('reservation_id', reservationId);
+    if (operationId) url.searchParams.set('operation_id', operationId);
+    if (branchId) url.searchParams.set('branch_id', branchId);
+    if (vehicleTypeId) url.searchParams.set('vehicle_type_id', vehicleTypeId);
+    if (vehicleId) url.searchParams.set('vehicle_id', vehicleId);
+    if (driverId) url.searchParams.set('driver_id', driverId);
+    if (agencyId) url.searchParams.set('agency_id', agencyId);
+    if (reservationCategoriesId) url.searchParams.set('reservation_categories_id', reservationCategoriesId);
+    if (showCancelEstimate) url.searchParams.set('show_cancel_estimate', '1');
+    
+    window.location.href = url.toString();
 });
 </script>
 @endpush
