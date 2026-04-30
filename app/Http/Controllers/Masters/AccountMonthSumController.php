@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Masters;
 use App\Http\Controllers\Controller;
 use App\Models\Masters\AccountMonthSum;
 use App\Models\Masters\AccountMonthDetail;
-use App\Models\Masters\AccountJournalEntry;
+use App\Models\Masters\AccountSub;
 use App\Models\Masters\AccountJournalLine;
 use App\Models\Masters\Account;
 use Illuminate\Support\Str; 
@@ -85,7 +85,7 @@ class AccountMonthSumController extends Controller
             // --- 3. 批量存入 account_month_details (明细表) ---
             $detailData = [];
             
-            foreach ($res['rows'] as $accountRows) {
+            foreach ($res['account_rows'] as $accountRows) {
                 foreach ($accountRows as $rowData) {
                     $dateParts = explode('-', $rowData['month']);
                     
@@ -98,15 +98,43 @@ class AccountMonthSumController extends Controller
                         'money_end'    => $rowData['closing'],
                         'money_jie'    => $rowData['jie_money'],
                         'money_dai'    => $rowData['dai_money'],
-                        'sn'         => (string) Str::uuid(), // 【修改点】手动生成 UUID，替代 Model 的 boot 逻辑
-                        'created_at' => $now,                 // 【修改点】必须手动传入
-                        'updated_at' => $now,                 // 【修改点】必须手动传入
+                        'sn'         => (string) Str::uuid(), 
+                        'created_at' => $now,                 
+                        'updated_at' => $now,                
                     ];
                 }
             }
 
             if (!empty($detailData)) {
                 AccountMonthDetail::insert($detailData);
+            }
+
+            $subdetailData = [];
+            
+            foreach ($res['sub_account_rows'] as $subaccountRows) {
+                foreach ($subaccountRows as $rowData) {
+                    $dateParts = explode('-', $rowData['month']);
+                    $subAccount = AccountSub::find($rowData['sub_account_id']);
+                    
+                    $subdetailData[] = [
+                        'account_id'   => $subAccount->account_id,
+                        'sub_account_id'   => $rowData['sub_account_id'],
+                        'year'         => $dateParts[0],
+                        'month'        => $dateParts[1],
+                        'year_month' => $dateParts[0]. '-' .$dateParts[1],
+                        'money_start'  => $rowData['opening'],
+                        'money_end'    => $rowData['closing'],
+                        'money_jie'    => $rowData['jie_money'],
+                        'money_dai'    => $rowData['dai_money'],
+                        'sn'         => (string) Str::uuid(), 
+                        'created_at' => $now,                 
+                        'updated_at' => $now,                
+                    ];
+                }
+            }
+
+            if (!empty($subdetailData)) {
+                AccountMonthDetail::insert($subdetailData);
             }
 
             DB::commit();
@@ -119,59 +147,79 @@ class AccountMonthSumController extends Controller
     }
 
     function makeData()
-    { 
-
+    {
         $list = AccountMonthSum::orderBy('year', 'desc')
             ->orderBy('month', 'desc')
             ->first();
 
-
-        // 2. 确定 $endDate (现实时间上个月最后一天)
-        // 无论哪种情况，结束时间都是固定的：上个月月底
+        // 确定 $endDate (现实时间上个月最后一天)
         $endDate = Carbon::now()->subMonth()->endOfMonth()->format('Y-m-d');
 
-
-        // 3. 确定 $startDate
+        // 确定 $startDate
         if (empty($list)) {
-            // --- 情况 A: 数据库为空，从 2025-01-01 开始 ---
             $startDate = '2024-01-01';
         } else {
-            // --- 情况 B: 数据库有值，从该数据的下个月1号开始 ---
-            
-            // 创建一个 Carbon 实例，基于数据库中的年份和月份 (日期设为1号)
             $lastDate = Carbon::createFromDate($list->year, $list->month, 1);
-            
-            // 加一个月
             $nextMonthDate = $lastDate->addMonth();
-            
-            // 格式化为 Y-m-d (即下个月1号)
             $startDate = $nextMonthDate->format('Y-m-d');
         }
 
-        $datas=[];
+        $datas = [];
+        $tempYearMonths = [];
 
-        $account_ids  = Account::where('is_active', 1)->pluck('id')->toArray();
+        // 1. 获取主科目（account_id）的汇总数据
+        $account_ids = Account::where('is_active', 1)->pluck('id')->toArray();
+        $accountResult = $this->getAccountSummary($account_ids, $startDate, $endDate, 'account_id');
+        
+        // 2. 获取子科目（sub_account_id）的汇总数据
+        $sub_account_ids = AccountJournalLine::distinct()->pluck('sub_account_id')->filter()->toArray();
+        $subAccountResult = $this->getAccountSummary($sub_account_ids, $startDate, $endDate, 'sub_account_id');
 
-        $tempYearMonths = []; 
+        // 3. 组装返回数据
+        $datas['account_rows'] = $accountResult['rows'];
+        $datas['sub_account_rows'] = $subAccountResult['rows'];
+        
+        // 合并两个结果中的月份信息并去重
+        $datas['year_month'] = array_values(array_unique(array_merge(
+            $accountResult['year_month'], 
+            $subAccountResult['year_month']
+        ), SORT_REGULAR));
 
-        for ($i = 0; $i < count($account_ids); $i++) {
-            // --- 1. 计算期初余额 (Opening Balance) ---
-            // 逻辑：查询 开始日期之前 的所有借贷差额
-            // 使用 withSum 或者直接查询聚合，这里为了效率直接用 DB 查询
+        return $datas;
+    }
+
+
+        /**
+     * 提取的公共汇总逻辑方法
+     */
+    private function getAccountSummary($ids, $startDate, $endDate, $field)
+    {
+        // 1. 提前判空：如果 ID 数组为空，直接返回空结构，防止后续报错
+        if (empty($ids)) {
+            return [
+                'rows' => [],
+                'year_month' => []
+            ];
+        }
+
+        $rows = [];
+        $tempYearMonths = [];
+
+        // 2. 改用 foreach 遍历，彻底规避 $ids[$i] 的索引越界风险
+        foreach ($ids as $id) {
+            // --- 1. 计算期初余额 ---
             $openingBalance = AccountJournalLine::join('account_journal_entries', 'account_journal_lines.journal_entry_id', '=', 'account_journal_entries.id')
-                ->where('account_journal_lines.account_id', $account_ids[$i])
-                ->where('account_journal_entries.posting_date', '<', $startDate) // 注意是小于
+                ->where('account_journal_lines.' . $field, $id) // 直接使用 $id
+                ->where('account_journal_entries.posting_date', '<', $startDate)
                 ->selectRaw('
                     SUM(CASE WHEN account_journal_lines.side = 1 THEN account_journal_lines.amount ELSE 0 END) - 
                     SUM(CASE WHEN account_journal_lines.side = 2 THEN account_journal_lines.amount ELSE 0 END) as balance
                 ')
                 ->value('balance') ?? 0;
 
-
-            // --- 2. 获取每月汇总数据 (Monthly Summary) ---
-            // 逻辑：按月份分组，计算每月的借方总和、贷方总和
+            // --- 2. 获取每月汇总数据 ---
             $monthlyStats = AccountJournalLine::join('account_journal_entries', 'account_journal_lines.journal_entry_id', '=', 'account_journal_entries.id')
-                ->where('account_journal_lines.account_id', $account_ids[$i])
+                ->where('account_journal_lines.' . $field, $id) // 直接使用 $id
                 ->whereBetween('account_journal_entries.posting_date', [$startDate, $endDate])
                 ->selectRaw('DATE_FORMAT(account_journal_entries.posting_date, "%Y-%m") as month_key')
                 ->selectRaw('SUM(CASE WHEN account_journal_lines.side = 1 THEN account_journal_lines.amount ELSE 0 END) as total_jie')
@@ -180,38 +228,39 @@ class AccountMonthSumController extends Controller
                 ->orderBy('month_key', 'asc')
                 ->get();
 
-            $rows = [];
+            $accountRows = [];
             $currentBalance = $openingBalance;
 
-            foreach ($monthlyStats as $k=>$stat) {
+            foreach ($monthlyStats as $k => $stat) {
                 $monthOpening = $currentBalance;
-                // 本月期末 = 期初 + 本月借 - 本月贷
                 $currentBalance = $currentBalance + $stat->total_jie - $stat->total_dai;
                 $monthClosing = $currentBalance;
 
-                $rows[$k] = [
-                    'account_id'   => $account_ids[$i],
+                $accountRows[$k] = [
+                    $field => $id, // 直接使用 $id
                     'month'        => $stat->month_key,
-                    'jie_money'    => $stat->total_jie, // 本月借方合计
-                    'dai_money'    => $stat->total_dai, // 本月贷方合计
-                    'opening'      => $monthOpening,   // 月初金额
-                    'closing'      => $monthClosing,   // 月底金额
+                    'jie_money'    => $stat->total_jie,
+                    'dai_money'    => $stat->total_dai,
+                    'opening'      => $monthOpening,
+                    'closing'      => $monthClosing,
                 ];
-                $y = substr($stat->month_key, 0, 4); // 截取年份 2025
-                $m = substr($stat->month_key, 5, 2); // 截取月份 04
+
+                $y = substr($stat->month_key, 0, 4);
+                $m = substr($stat->month_key, 5, 2);
                 
-                // 存入数组，键名为 "2025-04"，这样相同的月份会自动覆盖，不会重复
                 $tempYearMonths[$stat->month_key] = [
                     'year'  => $y,
                     'month' => $m
                 ];
             }
-            $datas['rows'][] = $rows;
+            $rows[] = $accountRows;
         }
-        $datas['year_month'] = array_values($tempYearMonths);
-        return $datas;
-    }
 
+        return [
+            'rows' => $rows,
+            'year_month' => array_values($tempYearMonths)
+        ];
+    }
 
     /**
      * 显示详情
@@ -220,7 +269,6 @@ class AccountMonthSumController extends Controller
     {
         $sum = AccountMonthSum::findOrFail($id);
         $detail = AccountMonthDetail::where('year', $sum->year)->where('month', $sum->month)->get();
-        
         return view('masters.account-month-sums.show', compact('sum','detail'));
     }
 

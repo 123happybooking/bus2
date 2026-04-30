@@ -105,7 +105,7 @@
                         <a href="{{ route('masters.journal_entries.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">仕訳帳</a>
                         
                         <!-- 現金出納帳 -->
-                        <a href="{{ route('masters.products.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">現金出納帳</a>
+                        <a href="{{ route('masters.account-cash.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">現金出納帳</a>
                         
                         <!-- 預金出納帳 -->
                         <a href="{{ route('masters.products.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">預金出納帳</a>

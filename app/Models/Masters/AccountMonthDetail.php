@@ -52,4 +52,9 @@ class AccountMonthDetail extends Model
         return $this->belongsTo(Account::class, 'account_id');
     }
 
+    public function subAccount()
+    {
+        return $this->belongsTo(AccountSub::class, 'sub_account_id');
+    }
+
 }

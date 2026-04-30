@@ -7,6 +7,9 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3><i class="bi bi-cash-coin text-success me-2"></i>損益計算書 (Profit and Loss)</h3>
         <span class="text-muted">期間で絞り込みを行ってください</span>
+        <a id="downloadPdf" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-download fa-sm text-white-50"></i> 导出PDF
+        </a>
     </div>
 
     <!-- 2. 搜索区域 -->
@@ -343,5 +346,21 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+
+const currentParams = new URLSearchParams(window.location.search);
+
+const baseUrl = "{{ route('masters.account-pl.pdf') }}";
+
+// 构建最终 URL
+let finalUrl = baseUrl;
+if (currentParams.toString()) {
+    // 判断 baseUrl 是否已包含参数
+    finalUrl += baseUrl.includes('?') ? '&' : '?';
+    finalUrl += currentParams.toString();
+}
+
+// 赋值给按钮
+document.getElementById('downloadPdf').href = finalUrl;
 </script>
 @endsection

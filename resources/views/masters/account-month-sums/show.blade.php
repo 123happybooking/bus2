@@ -93,6 +93,7 @@
                                         <thead class="table-light">
                                             <tr>
                                                 <th>勘定科目</th>
+                                                <th>補助科目</th>
                                                 <th class="text-end">期首残高</th>
                                                 <th class="text-end">借方合計</th>
                                                 <th class="text-end">貸方合計</th>
@@ -103,6 +104,7 @@
                                             @foreach($detail as $item)
                                                 <tr>
                                                     <td class="fw-bold">{{ $item->account->name ?? '' }}</td>
+                                                    <td class="fw-bold">{{ $item->subAccount->name ?? '' }}</td>
                                                     <td class="text-end">{{$item->account->category->remark=="借" ? number_format($item->money_start, 0) : number_format(abs($item->money_start), 0) }}</td>
                                                     <td class="text-end text-primary">{{ number_format($item->money_jie, 0) }}</td>
                                                     <td class="text-end text-danger">{{ number_format($item->money_dai, 0) }}</td>
