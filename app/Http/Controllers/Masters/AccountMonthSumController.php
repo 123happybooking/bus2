@@ -117,7 +117,7 @@ class AccountMonthSumController extends Controller
                     $subAccount = AccountSub::find($rowData['sub_account_id']);
                     
                     $subdetailData[] = [
-                        'account_id'   => $subAccount->account_id,
+                        'account_id'   => $subAccount->account_id ?? 0,
                         'sub_account_id'   => $rowData['sub_account_id'],
                         'year'         => $dateParts[0],
                         'month'        => $dateParts[1],
@@ -141,6 +141,7 @@ class AccountMonthSumController extends Controller
             return redirect()->route('masters.account-month-sums.index')->with('success', '数据生成成功！');
 
         } catch (\Exception $e) {
+            \Log::error($e);
             DB::rollBack();
             return back()->withErrors('数据生成失败：' . $e->getMessage());
         }
