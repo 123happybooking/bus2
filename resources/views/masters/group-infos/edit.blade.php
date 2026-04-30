@@ -568,10 +568,38 @@
                                             </div>
                                         </div>
 
-                                        <div id="doc-{{ $vehicleIndex }}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 100px;">
-                                            <div class="dashed-box" style="color: #6b7280; font-size: 11px; padding: 16px; background-color: #f9fafb; border-radius: 4px; text-align: center; border: 1px dashed #d1d5db;">
-                                                ---
-                                            </div>
+                                        <div id="doc-{{ $vehicleIndex }}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 100px; overflow: auto;">
+                                            @php
+                                                $busCompensations = $compensationsByBus[$busId] ?? [];
+                                            @endphp
+                                            @if(count($busCompensations) > 0)
+                                                <table class="table table-sm table-bordered" style="font-size: 11px; margin-bottom: 0;">
+                                                    <thead style="text-align: center;">
+                                                        <tr>
+                                                            <th style="width: 25%; background-color: #f8f9fa;">報酬種別</th>
+                                                            <th style="background-color: #f8f9fa;">対象日</th>
+                                                            <th style="width: 15%; background-color: #f8f9fa;">単価</th>
+                                                            <th style="width: 10%; background-color: #f8f9fa;">数量</th>
+                                                            <th style="width: 15%; background-color: #f8f9fa;">金額</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody style="text-align: center;">
+                                                        @foreach($busCompensations as $comp)
+                                                        <tr>
+                                                            <td>{{ $comp->compensationType->comp_name ?? '-' }}</td>
+                                                            <td>{{ $comp->target_date }}</td>
+                                                            <td>¥ {{ number_format($comp->price) }}</td>
+                                                            <td>{{ number_format($comp->qty) }}</td>
+                                                            <td>¥ {{ number_format($comp->amount) }}</td>
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            @else
+                                                <div style="color: #6b7280; font-size: 11px; padding: 16px; text-align: center;">
+                                                    データがありません
+                                                </div>
+                                            @endif
                                         </div>
 
                                         <div id="history2-{{ $vehicleIndex }}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: auto; min-height: 100px; max-height: 100px; overflow-y: auto;">
@@ -970,10 +998,38 @@
                                         </div>
                                     </div>
             
-                                    <div id="doc-1" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 100px;">
-                                        <div class="dashed-box" style="color: #6b7280; font-size: 11px; padding: 16px; background-color: #f9fafb; border-radius: 4px; text-align: center; border: 1px dashed #d1d5db;">
-                                            ---
-                                        </div>
+                                    <div id="doc-1" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 100px; overflow: auto;">
+                                        @php
+                                            $busCompensations = $compensationsByBus[$busId] ?? [];
+                                        @endphp
+                                        @if(count($busCompensations) > 0)
+                                            <table class="table table-sm table-bordered" style="font-size: 11px; margin-bottom: 0;">
+                                                <thead style="text-align: center;">
+                                                    <tr>
+                                                        <th style="width: 25%; background-color: #f8f9fa;">報酬種別</th>
+                                                        <th style="background-color: #f8f9fa;">対象日</th>
+                                                        <th style="width: 15%; background-color: #f8f9fa;">単価</th>
+                                                        <th style="width: 10%; background-color: #f8f9fa;">数量</th>
+                                                        <th style="width: 15%; background-color: #f8f9fa;">金額</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody style="text-align: center;">
+                                                    @foreach($busCompensations as $comp)
+                                                    <tr>
+                                                        <td>{{ $comp->compensationType->comp_name ?? '-' }}</td>
+                                                        <td>{{ $comp->target_date }}</td>
+                                                        <td>¥ {{ number_format($comp->price) }}</td>
+                                                        <td>{{ number_format($comp->qty) }}</td>
+                                                        <td>¥ {{ number_format($comp->amount) }}</td>
+                                                    </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        @else
+                                            <div style="color: #6b7280; font-size: 11px; padding: 16px; text-align: center;">
+                                                データがありません
+                                            </div>
+                                        @endif
                                     </div>
             
                                     <div id="history2-1" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: auto; min-height: 100px; max-height: 100px; overflow-y: auto;">
@@ -2863,57 +2919,35 @@ function copyClickHandler(e) {
         newCard.setAttribute('data-vehicle-index', newIndex);
         newCard.setAttribute('data-bus-id', newBusId);
     
-        const getSourceValue = (fieldName) => {
-            const input = sourceCard.querySelector(`[name*="[${fieldName}]"]`);
-            return input ? (input.type === 'checkbox' ? input.checked : input.value) : '';
+        const getSourceOptions = () => {
+            const optionsContainer = sourceCard.querySelector('.options-container');
+            if (!optionsContainer) return [];
+            const checkboxes = optionsContainer.querySelectorAll('input[type="checkbox"]');
+            const selectedValues = [];
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    selectedValues.push(cb.value);
+                }
+            });
+            return selectedValues;
         };
+    
+        const sourceSelectedOptions = getSourceOptions();
         
         const vehicleGrades = @json($vehicleGrades ?? []);
         const reservationCategories = @json($reservationCategories ?? []);
         const options = @json($options ?? []);
     
-        const getSourceSelectValue = (selectClass) => {
-            const select = sourceCard.querySelector(`.${selectClass}`);
-            return select ? select.value : '';
-        };
-    
-        const vehicleNumber = getSourceValue('vehicle_number');
-        const stepCar = getSourceValue('step_car');
-        const adultCount = getSourceValue('adult_count');
-        const childCount = getSourceValue('child_count');
-        const guideCount = getSourceValue('guide_count');
-        const otherCount = getSourceValue('other_count');
-        const luggageCount = getSourceValue('luggage_count');
-        const representative = getSourceValue('representative');
-        const representativePhone = getSourceValue('representative_phone');
-        const operationBasicRemarks = getSourceValue('operation_basic_remarks');
-        const docRemarks = getSourceValue('doc_remarks');
-        const historyRemarks = getSourceValue('history_remarks');
-        const attention = getSourceValue('attention');
-        const operationRemarks = getSourceValue('operation_remarks');
-        const operationMemo = getSourceValue('operation_memo');
-    
-        const vehicleId = getSourceSelectValue('vehicle-select');
-        const driverId = getSourceSelectValue('driver-select');
-        const guideId = getSourceSelectValue('guide-select');
-        
-        const vehicleGradeId = getSourceValue('vehicle_grade_id');
-        const businessCategoryId = getSourceValue('business_category_id');
-        const itineraryName = getSourceValue('itinerary_name');
-        const groupName = getSourceValue('group_name');
-        const agtTourId = getSourceValue('agt_tour_id');
-        const agencyCountry = getSourceValue('agency_country');
-        const luggage = getSourceValue('luggage');
-    
         let tableRows = '';
         if (sourceRows && sourceRows.length > 0) {
             const cleanedSourceRows = [];
             sourceRows.forEach(row => {
-                const dateInput = row.querySelector('input[name*="[date]"]');
-                if (dateInput && dateInput.value.includes(' ')) {
+                const clonedRow = row.cloneNode(true);
+                const dateInput = clonedRow.querySelector('input[name*="[date]"]');
+                if (dateInput && dateInput.value && dateInput.value.includes(' ')) {
                     dateInput.value = dateInput.value.split(' ')[0];
                 }
-                cleanedSourceRows.push(row);
+                cleanedSourceRows.push(clonedRow);
             });
             tableRows = generateRowsFromSource(cleanedSourceRows, newIndex, newBusId);
         } else {
@@ -2924,13 +2958,22 @@ function copyClickHandler(e) {
                      </tr>
             `;
         }
-        
+    
         newCard.innerHTML = `
             <div class="card-header py-1 px-3 d-flex align-items-center" style="background-color: #141c28; border-bottom: 1px solid #aaa;">
-                <h6 class="mb-0 me-3" style="color: #fff; font-size: 0.875rem; font-weight: 500;">
-                    運行詳細-${newIndex.toString().padStart(2, '0')}
+                <h6 class="mb-0 me-3" style="color: #fff; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 10px;">
+                    <span>運行詳細-${newIndex.toString().padStart(2, '0')}</span>
+                    <span style="font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; background-color: #f59e0b; color: white;">未完成</span>
                 </h6>
                 <div class="d-flex align-items-center ms-auto" style="gap: 15px;">
+                    <div class="form-check d-flex align-items-center">
+                        <label class="form-check-label me-2" for="bus_assignments_${newIndex}" style="font-size: 0.8rem; color: #fff;">最終確認</label>
+                        <input type="checkbox" class="form-check-input" id="bus_assignments_${newIndex}" name="bus_assignments[${newIndex}][status_finalized]" value="1" style="margin: 0;">
+                    </div>
+                    <div class="form-check d-flex align-items-center">
+                        <label class="form-check-label me-2" for="status_sent_${newIndex}" style="font-size: 0.8rem; color: #fff;">送信済</label>
+                        <input type="checkbox" class="form-check-input" id="status_sent_${newIndex}" name="bus_assignments[${newIndex}][status_sent]" value="1" style="margin: 0;">
+                    </div>
                     <div class="form-check d-flex align-items-center">
                         <label class="form-check-label me-2" for="lock_arrangement_${newIndex}" style="font-size: 0.8rem; color: #fff;">操作ロック</label>
                         <input type="checkbox" class="form-check-input" id="lock_arrangement_${newIndex}" name="bus_assignments[${newIndex}][lock_arrangement]" value="1" style="margin: 0;">
@@ -2949,35 +2992,31 @@ function copyClickHandler(e) {
                 <input type="hidden" name="bus_assignments[${newIndex}][vehicle_index]" value="${newIndex}">
                 
                 <div class="row" style="margin-right: -5px; margin-left: -5px;">
-                    <!-- 左侧60%区域 -->
                     <div class="col-md-6" style="width:60%; padding-right: 5px; padding-left: 5px;">
                         <div class="row mb-1">
                             <div class="col-md-12">
-                                <div class="d-flex w-100" style="gap: 8px;">
-                                    <div class="d-flex" style="width: 50%; gap: 8px;">
-                                        <div class="d-flex align-items-center" style="width: 50%;">
+                                <div class="d-flex w-100">
+                                    <div class="d-flex align-items-center" style="width: 50%; gap: 8px;">
+                                        <div class="d-flex align-items-center" style="width: 70%;">
                                             <span class="span-label">運行ID</span>
                                             <span class="border px-2 py-1 bg-white rounded w-100" style="color: #2563eb;">&nbsp;</span>
                                         </div>
-                                        
-                                        <div class="d-flex align-items-center" style="width: 50%;">
-                                            <span class="span-label">車種指定</span>
+                                        <div class="d-flex align-items-center" style="width: 30%;">
+                                            <span class="span-label" style="width: auto !important;">車種指定</span>
                                             <input type="checkbox" class="form-check-input" name="bus_assignments[${newIndex}][vehicle_type_spec_check]" value="1" style="margin: 0;">
                                         </div>
                                     </div>
-                                    
                                     <div class="d-flex" style="width: 50%; gap: 8px;">
                                         <div class="d-flex align-items-center" style="width: 50%;">
                                             <span class="span-label">車両等級</span>
                                             <select name="bus_assignments[${newIndex}][vehicle_grade_id]" class="form-select form-select-sm border w-100">
                                                 <option value="">-- 選択 --</option>
-                                                ${vehicleGrades.map(g => `<option value="${g.id}" ${vehicleGradeId == g.id ? 'selected' : ''}>${g.description || g.grade_name}</option>`).join('')}
+                                                ${vehicleGrades.map(g => `<option value="${g.id}">${g.description || g.grade_name}</option>`).join('')}
                                             </select>
                                         </div>
-                                        
                                         <div class="d-flex align-items-center" style="width: 50%;">
                                             <span class="span-label">号車</span>
-                                            <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][vehicle_number]" value="${vehicleNumber || newIndex.toString().padStart(2, '0')}">
+                                            <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][vehicle_number]" value="${newIndex.toString().padStart(2, '0')}">
                                         </div>
                                     </div>
                                 </div>
@@ -2986,50 +3025,22 @@ function copyClickHandler(e) {
                     
                         <div class="row mb-1">
                             <div class="col-md-12">
-                                <div class="d-flex w-100" style="gap: 8px;">
+                                <div class="d-flex w-100">
                                     <div class="d-flex align-items-center" style="width: 50%;">
-                                        <span class="span-label">ステッカー</span>
-                                        <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][step_car]" value="${stepCar || ''}" placeholder="ステップカー情報">
+                                        <span class="span-label" style="white-space: normal; word-break: break-all; line-height: 1.2; min-width: 70px;">ステップカー</span>
+                                        <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][step_car]" value="">
                                     </div>
-                                    
-                                    <div class="d-flex" style="width: 50%; gap: 8px;">
-                                        <div class="d-flex align-items-center" style="width: 50%;">
-                                            <span class="span-label">業務</span>
-                                            <select name="bus_assignments[${newIndex}][business_category_id]" class="form-select form-select-sm border w-100">
-                                                <option value="">-- 選択 --</option>
-                                                ${reservationCategories.map(c => `<option value="${c.id}" ${businessCategoryId == c.id ? 'selected' : ''}>${c.category_name}</option>`).join('')}
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="d-flex align-items-center" style="width: 50%;">
-                                            <span class="span-label">行程</span>
-                                            <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][itinerary_name]" value="${itineraryName || ''}">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <div class="row mb-1">
-                            <div class="col-md-12">
-                                <div class="d-flex w-100" style="gap: 8px;">
-                                    <div class="d-flex align-items-center" style="width: 50%;">
-                                        <span class="span-label">団体名</span>
-                                        <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][group_name]" value="${groupName || ''}">
-                                    </div>
-                                    
                                     <div class="d-flex" style="width: 50%; gap: 8px;">
                                         <div class="d-flex align-items-center" style="width: 50%;">
                                             <span class="span-label">人数</span>
                                             <div class="d-flex gap-1 flex-fill">
-                                                <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[${newIndex}][adult_count]" value="${adultCount || 0}" placeholder="大" min="0">
-                                                <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[${newIndex}][child_count]" value="${childCount || 0}" placeholder="小" min="0">
+                                                <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[${newIndex}][adult_count]" value="0" placeholder="大" min="0">
+                                                <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[${newIndex}][child_count]" value="0" placeholder="小" min="0">
                                             </div>
                                         </div>
-                                        
                                         <div class="d-flex align-items-center" style="width: 50%;">
                                             <span class="span-label">荷物</span>
-                                            <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][luggage]" value="${luggage || ''}">
+                                            <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][luggage]" value="">
                                         </div>
                                     </div>
                                 </div>
@@ -3038,113 +3049,153 @@ function copyClickHandler(e) {
                     
                         <div class="row mb-1">
                             <div class="col-md-12">
-                                <div class="d-flex w-100" style="gap: 8px;">
-                                    <div class="d-flex" style="width: 50%; gap: 8px;">
-                                        <div class="d-flex align-items-center" style="width: 50%;">
-                                            <span class="span-label" style="white-space: nowrap; min-width: 70px; white-space: normal; word-break: keep-all;">AGT予約ID</span>
-                                            <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][agt_tour_id]" value="${agtTourId || ''}">
-                                        </div>
-                                        
-                                        <div class="d-flex align-items-center" style="width: 50%;">
-                                            <span class="span-label">国籍</span>
-                                            <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][agency_country]" value="${agencyCountry || ''}">
-                                        </div>
-                                    </div>
-                                    
+                                <div class="d-flex w-100">
                                     <div class="d-flex align-items-center" style="width: 50%;">
-                                        <span class="span-label" style="white-space: nowrap; min-width: 50px; white-space: normal; word-break: keep-all;">オプション</span>
-                                        <div class="options-container w-100" style="display: flex; flex-wrap: wrap; gap: 8px; border: 1px solid #aaa; border-radius: 4px; padding: 4px 8px; min-height: 28px; background-color: white;">
-                                            ${options.map(opt => `
-                                            <label class="d-flex align-items-center" style="cursor: pointer; font-size: 11px;">
-                                                <input type="checkbox" name="bus_assignments[${newIndex}][options][]" value="${opt.id}" style="margin-right: 2px;">
-                                                ${opt.name}
-                                            </label>`).join('')}
-                                        </div>
+                                        <span class="span-label">車両</span>
+                                        <select class="form-select form-select-sm border vehicle-select" 
+                                                id="vehicle_select_${newIndex}" 
+                                                name="bus_assignments[${newIndex}][vehicle_id]"
+                                                data-vehicle-index="${newIndex}">
+                                            <option value="">-- 車両を選択 --</option>
+                                            @foreach($vehicles as $vehicle)
+                                                <option value="{{ $vehicle->id }}">
+                                                    {{ $vehicle->registration_number }} {{ $vehicle->vehicle_model ? '(' . $vehicle->vehicle_model->model_name . ')' : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="d-flex align-items-center" style="width: 25%;">
+                                        <span class="span-label">代表</span>
+                                        <input type="text" class="form-control form-control-sm border" name="bus_assignments[${newIndex}][representative]" value="" placeholder="Name">
+                                    </div>
+                                    <div class="d-flex align-items-center" style="width: 25%;">
+                                        <input type="text" class="form-control form-control-sm border ms-2" name="bus_assignments[${newIndex}][representative_phone]" value="" placeholder="Tel/Cell">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <div class="row mb-1">
+                            <div class="col-md-12">
+                                <div class="d-flex w-100">
+                                    <div class="d-flex align-items-center" style="width: 35%;">
+                                        <span class="span-label">運転手</span>
+                                        <select class="form-select form-select-sm border driver-select" 
+                                                id="driver_select_${newIndex}" 
+                                                name="bus_assignments[${newIndex}][driver_id]"
+                                                data-vehicle-index="${newIndex}">
+                                            <option value="">-- 選択 --</option>
+                                            @foreach($drivers as $driver)
+                                                <option value="{{ $driver->id }}">
+                                                    {{ $driver->name }} {{ $driver->driver_code ? '(' . $driver->driver_code . ')' : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="d-flex align-items-center" style="width: 15%;">
+                                        <span class="span-label">仮</span>
+                                        <input type="checkbox" class="form-check-input" name="bus_assignments[${newIndex}][temporary_driver]" value="1" style="margin: 0;">
+                                    </div>
+                                    <div class="d-flex align-items-center" style="width: 50%;">
+                                        <span class="span-label">添乗</span>
+                                        <select class="form-select form-select-sm border guide-select" 
+                                                id="guide_select_${newIndex}" 
+                                                name="bus_assignments[${newIndex}][guide_id]"
+                                                data-vehicle-index="${newIndex}">
+                                            <option value="">-- 選択 --</option>
+                                            @foreach($guides as $guide)
+                                                <option value="{{ $guide->id }}">
+                                                    {{ $guide->name }} {{ $guide->guide_code ? '(' . $guide->guide_code . ')' : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-        
-                    <!-- 右侧40%区域 -->
+    
                     <div class="col-md-6" style="width:40%; padding-right: 5px; padding-left: 5px;">
                         <div class="tab-container-${newIndex}">
                             <div class="d-flex w-100" style="border-bottom: 1px solid #aaa;">
                                 <span class="tab-button2 active flex-fill text-center px-2 py-1" data-container="${newIndex}" data-tab2="basic2-${newIndex}" style="background-color: white; border: 1px solid #aaa; border-bottom-color: white; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #374151; font-size: 0.8rem; cursor: pointer;">基本</span>
-                                <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="${newIndex}" data-tab2="doc-${newIndex}" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">DOC</span>
-                                <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="${newIndex}" data-tab2="history2-${newIndex}" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">履歴</span>
+                                <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="${newIndex}" data-tab2="doc-${newIndex}" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">給与</span>
+                                <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="${newIndex}" data-tab2="history2-${newIndex}" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">精算</span>
                             </div>
-        
-                            <div id="basic2-${newIndex}" class="tab-content2" style="border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 102px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="d-flex align-items-start">
-                                            <span class="span-label">備考</span>
-                                            <textarea name="bus_assignments[${newIndex}][operation_basic_remarks]" rows="3" class="form-control form-control-sm border" style="height: 80px;" placeholder="備考を入力...">${operationBasicRemarks || ''}</textarea>
+    
+                            <div id="basic2-${newIndex}" class="tab-content2" style="border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 102px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
+                                <div class="file-manager-${newIndex}" style="display: flex; flex-direction: column; height: 100%;">
+                                    <div class="file-list file-list-bus" id="file-list-bus-${newBusId}" data-bus-id="${newBusId}" style="flex: 1; margin-bottom: 10px;">
+                                        <div class="file-empty-bus" style="text-align: center; padding: 10px 0 0 0; color: #9ca3af; font-size: 11px;">
+                                            <i class="bi bi-folder2-open"></i> ファイルはありません
                                         </div>
+                                    </div>
+                                    <div class="file-upload-bus" style="display: flex; justify-content: center; flex-shrink: 0;">
+                                        <button type="button" class="btn-upload-file-bus btn btn-sm btn-primary mb-2" data-bus-id="${newBusId}" style="background-color: #2563eb; border: none; padding: 4px 12px; font-size: 11px;">
+                                            <i class="bi bi-cloud-upload"></i> アップロード
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-        
-                            <div id="doc-${newIndex}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 100px;">
+    
+                            <div id="doc-${newIndex}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 100px; overflow: auto;">
+                                <div style="color: #6b7280; font-size: 11px; padding: 16px; text-align: center;">
+                                    データがありません
+                                </div>
+                            </div>
+    
+                            <div id="history2-${newIndex}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 100px; overflow: auto;">
                                 <div class="dashed-box" style="color: #6b7280; font-size: 11px; padding: 16px; background-color: #f9fafb; border-radius: 4px; text-align: center; border: 1px dashed #d1d5db;">
-                                    ---
-                                </div>
-                            </div>
-        
-                            <div id="history2-${newIndex}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 100px;">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="d-flex align-items-start">
-                                            <span class="span-label">備考</span>
-                                            <textarea name="bus_assignments[${newIndex}][history_remarks]" rows="3" class="form-control form-control-sm border" style="height: 80px;" placeholder="履歴備考...">${historyRemarks || ''}</textarea>
-                                        </div>
-                                    </div>
+                                    --
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-        
-                <div class="row mt-1">
+    
+                <div class="row mt-2">
                     <div class="col-md-12">
                         <table class="table table-bordered table-sm vehicle-itinerary-table" style="font-size: 0.8rem; background-color: white;" data-vehicle-table="${newIndex}">
                             <thead style="background-color: #f3f4f6; text-align: center;">
-                                 <tr>
+                                <tr>
                                     <th style="width: 10%; text-align: center; background-color: #f3f4f6;">運行日</th>
                                     <th style="width: 10%; text-align: center; background-color: #f3f4f6;">開始時刻/場所</th>
                                     <th style="width: 10%; text-align: center; background-color: #f3f4f6;">終了時刻/場所</th>
                                     <th style="text-align: center; background-color: #f3f4f6;">行程</th>
                                     <th style="width: 5%; text-align: center; background-color: #f3f4f6;">選択</th>
                                     <th style="width: 180px; text-align: center; background-color: #f3f4f6;">操作</th>
-                                  </thead>
+                                 </thead>
                             <tbody>
                                 ${tableRows}
                             </tbody>
-                          </table>
+                        </table>
                     </div>
                 </div>
                 
-                <div class="row" style="margin-right: -5px; margin-left: -5px;">
+                <div class="row mt-2" style="margin-right: -5px; margin-left: -5px;">
                     <div class="col-md-6" style="width:60%; padding-right: 5px; padding-left: 5px;">
                         <div class="d-flex w-100 mb-1">
-                            <span class="span-label" style="min-width: 30px;">注意</span>
-                            <input type="text" name="bus_assignments[${newIndex}][attention]" class="form-control form-control-sm border" value="${attention || ''}">
+                            <span class="span-label" style="min-width: 30px;">オプション</span>
+                            <div class="options-container w-100" style="display: flex; flex-wrap: wrap; gap: 8px; border: 1px solid #aaa; border-radius: 4px; padding: 4px 8px; min-height: 28px; background-color: white;">
+                                ${options.map(opt => `
+                                <label class="d-flex align-items-center" style="cursor: pointer; font-size: 11px;">
+                                    <input type="checkbox" name="bus_assignments[${newIndex}][options][]" value="${opt.id}" style="margin-right: 2px;" ${sourceSelectedOptions.includes(opt.id.toString()) ? 'checked' : ''}>
+                                    ${opt.name}
+                                </label>`).join('')}
+                            </div>
                         </div>
-        
                         <div class="d-flex w-100">
                             <span class="span-label" style="min-width: 30px;">備考</span>
-                            <textarea name="bus_assignments[${newIndex}][operation_remarks]" rows="1" class="form-control form-control-sm border" placeholder="指示書に表示">${operationRemarks || ''}</textarea>
+                            <textarea name="bus_assignments[${newIndex}][operation_remarks]" rows="1" class="form-control form-control-sm border" placeholder="指示書に表示"></textarea>
                         </div>
                     </div>
-        
                     <div class="col-md-6" style="width:40%; padding-right: 5px; padding-left: 5px;">
-                        <textarea name="bus_assignments[${newIndex}][operation_memo]" rows="2" class="form-control form-control-sm border" style="height: 62px;" placeholder="手配メモ一">${operationMemo || ''}</textarea>
+                        <textarea name="bus_assignments[${newIndex}][operation_memo]" rows="2" class="form-control form-control-sm border" style="height: 62px;" placeholder="手配メモ一"></textarea>
                     </div>
                 </div>
             </div>
         `;
-        
+    
         return newCard;
     }
 

@@ -28,10 +28,10 @@
             $reservationCategory = $groupInfo ? $groupInfo->reservationCategory : null;
             $bookingId = $groupInfo ? $groupInfo->id : '';
             $operationId = $itinerary->bus_assignment_id ?? '';
-            $categoryName = $reservationCategory ? $reservationCategory->category_name : '';
+            $categoryName = $reservationCategory ? $reservationCategory->category_name : '未設定';
             $busAssignment = $itinerary->busAssignment;
-            $isCompleted = $itinerary->operation_status === '終了';
-            $guideName = $itinerary->busAssignment->guide->name ?? '';
+            $isCompleted = $itinerary->is_completed ?? false;
+            $agencyContactName = $groupInfo->agency_contact_name ?? '未設定';
         @endphp
 
         <div class="itinerary-card">
@@ -44,7 +44,7 @@
                 </div>
                 <div class="right-group">
                     <span class="category-name">{{ $categoryName }}</span>
-                    <span class="guide-name">{{ $guideName }}</span>
+                    <span class="guide-name">{{ $agencyContactName }}</span>
                 </div>
             </div>
 
@@ -120,6 +120,7 @@
 
         <div class="button-container">
             <button class="start-operation-btn" id="startOperationBtn" {{ $isCompleted ? 'disabled' : '' }}>運行開始</button>
+            <button class="start-operation-btn" id="advancePaymentBtn">立替計算</button>
             <button class="back-btn" id="cancelBtn">戻る</button>
         </div>
     </div>
@@ -198,17 +199,17 @@
 .itinerary-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .itinerary-left {
     text-align: left;
-    width: 25%;
+    width: 35%;
     flex-shrink: 0;
 }
 
 .itinerary-center {
-    width: 50%;
+    width: 30%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -218,7 +219,7 @@
 
 .itinerary-right {
     text-align: right;
-    width: 25%;
+    width: 35%;
     flex-shrink: 0;
 }
 
@@ -234,8 +235,6 @@
     margin-top: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 120px;
 }
 
 .end-time {
@@ -250,8 +249,6 @@
     margin-top: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 120px;
 }
 
 .itinerary-vehicle {
@@ -392,6 +389,14 @@ if (startOperationBtn) {
     startOperationBtn.addEventListener('click', function() {
         const id = '{{ $itinerary->id }}';
         window.location.href = `/driver/operation/run/${id}`;
+    });
+}
+
+const advancePaymentBtn = document.getElementById('advancePaymentBtn');
+if (advancePaymentBtn) {
+    advancePaymentBtn.addEventListener('click', function() {
+        const id = '{{ $itinerary->id }}';
+        window.location.href = `/driver/advance-payment/${id}`;
     });
 }
 </script>

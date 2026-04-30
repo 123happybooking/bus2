@@ -17,6 +17,8 @@ use App\Models\Masters\BusAssignmentLog;
 use App\Models\Masters\VehicleGrade;
 use App\Models\Masters\Option;
 use App\Models\Masters\GroupInfoFile;
+use App\Models\Masters\DriverCompensation;
+use App\Models\Masters\DriverCompensationType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -929,6 +931,17 @@ class GroupInfoController extends Controller
             $selectedOptions = explode(',', $groupInfo->options);
         }
         
+        $compensationsByBus = [];
+        $allCompensations = DriverCompensation::with(['compensationType'])->get();
+        
+        foreach ($allCompensations as $compensation) {
+            $busId = $compensation->bus_assignment_id;
+            if (!isset($compensationsByBus[$busId])) {
+                $compensationsByBus[$busId] = [];
+            }
+            $compensationsByBus[$busId][] = $compensation;
+        }
+        
         return view('masters.group-infos.edit', compact(
             'groupInfo', 
             'agencies',
@@ -945,7 +958,8 @@ class GroupInfoController extends Controller
             'vehicleGrades',
             'options',
             'selectedOptions',
-            'singleBusFiles'
+            'singleBusFiles',
+            'compensationsByBus'
         ));
     }
 

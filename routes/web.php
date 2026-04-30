@@ -36,6 +36,10 @@ use App\Http\Controllers\Masters\DriverAttendanceController;
 use App\Http\Controllers\Masters\DailyReportController;
 use App\Http\Controllers\Masters\DriverOperationStatusController;
 use App\Http\Controllers\Masters\OptionController;
+use App\Http\Controllers\Masters\DriverPaymentMethodController;
+use App\Http\Controllers\Masters\DriverExpenseTypeController;
+use App\Http\Controllers\Masters\DriverCompensationTypeController;
+use App\Http\Controllers\Masters\DriverCompensationController;
 
 use App\Http\Controllers\Driver\DriverDashboardController;
 use App\Http\Controllers\Driver\DriverItineraryController;
@@ -43,6 +47,7 @@ use App\Http\Controllers\Driver\DriverProfileController;
 use App\Http\Controllers\Driver\DriverDailyReportController;
 use App\Http\Controllers\Driver\DriverOperationController;
 use App\Http\Controllers\Driver\DriverAuthController;
+use App\Http\Controllers\Driver\DriverExpenseController;
 
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -189,6 +194,10 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::resource('driver-operation-status', DriverOperationStatusController::class)->names('driver-operation-status');
         
         Route::resource('options', OptionController::class)->names('options');
+        Route::resource('driver-payment-methods', DriverPaymentMethodController::class)->names('driver-payment-methods');
+        Route::resource('driver-expense-types', DriverExpenseTypeController::class)->names('driver-expense-types');
+        Route::resource('driver-compensation-types', DriverCompensationTypeController::class)->names('driver-compensation-types');
+        Route::resource('driver-compensations', DriverCompensationController::class)->names('driver-compensations');
         
 
         Route::resource('currencies', CurrencyController::class)->names('currencies');
@@ -267,6 +276,12 @@ Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\
     Route::get('operation/logs/{id}', [DriverOperationController::class, 'getLogs'])->name('operation.logs');
     Route::put('operation/log/{id}', [DriverOperationController::class, 'updateLog'])->name('operation.log.update');
     Route::delete('operation/log/{id}', [DriverOperationController::class, 'deleteLog'])->name('operation.log.delete');
+    
+    Route::get('advance-payment/{itinerary_id}', [DriverExpenseController::class, 'index'])->name('advance-payment.index');
+    Route::get('advance-payment/data/{itinerary_id}', [DriverExpenseController::class, 'getExpensesData']);
+    Route::post('advance-payment', [DriverExpenseController::class, 'store']);
+    Route::put('advance-payment/{id}', [DriverExpenseController::class, 'update']);
+    Route::delete('advance-payment/{id}', [DriverExpenseController::class, 'destroy']);
 });
 
 

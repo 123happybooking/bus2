@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'オプション')
+@section('title', '支払方法マスタ')
 
 @section('content')
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4><i class="bi bi-gear"></i> オプション</h4>
-                <a href="{{ route('masters.options.create') }}" class="btn btn-primary">
+                <h4><i class="bi bi-credit-card"></i> 支払方法マスタ</h4>
+                <a href="{{ route('masters.driver-payment-methods.create') }}" class="btn btn-primary">
                     <i class="bi bi-plus-lg"></i> 新規追加
                 </a>
             </div>
@@ -28,10 +28,10 @@
             @endif
             
             <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">
-                <form method="GET" action="{{ route('masters.options.index') }}" class="row g-2">
+                <form method="GET" action="{{ route('masters.driver-payment-methods.index') }}" class="row g-2">
                     <div class="col">
                         <input type="text" name="search" class="form-control form-control-sm" style="border-color: #E5E7EB;" 
-                               placeholder="オプション名・カテゴリで検索"
+                               placeholder="支払方法名、備考で検索"
                                value="{{ request('search') }}">
                     </div>
                     <div class="col-auto">
@@ -41,7 +41,7 @@
                         </button>
                     </div>
                     <div class="col-auto">
-                        <a href="{{ route('masters.options.index') }}" class="btn btn-sm btn-outline-secondary px-3" 
+                        <a href="{{ route('masters.driver-payment-methods.index') }}" class="btn btn-sm btn-outline-secondary px-3" 
                            style="border-color: #E5E7EB; color: #374151; font-size: 0.875rem;">
                             クリア
                         </a>
@@ -53,10 +53,10 @@
                 <div class="alert alert-info mb-3">
                     <i class="bi bi-info-circle me-2"></i>
                     検索条件: "{{ request('search') }}" 
-                    @if($options->count() > 0)
-                        - {{ $options->total() }}件の結果が見つかりました
+                    @if($paymentMethods->count() > 0)
+                        - {{ $paymentMethods->total() }}件の結果が見つかりました
                     @else
-                        - 該当するオプションが見つかりませんでした
+                        - 該当する支払方法が見つかりませんでした
                     @endif
                 </div>
             @endif
@@ -66,45 +66,40 @@
                     <table class="table table-sm table-bordered mb-0 table-list">
                         <thead>
                             <tr>
-                                <th>No.</th>
-                                <th>オプション名</th>
-                                <th>カテゴリ</th>
-                                <th>説明</th>
-                                <th>表示順</th>
-                                <th width="80">状態</th>
+                                <th>ID</th>
+                                <th>支払方法名</th>
+                                <th>精算対象</th>
+                                <th>備考</th>
                                 <th width="150">操作</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($options as $index => $option)
+                            @forelse($paymentMethods as $method)
                             <tr>
-                                <td>{{ $options->firstItem() + $index }}</td>
-                                <td>{{ $option->name }}</td>
-                                <td>{{ $option->category }}</td>
-                                <td>{{ $option->description ?? '-' }}</td>
-                                <td class="text-center">{{ $option->display_order }}</td>
+                                <td>{{ $method->id }}</td>
+                                <td>{{ $method->method_name }}</td>
                                 <td class="text-center">
-                                    @if($option->is_active)
-                                        <span class="badge bg-success">有効</span>
+                                    @if($method->is_reimbursable)
+                                        <span class="badge bg-success">対象</span>
                                     @else
-                                        <span class="badge bg-secondary">無効</span>
+                                        <span class="badge bg-secondary">対象外</span>
                                     @endif
                                 </td>
-                                <td>
-                                    <div class="d-flex gap-1">
-                                        <a href="{{ route('masters.options.edit', $option) }}" 
+                                <td>{{ $method->remark ?? '-' }}</td>
+                                <td class="text-center">
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <a href="{{ route('masters.driver-payment-methods.edit', $method) }}" 
                                            class="btn btn-sm btn-outline-primary" title="編集">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         
                                         <script>
-                                        function confirmDeleteOption(name) {
+                                        function confirmDelete(name) {
                                             return confirm(`本当に「${name}」を削除しますか？\nこの操作は元に戻せません。`);
                                         }
                                         </script>
-                                        <form action="{{ route('masters.options.destroy', $option) }}" method="POST" 
-                                              class="d-inline" 
-                                              onsubmit="return confirmDeleteOption('{{ $option->name }}')">
+                                        <form action="{{ route('masters.driver-payment-methods.destroy', $method) }}" method="POST" 
+                                              class="d-inline" onsubmit="return confirmDelete('{{ $method->method_name }}')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger" title="削除">
@@ -116,31 +111,28 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="5" class="text-center py-4">
                                     @if(request('search'))
                                         <div class="text-muted">
                                             <i class="bi bi-search display-6 mb-2"></i>
-                                            <p class="mb-0">検索条件に一致するオプションが見つかりませんでした</p>
-                                            <p class="small">検索キーワードを変更してお試しください</p>
+                                            <p class="mb-0">検索条件に一致する支払方法が見つかりませんでした</p>
                                         </div>
                                     @else
                                         <div class="text-muted">
-                                            <i class="bi bi-gear display-6 mb-2"></i>
-                                            <p class="mb-0">オプションデータが登録されていません</p>
-                                            <p class="small">「新規追加」ボタンから最初のオプションを登録してください</p>
+                                            <i class="bi bi-credit-card display-6 mb-2"></i>
+                                            <p class="mb-0">支払方法データが登録されていません</p>
                                         </div>
                                     @endif
-                                 </td>
+                                </td>
                             </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
 
-                @if($options->hasPages() || $options->total() > 0)
+                @if($paymentMethods->hasPages() || $paymentMethods->total() > 0)
                     <div class="mt-3">
                         <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
-                            
                             <div class="d-flex align-items-center">
                                 <label for="per_page_select" class="form-label small text-muted mb-0 me-2" style="white-space: nowrap;">
                                     表示件数:
@@ -151,57 +143,44 @@
                                     <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 行</option>
                                 </select>
                             </div>
-                
+
                             <nav aria-label="Page navigation">
                                 <ul class="pagination pagination-sm mb-0">
-                                    <li class="page-item {{ $options->onFirstPage() ? 'disabled' : '' }}">
-                                        <a class="page-link" href="{{ $options->previousPageUrl() }}" aria-label="Previous" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
-                                            <span aria-hidden="true">&laquo;</span>
-                                        </a>
+                                    <li class="page-item {{ $paymentMethods->onFirstPage() ? 'disabled' : '' }}">
+                                        <a class="page-link" href="{{ $paymentMethods->previousPageUrl() }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">&laquo;</a>
                                     </li>
-                
+
                                     @php
-                                        $current = $options->currentPage();
-                                        $last = $options->lastPage();
+                                        $current = $paymentMethods->currentPage();
+                                        $last = $paymentMethods->lastPage();
                                         $start = max(1, $current - 2);
                                         $end = min($last, $current + 2);
                                     @endphp
-                
+
                                     @if($start > 1)
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ $options->url(1) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">1</a>
-                                        </li>
-                                        @if($start > 2)
-                                            <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
-                                        @endif
+                                        <li class="page-item"><a class="page-link" href="{{ $paymentMethods->url(1) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">1</a></li>
+                                        @if($start > 2)<li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>@endif
                                     @endif
-                
+
                                     @for($i = $start; $i <= $end; $i++)
                                         <li class="page-item {{ $i == $current ? 'active' : '' }}">
-                                            <a class="page-link" href="{{ $options->url($i) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $i }}</a>
+                                            <a class="page-link" href="{{ $paymentMethods->url($i) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $i }}</a>
                                         </li>
                                     @endfor
-                
+
                                     @if($end < $last)
-                                        @if($end < $last - 1)
-                                            <li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>
-                                        @endif
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ $options->url($last) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $last }}</a>
-                                        </li>
+                                        @if($end < $last - 1)<li class="page-item disabled"><span class="page-link" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">...</span></li>@endif
+                                        <li class="page-item"><a class="page-link" href="{{ $paymentMethods->url($last) }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">{{ $last }}</a></li>
                                     @endif
-                
-                                    <li class="page-item {{ !$options->hasMorePages() ? 'disabled' : '' }}">
-                                        <a class="page-link" href="{{ $options->nextPageUrl() }}" aria-label="Next" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
-                                            <span aria-hidden="true">&raquo;</span>
-                                        </a>
+
+                                    <li class="page-item {{ !$paymentMethods->hasMorePages() ? 'disabled' : '' }}">
+                                        <a class="page-link" href="{{ $paymentMethods->nextPageUrl() }}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">&raquo;</a>
                                     </li>
                                 </ul>
                             </nav>
                         </div>
-                
                         <div class="text-center text-muted mt-2" style="font-size: 0.75rem;">
-                            表示中：{{ $options->firstItem() ?? 0 }} - {{ $options->lastItem() ?? 0 }} / 全 {{ $options->total() }} 件
+                            表示中：{{ $paymentMethods->firstItem() ?? 0 }} - {{ $paymentMethods->lastItem() ?? 0 }} / 全 {{ $paymentMethods->total() }} 件
                         </div>
                     </div>
                 @endif
@@ -211,16 +190,13 @@
 </div>
 @endsection
 
-
 @push('scripts')
 <script>
 document.getElementById('per_page_select').addEventListener('change', function() {
     const url = new URL(window.location.href);
     const search = document.querySelector('input[name="search"]')?.value;
     url.searchParams.set('per_page', this.value);
-    if (search) {
-        url.searchParams.set('search', search);
-    }
+    if (search) url.searchParams.set('search', search);
     window.location.href = url.toString();
 });
 </script>

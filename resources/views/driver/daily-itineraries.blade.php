@@ -29,9 +29,9 @@
             $reservationCategory = $groupInfo ? $groupInfo->reservationCategory : null;
             $group_info_id = $groupInfo ? $groupInfo->id : '';
             $bus_assignment_id = $itinerary->bus_assignment_id ?? '';
-            $categoryName = $reservationCategory ? $reservationCategory->category_name : '';
+            $categoryName = $reservationCategory ? $reservationCategory->category_name : '未設定';
             $isCompleted = $itinerary->is_completed ?? false;
-            $guideName = $itinerary->busAssignment->guide->name ?? '';
+            $agencyContactName = $groupInfo->agency_contact_name ?? '未設定';
         @endphp
         <div class="itinerary-card" data-id="{{ $itinerary->id }}" data-status="{{ $isCompleted ? 'completed' : 'pending' }}">
             <div class="card-header-row">
@@ -43,7 +43,7 @@
                 </div>
                 <div class="right-group">
                     <span class="category-name">{{ $categoryName }}</span>
-                    <span class="guide-name">{{ $guideName }}</span>
+                    <span class="guide-name">{{ $agencyContactName  }}</span>
                 </div>
             </div>
             <div class="divider"></div>
@@ -232,17 +232,17 @@
 .itinerary-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .itinerary-left {
     text-align: left;
-    width: 25%;
+    width: 35%;
     flex-shrink: 0;
 }
 
 .itinerary-center {
-    width: 50%;
+    width: 30%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -252,7 +252,7 @@
 
 .itinerary-right {
     text-align: right;
-    width: 25%;
+    width: 35%;
     flex-shrink: 0;
 }
 
@@ -268,8 +268,6 @@
     margin-top: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 120px;
 }
 
 .end-time {
@@ -284,8 +282,6 @@
     margin-top: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 120px;
 }
 
 .itinerary-vehicle {

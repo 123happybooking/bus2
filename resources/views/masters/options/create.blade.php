@@ -28,7 +28,7 @@
                 </div>
             @endif
             
-            <div class="card shadow-sm">
+            <div class="card shadow-sm card-edit">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="bi bi-plus-circle"></i> 新規オプション登録
@@ -40,7 +40,7 @@
                         @csrf
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="name" class="form-label required">オプション名</label>
                                 <input type="text" class="form-control @error('name') is-invalid @enderror" 
                                        id="name" name="name" value="{{ old('name') }}" 
@@ -50,7 +50,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="category" class="form-label required">カテゴリ</label>
                                 <input type="text" class="form-control @error('category') is-invalid @enderror" 
                                        id="category" name="category" value="{{ old('category') }}" 
@@ -62,7 +62,7 @@
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-12 mb-3">
+                            <div class="col-md-12">
                                 <label for="description" class="form-label">説明</label>
                                 <textarea class="form-control @error('description') is-invalid @enderror" 
                                           id="description" name="description" rows="3" 
@@ -74,7 +74,7 @@
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="display_order" class="form-label">表示順</label>
                                 <input type="number" class="form-control @error('display_order') is-invalid @enderror" 
                                        id="display_order" name="display_order" value="{{ old('display_order') }}" 
@@ -84,8 +84,8 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check mt-4 pt-2">
+                            <div class="col-md-6">
+                                <div class="form-check mt-4">
                                     <input class="form-check-input @error('is_active') is-invalid @enderror" 
                                            type="checkbox" id="is_active" name="is_active" value="1" 
                                            {{ old('is_active', 1) ? 'checked' : '' }}>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Driver;
 use App\Http\Controllers\Controller;
 use App\Models\Driver\DriverDailyReport;
 use App\Models\Driver\DriverOperationStatus;
+use App\Models\Driver\DriverExpense;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Masters\Vehicle;
 use Illuminate\Http\Request;
@@ -118,8 +119,19 @@ class DriverDailyReportController extends Controller
             ->where('operation_status', $finalStatusName)
             ->orderBy('time_start', 'asc')
             ->get();
+            
+        $expensesByItinerary = [];
+        foreach ($completedItineraries as $itinerary) {
+            $expenses = DriverExpense::with(['expenseType', 'paymentMethod'])
+                ->where('driver_id', $driverId)
+                ->whereDate('expense_date', $date)
+                ->where('itinerary_id', $itinerary->id)
+                ->orderBy('expense_date', 'desc')
+                ->get();
+            $expensesByItinerary[$itinerary->id] = $expenses;
+        }
         
-        return view('driver.daily-report', compact('date', 'dateTitle', 'report', 'completedItineraries', 'vehicles', 'defaultVehicleId', 'allowEdit', 'vehicleId', 'totalReports'));
+        return view('driver.daily-report', compact('date', 'dateTitle', 'report', 'completedItineraries', 'expensesByItinerary', 'vehicles', 'defaultVehicleId', 'allowEdit', 'vehicleId', 'totalReports'));
     }
     
     public function create(Request $request)

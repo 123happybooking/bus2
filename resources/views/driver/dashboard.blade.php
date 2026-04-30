@@ -260,17 +260,17 @@
 .itinerary-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .itinerary-left {
     text-align: left;
-    width: 25%;
+    width: 35%;
     flex-shrink: 0;
 }
 
 .itinerary-center {
-    width: 50%;
+    width: 30%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -280,7 +280,7 @@
 
 .itinerary-right {
     text-align: right;
-    width: 25%;
+    width: 35%;
     flex-shrink: 0;
 }
 
@@ -289,6 +289,14 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
+    gap: 8px;
+}
+
+.right-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
 .left-group {
@@ -313,6 +321,17 @@
 .category-name {
     font-size: 12px;
     color: var(--accent-color);
+    background-color: var(--border-color);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.guide-name {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background-color: var(--border-color);
+    padding: 2px 8px;
+    border-radius: 12px;
 }
 
 .divider {
@@ -333,8 +352,6 @@
     margin-top: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 120px;
 }
 
 .end-time {
@@ -349,8 +366,6 @@
     margin-top: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 120px;
 }
 
 .itinerary-vehicle {
@@ -746,7 +761,10 @@ function loadTabData() {
                                         <span class="booking-operation-id">${escapeHtml(item.group_info_id || '')}-${escapeHtml(item.bus_assignment_id || '')}</span>
                                         ${completedBadgeHtml}
                                     </div>
-                                    <span class="category-name">${escapeHtml(item.category_name || '')}</span>
+                                    <div class="right-group">
+                                        <span class="category-name">${escapeHtml(item.category_name || '')}</span>
+                                        <span class="guide-name">${escapeHtml(item.agency_contact_name || '')}</span>
+                                    </div>
                                 </div>
                                 <div class="divider"></div>
                                 <div class="itinerary-row">
@@ -768,10 +786,6 @@ function loadTabData() {
                                         <div class="end-time">${escapeHtml(item.time_end)}</div>
                                         <div class="end-location">${escapeHtml(item.end_location || '')}</div>
                                     </div>
-                                </div>
-                    
-                                <div class="itinerary-footer">
-                                    <span class="detail-link">行程详情 &gt;</span>
                                 </div>
                             </div>
                         `;
