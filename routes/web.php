@@ -70,6 +70,7 @@ use App\Http\Controllers\Masters\AccountBsController;
 use App\Http\Controllers\Masters\AccountPeriodController;
 use App\Http\Controllers\Masters\AccountMonthSumController;
 use App\Http\Controllers\Masters\AccountSumController;
+use App\Http\Controllers\Masters\AccountCashController;
 
 Route::get('/', function() {
     return redirect('/masters');
@@ -224,11 +225,15 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::get('/account-ledgers/generate/{id}', [AccountLedgerController::class, 'generate'])->name('account-ledgers.generate');
         Route::get('/account-ledgers/pdf', [AccountLedgerController::class, 'generatePdf'])->name('account-ledgers.pdf');
         Route::get('/account-pl/index', [AccountPlController::class, 'index'])->name('account-pl.index');
+        Route::get('/account-pl/pdf', [AccountPlController::class, 'generatePdf'])->name('account-pl.pdf');
         Route::get('/account-bs/index', [AccountBsController::class, 'index'])->name('account-bs.index');
+        Route::get('/account-bs/pdf', [AccountBsController::class, 'generatePdf'])->name('account-bs.pdf');
+        
         Route::resource('account-month-sums', AccountMonthSumController::class)->names('account-month-sums');//月次決算
 
         Route::resource('account-periods', AccountPeriodController::class)->names('account-periods');//周期
         Route::resource('account-sums', AccountSumController::class)->names('account-sums');//月次決算
+        Route::resource('account-cash', AccountCashController::class)->names('account-cash');//现金出纳账
         
     });
 });

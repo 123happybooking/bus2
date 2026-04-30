@@ -7,8 +7,8 @@
             <i class="fas fa-balance-scale fa-sm text-gray-400 mr-2"></i>
             貸借対照表 (Balance Sheet)
         </h1>
-        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-            <i class="fas fa-download fa-sm text-white-50"></i> 导出报表
+        <a id="downloadPdf" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-download fa-sm text-white-50"></i> 导出PDF
         </a>
     </div>
 
@@ -175,15 +175,23 @@
                                                     {{ number_format($netIncome) }}
                                                 </td>
                                             </tr>
+
                                         @endif
                                         
 
 
                                         <!-- 小计 -->
+                                         @if($categoryName == '純資産')
+                                            <tr class="fw-bold border-top">
+                                                <td class="text-end pe-4">{{ $categoryName }} 合計</td>
+                                                <td class="text-end pe-4">{{ number_format($liabilities[$categoryName]['total'] + $netIncome) }}</td>
+                                            </tr>
+                                         @else
                                         <tr class="fw-bold border-top">
                                             <td class="text-end pe-4">{{ $categoryName }} 合計</td>
-                                            <td class="text-end pe-4">{{ number_format($liabilities[$categoryName]['total'] + $netIncome) }}</td>
+                                            <td class="text-end pe-4">{{ number_format($liabilities[$categoryName]['total'] ) }}</td>
                                         </tr>
+                                        @endif
                                     @endif
                                 @endforeach
 
@@ -266,5 +274,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+const currentParams = new URLSearchParams(window.location.search);
+
+const baseUrl = "{{ route('masters.account-bs.pdf') }}";
+
+// 构建最终 URL
+let finalUrl = baseUrl;
+if (currentParams.toString()) {
+    // 判断 baseUrl 是否已包含参数
+    finalUrl += baseUrl.includes('?') ? '&' : '?';
+    finalUrl += currentParams.toString();
+}
+
+// 赋值给按钮
+document.getElementById('downloadPdf').href = finalUrl;
 </script>
 @endsection
