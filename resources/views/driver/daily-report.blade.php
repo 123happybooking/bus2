@@ -56,6 +56,67 @@
             </div>
         </div>
 
+        @if($completedItineraries->count() > 0)
+        <div class="completed-tasks-section">
+            <div class="section-title">操作詳細</div>
+            @foreach($completedItineraries as $itinerary)
+            <div class="completed-task-card">
+                <div class="task-header">
+                    <span class="task-id">{{ $itinerary->busAssignment->groupInfo->id ?? '' }}-{{ $itinerary->bus_assignment_id }}</span>
+                    <span class="task-time">{{ \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') }} - {{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }}</span>
+                </div>
+                <div class="task-logs">
+                    <div class="logs-header">
+                        <span class="log-time">時間</span>
+                        <span class="log-mileage">走行距離</span>
+                        <span class="log-action">操作</span>
+                    </div>
+                    @foreach($itinerary->operationLogs as $log)
+                    <div class="log-row">
+                        <span class="log-time">{{ \Carbon\Carbon::parse($log->logged_at)->format('H:i') }}</span>
+                        <span class="log-mileage">{{ $log->mileage ? $log->mileage . ' km' : '-' }}</span>
+                        <span class="log-action">{{ $log->action }}</span>
+                    </div>
+                    @endforeach
+                </div>
+                
+                @php
+                    $itineraryExpenses = $expensesByItinerary[$itinerary->id] ?? collect();
+                @endphp
+                @if($itineraryExpenses->count() > 0)
+                <div class="expense-section">
+                    <div class="expense-header">立替金</div>
+                    <div class="expense-list">
+                        @foreach($itineraryExpenses as $expense)
+                        <div class="expense-item">
+                            <div class="expense-row">
+                                <div class="expense-left">
+                                    <div class="expense-date">{{ \Carbon\Carbon::parse($expense->expense_date)->format('Y/m/d') }}</div>
+                                    <div class="expense-type">
+                                        {{ $expense->expenseType->type_name ?? '' }}
+                                        @if($expense->agency_flag)
+                                        <span class="expense-badge">代理店負担</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="expense-right">
+                                    <div class="expense-amount">¥ {{ number_format($expense->amount) }}</div>
+                                    <div class="expense-payment">{{ $expense->paymentMethod->method_name ?? '' }}</div>
+                                </div>
+                            </div>
+                            @if($expense->remark)
+                            <div class="expense-remark">{{ $expense->remark }}</div>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+            </div>
+            @endforeach
+        </div>
+        @endif
+
         @if($allowEdit)
         <button class="save-btn" id="saveBtn">保存</button>
         @else
@@ -264,6 +325,89 @@
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+}
+
+
+.expense-section {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.expense-header {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.expense-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.expense-item {
+    background-color: var(--bg-color);
+    border-radius: 12px;
+    padding: 12px;
+    position: relative;
+}
+
+.expense-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.expense-left {
+    flex: 1;
+}
+
+.expense-right {
+    text-align: right;
+}
+
+.expense-date {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.expense-type {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.expense-amount {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.expense-payment {
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.expense-remark {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border-color);
+}
+
+.expense-badge {
+    font-size: 9px;
+    padding: 2px 8px;
+    margin-left: 8px;
+    background-color: #f59e0b;
+    color: white;
+    border-radius: 20px;
+    display: inline-block;
 }
 </style>
 @endpush
