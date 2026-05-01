@@ -132,6 +132,7 @@
                             <th class="text-center" style="width: 60px;">ID</th>
                             <th class="text-center" style="width: 100px;">区分</th>
                             <th class="text-center" style="width: 250px;">科目名</th>
+                            <th class="text-center" style="width: 250px;">辅助科目</th>
                             <!-- 操作列宽度调整 -->
                             <th class="text-center" style="width: 160px;">操作</th>
                         </tr>
@@ -142,6 +143,7 @@
                                 <td class="text-center text-muted small">{{ $account->id }}</td>
                                 <td class="text-center text-muted small">{{ $account->category->name ?? '' }}</td>
                                 <td class="text-center ps-3"><span class="fw-medium">{{ $account->name }}</span></td>
+                                <td class="text-center ps-3"></td>
                                 <td>
                                     <div class="d-flex gap-1 justify-content-center">
                                         <!-- 原有的元帳作成按钮 -->
@@ -151,6 +153,7 @@
                                             data-url="{{ route('masters.account-ledgers.generate', $account->id) }}"
                                             data-account-name="{{ $account->name }}"
                                             data-account-id="{{ $account->id }}"
+                                            data-sub-account-id="0"
                                             title="元帳作成"
                                         >
                                             <i class="bi bi-journal-plus"></i> 元帳作成
@@ -161,12 +164,54 @@
                                         class="btn btn-sm btn-outline-primary open-pdf-btn" 
                                         data-base-url="{{ route('masters.account-ledgers.pdf') }}"
                                         title="PDFダウンロード"
-                                        data-account-id="{{ $account->id }}">
+                                        data-account-id="{{ $account->id }}"
+                                        data-sub-account-id="0">
                                         <i class="bi bi-file-earmark-pdf"></i> PDF
                                         </a>
                                     </div>
                                 </td>
                             </tr>
+                            @if($account->subAccount)
+
+                            @foreach($account->subAccount as $subAccount)
+                                <tr>
+                                    <td class="text-center text-muted small">{{ $subAccount->id }}</td>
+                                    <td class="text-center text-muted small"></td>
+                                    <td class="text-center ps-3"></td>
+                                    <td class="text-center ps-3"><span class="fw-medium">{{ $subAccount->name }}</span></td>
+                                    <td>
+                                        <div class="d-flex gap-1 justify-content-center">
+
+                                        <a 
+                                            href="javascript:void(0)" 
+                                            class="btn btn-sm btn-outline-success open-ledger-modal"
+                                            data-url="{{ route('masters.account-ledgers.generate', $account->id) }}"
+                                            data-account-name="{{ $account->name }}"
+                                            data-account-id="{{ $account->id }}"
+                                            data-sub-account-id="{{ $subAccount->id }}"
+                                            title="元帳作成"
+                                        >
+                                            <i class="bi bi-journal-plus"></i> 元帳作成
+                                        </a>
+
+                                        <!-- 新增的 PDF 下载按钮 -->
+                                        <a href="javascript:void(0)" 
+                                        class="btn btn-sm btn-outline-primary open-pdf-btn" 
+                                        data-base-url="{{ route('masters.account-ledgers.pdf') }}"
+                                        title="PDFダウンロード"
+                                        data-account-id="{{ $account->id }}"
+                                        data-sub-account-id="{{ $subAccount->id }}">
+                                        <i class="bi bi-file-earmark-pdf"></i> PDF
+                                        </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            @endif
+
+   
+                                                
+
                         @empty
                             <tr>
                                 <td colspan="4" class="text-center py-5">
@@ -309,6 +354,7 @@
     document.querySelectorAll('.open-ledger-modal').forEach(button => {
         button.addEventListener('click', function () {
             const url = this.getAttribute('data-url');
+            const subAccountId = this.getAttribute('data-sub-account-id');
             const accountName = this.getAttribute('data-account-name');
 
             // 设置模态框标题
@@ -320,7 +366,7 @@
 
             // --- 关键：开始 AJAX 请求 ---
             const periodId = periodSelect ? periodSelect.value : '';
-            const requestUrl = `${url}?period_id=${periodId}&yearmonth=${yearMonthValue}`;
+            const requestUrl = `${url}?period_id=${periodId}&yearmonth=${yearMonthValue}&sub_account_id=${subAccountId}`;
             document.querySelector('#ledgerTable tbody').innerHTML = '<tr><td colspan="6" class="text-center">データ読み込み中...</td></tr>';
 
             fetch(requestUrl)
@@ -487,13 +533,15 @@ document.querySelectorAll('.open-pdf-btn').forEach(button => {
     button.addEventListener('click', function () {
         const baseUrl = this.getAttribute('data-base-url');
         const accountId = this.getAttribute('data-account-id');
+        const subAccountId = this.getAttribute('data-sub-account-id');
         const periodSelect = document.getElementById('periodSelect'); // 获取周期下拉框元素
         const urlParams = new URLSearchParams(window.location.search); // 从当前URL中获取参数
         const yearMonthValue = urlParams.get('yearmonth'); // 获取URL中的 yearmonth 参数 (格式如: 2026-04)
         const params = new URLSearchParams({
             id: accountId,
             period_id: periodSelect.value, 
-            yearmonth: yearMonthValue 
+            yearmonth: yearMonthValue ,
+            sub_account_id: subAccountId
         });
         
         const url = `${baseUrl}?${params}`;

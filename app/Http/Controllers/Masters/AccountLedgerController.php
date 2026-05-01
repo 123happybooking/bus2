@@ -23,6 +23,9 @@ class AccountLedgerController extends Controller
      */
     public function index(Request $request)
     {
+        // $account = Account::find(131);
+        // $subs = $account->subAccount;
+        // dump($subs);exit;
         $query = Account::query();
         
         // 搜索功能：科目代码、科目名称
@@ -157,9 +160,80 @@ class AccountLedgerController extends Controller
         return $datas;
     }
 
+    function makeSubData($startDate, $endDate, $account,$sub_account_id)
+    { 
+        
+        $datas = [];
+        $datas['account_name'] = $account->name ?? '';
+        $datas['start_date'] = $startDate;
+        $datas['end_date'] = $endDate;
+        $datas['opening_balance'] = 0;
+        if($startDate){
+            $yearmonth = explode("-",  $startDate);
+
+            $start_data = AccountMonthDetail::where('account_id', $account->id)->where("sub_account_id",$sub_account_id)->where('year',$yearmonth[0])->where('month',$yearmonth[1])->first();
+            $datas['opening_balance'] = $start_data->money_start ?? 0;
+        }
+
+        $query = AccountJournalEntry::query();
+        if ($startDate) {
+            $query->where('posting_date','>=',$startDate);
+        }
+        if ($endDate) {
+            $query->where('posting_date','<=',$endDate);
+        }
+        $entry_id = $query->orderBy("posting_date",'asc')->pluck('id')->toArray();
+        if (empty($entry_id)) {
+            // 如果 ID 列表为空，直接返回空集合或者处理异常
+            $lines = collect(); 
+            // 或者抛出异常
+            // throw new \Exception('Entry ID list is empty');
+        } else {
+            $lines = AccountJournalLine::whereIn('journal_entry_id', $entry_id)
+                ->where('account_id', $account->id)
+                ->where('sub_account_id', $sub_account_id)
+                ->orderByRaw('FIELD(journal_entry_id, ' . implode(',', $entry_id) . ')')
+                ->get();
+        }
+        
+        foreach ($lines as $line) { 
+            $account_name = "";
+            $sub_account_name = "";
+            $tax_category = "";
+            $otherlineCount = AccountJournalLine::where('journal_entry_id', $line->journal_entry_id)->where('id','!=',$line->id)->count();
+            if ($otherlineCount == 1) {
+                $otherline = AccountJournalLine::where('journal_entry_id', $line->journal_entry_id)->where('id','!=',$line->id)->first();
+                $account_name = $otherline->account->name ?? '';
+                $sub_account_name = $otherline->subAccount->name ?? '';
+                $tax_category = $otherline->taxType->name ?? '';
+                
+            }
+            if($line->side ==2 ){
+                $jie_money = "";
+                $dai_money = $line->amount;
+
+            }else{
+                $jie_money = $line->amount;
+                $dai_money = "";
+            }
+            $datas['account_name'] = $account->name ?? '';
+            $datas['rows'][] = [
+                'date' => $line->entry->posting_date->format('Y-m-d'),
+                'account_name' => $account_name,
+                'sub_account_name' => $sub_account_name,
+                'tax_category' => $tax_category,
+                'jie_money' => $jie_money,
+                'dai_money' => $dai_money,
+            ];
+        }
+        return $datas;
+    }
+
     public function generate($id){
         $period_id = request()->input('period_id');
         $yearmonth = request()->input('yearmonth');
+        $sub_account_id = request()->input('sub_account_id');
+
         $period = AccountPeriod::find($period_id);
 
         if ($yearmonth == "13" ){
@@ -172,7 +246,13 @@ class AccountLedgerController extends Controller
 
         $account = Account::findOrFail($id);
         $mark = $account->category->mark  == "借" ? 1 : 2;
-        $datas = $this->makeData($startDate, $endDate, $account);
+
+        if ($sub_account_id!="0"){
+            $datas = $this->makeSubData($startDate, $endDate, $account,$sub_account_id);
+        }else{
+            $datas = $this->makeData($startDate, $endDate, $account);
+        }
+
         $datas['mark'] = $mark;
         return response()->json($datas);
 
@@ -182,8 +262,8 @@ class AccountLedgerController extends Controller
     {
         $period_id = request()->input('period_id');
         $yearmonth = request()->input('yearmonth');
+        $sub_account_id = request()->input('sub_account_id');
         $period = AccountPeriod::find($period_id);
-
 
         if ($yearmonth == "13" ){
             $startDate = $period->start;
@@ -194,7 +274,12 @@ class AccountLedgerController extends Controller
         }
         $account = Account::findOrFail( request()->input('id'));
         $mark = $account->category->mark  == "借" ? 1 : 2;
-        $datas = $this->makeData($startDate, $endDate, $account);
+
+        if ($sub_account_id!="0"){
+            $datas = $this->makeSubData($startDate, $endDate, $account,$sub_account_id);
+        }else{
+            $datas = $this->makeData($startDate, $endDate, $account);
+        }
         $datas['mark'] = $mark;
 
 

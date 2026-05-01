@@ -85,7 +85,7 @@
                     <!-- 明细数据表格 -->
                     <div class="row mt-4">
                         <div class="col-md-12">
-                            <h6 class="border-bottom pb-2 mb-3">明細データ一覧</h6>
+                            <h6 class="col-sm-8 fw-bold text-primary fs-5">勘定科目</h6>
                             
                             @if(count($detail) > 0)
                                 <div class="table-responsive">
@@ -102,6 +102,45 @@
                                         </thead>
                                         <tbody>
                                             @foreach($detail as $item)
+                                                <tr>
+                                                    <td class="fw-bold">{{ $item->account->name ?? '' }}</td>
+                                                    <td class="fw-bold">{{ $item->subAccount->name ?? '' }}</td>
+                                                    <td class="text-end">{{$item->account->category->remark=="借" ? number_format($item->money_start, 0) : number_format(abs($item->money_start), 0) }}</td>
+                                                    <td class="text-end text-primary">{{ number_format($item->money_jie, 0) }}</td>
+                                                    <td class="text-end text-danger">{{ number_format($item->money_dai, 0) }}</td>
+                                                    <td class="text-end fw-bold">{{$item->account->category->remark=="借" ? number_format($item->money_end, 0) : number_format(abs($item->money_end), 0) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-circle"></i> 该月度下没有明细数据。
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <h6 class="col-sm-8 fw-bold text-primary fs-5">補助科目</h6>
+                            
+                            @if(count($subdetail) > 0)
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover table-sm">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>勘定科目</th>
+                                                <th>補助科目</th>
+                                                <th class="text-end">期首残高</th>
+                                                <th class="text-end">借方合計</th>
+                                                <th class="text-end">貸方合計</th>
+                                                <th class="text-end">期末残高</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($subdetail as $item)
                                                 <tr>
                                                     <td class="fw-bold">{{ $item->account->name ?? '' }}</td>
                                                     <td class="fw-bold">{{ $item->subAccount->name ?? '' }}</td>

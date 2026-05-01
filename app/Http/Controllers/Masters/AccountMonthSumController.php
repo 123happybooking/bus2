@@ -269,8 +269,9 @@ class AccountMonthSumController extends Controller
     public function show($id)
     {
         $sum = AccountMonthSum::findOrFail($id);
-        $detail = AccountMonthDetail::where('year', $sum->year)->where('month', $sum->month)->get();
-        return view('masters.account-month-sums.show', compact('sum','detail'));
+        $detail = AccountMonthDetail::where('year', $sum->year)->where('month', $sum->month)->whereNull('sub_account_id')->get();
+        $subdetail = AccountMonthDetail::where('year', $sum->year)->where('month', $sum->month)->where('sub_account_id','>',0)->get();
+        return view('masters.account-month-sums.show', compact('sum','detail','subdetail'));
     }
 
     /**

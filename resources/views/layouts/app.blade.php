@@ -1101,7 +1101,7 @@
                     <li><a href="{{ route('masters.account-periods.index') }}" data-route="account-periods">周期</a></li>
                     <li><a href="{{ route('masters.journal_entries.index') }}" data-route="journal-entries">仕訳帳</a></li>
                     <li><a href="{{ route('masters.account-cash.index') }}" data-route="account-cash">現金出納帳</a></li>
-                    <li><a href="{{ route('masters.products.index') }}" data-route="products-deposit">預金出納帳</a></li>
+                    <li><a href="{{ route('masters.account-deposit.index') }}" data-route="account-deposit">預金出納帳</a></li>
                     <li><a href="{{ route('masters.products.index') }}" data-route="products-receivable">売掛帳</a></li>
                     <li><a href="{{ route('masters.products.index') }}" data-route="products-payable">買掛帳</a></li>
                     <li><a href="{{ route('masters.account-ledgers.index') }}" data-route="account-ledgers">勘定元帳</a></li>
