@@ -263,7 +263,7 @@
         }
 
         .sidebar.expanded .submenu.show {
-            max-height: 500px;
+            max-height: 1000px;
         }
 
         .sidebar.expanded .submenu a {
@@ -1669,68 +1669,76 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const clickHandler = function(e) {
                 e.stopPropagation();
-                e.preventDefault();
                 
-                const linkElement = this.querySelector('a');
-                if (linkElement) {
-                    const dataRoute = linkElement.getAttribute('data-route');
-                    if (dataRoute) {
-                        sessionStorage.setItem('currentMenuRoute', dataRoute);
-                    }
-                }
+                const clickedLink = this.querySelector('a');
+                const isParentLink = e.target === clickedLink || 
+                                    (e.target.tagName === 'I' && e.target.parentElement === clickedLink) ||
+                                    (e.target.tagName === 'SPAN' && e.target.parentElement === clickedLink);
                 
-                const isOpen = this.classList.contains('open');
-                const submenuLevel2 = this.querySelector('.submenu-level2');
-                
-                if (sidebar.classList.contains('collapsed')) {
-                    if (isOpen) {
-                        this.classList.remove('open');
-                        if (submenuLevel2) {
-                            submenuLevel2.classList.remove('show');
-                            submenuLevel2.style.display = 'none';
-                        }
-                    } else {
-                        const parentSubmenu = this.closest('.submenu');
-                        if (parentSubmenu) {
-                            parentSubmenu.querySelectorAll('.has-submenu.open').forEach(other => {
-                                if (other !== this) {
-                                    other.classList.remove('open');
-                                    const otherSubmenu = other.querySelector('.submenu-level2');
-                                    if (otherSubmenu) {
-                                        otherSubmenu.classList.remove('show');
-                                        otherSubmenu.style.display = 'none';
-                                    }
-                                }
-                            });
-                        }
-                        this.classList.add('open');
-                        if (submenuLevel2) {
-                            submenuLevel2.classList.add('show');
-                            showFloatingSubmenuLevel2(submenuLevel2, this);
+                if (isParentLink) {
+                    e.preventDefault();
+                    
+                    const linkElement = this.querySelector('a');
+                    if (linkElement) {
+                        const dataRoute = linkElement.getAttribute('data-route');
+                        if (dataRoute) {
+                            sessionStorage.setItem('currentMenuRoute', dataRoute);
                         }
                     }
-                } else {
-                    if (isOpen) {
-                        this.classList.remove('open');
-                        if (submenuLevel2) {
-                            submenuLevel2.classList.remove('show');
+                    
+                    const isOpen = this.classList.contains('open');
+                    const submenuLevel2 = this.querySelector('.submenu-level2');
+                    
+                    if (sidebar.classList.contains('collapsed')) {
+                        if (isOpen) {
+                            this.classList.remove('open');
+                            if (submenuLevel2) {
+                                submenuLevel2.classList.remove('show');
+                                submenuLevel2.style.display = 'none';
+                            }
+                        } else {
+                            const parentSubmenu = this.closest('.submenu');
+                            if (parentSubmenu) {
+                                parentSubmenu.querySelectorAll('.has-submenu.open').forEach(other => {
+                                    if (other !== this) {
+                                        other.classList.remove('open');
+                                        const otherSubmenu = other.querySelector('.submenu-level2');
+                                        if (otherSubmenu) {
+                                            otherSubmenu.classList.remove('show');
+                                            otherSubmenu.style.display = 'none';
+                                        }
+                                    }
+                                });
+                            }
+                            this.classList.add('open');
+                            if (submenuLevel2) {
+                                submenuLevel2.classList.add('show');
+                                showFloatingSubmenuLevel2(submenuLevel2, this);
+                            }
                         }
                     } else {
-                        const parentSubmenu = this.closest('.submenu');
-                        if (parentSubmenu) {
-                            parentSubmenu.querySelectorAll('.has-submenu.open').forEach(other => {
-                                if (other !== this) {
-                                    other.classList.remove('open');
-                                    const otherSubmenu = other.querySelector('.submenu-level2');
-                                    if (otherSubmenu) {
-                                        otherSubmenu.classList.remove('show');
+                        if (isOpen) {
+                            this.classList.remove('open');
+                            if (submenuLevel2) {
+                                submenuLevel2.classList.remove('show');
+                            }
+                        } else {
+                            const parentSubmenu = this.closest('.submenu');
+                            if (parentSubmenu) {
+                                parentSubmenu.querySelectorAll('.has-submenu.open').forEach(other => {
+                                    if (other !== this) {
+                                        other.classList.remove('open');
+                                        const otherSubmenu = other.querySelector('.submenu-level2');
+                                        if (otherSubmenu) {
+                                            otherSubmenu.classList.remove('show');
+                                        }
                                     }
-                                }
-                            });
-                        }
-                        this.classList.add('open');
-                        if (submenuLevel2) {
-                            submenuLevel2.classList.add('show');
+                                });
+                            }
+                            this.classList.add('open');
+                            if (submenuLevel2) {
+                                submenuLevel2.classList.add('show');
+                            }
                         }
                     }
                 }
