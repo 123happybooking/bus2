@@ -172,7 +172,7 @@
 
             @if($index === 0)
                 <tr style="background-color: #f8f9fa;">
-                    <td colspan="3" class="text-end fw-bold text-primary">前月繰越1</td>
+                    <td colspan="3" class="text-end fw-bold text-primary">前月繰越</td>
                     <td class="text-right"></td>
                     <td class="text-right"></td>
                     <td class="text-right fw-bold">{{ $mark==1 ? number_format($initialOpeningBalance) : number_format(abs($initialOpeningBalance)) }}</td>
@@ -182,7 +182,7 @@
             {{-- 逻辑：如果是新月份的第一行，在显示数据前，先显示期初余额 --}}
             @if($shouldRenderSummary)
                 <tr style="background-color: #f8f9fa;">
-                    <td colspan="3" class="text-end fw-bold text-primary">前月繰越2</td>
+                    <td colspan="3" class="text-end fw-bold text-primary">前月繰越</td>
                     <td class="text-right"></td>
                     <td class="text-right"></td>
                     <td class="text-right fw-bold">{{ $mark==1 ? number_format($currentBalance - $jieVal + $daiVal) : number_format(abs($currentBalance - $jieVal + $daiVal)) }}</td>

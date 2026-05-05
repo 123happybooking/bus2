@@ -39,4 +39,8 @@ class Account extends Model
         return $this->belongsTo(AccountTax::class, 'tax_id');
     }
 
+    public function subAccount(){
+        return $this->hasMany(AccountSub::class, 'account_id');
+    }
+    
 }
