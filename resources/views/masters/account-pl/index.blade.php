@@ -103,17 +103,17 @@
                         @if($row['category_id'] == 7)
                         <tr class="border-bottom">
                             <td class="ps-5 small">{{ $row['account_name'] }}</td>
-                            <td class="text-end text-muted">¥{{ number_format($row['debit']) }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['credit']) }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['credit']) }}</td>
+                            <td class="text-end text-muted">{{ number_format($row['debit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['credit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['credit']) }}</td>
                         </tr>
                         @endif
                     @endforeach
                     <tr class="fw-bold border-top border-bottom">
                         <td class="ps-4">売上高 合計</td>
                         <td></td>
-                        <td class="text-end">¥{{ number_format($totalRevenue) }}</td>
-                        <td class="text-end">¥{{ number_format($totalRevenue) }}</td>
+                        <td class="text-end">{{ number_format($totalRevenue) }}</td>
+                        <td class="text-end">{{ number_format($totalRevenue) }}</td>
                     </tr>
 
                     <!-- 2. 売上原価 (ID 8) -->
@@ -124,17 +124,17 @@
                         @if($row['category_id'] == 8)
                         <tr class="border-bottom">
                             <td class="ps-5 small">{{ $row['account_name'] }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['debit']) }}</td>
-                            <td class="text-end text-muted">¥{{ number_format($row['credit']) }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['debit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['debit']) }}</td>
+                            <td class="text-end text-muted">{{ number_format($row['credit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['debit']) }}</td>
                         </tr>
                         @endif
                     @endforeach
                     <tr class="fw-bold border-top border-bottom">
                         <td class="ps-4">売上原価 合計</td>
-                        <td class="text-end">¥{{ number_format($totalCogs) }}</td>
+                        <td class="text-end">{{ number_format($totalCogs) }}</td>
                         <td></td>
-                        <td class="text-end">¥{{ number_format($totalCogs) }}</td>
+                        <td class="text-end">{{ number_format($totalCogs) }}</td>
                     </tr>
 
                     <!-- 3. 販売管理費 (ID 9) -->
@@ -145,17 +145,17 @@
                         @if($row['category_id'] == 9)
                         <tr class="border-bottom">
                             <td class="ps-5 small">{{ $row['account_name'] }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['debit']) }}</td>
-                            <td class="text-end text-muted">¥{{ number_format($row['credit']) }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['debit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['debit']) }}</td>
+                            <td class="text-end text-muted">{{ number_format($row['credit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['debit']) }}</td>
                         </tr>
                         @endif
                     @endforeach
                     <tr class="fw-bold border-top border-bottom">
                         <td class="ps-4">販売管理費 合計</td>
-                        <td class="text-end">¥{{ number_format($totalExpenses) }}</td>
+                        <td class="text-end">{{ number_format($totalExpenses) }}</td>
                         <td></td>
-                        <td class="text-end">¥{{ number_format($totalExpenses) }}</td>
+                        <td class="text-end">{{ number_format($totalExpenses) }}</td>
                     </tr>
 
                     <!-- 営業利益 -->
@@ -163,7 +163,7 @@
                         <td class="ps-4 fw-bold">営業利益</td>
                         <td colspan="2"></td>
                         <td class="text-end h5 fw-bold" style="color: #2E86AB;">
-                            ¥{{ number_format($operatingIncome) }}
+                            {{ number_format($operatingIncome) }}
                         </td>
                     </tr>
 
@@ -179,17 +179,17 @@
                         @if($row['category_id'] == 10)
                         <tr class="border-bottom">
                             <td class="ps-5 small">{{ $row['account_name'] }}</td>
-                            <td class="text-end text-muted">¥{{ number_format($row['debit']) }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['credit']) }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['credit']) }}</td>
+                            <td class="text-end text-muted">{{ number_format($row['debit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['credit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['credit']) }}</td>
                         </tr>
                         @endif
                     @endforeach
                     <tr class="fw-bold border-top border-bottom">
                         <td class="ps-4">営業外収益 合計</td>
                         <td></td>
-                        <td class="text-end">¥{{ number_format($totalOIncome) }}</td>
-                        <td class="text-end">¥{{ number_format($totalOIncome) }}</td>
+                        <td class="text-end">{{ number_format($totalOIncome) }}</td>
+                        <td class="text-end">{{ number_format($totalOIncome) }}</td>
                     </tr>
 
                     <!-- 5. 営業外費用 (ID 11) -->
@@ -200,17 +200,17 @@
                         @if($row['category_id'] == 11)
                         <tr class="border-bottom">
                             <td class="ps-5 small">{{ $row['account_name'] }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['debit']) }}</td>
-                            <td class="text-end text-muted">¥{{ number_format($row['credit']) }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['debit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['debit']) }}</td>
+                            <td class="text-end text-muted">{{ number_format($row['credit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['debit']) }}</td>
                         </tr>
                         @endif
                     @endforeach
                     <tr class="fw-bold border-top border-bottom">
                         <td class="ps-4">営業外費用 合計</td>
-                        <td class="text-end">¥{{ number_format($totalOExpenses) }}</td>
+                        <td class="text-end">{{ number_format($totalOExpenses) }}</td>
                         <td></td>
-                        <td class="text-end">¥{{ number_format($totalOExpenses) }}</td>
+                        <td class="text-end">{{ number_format($totalOExpenses) }}</td>
                     </tr>
 
                     <!-- 経常利益 -->
@@ -218,7 +218,7 @@
                         <td class="ps-4 fw-bold">経常利益</td>
                         <td colspan="2"></td>
                         <td class="text-end h5 fw-bold" style="color: #16A085;">
-                            ¥{{ number_format($ordinaryIncome) }}
+                            {{ number_format($ordinaryIncome) }}
                         </td>
                     </tr>
 
@@ -234,17 +234,17 @@
                         @if($row['category_id'] == 12)
                         <tr class="border-bottom">
                             <td class="ps-5 small">{{ $row['account_name'] }}</td>
-                            <td class="text-end text-muted">¥{{ number_format($row['debit']) }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['credit']) }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['credit']) }}</td>
+                            <td class="text-end text-muted">{{ number_format($row['debit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['credit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['credit']) }}</td>
                         </tr>
                         @endif
                     @endforeach
                     <tr class="fw-bold border-top border-bottom">
                         <td class="ps-4">特別利益 合計</td>
                         <td></td>
-                        <td class="text-end">¥{{ number_format($totalSOIncome) }}</td>
-                        <td class="text-end">¥{{ number_format($totalSOIncome) }}</td>
+                        <td class="text-end">{{ number_format($totalSOIncome) }}</td>
+                        <td class="text-end">{{ number_format($totalSOIncome) }}</td>
                     </tr>
 
                     <!-- 7. 特別損失 (ID 13) -->
@@ -255,17 +255,17 @@
                         @if($row['category_id'] == 13)
                         <tr class="border-bottom">
                             <td class="ps-5 small">{{ $row['account_name'] }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['debit']) }}</td>
-                            <td class="text-end text-muted">¥{{ number_format($row['credit']) }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['debit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['debit']) }}</td>
+                            <td class="text-end text-muted">{{ number_format($row['credit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['debit']) }}</td>
                         </tr>
                         @endif
                     @endforeach
                     <tr class="fw-bold border-top border-bottom">
                         <td class="ps-4">特別損失 合計</td>
-                        <td class="text-end">¥{{ number_format($totalSOExpenses) }}</td>
+                        <td class="text-end">{{ number_format($totalSOExpenses) }}</td>
                         <td></td>
-                        <td class="text-end">¥{{ number_format($totalSOExpenses) }}</td>
+                        <td class="text-end">{{ number_format($totalSOExpenses) }}</td>
                     </tr>
 
 
@@ -275,7 +275,7 @@
                         <td class="ps-4 fw-bold">税引前当期純利益</td>
                         <td colspan="2"></td>
                         <td class="text-end h4 fw-bold">
-                            ¥{{ number_format($profitBeforeTax) }}
+                            {{ number_format($profitBeforeTax) }}
                         </td>
                     </tr>
 
@@ -288,17 +288,17 @@
                         <tr class="border-bottom">
                             <td class="ps-5 small">{{ $row['account_name'] }}</td>
                             <!-- 税金属于费用，金额在借方 -->
-                            <td class="text-end fw-bold">¥{{ number_format($row['debit']) }}</td>
-                            <td class="text-end text-muted">¥{{ number_format($row['credit']) }}</td>
-                            <td class="text-end fw-bold">¥{{ number_format($row['debit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['debit']) }}</td>
+                            <td class="text-end text-muted">{{ number_format($row['credit']) }}</td>
+                            <td class="text-end fw-bold">{{ number_format($row['debit']) }}</td>
                         </tr>
                         @endif
                     @endforeach
                     <tr class="fw-bold border-top border-bottom">
                         <td class="ps-4">税等 合计</td>
-                        <td class="text-end">¥{{ number_format($totalTaxes) }}</td>
+                        <td class="text-end">{{ number_format($totalTaxes) }}</td>
                         <td></td>
-                        <td class="text-end">¥{{ number_format($totalTaxes) }}</td>
+                        <td class="text-end">{{ number_format($totalTaxes) }}</td>
                     </tr>
 
                     <!-- 当期純利益 (最终净利润) -->
@@ -306,7 +306,7 @@
                         <td class="ps-4 fw-bold fs-5">当期純利益 (净利润)</td>
                         <td colspan="2"></td>
                         <td class="text-end h4 fw-bold">
-                            ¥{{ number_format($netIncome) }}
+                            {{ number_format($netIncome) }}
                         </td>
                     </tr>
 

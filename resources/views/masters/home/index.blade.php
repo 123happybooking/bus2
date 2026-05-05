@@ -104,6 +104,9 @@
                         
                         <!-- 損益計算書 -->
                         <a href="{{ route('masters.account-pl.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">損益計算書</a>
+
+                        <a href="{{ route('masters.account-cash-ins.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">現金入力</a>
+                        <a href="{{ route('masters.account-cash-outs.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">現金出力</a>
                         
                         <!-- キャッシュ・フロー計算書 -->
                         <a href="{{ route('masters.products.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1 text-start">キャッシュ・フロー計算書</a>

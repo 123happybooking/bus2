@@ -143,12 +143,12 @@
         <h1 class="main-title">貸借対照表</h1>
         
         <div class="date-section">
-            <div>自 令和7年02月01日</div>
-            <div>至 令和8年01月31日</div>
+            <div>自 {{ $startDate }}</div>
+            <div>至 {{ $endDate }}</div>
         </div>
 
         <div class="header-info">
-            <div class="company-name">Travel Investment 株式会社</div>
+            <div class="company-name">Travel Investment {{ $company->company_name }}</div>
             <div class="unit">(単位:円)</div>
         </div>
     </div>
@@ -170,45 +170,26 @@
                         <td colspan="2" class="section-title-left">（資産の部）</td>
                     </tr>
 
-                    <!-- 流动资产 -->
-                    <tr><td colspan="2" style="padding-left:15px; font-weight:bold;">【流動資産】</td></tr>
-                    <tr class="item-row">
-                        <td class="subject">　現　金</td>
-                        <td class="amount negative">▲51,675</td>
-                    </tr>
-                    <tr class="item-row">
-                        <td class="subject">　普通預金</td>
-                        <td class="amount">645,040</td>
-                    </tr>
-                                        <tr class="item-row">
-                        <td class="subject">　普通預金</td>
-                        <td class="amount">645,040</td>
-                    </tr>
-                    <tr class="item-row"><td class="subject">　売掛金</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　立替金</td><td class="amount"></td></tr>
-                    <!-- 其他空行 -->
-                    <tr class="item-row"><td class="subject">　仮払金</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　前受金</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　未収金</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　受取手形</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　前払金</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　未収入金</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　その他流動資産</td><td class="amount"></td></tr>
 
-                    <tr class="total-line"><td class="subject"></td><td class="amount"></td></tr>
-                    <!-- 固定资产 -->
-                    <tr><td colspan="2" style="padding-left:15px; padding-top:10px; font-weight:bold;">【固定資産】</td></tr>
-                    <tr class="item-row"><td class="subject">　備　品</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　敷　金</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　差入保証</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　長期前払</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　その他固定資産</td><td class="amount"></td></tr>
-
-                    <tr class="total-line"><td class="subject"></td><td class="amount"></td></tr>
-
-                    <!-- 递延资产 -->
-                    <tr><td colspan="2" style="padding-left:15px; padding-top:10px; font-weight:bold;">【繰延資産】</td></tr>
-                    <tr class="item-row"><td class="subject">　繰延資産</td><td class="amount"></td></tr>
+                    @foreach ($assetOrder as $catId => $categoryName)
+                        @if (isset($assets[$categoryName]))
+                            <!-- 大分类标题 -->
+                            <tr><td colspan="2" style="padding-left:15px; font-weight:bold;">{{ $categoryName }}</td></tr>
+                            
+                            <!-- 明细科目 -->
+                            @foreach ($assets[$categoryName]['accounts'] as $account)
+                                <tr class="item-row">
+                                    <td class="subject">　{{ $account['name'] }}</td>
+                                    <!-- <td class="amount negative">▲{{ number_format($account['amount']) }}</td> -->
+                                     <td class="amount">{{ number_format($account['amount']) }}</td>
+                                </tr>
+                                </tr>
+                            @endforeach
+                            @if (!$loop->last)
+                            <tr class="total-line"><td class="subject"></td><td class="amount"></td></tr>
+                            @endif
+                        @endif
+                    @endforeach
 
                 </table>
             </td>
@@ -227,50 +208,46 @@
                         <td colspan="2" class="section-title-right">（負債の部）</td>
                     </tr>
 
-                    <!-- 流动负债 -->
-                    <tr><td colspan="2" style="padding-left:15px; font-weight:bold;">【流動負債】</td></tr>
-                    <tr class="item-row"><td class="subject">　買掛金</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　預り金</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　預り源泉所得税</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　未払金</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　前受金</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　未払費用</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　仮受消費税</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　短期借入金</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　未払法人税等</td><td class="amount"></td></tr>
-                    <tr class="item-row"><td class="subject">　その他流動負債</td><td class="amount"></td></tr>
 
-                    <tr class="total-line"><td class="subject"></td><td class="amount"></td></tr>
-                    <!-- 固定负债 -->
-                    <tr><td colspan="2" style="padding-left:15px; padding-top:10px; font-weight:bold;">【固定負債】</td></tr>
-                    <tr class="item-row"><td class="subject">　長期借入金</td><td class="amount"></td></tr>
+                    @foreach ($liabilityOrder as $catId => $categoryName)
+                        @if (isset($liabilities[$categoryName]))
+                            <!-- 大分类标题 -->
+                            <tr><td colspan="2" style="padding-left:15px; font-weight:bold;">{{ $categoryName }}</td></tr>
+                            
+                            <!-- 明细科目 -->
+                            @foreach ($liabilities[$categoryName]['accounts'] as $account)
+                                <tr class="item-row"><td class="subject">　{{ $account['name'] }}</td><td class="amount">{{ number_format($account['amount']) }}</td></tr>
+                            @endforeach
 
-                    <!-- 负债合计 -->
-                    <tr class="item-row total-line">
-                        <td class="subject" style="text-align:right; padding-right:10px;">負債合計</td>
-                        <td class="amount"></td>
-                    </tr>
-                    <tr class="total-line"><td class="subject"></td><td class="amount"></td></tr>
-                    <!-- 纯资产 -->
-                    <tr class="section-header">
-                        <td colspan="2" class="section-title-right">（負債の部）</td>
-                    </tr>
 
-                    <tr><td colspan="2" style="padding-left:15px; font-weight:bold;">【純資産】</td></tr>
-                    <tr class="item-row">
-                        <td class="subject">　資本金</td>
-                        <td class="amount">593,365</td>
-                    </tr>
-                    <tr class="item-row">
-                        <td class="subject">　繰越利益剰余金</td>
-                        <td class="amount">593,365</td> <!-- 注意：PDF中此处似乎重复显示了总额，此处按PDF填写 -->
-                    </tr>
+                            @if($categoryName == '純資産')
 
-                    <!-- 纯资产合计 -->
-                    <tr class="item-row total-line">
-                        <td class="subject" style="text-align:right; padding-right:10px;">純資産合計</td>
-                        <td class="amount">593,365</td>
-                    </tr>
+                                <tr class="item-row">
+                                    <td class="subject">　繰越利益剰余金</td>
+                                    <td class="amount">{{ number_format($netIncome) }}</td> 
+                                </tr>
+
+                            @endif
+
+                            <!-- 小计 -->
+                            @if($categoryName == '純資産')
+                            <tr class="item-row total-line">
+                                <td class="subject" style="text-align:right; padding-right:10px;">{{ $categoryName }} 合計</td>
+                                <td class="amount">{{ number_format($liabilities[$categoryName]['total'] + $netIncome) }}</td>
+                            </tr>
+                            @else
+                            <tr class="item-row total-line">
+                                <td class="subject" style="text-align:right; padding-right:10px;">{{ $categoryName }} 合計</td>
+                                <td class="amount">{{ number_format($liabilities[$categoryName]['total'] ) }}</td>
+                            </tr>
+                            @endif
+                            @if (!$loop->last)
+                            <tr class="total-line"><td class="subject"></td><td class="amount"></td></tr>
+                            @endif
+                            
+                        @endif
+                    @endforeach
+
 
                 </table>
             </td>
@@ -279,13 +256,13 @@
             <!-- 左侧：资产 -->
             <td class="col-left" style="text-align: right;">
                 <span class="subject" style="float: left;padding-left:15px;">資産合計</span>
-                <span>593,365</span>
+                <span>{{ number_format($totalAssets) }}</span>
             </td>
 
             <!-- 右侧：负债/纯资产 -->
             <td class="col-right" style="text-align: right;">
                 <span class="subject" style="float: left;padding-left:15px;">負債及び純資産合計</span>
-                <span>593,365</span>
+                <span>{{ number_format($totalLiabilities) }}</span>
             </td>
         </tr>
     </table>

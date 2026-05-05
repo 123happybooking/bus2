@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Masters\AccountPeriod;
 use Illuminate\Support\Facades\View;
 use Spatie\Browsershot\Browsershot;
+use App\Models\Masters\UserCompanyInfo;
 
 class AccountPlController extends Controller
 {
@@ -235,14 +236,14 @@ class AccountPlController extends Controller
             }
         }
 
-
+        $company = UserCompanyInfo::first();
         // return view('masters.account-pl.pdf', compact(
         //     'startDate', 'endDate', 'groupedData',
         //     'totalRevenue', 'totalCogs', 'totalExpenses',
         //     'totalOIncome', 'totalOExpenses',
         //     'totalSOIncome', 'totalSOExpenses',
         //     'operatingIncome', 'ordinaryIncome', 'profitBeforeTax',
-        //     'totalTaxes','netIncome','period_id','yearmonth'
+        //     'totalTaxes','netIncome','period_id','yearmonth','startDate','endDate','company'
         // ));
 
         $datas = compact(
@@ -251,7 +252,7 @@ class AccountPlController extends Controller
             'totalOIncome', 'totalOExpenses',
             'totalSOIncome', 'totalSOExpenses',
             'operatingIncome', 'ordinaryIncome', 'profitBeforeTax',
-            'totalTaxes','netIncome','period_id','yearmonth'
+            'totalTaxes','netIncome','period_id','yearmonth','startDate','endDate','company'
         );
 
         try {

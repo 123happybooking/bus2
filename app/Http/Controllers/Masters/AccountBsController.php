@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\Masters\AccountPeriod;
+use App\Models\Masters\UserCompanyInfo;
 use Illuminate\Support\Facades\View;
 use Spatie\Browsershot\Browsershot;
 
@@ -399,7 +400,7 @@ class AccountBsController extends Controller
         //     'netIncome',
         //    'period_id','yearmonth'
         // ));
-
+        $company = UserCompanyInfo::first();
         $datas = [
             'assets' => $assets,
             'liabilities' => $liabilities,
@@ -409,7 +410,10 @@ class AccountBsController extends Controller
             'liabilityOrder' => $liabilityOrder,
             'netIncome' => $netIncome,
             'period_id' => $period_id,
-            'yearmonth' => $yearmonth
+            'yearmonth' => $yearmonth,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'company' => $company
         ];
 
 
