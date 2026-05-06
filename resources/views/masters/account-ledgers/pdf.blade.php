@@ -61,12 +61,12 @@
 
     /* --- 列宽控制 --- */
     /* 打印时这些百分比会自动适应A4宽度 */
-    .col-date { width: 12%; text-align: center; }
+    .col-date { width: 18%; text-align: center; }
     .col-account { width: 15%; }
-    .col-summary { width: 33%; }
-    .col-debit { width: 13%; text-align: right; }
-    .col-credit { width: 13%; text-align: right; }
-    .col-balance { width: 14%; text-align: right; }
+    .col-remark { width: 15%; }
+    .col-debit { width: 15%; text-align: right; }
+    .col-credit { width: 15%; text-align: right; }
+    .col-balance { width: 10%; text-align: right; }
 
     .text-right { text-align: right; }
     .text-end { text-align: right; }
@@ -123,11 +123,25 @@
     <table>
         <thead>
             <tr>
-                <th class="col-date">日付</th>
-                <th class="col-account">勘定科目</th>
-                <th class="col-summary">補助科目 / 税区分</th>
-                <th class="col-debit">借方</th>
-                <th class="col-credit">貸方</th>
+                <th class="col-date">
+                    <div>日付</div>
+                    <div>伝票ID</div>
+                    <div>生成元</div>
+                </th>
+                <th class="col-account">
+                    <div>相手勘定科目</div>
+                    <div>相手補助科目</div>
+                </th>
+                <th class="col-remark">摘要</th>
+                <th class="col-debit">
+                    <div>補助科目</div>
+                    <div>税区分</div>
+                    <div>借方金額</div>
+                </th>
+                <th class="col-credit">
+                    <div>相手税区分</div>
+                    <div>貸方金額</div>
+                </th>
                 <th class="col-balance">残高</th>
             </tr>
         </thead>
@@ -206,19 +220,28 @@
 
                     {{-- 3. 数据行 --}}
                     <tr>
-                        <td class="text-center col-date">{{ $dateStr }}</td>
-                        <td class="col-account">{{ $row['account_name'] }}</td>
-                        <td class="col-summary">
-                            {{ $row['sub_account_name'] ?? '' }}
-                            @if(!empty($row['tax_category']))
-                                {{ $row['tax_category'] }}
-                            @endif
+                        <td class="text-center col-date">
+                            <div>{{ $dateStr }}</div>
+                            <div>{{ $row['source_id'] }}</div>
+                            <div></div>
+
+                        </td>
+                        <td class="col-account">
+                            <div>{{ $row['account_name'] }}</div>
+                            <div>{{ $row['sub_account_name'] }}</div>
+                            
+                        </td>
+                        <td class="col-account">
+                            <div>{{ $row['remark'] }}</div>          
                         </td>
                         <td class="text-right col-debit">
-                            @if($jieVal > 0) {{ number_format($jieVal) }} @endif
+                            <div>{{ $row['curr_sub_account_name'] }}</div>
+                            <div>{{ $row['curr_tax_category'] }}</div>
+                            @if($jieVal > 0)<div> {{ number_format($jieVal) }}</div> @endif
                         </td>
                         <td class="text-right col-credit">
-                            @if($daiVal > 0) {{ number_format($daiVal) }} @endif
+                            <div>{{ $row['tax_category'] }}</div>
+                            @if($daiVal > 0) <div>{{ number_format($daiVal) }}</div> @endif
                         </td>
                         <td class="text-right col-balance">{{ $mark==1 ? number_format($currentBalance) : number_format(abs($currentBalance)) }}</td>
                     </tr>
