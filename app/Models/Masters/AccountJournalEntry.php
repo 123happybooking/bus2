@@ -90,42 +90,51 @@ class AccountJournalEntry extends Model
 
         $html = '';
         foreach ($lines as $line) {
-            // 构建科目显示名
+            // --- 1. 数据准备 ---
             $accName = $line->account ? "{$line->account->name}" : '未设定';
             
-            // 构建辅助信息 (辅助科目 / 取引先 / 税)
-            $subs = [];
+            $subName = '';
             if ($line->sub_account_id && $line->subAccount) {
-                $subs[] = $line->subAccount->name; 
+                $subName = $line->subAccount->name; 
             } elseif ($line->account_sub_name) {
-                $subs[] = $line->account_sub_name; 
+                $subName = $line->account_sub_name; 
             }
 
+            $partnerName = '';
             if ($line->partner_id && $line->partner) {
-                $subs[] = $line->partner->name;
+                $partnerName = $line->partner->name;
             } elseif ($line->partner_name) {
-                $subs[] = $line->partner_name; 
+                $partnerName = $line->partner_name; 
             }
 
+            $taxName = '';
             if ($line->tax_type_id && $line->taxType) {
-                $subs[] = $line->taxType->name;
+                $taxName = $line->taxType->name;
             }
 
-            $subText = !empty($subs) ? ' <small class="text-muted">(' . implode('/', $subs) . ')</small>' : '';
-            
-            // 金额格式化
             $formattedAmount = number_format($line->amount);
 
-            // 拼接一行 HTML：内容与金额在同一行
-            // 使用 flexbox 或 float 来实现左右布局
-            $html .= "<div class='d-flex justify-content-between align-items-start' style='font-size:0.75rem; line-height:1.3;'>";
+            $html .= "<div style='display: grid; grid-template-columns: 1fr auto auto; gap: 10px; justify-items: center; align-items: start; font-size: 0.75rem; line-height: 1.4; padding: 4px 0; border-bottom: 1px solid #eee;'>";
+
+            $html .= "<div class='fw-bold' style='width: 100%; text-align: left;'>{$accName}</div>";
             
-            // 左侧：科目名 + 辅助信息
-            $html .= "<div class='fw-bold'>{$accName}{$subText}</div>";
+
+            $html .= "<div class='text-muted'>{$taxName}</div>";
             
-            // 右侧：金额 (使用 text-primary 和 fw-bold 可选)
-            $html .= "<div class='text-primary fw-bold'>{$formattedAmount}</div>";
-            
+
+            $html .= "<div class='text-primary fw-bold' style='text-align: right;'>{$formattedAmount}</div>";
+
+            // === 第二行数据 ===
+            if ($subName || $partnerName) {
+                // 同样强制左对齐，保持和上面的科目对齐
+                $html .= "<div class='text-muted' style='font-size: 0.7rem; width: 100%; text-align: left;'>{$subName}</div>";
+                
+                // 取引先也会居中显示
+                $html .= "<div class='text-muted' style='font-size: 0.7rem;'>{$partnerName}</div>";
+                
+                $html .= "<div></div>"; 
+            }
+
             $html .= "</div>";
         }
 

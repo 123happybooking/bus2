@@ -29,11 +29,12 @@
         }
         .period {
             margin-bottom: 5px;
+            font-size: 14px;
         }
         .company-unit {
             display: flex;
             justify-content: space-between;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         /* --- 表格主体（有框） --- */
@@ -64,12 +65,25 @@
         }
 
         .accsum { 
-             margin-left: 200px; 
+            margin-left: 200px;
+            font-size: 14px;
+
         }
 
         /* 缩进样式 */
-        .indent-1 { margin-left: 20px; }
-        .indent-2 { margin-left: 40px; }
+        .indent-1 { 
+            margin-left: 20px; 
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .indent-2 { 
+            margin-left: 40px;
+            font-size: 14px; 
+        }
+
+        .value {
+            font-size: 14px; 
+        }
 
         /* --- 线条样式 --- */
         .border-top { border-top: 1px solid #000; }
