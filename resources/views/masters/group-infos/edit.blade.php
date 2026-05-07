@@ -840,6 +840,12 @@
                             <span style="font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; background-color: {{ $singleCompletionStatus == '完成' ? '#10b981' : '#f59e0b' }}; color: white;">
                                 {{ $singleCompletionStatus }}
                             </span>
+                            <button type="button" class="btn-pdf-export btn btn-sm" 
+                                    data-bus-id="{{ $busId }}" 
+                                    data-vehicle-index="1"
+                                    style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
+                                <i class="bi bi-file-pdf"></i> 運行指示書PDF
+                            </button>
                             <!--<span style="font-size: 0.75rem; color: #a0aec0;">-->
                             <!--    {{ $vehicleName }} -->
                             <!--    @if($driverName)-->
@@ -2496,6 +2502,7 @@ function copyClickHandler(e) {
     
     const newCard = createCopyOperationDetailCard(newIndex, newBusId, cleanedSourceRows, sourceCard);
     container.appendChild(newCard);
+    newCard.querySelector('.btn-pdf-export')?.setAttribute('data-bus-id', newBusId);
 
     reindexAllTables();
     updateOperationDetailNumbers();
@@ -3240,6 +3247,12 @@ function copyClickHandler(e) {
                 <h6 class="mb-0 me-3" style="color: #fff; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 10px;">
                     <span>運行詳細-${newIndex.toString().padStart(2, '0')}</span>
                     <span style="font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; background-color: #f59e0b; color: white;">未完成</span>
+                    <button type="button" class="btn-pdf-export btn btn-sm" 
+                            data-bus-id="${newBusId}" 
+                            data-vehicle-index="${newIndex}"
+                            style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
+                        <i class="bi bi-file-pdf"></i> 運行指示書PDF
+                    </button>
                 </h6>
                 <div class="d-flex align-items-center ms-auto" style="gap: 15px;">
                     <div class="form-check d-flex align-items-center">
@@ -3582,10 +3595,18 @@ function copyClickHandler(e) {
         const cards = document.querySelectorAll('#operation-details-container > .card');
         cards.forEach((card, index) => {
             const newIndex = index + 1;
-            const headerTitle = card.querySelector('.card-header h6');
-            if (headerTitle) {
-                const spanContent = headerTitle.querySelector('span') ? headerTitle.querySelector('span').outerHTML : '';
-                headerTitle.innerHTML = `運行詳細-${newIndex.toString().padStart(2, '0')} ${spanContent}`;
+            const headerH6 = card.querySelector('.card-header h6');
+            if (headerH6) {
+                const titleSpan = headerH6.querySelector('span:first-child');
+                const pdfButton = headerH6.querySelector('.btn-pdf-export');
+                
+                if (titleSpan) {
+                    titleSpan.textContent = `運行詳細-${newIndex.toString().padStart(2, '0')}`;
+                }
+                
+                if (pdfButton) {
+                    pdfButton.setAttribute('data-vehicle-index', newIndex);
+                }
             }
             
             const vehicleIndexInput = card.querySelector('input[name*="[vehicle_index]"]');
@@ -3593,82 +3614,18 @@ function copyClickHandler(e) {
                 vehicleIndexInput.value = newIndex;
             }
             
-            const lockCheckbox = card.querySelector('[id^="lock_arrangement_"]');
-            if (lockCheckbox) {
-                lockCheckbox.id = `lock_arrangement_${newIndex}`;
-                const label = card.querySelector(`label[for^="lock_arrangement_"]`);
-                if (label) {
-                    label.setAttribute('for', `lock_arrangement_${newIndex}`);
-                }
-            }
+            card.setAttribute('data-vehicle-index', newIndex);
             
             const vehicleNumber = card.querySelector('input[name*="[vehicle_number]"]');
-            if (vehicleNumber) {
+            if (vehicleNumber && (!vehicleNumber.value || vehicleNumber.value === vehicleNumber.defaultValue)) {
                 vehicleNumber.value = newIndex.toString().padStart(2, '0');
             }
             
-            card.setAttribute('data-vehicle-index', newIndex);
-            
-            const tabContainer = card.querySelector('[class^="tab-container-"]');
-            if (tabContainer) {
-                tabContainer.className = `tab-container-${newIndex}`;
-            }
-            
-            card.querySelectorAll('.tab-button2').forEach(btn => {
-                btn.setAttribute('data-container', newIndex);
-            });
-            
-            const basicTab = card.querySelector('[id^="basic2-"]');
-            if (basicTab) {
-                basicTab.id = `basic2-${newIndex}`;
-            }
-            const docTab = card.querySelector('[id^="doc-"]');
-            if (docTab) {
-                docTab.id = `doc-${newIndex}`;
-            }
-            const historyTab = card.querySelector('[id^="history2-"]');
-            if (historyTab) {
-                historyTab.id = `history2-${newIndex}`;
-            }
-            
-            const vehicleSelect = card.querySelector('[id^="vehicle_select_"]');
-            if (vehicleSelect) {
-                const oldId = vehicleSelect.id;
-                const newId = oldId.replace(/\d+$/, newIndex);
-                vehicleSelect.id = newId;
-                vehicleSelect.setAttribute('data-vehicle-index', newIndex);
-                vehicleSelect.name = vehicleSelect.name.replace(/\[\d+\]/, `[${newIndex}]`);
-            }
-
-            const driverSelect = card.querySelector('[id^="driver_select_"]');
-            if (driverSelect) {
-                const oldId = driverSelect.id;
-                const newId = oldId.replace(/\d+$/, newIndex);
-                driverSelect.id = newId;
-                driverSelect.setAttribute('data-vehicle-index', newIndex);
-                driverSelect.name = driverSelect.name.replace(/\[\d+\]/, `[${newIndex}]`);
-            }
-
-            const guideSelect = card.querySelector('[id^="guide_select_"]');
-            if (guideSelect) {
-                const oldId = guideSelect.id;
-                const newId = oldId.replace(/\d+$/, newIndex);
-                guideSelect.id = newId;
-                guideSelect.setAttribute('data-vehicle-index', newIndex);
-                guideSelect.name = guideSelect.name.replace(/\[\d+\]/, `[${newIndex}]`);
-            }
-
-            const table = card.querySelector('table');
-            if (table) {
-                table.setAttribute('data-vehicle-table', newIndex);
-            }
-            
-            const rows = card.querySelectorAll('tr.itinerary-row');
-            rows.forEach(row => {
-                row.setAttribute('data-vehicle', newIndex);
-                const vehicleGroupInput = row.querySelector('input[name*="[vehicle_group]"]');
-                if (vehicleGroupInput) {
-                    vehicleGroupInput.value = newIndex;
+            card.querySelectorAll('input, select, textarea').forEach(el => {
+                const name = el.getAttribute('name');
+                if (name && name.match(/\[\d+\]/)) {
+                    const newName = name.replace(/\[\d+\]/, `[${newIndex}]`);
+                    el.setAttribute('name', newName);
                 }
             });
         });
