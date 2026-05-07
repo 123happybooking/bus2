@@ -3597,11 +3597,7 @@ public function exportPdfBusAssignment($busId)
             $companyInfo['tel'] = $userCompany->phone_number ?? '';
             if (!empty($userCompany->setup_company_seal)) {
                 $logoPath = storage_path('app/public/' . $userCompany->setup_company_seal);
-                if (file_exists($logoPath)) {
-                    $companyLogo = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
-                } elseif (file_exists(public_path($userCompany->setup_company_seal))) {
-                    $companyLogo = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path($userCompany->setup_company_seal)));
-                }
+                $companyLogo = url('/storage/' . $userCompany->setup_company_seal);
             }
         }
     } catch (\Exception $e) {}
