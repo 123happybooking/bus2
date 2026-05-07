@@ -1112,6 +1112,8 @@
                     <li><a href="{{ route('masters.account-sums.index') }}" data-route="account-sums">試算表</a></li>
                     <li><a href="{{ route('masters.account-bs.index') }}" data-route="account-bs">貸借対照表</a></li>
                     <li><a href="{{ route('masters.account-pl.index') }}" data-route="account-pl">損益計算書</a></li>
+                    <li><a href="{{ route('masters.account-cash-ins.index') }}" data-route="account-cash-ins">現金入力</a></li>
+                    <li><a href="{{ route('masters.account-cash-outs.index') }}" data-route="account-cash-outs">現金出力</a></li>
                     <li><a href="{{ route('masters.products.index') }}" data-route="products-cashflow">キャッシュフロー計算書</a></li>
                     <li class="has-submenu">
                         <a href="#"><i class="bi bi-folder2-open"></i>各種マスタ</a>

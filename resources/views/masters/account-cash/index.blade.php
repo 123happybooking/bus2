@@ -7,6 +7,9 @@
     <!-- 1. 标题 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3>現金出納帳</h3>
+        <a href="#" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> 分录
+        </a>
     </div>
 
     <!-- 2. 搜索区域 (保持你原有的代码) -->

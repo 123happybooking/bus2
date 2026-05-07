@@ -29,11 +29,12 @@
         }
         .period {
             margin-bottom: 5px;
+            font-size: 14px;
         }
         .company-unit {
             display: flex;
             justify-content: space-between;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         /* --- 表格主体（有框） --- */
@@ -64,12 +65,25 @@
         }
 
         .accsum { 
-             margin-left: 200px; 
+            margin-left: 200px;
+            font-size: 14px;
+
         }
 
         /* 缩进样式 */
-        .indent-1 { margin-left: 20px; }
-        .indent-2 { margin-left: 40px; }
+        .indent-1 { 
+            margin-left: 20px; 
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .indent-2 { 
+            margin-left: 40px;
+            font-size: 14px; 
+        }
+
+        .value {
+            font-size: 14px; 
+        }
 
         /* --- 线条样式 --- */
         .border-top { border-top: 1px solid #000; }
@@ -87,9 +101,9 @@
         <!-- 表头区域 (在框外) -->
         <div class="header-group">
             <div class="title">損益計算書</div>
-            <div class="period">自 令和7年02月01日<br>至 令和8年01月31日</div>
+            <div class="period">自 {{ $startDate }}<br>至 {{ $endDate }}</div>
             <div class="company-unit">
-                <span>Travel Investment 株式会社</span>
+                <span>Travel Investment {{$company->company_name}}</span>
                 <span>(単位:円)</span>
             </div>
         </div>
@@ -99,21 +113,38 @@
 
             <!-- 1. 売上高 -->
             <div class="row">
-                <div class="label"></div>
-                <div class="value">725,040</div>
-            </div>
-            <div class="row">
                 <div class="label indent-1">売上高</div>
                 <div class="value"></div>
             </div>
+                @foreach($groupedData as $row)
+                    @if($row['category_id'] == 7)
+                    <div class="row">
+                        <div class="label indent-2">{{ $row['account_name'] }}</div>
+                        <div class="value">{{ number_format($row['credit']) }}</div>
+                    </div>
+                    @endif
+                @endforeach
+            <div class="row accsum">
+                <div class="label indent-1">売上高 合計</div>
+                <div class="value">{{ number_format($totalRevenue) }}</div>
+            </div>
+
             <div class="row">
                 <div class="label indent-1">売上原価</div>
                 <div class="value"></div>
             </div>
+                @foreach($groupedData as $row)
+                    @if($row['category_id'] == 8)
+                    <div class="row">
+                        <div class="label indent-2">{{ $row['account_name'] }}</div>
+                        <div class="value">{{ number_format($row['debit']) }}</div>
+                    </div>
+                    @endif
+                @endforeach
 
             <div class="row accsum">
-                <div class="label indent-1 bold">売上総利益</div>
-                <div class="value bold">725,040</div>
+                <div class="label indent-1">売上原価 合計</div>
+                <div class="value">{{ number_format($totalCogs) }}</div>
             </div>
 
             <!-- 3. 販管費明细 -->
@@ -121,32 +152,23 @@
                 <div class="label indent-1">販売費及び一般管理費</div>
                 <div class="value"></div>
             </div>
-            <div class="row">
-                <div class="label indent-2">会議費</div>
-                <div class="value">6,568</div>
-            </div>
-            <div class="row">
-                <div class="label indent-2">役員報酬</div>
-                <div class="value">80,000</div>
-            </div>
-            <div class="row">
-                <div class="label indent-2">接待交際費</div>
-                <div class="value">27,107</div>
-            </div>
-            <div class="row">
-                <div class="label indent-2">地代家賃</div>
-                <div class="value">18,000</div>
-            </div>
-
+                @foreach($groupedData as $row)
+                    @if($row['category_id'] == 9)
+                    <div class="row">
+                        <div class="label indent-2">{{ $row['account_name'] }}</div>
+                        <div class="value">{{ number_format($row['debit']) }}</div>
+                    </div>
+                    @endif
+                @endforeach
             <!-- 4. 販管費合計 -->
-            <div class="row">
-                <div class="label"></div>
-                <div class="value">131,675</div>
+            <div class="row accsum">
+                <div class="label indent-1">販売管理費 合計</div>
+                <div class="value">{{ number_format($totalExpenses) }}</div>
             </div>
 
             <div class="row accsum">
                 <div class="label indent-1 bold">営業利益</div>
-                <div class="value bold">123213</div>
+                <div class="value bold">{{ number_format($operatingIncome) }}</div>
             </div>
 
             <!-- 6. 営業外収益 -->
@@ -154,33 +176,43 @@
                 <div class="label indent-1">営業外収益</div>
                 <div class="value"></div>
             </div>
-            <div class="row">
-                <div class="label indent-2">受取利息</div>
-                <div class="value"></div>
+                @foreach($groupedData as $row)
+                    @if($row['category_id'] == 10)
+                    <div class="row">
+                        <div class="label indent-2">{{ $row['account_name'] }}</div>
+                        <div class="value">{{ number_format($row['credit']) }}</div>
+                    </div>
+                    @endif
+                @endforeach
+            <div class="row accsum">
+                <div class="label indent-1">営業外収益 合計</div>
+                <div class="value">{{ number_format($totalOIncome) }}</div>
             </div>
-            <div class="row">
-                <div class="label indent-2">雑収入</div>
-                <div class="value"></div>
-            </div>
+
 
             <!-- 7. 営業外費用 -->
             <div class="row">
                 <div class="label indent-1">営業外費用</div>
                 <div class="value"></div>
             </div>
-            <div class="row">
-                <div class="label indent-2">支払利息</div>
-                <div class="value"></div>
+                @foreach($groupedData as $row)
+                    @if($row['category_id'] == 11)
+                    <div class="row">
+                        <div class="label indent-2">{{ $row['account_name'] }}</div>
+                        <div class="value">{{ number_format($row['debit']) }}</div>
+                    </div>
+                    @endif
+                @endforeach
+            <div class="row accsum">
+                <div class="label indent-1">営業外費用 合計</div>
+                <div class="value">{{ number_format($totalOExpenses) }}</div>
             </div>
-            <div class="row">
-                <div class="label indent-2">雑損失</div>
-                <div class="value"></div>
-            </div>
+
 
             <!-- 8. 経常利益 -->
             <div class="row accsum">
                 <div class="label indent-1 bold">経常利益</div>
-                <div class="value bold">123123</div>
+                <div class="value bold">{{ number_format($ordinaryIncome) }}</div>
             </div>
 
             <!-- 9. 特別利益 -->
@@ -188,29 +220,66 @@
                 <div class="label indent-1">特別利益</div>
                 <div class="value"></div>
             </div>
+                @foreach($groupedData as $row)
+                    @if($row['category_id'] == 12)
+                    <div class="row">
+                        <div class="label indent-2">{{ $row['account_name'] }}</div>
+                        <div class="value">{{ number_format($row['credit']) }}</div>
+                    </div>
+                    @endif
+                @endforeach
+            <div class="row accsum">
+                <div class="label indent-1">営業外特別利益費用 合計</div>
+                <div class="value">{{ number_format($totalSOIncome) }}</div>
+            </div>
+
 
             <!-- 10. 特別損失 -->
             <div class="row">
                 <div class="label indent-1">特別損失</div>
                 <div class="value"></div>
             </div>
+                @foreach($groupedData as $row)
+                    @if($row['category_id'] == 13)
+                    <div class="row">
+                        <div class="label indent-2">{{ $row['account_name'] }}</div>
+                        <div class="value">{{ number_format($row['debit']) }}</div>
+                    </div>
+                    @endif
+                @endforeach
+            <div class="row accsum">
+                <div class="label indent-1">特別損失 合計</div>
+                <div class="value">{{ number_format($totalSOExpenses) }}</div>
+            </div>
 
             <!-- 11. 税引前当期純利益 -->
             <div class="row accsum">
                 <div class="label indent-1 bold">税引前当期純利益</div>
-                <div class="value bold">123123</div>
+                <div class="value bold">{{ number_format($profitBeforeTax) }}</div>
             </div>
 
             <!-- 12. 法人税等 -->
             <div class="row">
-                <div class="label indent-1">法人税・住民税及び事業税</div>
+                <div class="label indent-1">税等</div>
                 <div class="value"></div>
+            </div>
+                @foreach($groupedData as $row)
+                    @if($row['category_id'] == 14)
+                    <div class="row">
+                        <div class="label indent-2">{{ $row['account_name'] }}</div>
+                        <div class="value">{{ number_format($row['debit']) }}</div>
+                    </div>
+                    @endif
+                @endforeach
+            <div class="row accsum">
+                <div class="label indent-1">税等 合計</div>
+                <div class="value">{{ number_format($totalTaxes) }}</div>
             </div>
 
             <!-- 13. 当期純利益 (最终结果) -->
             <div class="row accsum">
                 <div class="label indent-1 bold">当期純利益</div>
-                <div class="value bold">123123</div>
+                <div class="value bold">{{ number_format($netIncome) }}</div>
             </div>
 
         </div>

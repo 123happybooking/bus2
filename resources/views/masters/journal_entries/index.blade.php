@@ -327,11 +327,12 @@
                     <thead class="table-light sticky-top">
                         <tr>
                             <!-- 1. 添加了 "No" 列 -->
-                            <th width="4%" class="text-center">No</th>
-                            <th width="10%">伝票ID</th>
+                            <th width="4%" class="text-center">ID</th>
+                            <th width="6%">作成者</th>
+                            <th width="10%">作成日/仕訳ID</th>
                             <th width="10%" class="position-relative" style="cursor: pointer;" onclick="sortTable('posting_date')">
                                 <!-- 文字部分：设置 padding-right 给箭头留出空间 -->
-                                <span class="pe-4">仕訳日</span>
+                                <span class="pe-4">取引日</span>
 
                                 <!-- 箭头容器：使用绝对定位，强制固定在右侧居中 -->
                                 <div class="sort-arrows" style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; line-height: 0.5;">
@@ -347,9 +348,9 @@
                                 <input type="hidden" name="sort_field" value="posting_date">
                                 <input type="hidden" name="sort_order" class="sort-order-input" value="">
                             </th>
-                            <th width="16%">借方</th>
-                            <th width="16%">貸方</th>
-                            <th width="8%">摘要</th>
+                            <th width="12%">借方</th>
+                            <th width="12%">貸方</th>
+                            <th width="10%">摘要</th>
                             <th width="5%">部門/分類</th>
                             <th width="3%" class="text-center">操作</th>
                             
@@ -362,8 +363,11 @@
                             <td class="fw-bold text-center" style="vertical-align: middle;">
                                 {{ $loop->index + $entries->firstItem() }}
                             </td>
-
-                            <td>{{ $entry->source_id}}</td>
+                            <td>{{ $entry->created_by}}</td>
+                            <td>
+                                <div>{{ $entry->posting_date->format('Y-m-d') }}</div>
+                                <div>{{ $entry->source_id}}</div>
+                            </td>
                             <td>{{ $entry->posting_date->format('Y-m-d') }}</td>
 
                             <td>{!! $entry->debit_details_html !!}</td>
@@ -463,13 +467,13 @@
                     <div class="card-body p-1 overflow-auto" style="max-height: 220px;">
                         <table class="table table-sm table-bordered mb-0" id="table-debit">
                             <thead class="table-light sticky-top">
-                                <tr>
+                                <!-- <tr>
                                     <th width="30%">勘定科目</th>
                                     <th width="20%">補助科目</th>
                                     <th width="15%">取引先</th>
                                     <th width="15%">税区分</th>
                                     <th width="16%">金額</th>
-                                </tr>
+                                </tr> -->
                             </thead>
                             <tbody class="sortable-list" data-side="1"></tbody>
                         </table>
@@ -486,13 +490,13 @@
                     <div class="card-body p-1 overflow-auto" style="max-height: 220px;">
                         <table class="table table-sm table-bordered mb-0" id="table-credit">
                             <thead class="table-light sticky-top">
-                                <tr>
+                                <!-- <tr>
                                     <th width="30%">勘定科目</th>
                                     <th width="20%">補助科目</th>
                                     <th width="15%">取引先</th>
                                     <th width="15%">税区分</th>
                                     <th width="16%">金額</th>
-                                </tr>
+                                </tr> -->
                             </thead>
                             <tbody class="sortable-list" data-side="2"></tbody>
                         </table>
@@ -618,6 +622,7 @@ function autoSelectMonth() {
         tr.setAttribute('data-side', side);
         if(data && data.id) tr.setAttribute('data-db-id', data.id);
 
+
         const accList = accountsData || [];
         const partList = partnersData || [];
         const taxList = taxesData || [];
@@ -654,137 +659,192 @@ function autoSelectMonth() {
         // 4. 税区分
         const taxOptions = `<option value="">[税区分無し]</option>` + taxList.map(t => `<option value="${t.id}" ${(data.tax_type_id == t.id) ? 'selected' : ''}>${t.name}</option>` ).join('');
 
-        tr.innerHTML = `
-            <td>
-                <div class="position-relative">
-                    <input type="text" autocomplete="off" class="form-control form-control-sm account-input" 
-                           list="${accountDataListId}" value="${currentAccountText}" placeholder="科目"
-                           onchange="handleAccountChange(this); this.classList.remove('is-invalid');" onblur="validateAccountInput(this)">
-                    <datalist id="${accountDataListId}">${accountOptions}</datalist>
-                    <input type="hidden" class="account-id-hidden" value="${data.account_id || ''}">
+        const tr1 = document.createElement('tr');
+        tr1.setAttribute('data-row-id', rowId);
+        tr1.setAttribute('data-side', side);
+        tr1.setAttribute('data-pair', 'main'); // 标记为主行
+
+        // 2. 创建第二行 (辅助科目、取引先)
+        const tr2 = document.createElement('tr');
+        tr2.setAttribute('data-row-id', rowId);
+        tr2.setAttribute('data-side', side);
+        tr2.setAttribute('data-pair', 'sub'); // 标记为副行
+
+
+        tr1.innerHTML = `
+            <td colspan="5" class="p-0">
+                <div class="d-flex gap-1 align-items-center bg-white border rounded-2 p-1">
+                    <!-- 勘定科目 -->
+                    <div class="flex-grow-1" style="min-width: 100px;">
+                        <div class="position-relative">
+                            <input type="text" autocomplete="off" class="form-control form-control-sm account-input" 
+                                list="${accountDataListId}" value="${currentAccountText}" placeholder="科目"
+                                onchange="handleAccountChange(this); this.classList.remove('is-invalid');" onblur="validateAccountInput(this)">
+                            <datalist id="${accountDataListId}">${accountOptions}</datalist>
+                            <input type="hidden" class="account-id-hidden" value="${data.account_id || ''}">
+                        </div>
+                    </div>
+                    <!-- 税区分 -->
+                    <div style="width: 150px;">
+                        <select class="form-select form-select-sm tax-select">${taxOptions}</select>
+                    </div>
+                    <!-- 金额 -->
+                    <div style="width: 150px;">
+                        <div class="input-group input-group-sm">
+                            <input type="number" step="0.01" class="form-control amount-input text-end" 
+                                value="${data.amount ? (parseFloat(data.amount) % 1 === 0 ? parseInt(data.amount) : parseFloat(data.amount).toFixed(2)) : ''}" oninput="calculateTotals(); this.classList.remove('is-invalid');" placeholder="0">
+                            <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)" style="border-left:0;"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                    </div>
                 </div>
             </td>
-            <td>
-                <div class="position-relative">
-                    <input type="text" class="form-control form-control-sm sub-input" 
-                           list="${subDataListId}" value="${currentSubText}" placeholder="補助 (任意)"
-                           ${!data.account_id ? 'disabled' : ''}>
-                    <datalist id="${subDataListId}"></datalist>
-                    <input type="hidden" class="sub-id-hidden" value="${data.account_sub_id || ''}">
-                </div>
-            </td>
-            <td>
-                <div class="position-relative">
-                    <input type="text" autocomplete="off" class="form-control form-control-sm partner-input" 
-                           list="${partnerDataListId}" value="${currentPartnerText}" placeholder="取引先 (任意)">
-                    <datalist id="${partnerDataListId}">${partnerOptions}</datalist>
-                    <input type="hidden" class="partner-id-hidden" value="${data.partner_id || ''}">
-                </div>
-            </td>
-            <td><select class="form-select tax-select">${taxOptions}</select></td>
-            <td>
-                <div class="input-group input-group-sm">
-                    <input type="number" step="0.01" class="form-control amount-input text-end" 
-                           value="${data.amount || ''}" oninput="calculateTotals(); this.classList.remove('is-invalid');" placeholder="0">
-                           <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)" style="border-left:0;"><i class="bi bi-x-lg"></i></button>
-                
+        `;
+
+        // 4. 拼接第二行的 HTML (下半部分)
+        tr2.innerHTML = `
+            <td colspan="5" class="p-0">
+                <div class="d-flex gap-1 align-items-center bg-light border-start border-end border-bottom rounded-bottom-2 p-1">
+                    <!-- 辅助科目 -->
+                    <div class="flex-grow-1" style="min-width: 150px;">
+                        <div class="position-relative">
+                            <!-- 修改点：添加了 id="sub-input-${rowId}" -->
+                            <input type="text" 
+                                id="sub-input-${rowId}" 
+                                class="form-control form-control-sm sub-input" 
+                                list="${subDataListId}" 
+                                value="${currentSubText}" 
+                                placeholder="補助 (任意)"
+                                ${!data.account_id ? 'disabled' : ''}>
+                            <datalist id="${subDataListId}"></datalist>
+                            <input type="hidden" class="sub-id-hidden" value="${data.account_sub_id || ''}">
+                        </div>
+                    </div>
+                    <!-- 取引先 -->
+                    <div class="flex-grow-1" style="min-width: 150px;">
+                        <div class="position-relative">
+                            <input type="text" autocomplete="off" class="form-control form-control-sm partner-input" 
+                                list="${partnerDataListId}" value="${currentPartnerText}" placeholder="取引先 (任意)">
+                            <datalist id="${partnerDataListId}">${partnerOptions}</datalist>
+                            <input type="hidden" class="partner-id-hidden" value="${data.partner_id || ''}">
+                        </div>
+                    </div>
+                    <!-- 空列占位 -->
+                    <div style="width: 150px;"></div>
                 </div>
             </td>
         `;
         
-        tbody.appendChild(tr);
+        tbody.appendChild(tr1);
+        tbody.appendChild(tr2);
         calculateTotals();
 
-        if (data.account_id) {
-            const accInput = tr.querySelector('.account-input');
-            fetchAccountSubs(accInput, data.account_sub_id, currentSubText);
-        }
+        // if (data.account_id) {
+        //     const accInput = tr.querySelector('.account-input');
+        //     fetchAccountSubs(accInput, data.account_sub_id, currentSubText);
+        // }
     }
 
     // 3. 勘定科目变更
-    function handleAccountChange(inputElement) {
-        const textValue = inputElement.value.trim();
-        const row = inputElement.closest('tr');
-        const hiddenIdInput = row.querySelector('.account-id-hidden');
-        const subInput = row.querySelector('.sub-input');
-        const subHidden = row.querySelector('.sub-id-hidden');
-        const accList = accountsData || [];
-
-        subInput.value = '';
-        subHidden.value = '';
-        subInput.disabled = true;
-        const subDatalist = row.querySelector(`datalist[id^="sub-list-"]`);
-        if(subDatalist) subDatalist.innerHTML = '';
-
-        if (!textValue) {
-            hiddenIdInput.value = '';
-            inputElement.classList.remove('is-invalid');
-            calculateTotals();
-            return;
-        }
-
-        const found = accList.find(a => `${a.code} - ${a.name}` === textValue);
+    function handleAccountChange(input) {
+        const row = input.closest('tr'); // 获取当前行 (第一行)
+        const rowId = row.getAttribute('data-row-id'); // 获取行 ID
         
-        if (found) {
-            hiddenIdInput.value = found.id;
-            inputElement.value = `${found.code} - ${found.name}`;
-            inputElement.classList.remove('is-invalid');
-            subInput.disabled = false;
-            fetchAccountSubs(inputElement, null, null);
+        const accountId = input.value; // 获取科目ID (如果是显示文本，可能需要调整，这里假设是value)
+        const accountText = input.value; // 假设这里存的是文本，具体看你的 logic
 
-            const taxSelect = row.querySelector('.tax-select');
-            if (taxSelect && found.tax_id) {
-                taxSelect.value = found.tax_id; 
+        const hiddenInput = row.querySelector('.account-id-hidden'); // 找到隐藏域
+        let foundId = '';
+        // 遍历全局数据 accountsData (这是页面加载时传进来的所有科目)
+        for (let account of accountsData) {
+            if (`${account.code} - ${account.name}` === accountText) {
+                foundId = account.id;
+                break;
             }
-        } else {
-            hiddenIdInput.value = ''; 
-            inputElement.classList.add('is-invalid');
-            setTimeout(() => inputElement.classList.remove('is-invalid'), 2000);
         }
-        calculateTotals();
+        hiddenInput.value = foundId; // 将找到的 ID 赋值给隐藏域
+        
+        const subInput = document.getElementById(`sub-input-${rowId}`);
+        const subHidden = row.nextElementSibling ? row.nextElementSibling.querySelector('.sub-id-hidden') : null;
+
+        if (subInput) {
+            subInput.value = ''; // 清空显示值
+        }
+        if (subHidden) {
+            subHidden.value = ''; // 清空隐藏值
+        }
+
+        // 3. 触发辅助科目加载 (fetchAccountSubs)
+        // 这里需要确保 fetchAccountSubs 也能找到正确的元素
+        if (typeof fetchAccountSubs === 'function') {
+            // 传递 input 和 rowId 以便函数内部使用
+            fetchAccountSubs(input, null, null, rowId); 
+        }
+        
+        // 4. 重新计算总额 (如果需要)
+        if (typeof calculateTotals === 'function') {
+            calculateTotals();
+        }
     }
     function validateAccountInput(el) { handleAccountChange(el); }
 
-    // 4. AJAX 获取辅助科目
-    function fetchAccountSubs(accountInput, existingSubId = null, existingSubName = null) {
-        const row = accountInput.closest('tr');
-        const accountId = row.querySelector('.account-id-hidden').value;
-        const subInput = row.querySelector('.sub-input');
-        const subDatalist = row.querySelector(`datalist[id^="sub-list-"]`);
-        const subHidden = row.querySelector('.sub-id-hidden');
+    function fetchAccountSubs(accountInput, existingSubId = null, existingSubName = null, rowId = null) {
 
-        if (!accountId || !subDatalist) return;
+        // 如果没有传 rowId，尝试从 DOM 获取
+        if (!rowId) {
+            const row = accountInput.closest('tr');
+            rowId = row ? row.getAttribute('data-row-id') : null;
+        }
 
+        const accountId = accountInput.value;
+        
+        // 关键修复：通过 ID 找到第二行的输入框
+        const subInput = document.getElementById(`sub-input-${rowId}`);
+        
+        const subDatalist = subInput ? subInput.parentElement.querySelector('datalist') : null;
+        const subHidden = subInput ? subInput.nextElementSibling.nextElementSibling : null;
+
+        if (!accountId || !subInput || !subDatalist) return;
+
+        // 禁用输入框防止误操作
+        subInput.disabled = true;
+        subInput.placeholder = '加载中...';
+
+        // 这里替换成你实际的 AJAX 请求 URL
         let url = '';
         try {
             url = getSubsUrlTemplate.replace('__ID__', accountId);
         } catch(e) {
-            console.warn('Route URL generation failed, skipping subs fetch');
+            console.error('URL Error', e);
             return;
         }
 
         fetch(url)
-            .then(res => res.ok ? res.json() : [])
+            .then(res => res.json())
             .then(data => {
-                row.dataset.subsCache = JSON.stringify(data);
+                subInput.disabled = false;
+                subInput.placeholder = '補助 (任意)';
+
+                // 填充 datalist
                 let options = '';
                 data.forEach(sub => {
-                    options += `<option value="${sub.display}">`;
+                    options += `<option value="${sub.name || sub.display}">`;
                 });
                 subDatalist.innerHTML = options;
 
-                if (existingSubId && existingSubName) {
+                // 如果有默认值，回填
+                if (existingSubId) {
                     const found = data.find(s => s.id == existingSubId);
                     if (found) {
-                        subHidden.value = found.id;
-                        subInput.value = found.display;
-                    } else {
-                        subHidden.value = '';
-                        subInput.value = '';
+                        if(subHidden) subHidden.value = found.id;
+                        subInput.value = found.name || found.display;
                     }
                 }
             })
-            .catch(err => console.error('Failed to load subs:', err));
+            .catch(err => {
+                subInput.disabled = false;
+                subInput.placeholder = '補助 (任意)';
+                console.error('Fetch subs error:', err);
+            });
     }
 
     function validateMainDeptInput() {
@@ -794,11 +854,24 @@ function autoSelectMonth() {
 
     function removeRow(btn) {
         const tbody = btn.closest('tbody');
-        if (tbody.querySelectorAll('tr').length <= 1) { alert('最低 1 行は必要です。'); return; }
-        btn.closest('tr').remove();
+        const currentRow = btn.closest('tr'); // 获取当前行
+        const nextRow = currentRow.nextElementSibling; // 获取下一行
+
+        // 1. 安全检查：确保至少保留一组（2行）
+        // 如果总行数 <= 2，或者下一行不存在（当前已是最后一行），则不允许删除
+        if (tbody.querySelectorAll('tr').length <= 2 || !nextRow) {
+            alert('最低 1 組（2行）は必要です。');
+            return;
+        }
+
+        // 2. 先删除下一行，再删除当前行
+        // (顺序不影响结果，但必须确保两行都被移除)
+        nextRow.remove();
+        currentRow.remove();
+
+        // 3. 重新计算总额
         calculateTotals();
     }
-
     function clearEditor(addDefaultLines = true) {
         document.getElementById('edit-entry-id').value = '';
         document.getElementById('editing-id-badge').classList.add('d-none');
@@ -858,24 +931,27 @@ function autoSelectMonth() {
 
         // 3. 定义处理行的函数
         const processRows = (selector, sideCode) => {
-            const rows = document.querySelectorAll(selector + ' tr');
+            const mainRows = document.querySelectorAll(`${selector} tr[data-pair="main"]`);
             
-            rows.forEach(tr => {
+            mainRows.forEach(tr1 => {
                 // 获取 DOM 元素
-                const accInput = tr.querySelector('.account-input');
-                const amountInput = tr.querySelector('.amount-input');
-                const taxSelect = tr.querySelector('.tax-select');
+                const accInput = tr1.querySelector('.account-input');
+                const amountInput = tr1.querySelector('.amount-input');
+                const taxSelect = tr1.querySelector('.tax-select');
 
                 // 获取值 (使用 ?. 防止报错)
-                const accId = tr.querySelector('.account-id-hidden')?.value;
+                const accId = tr1.querySelector('.account-id-hidden')?.value;
                 const amount = amountInput?.value;
                 const taxValue = taxSelect?.value;
 
                 // 获取辅助信息 (用于提交)
-                const subText = tr.querySelector('.sub-input')?.value.trim() || '';
-                const partText = tr.querySelector('.partner-input')?.value.trim() || '';
-                const subId = tr.querySelector('.sub-id-hidden')?.value || null;
-                const partId = tr.querySelector('.partner-id-hidden')?.value || null;
+                const tr2 = tr1.nextElementSibling; 
+                const subText = tr2.querySelector('.sub-input')?.value.trim() || '';
+                const partText = tr2.querySelector('.partner-input')?.value.trim() || '';
+                const subId = tr2.querySelector('.sub-id-hidden')?.value || null;
+                const partId = tr2.querySelector('.partner-id-hidden')?.value || null;
+
+
 
                 let rowValid = true;
 
@@ -897,7 +973,7 @@ function autoSelectMonth() {
                 // 只有当这一行所有校验都通过时，才加入数据数组
                 if (rowValid) {
                     linesData.push({
-                        id: tr.getAttribute('data-db-id') || null,
+                        id: tr1.getAttribute('data-db-id') || null,
                         side: sideCode,
                         account_id: accId,
                         account_sub_id: subId, 

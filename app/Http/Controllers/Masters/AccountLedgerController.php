@@ -151,10 +151,15 @@ class AccountLedgerController extends Controller
             $datas['rows'][] = [
                 'date' => $line->entry->posting_date->format('Y-m-d'),
                 'account_name' => $account_name,
+                'source_id' => $line->entry->source_id,
+                'remark' => $line->entry->remark,
                 'sub_account_name' => $sub_account_name,
                 'tax_category' => $tax_category,
                 'jie_money' => $jie_money,
                 'dai_money' => $dai_money,
+
+                'curr_sub_account_name' => $line->subAccount->name ?? '',
+                'curr_tax_category' => $line->taxType->name ?? '',
             ];
         }
         return $datas;
@@ -165,6 +170,7 @@ class AccountLedgerController extends Controller
         
         $datas = [];
         $datas['account_name'] = $account->name ?? '';
+        $datas['source_id'] = $account->source_id ?? '';
         $datas['start_date'] = $startDate;
         $datas['end_date'] = $endDate;
         $datas['opening_balance'] = 0;
@@ -221,9 +227,15 @@ class AccountLedgerController extends Controller
                 'date' => $line->entry->posting_date->format('Y-m-d'),
                 'account_name' => $account_name,
                 'sub_account_name' => $sub_account_name,
+                'source_id' => $line->entry->source_id,
+                'remark' => $line->entry->remark,
                 'tax_category' => $tax_category,
                 'jie_money' => $jie_money,
                 'dai_money' => $dai_money,
+
+                'curr_sub_account_name' => $line->subAccount->name ?? '',
+                'curr_tax_category' => $line->taxType->name ?? '',
+
             ];
         }
         return $datas;
