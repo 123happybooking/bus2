@@ -12,8 +12,8 @@ class DriverCompensation extends Model
     protected $table = 'driver_compensations';
     
     protected $fillable = [
+        'group_info_id',
         'bus_assignment_id',
-        'itinerary_id',
         'driver_id',
         'comp_id',
         'target_date',

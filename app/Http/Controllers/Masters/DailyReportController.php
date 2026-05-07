@@ -207,7 +207,26 @@ class DailyReportController extends Controller
             'mode' => 'utf-8',
             'format' => 'A4',
             'tempDir' => sys_get_temp_dir(),
-            'default_font' => 'kozgopromedium',
+            // 'default_font' => 'kozgopromedium', //默认字体
+            
+            // ================================================ 自定义字体
+            'fontDir' => [
+                base_path('vendor/mpdf/mpdf/ttfonts'),
+                storage_path('fonts'),
+            ],
+            'fontdata' => [
+                'ipaexgothic' => [
+                    'R' => 'ipaexgothic.ttf',
+                    'useOTL' => 0x80,
+                ],
+                'ipaexmincho' => [
+                    'R' => 'ipaexmincho.ttf',
+                    'useOTL' => 0x80,
+                ],
+            ],
+            'default_font' => 'ipaexgothic',
+            // ================================================
+            
         ]);
         
         $mpdf->shrink_tables_to_fit = 0;

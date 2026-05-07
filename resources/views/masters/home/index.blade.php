@@ -33,14 +33,14 @@
                     <a href="{{ route('masters.driver-ledger.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運転手台帳</a>
                     <a href="{{ route('masters.bus-assignments.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運行一覧</a>
                     <a href="{{ route('masters.group-infos.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">予約一覧</a>
-                    <a href="{{ route('masters.daily-reports.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">运行日报</a>
-                    <a href="{{ route('masters.daily-itineraries.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">日次一覧</a>
+                    <a href="{{ route('masters.daily-reports.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運行日報</a>
+                    <!--<a href="{{ route('masters.daily-itineraries.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">日次一覧</a>-->
                     <a href="{{ route('masters.options.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">オプション</a>
                     <a href="{{ route('masters.driver-payment-methods.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">支払方法</a>
                     <a href="{{ route('masters.driver-expense-types.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">経費種別</a>
                     <a href="{{ route('masters.driver-compensation-types.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">報酬種別</a>
-                    <a href="{{ route('masters.driver-compensations.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">ドライバー報酬</a>
-                    <a href="{{ route('masters.drivers.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">乗務指示一覧</a>
+                    <a href="{{ route('masters.driver-compensations.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運転手精算</a>
+                    <a href="{{ route('masters.attendance-categories.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運転手勤怠</a>
                     <a href="{{ route('masters.driver-operation-status.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">操作ステータス</a>
                     <div class="dropdown-divider my-1"></div>
                     <a href="{{ route('masters.basicinfo.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">デジタコデータアップロード</a>

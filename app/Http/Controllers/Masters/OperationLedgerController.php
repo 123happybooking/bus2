@@ -18,9 +18,34 @@ class OperationLedgerController extends Controller
 {
     public function index(Request $request)
     {
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-        $period = $request->input('period');
+        $sessionStartDate = session('operation_ledger.start_date');
+        $sessionEndDate = session('operation_ledger.end_date');
+        $sessionPeriod = session('operation_ledger.period');
+        
+        $startDate = $request->input('start_date', $sessionStartDate);
+        $endDate = $request->input('end_date', $sessionEndDate);
+        $period = $request->input('period', $sessionPeriod);
+        
+        if ($request->has('start_date')) {
+            session(['operation_ledger.start_date' => $request->input('start_date')]);
+        }
+        if ($request->has('end_date')) {
+            session(['operation_ledger.end_date' => $request->input('end_date')]);
+        }
+        if ($request->has('period')) {
+            session(['operation_ledger.period' => $request->input('period')]);
+        }
+        
+        $hasNoParams = !$request->has('start_date') && !$request->has('end_date') && !$request->has('period');
+        $hasNoSession = !$sessionStartDate && !$sessionEndDate && !$sessionPeriod;
+        
+        if ($hasNoParams && $hasNoSession) {
+            $startDate = null;
+            $endDate = null;
+            $period = null;
+        } elseif ($hasNoParams && !$hasNoSession) {
+        }
+        
         $attendanceStatus = $request->input('attendance_status');
         $vehicleTypeId = $request->input('vehicle_type_id');
         $agencyId = $request->input('agency_id');

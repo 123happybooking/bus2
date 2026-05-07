@@ -350,6 +350,12 @@
                             <span style="font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; background-color: {{ $group['completion_status'] == '完成' ? '#10b981' : '#f59e0b' }}; color: white;">
                                 {{ $group['completion_status'] }}
                             </span>
+                            <button type="button" class="btn-pdf-export btn btn-sm" 
+                                    data-bus-id="{{ $busId }}" 
+                                    data-vehicle-index="{{ $vehicleIndex }}"
+                                    style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
+                                <i class="bi bi-file-pdf"></i> 運行指示書PDF
+                            </button>
                             <!--<span style="font-size: 0.75rem; color: #a0aec0;">-->
                             <!--    {{ $vehicleName }} -->
                             <!--    @if($driverName)-->
@@ -568,38 +574,92 @@
                                             </div>
                                         </div>
 
-                                        <div id="doc-{{ $vehicleIndex }}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 100px; overflow: auto;">
-                                            @php
-                                                $busCompensations = $compensationsByBus[$busId] ?? [];
-                                            @endphp
-                                            @if(count($busCompensations) > 0)
-                                                <table class="table table-sm table-bordered" style="font-size: 11px; margin-bottom: 0;">
+                                        <div id="doc-{{ $vehicleIndex }}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
+                                            <div class="compensation-container" data-bus-id="{{ $busId }}" data-vehicle-index="{{ $vehicleIndex }}">
+                                                @php
+                                                    $busCompensations = $compensationsByBus[$busId] ?? [];
+                                                @endphp
+                                                
+                                                @if(count($busCompensations) > 0)
+                                                <table class="table table-sm table-bordered compensation-table" style="font-size: 11px; margin-bottom: 5px;">
                                                     <thead style="text-align: center;">
                                                         <tr>
+                                                            <th style="width: 20%; background-color: #f8f9fa;">対象日</th>
                                                             <th style="width: 25%; background-color: #f8f9fa;">報酬種別</th>
-                                                            <th style="background-color: #f8f9fa;">対象日</th>
                                                             <th style="width: 15%; background-color: #f8f9fa;">単価</th>
                                                             <th style="width: 10%; background-color: #f8f9fa;">数量</th>
                                                             <th style="width: 15%; background-color: #f8f9fa;">金額</th>
+                                                            <th style="width: 15%; background-color: #f8f9fa;">操作</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody style="text-align: center;">
-                                                        @foreach($busCompensations as $comp)
-                                                        <tr>
-                                                            <td>{{ $comp->compensationType->comp_name ?? '-' }}</td>
-                                                            <td>{{ $comp->target_date }}</td>
-                                                            <td>¥ {{ number_format($comp->price) }}</td>
-                                                            <td>{{ number_format($comp->qty) }}</td>
-                                                            <td>¥ {{ number_format($comp->amount) }}</td>
+                                                    <tbody class="compensation-tbody">
+                                                        @php $totalAmount = 0; @endphp
+                                                        @foreach($busCompensations as $compIndex => $comp)
+                                                        <tr class="compensation-row" data-comp-index="{{ $compIndex }}">
+                                                            <td>
+                                                                <input type="hidden" name="bus_assignments[{{ $vehicleIndex }}][compensations][{{ $compIndex }}][id]" value="{{ $comp->id }}">
+                                                                <input type="text" class="form-control form-control-sm compensation-date datepicker-single" 
+                                                                       name="bus_assignments[{{ $vehicleIndex }}][compensations][{{ $compIndex }}][target_date]" 
+                                                                       value="{{ $comp->target_date }}" placeholder="YYYY-MM-DD">
+                                                            </td>
+                                                            <td>
+                                                                <select class="form-select form-select-sm compensation-type" 
+                                                                        name="bus_assignments[{{ $vehicleIndex }}][compensations][{{ $compIndex }}][comp_id]">
+                                                                    <option value="">-- 選択 --</option>
+                                                                    @foreach($compensationTypes ?? [] as $type)
+                                                                        <option value="{{ $type->id }}" {{ ($comp->comp_id ?? '') == $type->id ? 'selected' : '' }}>
+                                                                            {{ $type->comp_name }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </td>
+                                                            <td>
+                                                                <input type="number" class="form-control form-control-sm compensation-price" 
+                                                                       name="bus_assignments[{{ $vehicleIndex }}][compensations][{{ $compIndex }}][price]" 
+                                                                       value="{{ intval($comp->price) }}" step="1" min="0">
+                                                            </td>
+                                                            <td>
+                                                                <input type="number" class="form-control form-control-sm compensation-qty" 
+                                                                       name="bus_assignments[{{ $vehicleIndex }}][compensations][{{ $compIndex }}][qty]" 
+                                                                       value="{{ intval($comp->qty) }}" step="1" min="0">
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" class="form-control form-control-sm compensation-amount" 
+                                                                       name="bus_assignments[{{ $vehicleIndex }}][compensations][{{ $compIndex }}][amount]" 
+                                                                       value="{{ intval($comp->amount) }}" readonly style="background-color: #f3f4f6;">
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <button type="button" class="btn btn-sm btn-outline-success add-compensation-row" style="padding: 2px 6px; font-size: 10px;">
+                                                                    <i class="bi bi-plus-lg"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-outline-danger remove-compensation-row" style="padding: 2px 6px; font-size: 10px;">
+                                                                    <i class="bi bi-dash-lg"></i>
+                                                                </button>
+                                                            </td>
                                                         </tr>
+                                                        @php $totalAmount += $comp->amount; @endphp
                                                         @endforeach
                                                     </tbody>
+                                                    <tfoot>
+                                                        <tr style="background-color: #f8f9fa; font-weight: bold;">
+                                                            <td colspan="4" class="text-end">合計</td>
+                                                            <td class="text-end"><span class="total-amount-display">¥ {{ number_format($totalAmount) }}</span></td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </tfoot>
                                                 </table>
-                                            @else
-                                                <div style="color: #6b7280; font-size: 11px; padding: 16px; text-align: center;">
-                                                    データがありません
+                                                @else
+                                                <div class="text-center py-3">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary add-first-compensation-row" 
+                                                            data-bus-id="{{ $busId }}" data-vehicle-index="{{ $vehicleIndex }}"
+                                                            style="font-size: 11px; padding: 4px 12px;">
+                                                        <i class="bi bi-plus-lg"></i> 手当を追加
+                                                    </button>
                                                 </div>
-                                            @endif
+                                                @endif
+                                                
+                                                <input type="hidden" class="total-amount-hidden" name="bus_assignments[{{ $vehicleIndex }}][compensations_total]" value="{{ $totalAmount ?? 0 }}">
+                                            </div>
                                         </div>
 
                                         <div id="history2-{{ $vehicleIndex }}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: auto; min-height: 100px; max-height: 100px; overflow-y: auto;">
@@ -998,38 +1058,92 @@
                                         </div>
                                     </div>
             
-                                    <div id="doc-1" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 100px; overflow: auto;">
-                                        @php
-                                            $busCompensations = $compensationsByBus[$busId] ?? [];
-                                        @endphp
-                                        @if(count($busCompensations) > 0)
-                                            <table class="table table-sm table-bordered" style="font-size: 11px; margin-bottom: 0;">
+                                    <div id="doc-1" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
+                                        <div class="compensation-container" data-bus-id="{{ $busId }}" data-vehicle-index="1">
+                                            @php
+                                                $busCompensations = $compensationsByBus[$busId] ?? [];
+                                            @endphp
+                                            
+                                            @if(count($busCompensations) > 0)
+                                            <table class="table table-sm table-bordered compensation-table" style="font-size: 11px; margin-bottom: 5px;">
                                                 <thead style="text-align: center;">
-                                                    <tr>
+                                                    <table>
+                                                        <th style="width: 20%; background-color: #f8f9fa;">対象日</th>
                                                         <th style="width: 25%; background-color: #f8f9fa;">報酬種別</th>
-                                                        <th style="background-color: #f8f9fa;">対象日</th>
                                                         <th style="width: 15%; background-color: #f8f9fa;">単価</th>
                                                         <th style="width: 10%; background-color: #f8f9fa;">数量</th>
                                                         <th style="width: 15%; background-color: #f8f9fa;">金額</th>
+                                                        <th style="width: 15%; background-color: #f8f9fa;">操作</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody style="text-align: center;">
-                                                    @foreach($busCompensations as $comp)
-                                                    <tr>
-                                                        <td>{{ $comp->compensationType->comp_name ?? '-' }}</td>
-                                                        <td>{{ $comp->target_date }}</td>
-                                                        <td>¥ {{ number_format($comp->price) }}</td>
-                                                        <td>{{ number_format($comp->qty) }}</td>
-                                                        <td>¥ {{ number_format($comp->amount) }}</td>
+                                                <tbody class="compensation-tbody">
+                                                    @php $totalAmount = 0; @endphp
+                                                    @foreach($busCompensations as $compIndex => $comp)
+                                                    <tr class="compensation-row" data-comp-index="{{ $compIndex }}">
+                                                        <td>
+                                                            <input type="hidden" name="bus_assignments[1][compensations][{{ $compIndex }}][id]" value="{{ $comp->id }}">
+                                                            <input type="text" class="form-control form-control-sm compensation-date datepicker-single" 
+                                                                   name="bus_assignments[1][compensations][{{ $compIndex }}][target_date]" 
+                                                                   value="{{ $comp->target_date }}" placeholder="YYYY-MM-DD">
+                                                        </td>
+                                                        <td>
+                                                            <select class="form-select form-select-sm compensation-type" 
+                                                                    name="bus_assignments[1][compensations][{{ $compIndex }}][comp_id]">
+                                                                <option value="">-- 選択 --</option>
+                                                                @foreach($compensationTypes ?? [] as $type)
+                                                                    <option value="{{ $type->id }}" {{ ($comp->comp_id ?? '') == $type->id ? 'selected' : '' }}>
+                                                                        {{ $type->comp_name }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" class="form-control form-control-sm compensation-price" 
+                                                                   name="bus_assignments[1][compensations][{{ $compIndex }}][price]" 
+                                                                   value="{{ intval($comp->price) }}" step="1" min="0">
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" class="form-control form-control-sm compensation-qty" 
+                                                                   name="bus_assignments[1][compensations][{{ $compIndex }}][qty]" 
+                                                                   value="{{ intval($comp->qty) }}" step="1" min="0">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" class="form-control form-control-sm compensation-amount" 
+                                                                   name="bus_assignments[1][compensations][{{ $compIndex }}][amount]" 
+                                                                   value="{{ intval($comp->amount) }}" readonly style="background-color: #f3f4f6;">
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-sm btn-outline-success add-compensation-row" style="padding: 2px 6px; font-size: 10px;">
+                                                                <i class="bi bi-plus-lg"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-outline-danger remove-compensation-row" style="padding: 2px 6px; font-size: 10px;">
+                                                                <i class="bi bi-dash-lg"></i>
+                                                            </button>
+                                                        </td>
                                                     </tr>
+                                                    @php $totalAmount += $comp->amount; @endphp
                                                     @endforeach
                                                 </tbody>
+                                                <tfoot>
+                                                    <tr style="background-color: #f8f9fa; font-weight: bold;">
+                                                        <td colspan="4" class="text-end">合計</td>
+                                                        <td class="text-end"><span class="total-amount-display">¥ {{ number_format($totalAmount) }}</span></td>
+                                                        <td></td>
+                                                    </tr>
+                                                </tfoot>
                                             </table>
-                                        @else
-                                            <div style="color: #6b7280; font-size: 11px; padding: 16px; text-align: center;">
-                                                データがありません
+                                            @else
+                                            <div class="text-center py-3">
+                                                <button type="button" class="btn btn-sm btn-outline-primary add-first-compensation-row" 
+                                                        data-bus-id="{{ $busId }}" data-vehicle-index="1"
+                                                        style="font-size: 11px; padding: 4px 12px;">
+                                                    <i class="bi bi-plus-lg"></i> 手当を追加
+                                                </button>
                                             </div>
-                                        @endif
+                                            @endif
+                                            
+                                            <input type="hidden" class="total-amount-hidden" name="bus_assignments[1][compensations_total]" value="{{ $totalAmount ?? 0 }}">
+                                        </div>
                                     </div>
             
                                     <div id="history2-1" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: auto; min-height: 100px; max-height: 100px; overflow-y: auto;">
@@ -1719,6 +1833,40 @@ span.flatpickr-weekday {
 
 .flatpickr-calendar.multiMonth .flatpickr-rContainer {
     width: 514px !important;
+}
+
+.compensation-table td {
+    padding: 1px;
+    font-size: 10px;
+}
+
+.compensation-table input,
+.compensation-table select {
+    padding: 0;
+    font-size: 10px;
+    line-height: 120%;
+    min-height: 20px;
+}
+
+.compensation-table button {
+    padding: 0 3px !important;
+}
+
+.compensation-table input[type="number"] {
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.compensation-table input[type="number"]::-webkit-inner-spin-button,
+.compensation-table input[number]::-webkit-outer-spin-button {
+    display: none;
+}
+
+.compensation-price,
+.compensation-qty,
+.compensation-amount {
+    text-align: right;
 }
 </style>
 @endpush
@@ -2418,6 +2566,134 @@ function copyClickHandler(e) {
         document.querySelectorAll('.update-btn').forEach(btn => {
             btn.removeEventListener('click', updateBusDetailClickHandler);
             btn.addEventListener('click', updateBusDetailClickHandler);
+        });
+        
+        bindPdfExportEvents();
+        
+        
+        const tabButtons2 = document.querySelectorAll('.tab-button2');
+        if (tabButtons2.length > 0) {
+            tabButtons2.forEach(button => {
+                button.removeEventListener('click', button._tabClickHandler);
+                const tabClickHandler = function() {
+                    const container = this.getAttribute('data-container');
+                    const tabId = this.getAttribute('data-tab2');
+                    
+                    const parentContainer = document.querySelector(`.tab-container-${container}`);
+                    
+                    if (parentContainer) {
+                        const groupButtons = parentContainer.querySelectorAll('.tab-button2');
+                        const groupContents = parentContainer.querySelectorAll('.tab-content2');
+                        
+                        groupButtons.forEach(btn => {
+                            btn.classList.remove('active');
+                            btn.style.backgroundColor = '#F3F4F6';
+                            btn.style.borderBottomColor = '#E5E7EB';
+                            btn.style.color = '#6B7280';
+                        });
+                        
+                        this.classList.add('active');
+                        this.style.backgroundColor = 'white';
+                        this.style.borderBottomColor = 'white';
+                        this.style.color = '#374151';
+                        
+                        groupContents.forEach(content => {
+                            content.style.display = 'none';
+                        });
+                    }
+                    
+                    document.getElementById(tabId).style.display = 'block';
+                };
+                button.addEventListener('click', tabClickHandler);
+                button._tabClickHandler = tabClickHandler;
+            });
+        }
+        
+        
+        document.querySelectorAll('.add-first-compensation-row').forEach(btn => {
+            btn.removeEventListener('click', btn._firstAddHandler);
+            const firstAddHandler = function() {
+                const busId = this.getAttribute('data-bus-id');
+                const vehicleIndex = this.getAttribute('data-vehicle-index');
+                const container = this.closest('.compensation-container');
+                
+                const tableHtml = `
+                    <table class="table table-sm table-bordered compensation-table" style="font-size: 11px; margin-bottom: 5px;">
+                        <thead style="text-align: center;">
+                            <tr>
+                                <th style="width: 20%; background-color: #f8f9fa;">対象日</th>
+                                <th style="width: 25%; background-color: #f8f9fa;">報酬種別</th>
+                                <th style="width: 15%; background-color: #f8f9fa;">単価</th>
+                                <th style="width: 10%; background-color: #f8f9fa;">数量</th>
+                                <th style="width: 15%; background-color: #f8f9fa;">金額</th>
+                                <th style="width: 15%; background-color: #f8f9fa;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="compensation-tbody">
+                            <tr class="compensation-row" data-comp-index="0">
+                                <td>
+                                    <input type="text" class="form-control form-control-sm compensation-date datepicker-single" 
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][target_date]" value="" placeholder="YYYY-MM-DD">
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm compensation-type" 
+                                            name="bus_assignments[${vehicleIndex}][compensations][0][comp_id]">
+                                        <option value="">-- 選択 --</option>
+                                        @foreach($compensationTypes ?? [] as $type)
+                                            <option value="{{ $type->id }}">{{ $type->comp_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm compensation-price" 
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][price]" value="0" step="1" min="0">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm compensation-qty" 
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][qty]" value="0" step="1" min="0">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm compensation-amount" 
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][amount]" value="0" readonly style="background-color: #f3f4f6;">
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-success add-compensation-row" style="padding: 2px 6px; font-size: 10px;">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-compensation-row" style="padding: 2px 6px; font-size: 10px;" disabled>
+                                        <i class="bi bi-dash-lg"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="background-color: #f8f9fa; font-weight: bold;">
+                                <td colspan="4" class="text-end">合計</td>
+                                <td class="text-end"><span class="total-amount-display">¥ 0</span></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <input type="hidden" class="total-amount-hidden" name="bus_assignments[${vehicleIndex}][compensations_total]" value="0">
+                `;
+                
+                container.innerHTML = tableHtml;
+                
+                initCompensationTable(container);
+                
+                container.querySelectorAll('.compensation-date').forEach(dateInput => {
+                    if (!dateInput._flatpickr) {
+                        flatpickr(dateInput, {
+                            locale: 'ja',
+                            dateFormat: 'Y-m-d',
+                            allowInput: true,
+                            disableMobile: true
+                        });
+                    }
+                });
+            };
+            btn.addEventListener('click', firstAddHandler);
+            btn._firstAddHandler = firstAddHandler;
         });
     }
 
@@ -3138,9 +3414,16 @@ function copyClickHandler(e) {
                                 </div>
                             </div>
     
-                            <div id="doc-${newIndex}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 100px; overflow: auto;">
-                                <div style="color: #6b7280; font-size: 11px; padding: 16px; text-align: center;">
-                                    データがありません
+                            <div id="doc-${newIndex}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
+                                <div class="compensation-container" data-bus-id="${newBusId}" data-vehicle-index="${newIndex}">
+                                    <div class="text-center py-3">
+                                        <button type="button" class="btn btn-sm btn-outline-primary add-first-compensation-row" 
+                                                data-bus-id="${newBusId}" data-vehicle-index="${newIndex}"
+                                                style="font-size: 11px; padding: 4px 12px;">
+                                            <i class="bi bi-plus-lg"></i> 手当を追加
+                                        </button>
+                                    </div>
+                                    <input type="hidden" class="total-amount-hidden" name="bus_assignments[${newIndex}][compensations_total]" value="0">
                                 </div>
                             </div>
     
@@ -4240,5 +4523,258 @@ document.querySelectorAll('.file-list-bus').forEach(fileList => {
     }
 });
 
+
+
+
+
+
+
+function initCompensationTable(container) {
+    const tbody = container.querySelector('.compensation-tbody');
+    if (!tbody) return;
+    
+    function updateAmount(row) {
+        const price = parseFloat(row.querySelector('.compensation-price')?.value) || 0;
+        const qty = parseFloat(row.querySelector('.compensation-qty')?.value) || 0;
+        const amount = price * qty;
+        const amountInput = row.querySelector('.compensation-amount');
+        if (amountInput) {
+            amountInput.value = amount;
+        }
+        updateTotalAmount(container);
+    }
+    
+    function updateTotalAmount(container) {
+        const rows = container.querySelectorAll('.compensation-row');
+        let total = 0;
+        rows.forEach(row => {
+            const amount = parseFloat(row.querySelector('.compensation-amount')?.value) || 0;
+            total += amount;
+        });
+        const displaySpan = container.querySelector('.total-amount-display');
+        const hiddenInput = container.querySelector('.total-amount-hidden');
+        if (displaySpan) {
+            displaySpan.textContent = '¥ ' + total.toLocaleString();
+        }
+        if (hiddenInput) {
+            hiddenInput.value = total;
+        }
+    }
+    
+    function reindexRows(container) {
+        const rows = container.querySelectorAll('.compensation-row');
+        const vehicleIndex = container.getAttribute('data-vehicle-index');
+        rows.forEach((row, idx) => {
+            const inputs = row.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) {
+                    const newName = name.replace(/compensations\[\d+\]/, `compensations[${idx}]`);
+                    input.setAttribute('name', newName);
+                }
+            });
+            row.setAttribute('data-comp-index', idx);
+        });
+    }
+    
+    function addRow(row) {
+        const newRow = document.createElement('tr');
+        newRow.className = 'compensation-row';
+        newRow.setAttribute('data-comp-index', 'new');
+        
+        const rowCount = tbody.querySelectorAll('.compensation-row').length;
+        const vehicleIndex = container.getAttribute('data-vehicle-index');
+        
+        newRow.innerHTML = `
+            <td>
+                <input type="text" class="form-control form-control-sm compensation-date datepicker-single" 
+                       name="bus_assignments[${vehicleIndex}][compensations][${rowCount}][target_date]" value="">
+            </td>
+            <td>
+                <select class="form-select form-select-sm compensation-type" 
+                        name="bus_assignments[${vehicleIndex}][compensations][${rowCount}][comp_id]">
+                    <option value="">-- 選択 --</option>
+                    @foreach($compensationTypes ?? [] as $type)
+                        <option value="{{ $type->id }}">{{ $type->comp_name }}</option>
+                    @endforeach
+                </select>
+            </td>
+            <td>
+                <input type="number" class="form-control form-control-sm compensation-price" 
+                       name="bus_assignments[${vehicleIndex}][compensations][${rowCount}][price]" value="0" step="1" min="0">
+            </td>
+            <td>
+                <input type="number" class="form-control form-control-sm compensation-qty" 
+                       name="bus_assignments[${vehicleIndex}][compensations][${rowCount}][qty]" value="0" step="1" min="0">
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm compensation-amount" 
+                       name="bus_assignments[${vehicleIndex}][compensations][${rowCount}][amount]" value="0" readonly style="background-color: #f3f4f6;">
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-success add-compensation-row" style="padding: 2px 6px; font-size: 10px;">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger remove-compensation-row" style="padding: 2px 6px; font-size: 10px;">
+                    <i class="bi bi-dash-lg"></i>
+                </button>
+            </td>
+        `;
+        
+        if (row) {
+            row.parentNode.insertBefore(newRow, row.nextSibling);
+        } else {
+            tbody.appendChild(newRow);
+        }
+        
+        const newDateInput = newRow.querySelector('.compensation-date');
+        if (newDateInput && !newDateInput._flatpickr) {
+            flatpickr(newDateInput, {
+                locale: 'ja',
+                dateFormat: 'Y-m-d',
+                allowInput: true,
+                disableMobile: true
+            });
+        }
+        
+        bindRowEvents(newRow, container);
+        reindexRows(container);
+        updateRemoveButtons(container);
+        updateTotalAmount(container);
+    }
+    
+    function removeRow(row, container) {
+        const rows = container.querySelectorAll('.compensation-row');
+        const rowId = row.getAttribute('data-comp-id');
+        
+        const idInput = row.querySelector('input[name*="[id]"]');
+        const recordId = idInput ? idInput.value : null;
+        
+        row.remove();
+        
+        const remainingRows = container.querySelectorAll('.compensation-row');
+        if (remainingRows.length === 0) {
+            const busId = container.getAttribute('data-bus-id');
+            const vehicleIndex = container.getAttribute('data-vehicle-index');
+            
+            const deletedIdsInput = document.createElement('input');
+            deletedIdsInput.type = 'hidden';
+            deletedIdsInput.name = `bus_assignments[${vehicleIndex}][deleted_compensation_ids][]`;
+            deletedIdsInput.value = recordId;
+            deletedIdsInput.className = 'deleted-compensation-id';
+            container.appendChild(deletedIdsInput);
+            
+            const emptyHtml = `
+                <div class="text-center py-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary add-first-compensation-row" 
+                            data-bus-id="${busId}" data-vehicle-index="${vehicleIndex}"
+                            style="font-size: 11px; padding: 4px 12px;">
+                        <i class="bi bi-plus-lg"></i> 手当を追加
+                    </button>
+                </div>
+            `;
+            
+            const hiddenInput = container.querySelector('.total-amount-hidden');
+            container.innerHTML = emptyHtml;
+            if (hiddenInput) container.appendChild(hiddenInput);
+            container.appendChild(deletedIdsInput);
+            
+            if (typeof refreshEventListeners === 'function') {
+                refreshEventListeners();
+            }
+            return;
+        }
+        
+        reindexRows(container);
+        updateRemoveButtons(container);
+        updateTotalAmount(container);
+    }
+    
+    function updateRemoveButtons(container) {
+        const rows = container.querySelectorAll('.compensation-row');
+        rows.forEach(row => {
+            const removeBtn = row.querySelector('.remove-compensation-row');
+            if (removeBtn) {
+                removeBtn.disabled = false;
+            }
+        });
+    }
+    
+    function bindRowEvents(row, container) {
+        const priceInput = row.querySelector('.compensation-price');
+        const qtyInput = row.querySelector('.compensation-qty');
+        
+        if (priceInput) {
+            priceInput.removeEventListener('input', priceInput._inputHandler);
+            priceInput._inputHandler = () => updateAmount(row);
+            priceInput.addEventListener('input', priceInput._inputHandler);
+        }
+        
+        if (qtyInput) {
+            qtyInput.removeEventListener('input', qtyInput._inputHandler);
+            qtyInput._inputHandler = () => updateAmount(row);
+            qtyInput.addEventListener('input', qtyInput._inputHandler);
+        }
+        
+        const addBtn = row.querySelector('.add-compensation-row');
+        if (addBtn) {
+            addBtn.removeEventListener('click', addBtn._clickHandler);
+            addBtn._clickHandler = () => addRow(row);
+            addBtn.addEventListener('click', addBtn._clickHandler);
+        }
+        
+        const removeBtn = row.querySelector('.remove-compensation-row');
+        if (removeBtn) {
+            removeBtn.removeEventListener('click', removeBtn._clickHandler);
+            removeBtn._clickHandler = () => removeRow(row, container);
+            removeBtn.addEventListener('click', removeBtn._clickHandler);
+        }
+        
+        updateAmount(row);
+    }
+    
+    const existingRows = tbody.querySelectorAll('.compensation-row');
+    existingRows.forEach(row => {
+        bindRowEvents(row, container);
+        
+        const dateInput = row.querySelector('.compensation-date');
+        if (dateInput && !dateInput._flatpickr) {
+            flatpickr(dateInput, {
+                locale: 'ja',
+                dateFormat: 'Y-m-d',
+                allowInput: true,
+                disableMobile: true
+            });
+        }
+    });
+    
+    updateRemoveButtons(container);
+    updateTotalAmount(container);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        document.querySelectorAll('.compensation-container').forEach(container => {
+            initCompensationTable(container);
+        });
+    }, 100);
+});
+
+
+
+function bindPdfExportEvents() {
+    document.querySelectorAll('.btn-pdf-export').forEach(btn => {
+        btn.removeEventListener('click', btn._pdfHandler);
+        const pdfHandler = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const busId = this.getAttribute('data-bus-id');
+            const url = `/masters/group-infos/${busId}/export-pdf-bus-assignment`;
+            window.open(url, '_blank');
+        };
+        btn.addEventListener('click', pdfHandler);
+        btn._pdfHandler = pdfHandler;
+    });
+}
 </script>
 @endpush
