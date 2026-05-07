@@ -79,23 +79,20 @@ class AuthController extends Controller
             DatabaseConnectionService::connectToDefaultDatabase();
             
             try {
-
-                $user = User::on('mysql')->updateOrCreate(
-                    ['id' => $companyId,
-                    'login_id' => $credentials['login_id']],
+                $user = User::on('mysql')->firstOrCreate(
+                    ['id' => $companyId],
                     [
-                        'id' => $companyId,
                         'login_id' => $credentials['login_id'],
                         'name' => $staff->name,
-                        'user_company_name' => "",
-                        "user_plan"=>"basic",
                         'password' => Hash::make($credentials['password']),
                         'last_login_at' => now(),
                     ]
                 );
-
+                
+                if (!$user->wasRecentlyCreated) {
+                    $user->update(['last_login_at' => now()]);
+                }
             } catch (\Exception $e) {
-                \Log::error('Failed to update user: ' . $e->getMessage());
                 $user = new User();
                 $user->id = $companyId;
             }
@@ -105,7 +102,7 @@ class AuthController extends Controller
             $request->session()->put('staff_login_id', $staff->login_id);
             $request->session()->put('company_id', $companyId);
             $request->session()->put('user_database', 'bus_user_' . $companyId);
-            $request->session()->put('user_id', $companyId);
+            $request->session()->put('user_id', $staff->id);
             $request->session()->put('user_name', $staff->name);
             $request->session()->put('role', $staff->role);
             
