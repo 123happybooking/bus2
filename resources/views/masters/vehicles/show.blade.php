@@ -86,6 +86,15 @@
                                     @endif
                                 </dd>
                                 
+                                <dt class="col-sm-4">車両色</dt>
+                                <dd class="col-sm-8">
+                                    @if($vehicle->vehicle_color)
+                                        {{ $vehicle->vehicle_color }}
+                                    @else
+                                        <span class="text-muted">未設定</span>
+                                    @endif
+                                </dd>
+                                
                                 <dt class="col-sm-4">乗車定員</dt>
                                 <dd class="col-sm-8">{{ $vehicle->seating_capacity }}名</dd>
                                 

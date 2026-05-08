@@ -51,22 +51,48 @@
                 @method('PUT')
                 
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label">日付</label>
                         <input type="text" class="form-control bg-light" value="{{ \Carbon\Carbon::parse($report->date)->format('Y年m月d日') }}" readonly>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
+                        <label class="form-label">天気</label>
+                        <select name="weather" class="form-select">
+                            <option value="">-- 選択 --</option>
+                            <option value="晴れ" {{ old('weather', $report->weather) == '晴れ' ? 'selected' : '' }}>晴れ</option>
+                            <option value="曇り" {{ old('weather', $report->weather) == '曇り' ? 'selected' : '' }}>曇り</option>
+                            <option value="雨" {{ old('weather', $report->weather) == '雨' ? 'selected' : '' }}>雨</option>
+                            <option value="雪" {{ old('weather', $report->weather) == '雪' ? 'selected' : '' }}>雪</option>
+                            <option value="霧" {{ old('weather', $report->weather) == '霧' ? 'selected' : '' }}>霧</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label">運転手</label>
                         <input type="text" class="form-control bg-light" value="{{ $report->driver->name ?? '-' }}" readonly>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label">車両</label>
                         <input type="text" class="form-control bg-light" value="{{ $report->vehicle->registration_number ?? '-' }}" readonly>
                     </div>
-                </div>
+                    
+                    <div class="col-md-6">
+                        <label for="start_work_time" class="form-label">始業時刻</label>
+                        <input type="time" name="start_work_time" id="start_work_time" class="form-control @error('start_work_time') is-invalid @enderror" 
+                               value="{{ old('start_work_time', $report->start_work_time ? \Carbon\Carbon::parse($report->start_work_time)->format('H:i') : '') }}">
+                        @error('start_work_time')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label for="end_work_time" class="form-label">終業時刻</label>
+                        <input type="time" name="end_work_time" id="end_work_time" class="form-control @error('end_work_time') is-invalid @enderror" 
+                               value="{{ old('end_work_time', $report->end_work_time ? \Carbon\Carbon::parse($report->end_work_time)->format('H:i') : '') }}">
+                        @error('end_work_time')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                 
-                <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="start_time" class="form-label">出庫時間</label>
                         <input type="time" name="start_time" id="start_time" class="form-control @error('start_time') is-invalid @enderror" 
                                value="{{ old('start_time', $report->start_time ? \Carbon\Carbon::parse($report->start_time)->format('H:i') : '') }}">
@@ -74,7 +100,7 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="start_mileage" class="form-label">出庫時メーター</label>
                         <div class="input-group">
                             <input type="number" name="start_mileage" id="start_mileage" class="form-control @error('start_mileage') is-invalid @enderror" 
@@ -85,10 +111,8 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                </div>
                 
-                <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="end_time" class="form-label">帰庫時間</label>
                         <input type="time" name="end_time" id="end_time" class="form-control @error('end_time') is-invalid @enderror" 
                                value="{{ old('end_time', $report->end_time ? \Carbon\Carbon::parse($report->end_time)->format('H:i') : '') }}">
@@ -96,7 +120,7 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="end_mileage" class="form-label">帰庫時メーター</label>
                         <div class="input-group">
                             <input type="number" name="end_mileage" id="end_mileage" class="form-control @error('end_mileage') is-invalid @enderror" 
@@ -107,12 +131,20 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label">走行距離</label>
                         <div class="input-group">
                             <input type="text" id="distance" class="form-control bg-light" readonly>
                             <span class="input-group-text">km</span>
                         </div>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <label for="remark" class="form-label">備考</label>
+                        <textarea name="remark" id="remark" class="form-control @error('remark') is-invalid @enderror" rows="3">{{ old('remark', $report->remark) }}</textarea>
+                        @error('remark')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 

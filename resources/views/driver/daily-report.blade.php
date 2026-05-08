@@ -23,6 +23,23 @@
 
         @if($report)
         <div class="form-group">
+            <label class="form-label">天気</label>
+            <select name="weather" id="weather" class="form-input" {{ $allowEdit ? '' : 'disabled' }}>
+                <option value="">選択してください</option>
+                <option value="晴れ" {{ ($report->weather ?? '') == '晴れ' ? 'selected' : '' }}>晴れ</option>
+                <option value="曇り" {{ ($report->weather ?? '') == '曇り' ? 'selected' : '' }}>曇り</option>
+                <option value="雨" {{ ($report->weather ?? '') == '雨' ? 'selected' : '' }}>雨</option>
+                <option value="雪" {{ ($report->weather ?? '') == '雪' ? 'selected' : '' }}>雪</option>
+                <option value="霧" {{ ($report->weather ?? '') == '霧' ? 'selected' : '' }}>霧</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">始業時刻</label>
+            <input type="time" id="start_work_time" class="form-input" value="{{ $report->start_work_time ? \Carbon\Carbon::parse($report->start_work_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
+        </div>
+
+        <div class="form-group">
             <label class="form-label">出庫時間</label>
             <input type="time" id="start_time" class="form-input" value="{{ $report->start_time ? \Carbon\Carbon::parse($report->start_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
         </div>
@@ -47,6 +64,11 @@
                 <span class="unit">km</span>
             </div>
         </div>
+        
+        <div class="form-group">
+            <label class="form-label">終業時刻</label>
+            <input type="time" id="end_work_time" class="form-input" value="{{ $report->end_work_time ? \Carbon\Carbon::parse($report->end_work_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
+        </div>
 
         <div class="form-group">
             <label class="form-label">走行距離</label>
@@ -54,6 +76,11 @@
                 <span id="distance">{{ $report->distance ?? '0' }}</span>
                 <span class="unit">km</span>
             </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">備考</label>
+            <textarea name="remark" id="remark" class="form-input" rows="3" {{ $allowEdit ? '' : 'readonly disabled' }}>{{ $report->remark ?? '' }}</textarea>
         </div>
 
         @if($completedItineraries->count() > 0)
@@ -482,6 +509,10 @@ if (document.getElementById('saveBtn')) {
     const endTimeInput = document.getElementById('end_time');
     const endMileageInput = document.getElementById('end_mileage');
     const vehicleSelect = document.getElementById('vehicle_id');
+    const weatherSelect = document.getElementById('weather');
+    const startWorkTimeInput = document.getElementById('start_work_time');
+    const endWorkTimeInput = document.getElementById('end_work_time');
+    const remarkTextarea = document.getElementById('remark');
     
     startMileageInput.addEventListener('input', updateDistance);
     endMileageInput.addEventListener('input', updateDistance);
@@ -493,6 +524,10 @@ if (document.getElementById('saveBtn')) {
             end_time: endTimeInput.value,
             end_mileage: endMileageInput.value,
             vehicle_id: vehicleSelect ? vehicleSelect.value : null,
+            weather: weatherSelect ? weatherSelect.value : null,
+            start_work_time: startWorkTimeInput ? startWorkTimeInput.value : null,
+            end_work_time: endWorkTimeInput ? endWorkTimeInput.value : null,
+            remark: remarkTextarea ? remarkTextarea.value : null,
         };
         
         fetch(`/driver/daily-reports/${reportId}`, {

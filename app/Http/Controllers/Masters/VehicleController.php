@@ -56,6 +56,7 @@ class VehicleController extends Controller
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'vehicle_code' => 'required|unique:vehicles|max:50',
+            'vehicle_color' => 'nullable|string|max:50',
             'registration_number' => 'required|unique:vehicles|max:20',
             'vehicle_type_id' => 'required|exists:vehicle_types,id',
             'vehicle_model_id' => 'required|exists:vehicle_models,id',
@@ -104,6 +105,7 @@ class VehicleController extends Controller
                 'id' => $vehicle->id,
                 'registration_number' => $vehicle->registration_number,
                 'vehicle_code' => $vehicle->vehicle_code,
+                'vehicle_color' => $vehicle->vehicle_color ?? '',
                 'vehicle_type' => $vehicle->vehicleType->type_name ?? '',
                 'vehicle_model' => $vehicle->vehicleModel->model_name ?? '',
                 'vehicle_branch' => $vehicle->branch->branch_name ?? '',
@@ -128,6 +130,7 @@ class VehicleController extends Controller
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'vehicle_code' => 'required|max:50|unique:vehicles,vehicle_code,' . $id,
+            'vehicle_color' => 'nullable|string|max:50',
             'registration_number' => 'required|max:20|unique:vehicles,registration_number,' . $id,
             'vehicle_type_id' => 'required|exists:vehicle_types,id',
             'vehicle_model_id' => 'required|exists:vehicle_models,id',

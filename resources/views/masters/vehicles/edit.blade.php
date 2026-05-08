@@ -83,52 +83,71 @@
                                 @enderror
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <label for="vehicle_type_id" class="form-label">車両種類</label>
-                                    <select name="vehicle_type_id" id="vehicle_type_id" 
-                                            class="form-select @error('vehicle_type_id') is-invalid @enderror" required>
-                                        <option value="">選択してください</option>
-                                        @foreach($vehicleTypes as $type)
-                                            <option value="{{ $type->id }}" 
-                                                {{ old('vehicle_type_id', $vehicle->vehicle_type_id) == $type->id ? 'selected' : '' }}
-                                                data-models='@json($type->models)'>
-                                                {{ $type->type_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('vehicle_type_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            
-                                <div class="col-md-4">
-                                    <label for="vehicle_model_id" class="form-label">モデル</label>
-                                    <select name="vehicle_model_id" id="vehicle_model_id" 
-                                            class="form-select @error('vehicle_model_id') is-invalid @enderror" required>
-                                        <option value="">先に車両種類を選択してください</option>
-                                    </select>
-                                    @error('vehicle_model_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            
-                                <div class="col-md-4">
-                                    <label for="vehicle_grade_id" class="form-label">車両等級</label>
-                                    <select name="vehicle_grade_id" id="vehicle_grade_id" 
-                                            class="form-select @error('vehicle_grade_id') is-invalid @enderror" required>
-                                        <option value="">選択してください</option>
-                                        @foreach($vehicleGrades as $grade)
-                                            <option value="{{ $grade->id }}" 
-                                                {{ old('vehicle_grade_id', $vehicle->vehicle_grade_id) == $grade->id ? 'selected' : '' }}>
-                                                {{ $grade->description }} ({{ $grade->grade_name }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('vehicle_grade_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                            <div class="col-md-6">
+                                <label for="vehicle_type_id" class="form-label">車両種類</label>
+                                <select name="vehicle_type_id" id="vehicle_type_id" 
+                                        class="form-select @error('vehicle_type_id') is-invalid @enderror" required>
+                                    <option value="">選択してください</option>
+                                    @foreach($vehicleTypes as $type)
+                                        <option value="{{ $type->id }}" 
+                                            {{ old('vehicle_type_id', $vehicle->vehicle_type_id) == $type->id ? 'selected' : '' }}
+                                            data-models='@json($type->models)'>
+                                            {{ $type->type_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('vehicle_type_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        
+                            <div class="col-md-6">
+                                <label for="vehicle_model_id" class="form-label">モデル</label>
+                                <select name="vehicle_model_id" id="vehicle_model_id" 
+                                        class="form-select @error('vehicle_model_id') is-invalid @enderror" required>
+                                    <option value="">先に車両種類を選択してください</option>
+                                </select>
+                                @error('vehicle_model_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="vehicle_grade_id" class="form-label">車両等級</label>
+                                <select name="vehicle_grade_id" id="vehicle_grade_id" 
+                                        class="form-select @error('vehicle_grade_id') is-invalid @enderror" required>
+                                    <option value="">選択してください</option>
+                                    @foreach($vehicleGrades as $grade)
+                                        <option value="{{ $grade->id }}" 
+                                            {{ old('vehicle_grade_id', $vehicle->vehicle_grade_id) == $grade->id ? 'selected' : '' }}>
+                                            {{ $grade->description }} ({{ $grade->grade_name }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('vehicle_grade_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        
+                            <div class="col-md-6">
+                                <label for="vehicle_color" class="form-label">車両色</label>
+                                <select name="vehicle_color" id="vehicle_color" class="form-select @error('vehicle_color') is-invalid @enderror">
+                                    <option value="">選択してください</option>
+                                    <option value="ホワイト" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'ホワイト' ? 'selected' : '' }}>ホワイト</option>
+                                    <option value="ブラック" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'ブラック' ? 'selected' : '' }}>ブラック</option>
+                                    <option value="シルバー" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'シルバー' ? 'selected' : '' }}>シルバー</option>
+                                    <option value="グレー" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'グレー' ? 'selected' : '' }}>グレー</option>
+                                    <option value="レッド" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'レッド' ? 'selected' : '' }}>レッド</option>
+                                    <option value="ブルー" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'ブルー' ? 'selected' : '' }}>ブルー</option>
+                                    <option value="グリーン" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'グリーン' ? 'selected' : '' }}>グリーン</option>
+                                    <option value="イエロー" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'イエロー' ? 'selected' : '' }}>イエロー</option>
+                                    <option value="オレンジ" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'オレンジ' ? 'selected' : '' }}>オレンジ</option>
+                                    <option value="ゴールド" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'ゴールド' ? 'selected' : '' }}>ゴールド</option>
+                                    <option value="その他" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'その他' ? 'selected' : '' }}>その他</option>
+                                </select>
+                                @error('vehicle_color')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="col-md-6">

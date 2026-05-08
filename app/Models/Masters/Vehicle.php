@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Vehicle extends Model
 {
     protected $fillable = [
-        'branch_id', 'vehicle_code', 'registration_number', 
+        'branch_id', 'vehicle_code', 'vehicle_color', 'registration_number', 
         'vehicle_type_id', 'vehicle_model_id', 'seating_capacity', 'ownership_type', 
         'inspection_expiration_date', 'is_active', 
         'display_order', 'remarks','vehicle_grade_id'

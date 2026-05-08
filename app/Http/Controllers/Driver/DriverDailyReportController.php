@@ -181,6 +181,10 @@ class DriverDailyReportController extends Controller
             'start_mileage' => null,
             'end_time' => null,
             'end_mileage' => null,
+            'weather' => null,
+            'start_work_time' => null,
+            'end_work_time' => null,
+            'remark' => null,
             'created_by' => $userId,
             'updated_by' => $userId,
         ]);
@@ -213,6 +217,10 @@ class DriverDailyReportController extends Controller
             'end_time' => 'nullable|date_format:H:i',
             'end_mileage' => 'nullable|integer|min:0',
             'vehicle_id' => 'nullable|integer|exists:vehicles,id',
+            'weather' => 'nullable|string|max:50',
+            'start_work_time' => 'nullable|date_format:H:i',
+            'end_work_time' => 'nullable|date_format:H:i',
+            'remark' => 'nullable|string|max:500', 
         ]);
         
         $report->update([
@@ -221,6 +229,10 @@ class DriverDailyReportController extends Controller
             'end_time' => $request->end_time,
             'end_mileage' => $request->end_mileage,
             'vehicle_id' => $request->vehicle_id ?? $report->vehicle_id,
+            'weather' => $request->weather,
+            'start_work_time' => $request->start_work_time,
+            'end_work_time' => $request->end_work_time,
+            'remark' => $request->remark,
             'updated_by' => $userId,
         ]);
         

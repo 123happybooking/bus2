@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Driver\DriverDailyReport;
 use App\Models\Driver\DriverOperationLog;
 use App\Models\Driver\DriverOperationStatus;
+use App\Models\Driver\DriverExpense;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Masters\Driver;
 use App\Models\Masters\Vehicle;
@@ -78,10 +79,14 @@ class DailyReportController extends Controller
         $report = DriverDailyReport::findOrFail($id);
         
         $request->validate([
+            'start_work_time' => 'nullable|date_format:H:i',
+            'end_work_time' => 'nullable|date_format:H:i',
             'start_time' => 'nullable|date_format:H:i',
             'start_mileage' => 'nullable|integer|min:0',
             'end_time' => 'nullable|date_format:H:i',
             'end_mileage' => 'nullable|integer|min:0',
+            'weather' => 'nullable|string|max:50',
+            'remark' => 'nullable|string|max:500',
             'allow_edit' => 'nullable|boolean',
             'logs' => 'nullable|array',
         ]);
@@ -89,10 +94,14 @@ class DailyReportController extends Controller
         $userId = session('user_id', auth()->id() ?? 0);
         
         $report->update([
+            'start_work_time' => $request->start_work_time,
+            'end_work_time' => $request->end_work_time,
             'start_time' => $request->start_time,
             'start_mileage' => $request->start_mileage,
             'end_time' => $request->end_time,
             'end_mileage' => $request->end_mileage,
+            'weather' => $request->weather,
+            'remark' => $request->remark,
             'allow_edit' => $request->has('allow_edit'),
             'updated_by' => $userId,
         ]);
@@ -169,37 +178,213 @@ class DailyReportController extends Controller
             ->with('success', '運行日報を更新しました。');
     }
     
+    // public function exportPdf($id)
+    // {
+    //     $report = DriverDailyReport::with(['driver', 'vehicle'])->findOrFail($id);
+        
+    //     $itinerary = DailyItinerary::with(['busAssignment.groupInfo'])
+    //         ->where('driver_id', $report->driver_id)
+    //         ->whereDate('date', $report->date)
+    //         ->first();
+        
+    //     $operationLogs = DB::table('driver_operation_logs')
+    //         ->where('driver_id', $report->driver_id)
+    //         ->whereDate('logged_at', $report->date)
+    //         ->orderBy('logged_at', 'asc')
+    //         ->get();
+        
+    //     $pairedLogs = [];
+    //     $arrivalLog = null;
+        
+    //     foreach ($operationLogs as $log) {
+    //         if ($log->action === '到着') {
+    //             $arrivalLog = $log;
+    //         } elseif ($log->action === '下車' && $arrivalLog) {
+    //             $pairedLogs[] = [
+    //                 'arrival' => $arrivalLog,
+    //                 'disembark' => $log,
+    //             ];
+    //             $arrivalLog = null;
+    //         }
+    //     }
+        
+    //     $data = $this->preparePdfData($report, $itinerary, $pairedLogs);
+        
+    //     $html = view('masters.daily-reports.pdf', $data)->render();
+        
+    //     $mpdf = new Mpdf([
+    //         'mode' => 'utf-8',
+    //         'format' => 'A4',
+    //         'tempDir' => sys_get_temp_dir(),
+    //         // 'default_font' => 'kozgopromedium', //默认字体
+            
+    //         // ================================================ 自定义字体
+    //         'fontDir' => [
+    //             base_path('vendor/mpdf/mpdf/ttfonts'),
+    //             storage_path('fonts'),
+    //         ],
+    //         'fontdata' => [
+    //             'ipaexgothic' => [
+    //                 'R' => 'ipaexgothic.ttf',
+    //                 'useOTL' => 0x80,
+    //             ],
+    //             'ipaexmincho' => [
+    //                 'R' => 'ipaexmincho.ttf',
+    //                 'useOTL' => 0x80,
+    //             ],
+    //         ],
+    //         'default_font' => 'ipaexgothic',
+    //         // ================================================
+            
+    //     ]);
+        
+    //     $mpdf->shrink_tables_to_fit = 0;
+    //     $mpdf->keep_table_proportions = true;
+        
+    //     $mpdf->autoScriptToLang = true;
+    //     $mpdf->autoLangToFont = true;
+        
+    //     $mpdf->WriteHTML($html);
+        
+    //     return $mpdf->Output('daily_report_' . $report->date . '.pdf', 'D');
+    // }
+    
+    // private function preparePdfData($report, $itinerary, $pairedLogs)
+    // {
+    //     $companyInfo = [
+    //         'name' => '',
+    //         'branch' => '',
+    //         'tel' => '',
+    //         'fax' => '',
+    //     ];
+        
+    //     try {
+    //         $userCompany = DB::table('user_company_info')->first();
+            
+    //         if ($userCompany) {
+    //             $companyInfo['name'] = $userCompany->user_company_name ?? '';
+    //             $companyInfo['tel'] = $userCompany->phone_number ?? '';
+    //             $companyInfo['fax'] = $userCompany->fax_number ?? '';
+    //         }
+            
+    //         $branch = DB::table('branches')
+    //             ->join('drivers', 'branches.id', '=', 'drivers.branch_id')
+    //             ->where('drivers.id', $report->driver_id)
+    //             ->select('branches.*')
+    //             ->first();
+            
+    //         if ($branch) {
+    //             $companyInfo['branch'] = $branch->branch_name ?? '';
+    //             if ($branch->phone_number) {
+    //                 $companyInfo['tel'] = $branch->phone_number;
+    //             }
+    //             if ($branch->fax_number) {
+    //                 $companyInfo['fax'] = $branch->fax_number;
+    //             }
+    //         }
+    //     } catch (\Exception $e) {
+    //     }
+        
+    //     $distance = 0;
+    //     if ($report->start_mileage && $report->end_mileage) {
+    //         $distance = $report->end_mileage - $report->start_mileage;
+    //     }
+        
+    //     $weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+    //     $dateObj = Carbon::parse($report->date);
+    //     $formattedDate = $dateObj->format('Y年n月j日') . '(' . $weekdays[$dateObj->dayOfWeek] . ')';
+        
+    //     $itineraryIds = [];
+    //     foreach ($pairedLogs as $log) {
+    //         $itineraryIds[] = $log['arrival']->itinerary_id;
+    //     }
+        
+    //     $itineraries = DailyItinerary::whereIn('id', $itineraryIds)
+    //         ->get()
+    //         ->keyBy('id');
+        
+    //     $data = [
+    //         'date' => $formattedDate,
+    //         'report' => $report,
+    //         'itinerary' => $itinerary,
+    //         'pairedLogs' => $pairedLogs,
+    //         'companyInfo' => $companyInfo,
+    //         'distance' => $distance,
+    //         'totalPassengers' => ($itinerary->busAssignment->adult_count ?? 0) + 
+    //                              ($itinerary->busAssignment->child_count ?? 0) + 
+    //                              ($itinerary->busAssignment->guide_count ?? 0),
+    //         'adultCount' => $itinerary->busAssignment->adult_count ?? 0,
+    //     ];
+        
+    //     $itineraryRows = [];
+    //     for ($i = 0; $i < 12; $i++) {
+    //         if (isset($pairedLogs[$i])) {
+    //             $log = $pairedLogs[$i];
+    //             $itineraryItem = $itineraries[$log['arrival']->itinerary_id] ?? null;
+                
+    //             $itineraryRows[] = [
+    //                 'location' => ($itineraryItem->start_location ?? '未指定') . ' → ' . ($itineraryItem->end_location ?? '未指定'),
+    //                 'start_time' => Carbon::parse($log['arrival']->logged_at)->format('H:i'),
+    //                 'end_time' => Carbon::parse($log['disembark']->logged_at)->format('H:i'),
+    //                 'start_mileage' => $log['arrival']->mileage,
+    //                 'end_mileage' => $log['disembark']->mileage,
+    //                 'distance' => ($log['disembark']->mileage - $log['arrival']->mileage),
+    //             ];
+    //         } else {
+    //             $itineraryRows[] = [
+    //                 'location' => '',
+    //                 'start_time' => '',
+    //                 'end_time' => '',
+    //                 'start_mileage' => '',
+    //                 'end_mileage' => '',
+    //                 'distance' => '',
+    //             ];
+    //         }
+    //     }
+    //     $data['itineraryRows'] = $itineraryRows;
+        
+    //     return $data;
+    // }
+    
+    
+    
+    
+    
+        
     public function exportPdf($id)
     {
         $report = DriverDailyReport::with(['driver', 'vehicle'])->findOrFail($id);
         
-        $itinerary = DailyItinerary::with(['busAssignment.groupInfo'])
+        $itineraries = DailyItinerary::with(['busAssignment.groupInfo', 'operationLogs'])
             ->where('driver_id', $report->driver_id)
             ->whereDate('date', $report->date)
-            ->first();
-        
-        $operationLogs = DB::table('driver_operation_logs')
-            ->where('driver_id', $report->driver_id)
-            ->whereDate('logged_at', $report->date)
-            ->orderBy('logged_at', 'asc')
+            ->orderBy('time_start', 'asc')
             ->get();
         
-        $pairedLogs = [];
-        $arrivalLog = null;
+        $expenses = DriverExpense::with(['expenseType', 'paymentMethod'])
+            ->where('driver_id', $report->driver_id)
+            ->whereDate('expense_date', $report->date)
+            ->orderBy('expense_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
         
-        foreach ($operationLogs as $log) {
-            if ($log->action === '到着') {
-                $arrivalLog = $log;
-            } elseif ($log->action === '下車' && $arrivalLog) {
-                $pairedLogs[] = [
-                    'arrival' => $arrivalLog,
-                    'disembark' => $log,
-                ];
-                $arrivalLog = null;
+        $expensesByItinerary = [];
+        foreach ($expenses as $expense) {
+            $itineraryId = $expense->itinerary_id;
+            if (!isset($expensesByItinerary[$itineraryId])) {
+                $expensesByItinerary[$itineraryId] = [];
             }
+            $expensesByItinerary[$itineraryId][] = [
+                'expense_date' => Carbon::parse($expense->expense_date)->format('m/d'),
+                'type_name' => $expense->expenseType->type_name ?? '',
+                'amount' => $expense->amount,
+                'payment_method_name' => $expense->paymentMethod->method_name ?? '',
+                'agency_flag' => $expense->agency_flag,
+                'remark' => $expense->remark,
+            ];
         }
         
-        $data = $this->preparePdfData($report, $itinerary, $pairedLogs);
+        $data = $this->preparePdfData($report, $itineraries, $expensesByItinerary);
         
         $html = view('masters.daily-reports.pdf', $data)->render();
         
@@ -207,9 +392,6 @@ class DailyReportController extends Controller
             'mode' => 'utf-8',
             'format' => 'A4',
             'tempDir' => sys_get_temp_dir(),
-            // 'default_font' => 'kozgopromedium', //默认字体
-            
-            // ================================================ 自定义字体
             'fontDir' => [
                 base_path('vendor/mpdf/mpdf/ttfonts'),
                 storage_path('fonts'),
@@ -225,13 +407,10 @@ class DailyReportController extends Controller
                 ],
             ],
             'default_font' => 'ipaexgothic',
-            // ================================================
-            
         ]);
         
         $mpdf->shrink_tables_to_fit = 0;
         $mpdf->keep_table_proportions = true;
-        
         $mpdf->autoScriptToLang = true;
         $mpdf->autoLangToFont = true;
         
@@ -240,7 +419,7 @@ class DailyReportController extends Controller
         return $mpdf->Output('daily_report_' . $report->date . '.pdf', 'D');
     }
     
-    private function preparePdfData($report, $itinerary, $pairedLogs)
+    private function preparePdfData($report, $itineraries, $expensesByItinerary)
     {
         $companyInfo = [
             'name' => '',
@@ -249,13 +428,22 @@ class DailyReportController extends Controller
             'fax' => '',
         ];
         
+        $companyLogo = null;
+        
         try {
             $userCompany = DB::table('user_company_info')->first();
-            
             if ($userCompany) {
                 $companyInfo['name'] = $userCompany->user_company_name ?? '';
                 $companyInfo['tel'] = $userCompany->phone_number ?? '';
                 $companyInfo['fax'] = $userCompany->fax_number ?? '';
+                if (!empty($userCompany->setup_company_seal)) {
+                    $logoPath = storage_path('app/public/' . $userCompany->setup_company_seal);
+                    if (file_exists($logoPath)) {
+                        $companyLogo = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+                    } elseif (file_exists(public_path($userCompany->setup_company_seal))) {
+                        $companyLogo = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path($userCompany->setup_company_seal)));
+                    }
+                }
             }
             
             $branch = DB::table('branches')
@@ -276,63 +464,55 @@ class DailyReportController extends Controller
         } catch (\Exception $e) {
         }
         
-        $distance = 0;
+        $totalDistance = 0;
         if ($report->start_mileage && $report->end_mileage) {
-            $distance = $report->end_mileage - $report->start_mileage;
+            $totalDistance = $report->end_mileage - $report->start_mileage;
         }
+        
+        $actualDistance = $totalDistance;
+        $emptyDistance = 0;
         
         $weekdays = ['日', '月', '火', '水', '木', '金', '土'];
         $dateObj = Carbon::parse($report->date);
         $formattedDate = $dateObj->format('Y年n月j日') . '(' . $weekdays[$dateObj->dayOfWeek] . ')';
         
-        $itineraryIds = [];
-        foreach ($pairedLogs as $log) {
-            $itineraryIds[] = $log['arrival']->itinerary_id;
-        }
+        $weather = $report->weather ?? '';
         
-        $itineraries = DailyItinerary::whereIn('id', $itineraryIds)
-            ->get()
-            ->keyBy('id');
-        
-        $data = [
-            'date' => $formattedDate,
-            'report' => $report,
-            'itinerary' => $itinerary,
-            'pairedLogs' => $pairedLogs,
-            'companyInfo' => $companyInfo,
-            'distance' => $distance,
-            'totalPassengers' => ($itinerary->busAssignment->adult_count ?? 0) + 
-                                 ($itinerary->busAssignment->child_count ?? 0) + 
-                                 ($itinerary->busAssignment->guide_count ?? 0),
-            'adultCount' => $itinerary->busAssignment->adult_count ?? 0,
-        ];
-        
-        $itineraryRows = [];
-        for ($i = 0; $i < 12; $i++) {
-            if (isset($pairedLogs[$i])) {
-                $log = $pairedLogs[$i];
-                $itineraryItem = $itineraries[$log['arrival']->itinerary_id] ?? null;
-                
-                $itineraryRows[] = [
-                    'location' => ($itineraryItem->start_location ?? '未指定') . ' → ' . ($itineraryItem->end_location ?? '未指定'),
-                    'start_time' => Carbon::parse($log['arrival']->logged_at)->format('H:i'),
-                    'end_time' => Carbon::parse($log['disembark']->logged_at)->format('H:i'),
-                    'start_mileage' => $log['arrival']->mileage,
-                    'end_mileage' => $log['disembark']->mileage,
-                    'distance' => ($log['disembark']->mileage - $log['arrival']->mileage),
-                ];
-            } else {
-                $itineraryRows[] = [
-                    'location' => '',
-                    'start_time' => '',
-                    'end_time' => '',
-                    'start_mileage' => '',
-                    'end_mileage' => '',
-                    'distance' => '',
+        $completedItineraries = [];
+        foreach ($itineraries as $itinerary) {
+            $logs = [];
+            foreach ($itinerary->operationLogs as $log) {
+                $logs[] = [
+                    'time' => Carbon::parse($log->logged_at)->format('H:i'),
+                    'location' => $log->address ?? '',
+                    'meter' => $log->mileage ?? '',
+                    'content' => $log->action ?? '',
+                    'remark' => '',
                 ];
             }
+            
+            $itineraryExpenses = $expensesByItinerary[$itinerary->id] ?? [];
+            
+            $completedItineraries[] = [
+                'reservation_id' => ($itinerary->busAssignment->group_info_id ?? '') . '-' . ($itinerary->bus_assignment_id ?? ''),
+                'start_time' => $itinerary->time_start ? Carbon::parse($itinerary->time_start)->format('H:i') : '',
+                'end_time' => $itinerary->time_end ? Carbon::parse($itinerary->time_end)->format('H:i') : '',
+                'logs' => $logs,
+                'expenses' => $itineraryExpenses,
+            ];
         }
-        $data['itineraryRows'] = $itineraryRows;
+        
+        $data = [
+            'companyInfo' => $companyInfo,
+            'companyLogo' => $companyLogo,
+            'report' => $report,
+            'date' => $formattedDate,
+            'weather' => $weather,
+            'totalDistance' => $totalDistance,
+            'actualDistance' => $actualDistance,
+            'emptyDistance' => $emptyDistance,
+            'completedItineraries' => $completedItineraries,
+        ];
         
         return $data;
     }

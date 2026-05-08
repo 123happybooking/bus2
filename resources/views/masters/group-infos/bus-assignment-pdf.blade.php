@@ -5,7 +5,7 @@
 <title>運行指示書</title>
 <style>
 table { width: 100%; border: 0; border-collapse: collapse; }
-td { text-align: center; vertical-align: middle; background-color: #fff; padding: 3px; border: 1px solid #000; font-size: 11pt; line-height: 150%; height: 11pt;}
+td { text-align: center; vertical-align: middle; background-color: #fff; padding: 3px; border: 1px solid #000; font-size: 11pt; line-height: 150%; height: 20pt;}
 .remark { height: 60pt;}
 .bg-gray { background-color: #F2F2F2; }
 
