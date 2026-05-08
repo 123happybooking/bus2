@@ -20,6 +20,8 @@
         font-size: 11pt;
         line-height: 150%;
         height: 20pt;
+        word-break: break-all;
+        word-wrap: break-word;
     }
     th {
         background-color: #f0f0f0;
@@ -38,15 +40,14 @@
     .table-no-border td {
         border: 0;
     }
-    .table-list {
-        margin: 8pt;
-    }
     .table-list th,
-    .table-list td{
+    .table-list td {
         text-align: left;
         font-size: 9pt;
-        padding: 0;
+        padding: 0 8pt;
         height: 9pt;
+        word-break: break-all;
+        word-wrap: break-word;
     }
     .header {
         width: 100%;
@@ -141,11 +142,11 @@
                     <td colspan="6"><b>{{ $itinerary['reservation_id'] ?? '' }}</b></td>
                 </tr>
                 <tr>
-                    <td>時刻</td>
-                    <td>地名</td>
-                    <td>メーター</td>
-                    <td>内容</td>
-                    <td colspan="2">備考</td>
+                    <td style="width: 15%;">時刻</td>
+                    <td style="width: 40%;">地名</td>
+                    <td style="width: 15%;">メーター</td>
+                    <td style="width: 15%;">内容</td>
+                    <td style="width: 15%;" colspan="2">備考</td>
                 </tr>
                 
                 @foreach($itinerary['logs'] as $log)

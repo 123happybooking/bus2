@@ -5,7 +5,7 @@
 <title>運行指示書</title>
 <style>
 table { width: 100%; border: 0; border-collapse: collapse; }
-td { text-align: center; vertical-align: middle; background-color: #fff; padding: 3px; border: 1px solid #000; font-size: 11pt; line-height: 150%; height: 20pt;}
+td { text-align: center; vertical-align: middle; background-color: #fff; padding: 3px; border: 1px solid #000; font-size: 11pt; line-height: 150%; height: 20pt; word-break: break-all; word-wrap: break-word;}
 .remark { height: 60pt;}
 .bg-gray { background-color: #F2F2F2; }
 
@@ -129,13 +129,13 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
  </tr>
 </table>
 
-<div class="footer">
-    <div class="c1">　</div>
-    <div class="c2">
-        発行日 {{ $issueDate ?? '--' }}　　
-        発行担当 {{ $issueBy ?? '--' }}
-    </div>
-</div>
+<!--<div class="footer">-->
+<!--    <div class="c1">{PAGENO} / {nbpg}</div>-->
+<!--    <div class="c2">-->
+<!--        発行日 {{ $issueDate ?? '--' }}　　-->
+<!--        発行担当 {{ $issueBy ?? '--' }}-->
+<!--    </div>-->
+<!--</div>-->
 
 </body>
 </html>

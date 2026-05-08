@@ -3692,6 +3692,7 @@ public function exportPdfBusAssignment($busId)
     $mpdf = new \Mpdf\Mpdf([
         'mode' => 'utf-8',
         'format' => 'A4',
+        'margin_footer' => 10,
         'tempDir' => sys_get_temp_dir(),
         'fontDir' => [
             base_path('vendor/mpdf/mpdf/ttfonts'),
@@ -3708,6 +3709,19 @@ public function exportPdfBusAssignment($busId)
     $mpdf->keep_table_proportions = true;
     $mpdf->autoScriptToLang = true;
     $mpdf->autoLangToFont = true;
+    
+    $mpdf->SetHTMLFooter('
+        <table style="width: 100%; border: 0; margin-top: 5px;">
+            <tr>
+                <td style="text-align: left; width: 50%; font-size: 9pt; border: 0;">{PAGENO} / {nbpg}</td>
+                <td style="text-align: right; width: 50%;font-size: 9pt; border: 0;">
+                    発行日：' . date('Y/m/d') . '　　
+                    発行担当：' . (session('staff_name') ?? 'システム') . '
+                </td>
+            </tr>
+        </table>
+    ');
+    
     $mpdf->WriteHTML($html);
     
     return $mpdf->Output('運行指示書_' . ($driver->name ?? '不明') . '_' . $busAssignment->id . '_' . $operationDate->format('ymd') . '.pdf', 'D');
