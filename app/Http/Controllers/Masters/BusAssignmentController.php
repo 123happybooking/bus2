@@ -1748,7 +1748,7 @@ class BusAssignmentController extends Controller
         }
         
         $manager = $groupInfo->agency_contact_name ?? '';
-        $route = $busAssignment->dailyItineraries->first()->itinerary ?? '';
+        $route = $groupInfo->itinerary_name ?? '';
         
         $office = '';
         if ($vehicle && $vehicle->branch_id) {
