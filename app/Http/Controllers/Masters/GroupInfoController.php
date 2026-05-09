@@ -31,7 +31,7 @@ class GroupInfoController extends Controller
     {
         $sessionKey = 'group_infos_search';
         
-        $searchFields = ['date_from', 'date_to'];
+        $searchFields = ['date_from', 'date_end'];
         
         $isNewSearch = false;
         foreach ($searchFields as $field) {
@@ -68,8 +68,8 @@ class GroupInfoController extends Controller
             $query->whereDate('start_date', '>=', $request->date_from);
         }
 
-        if ($request->filled('date_to')) {
-            $query->whereDate('end_date', '<=', $request->date_to);
+        if ($request->filled('date_end')) {
+            $query->whereDate('end_date', '<=', $request->date_end);
         }
 
         $perPage = $request->input('per_page', 20);
@@ -3674,7 +3674,7 @@ class GroupInfoController extends Controller
         }
         
         $manager = $groupInfo->agency_contact_name ?? '';
-        $route = $busAssignment->dailyItineraries->first()->itinerary ?? '';
+        $route = $groupInfo->itinerary_name ?? '';
         
         $office = '';
         if ($vehicle && $vehicle->branch_id) {
