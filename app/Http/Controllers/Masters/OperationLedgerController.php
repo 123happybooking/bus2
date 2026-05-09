@@ -18,34 +18,34 @@ class OperationLedgerController extends Controller
 {
     public function index(Request $request)
     {
-        $sessionStartDate = session('operation_ledger.start_date');
-        $sessionEndDate = session('operation_ledger.end_date');
-        $sessionPeriod = session('operation_ledger.period');
+        $sessionKey = 'operation_ledger_search';
         
-        $startDate = $request->input('start_date', $sessionStartDate);
-        $endDate = $request->input('end_date', $sessionEndDate);
-        $period = $request->input('period', $sessionPeriod);
+        $searchFields = ['start_date', 'end_date', 'period', 'display_days'];
         
-        if ($request->has('start_date')) {
-            session(['operation_ledger.start_date' => $request->input('start_date')]);
-        }
-        if ($request->has('end_date')) {
-            session(['operation_ledger.end_date' => $request->input('end_date')]);
-        }
-        if ($request->has('period')) {
-            session(['operation_ledger.period' => $request->input('period')]);
+        $isNewSearch = false;
+        foreach ($searchFields as $field) {
+            if ($request->filled($field)) {
+                $isNewSearch = true;
+                break;
+            }
         }
         
-        $hasNoParams = !$request->has('start_date') && !$request->has('end_date') && !$request->has('period');
-        $hasNoSession = !$sessionStartDate && !$sessionEndDate && !$sessionPeriod;
-        
-        if ($hasNoParams && $hasNoSession) {
-            $startDate = null;
-            $endDate = null;
-            $period = null;
-        } elseif ($hasNoParams && !$hasNoSession) {
+        if ($request->has('reset_search')) {
+            session()->forget($sessionKey);
+            $isNewSearch = false;
         }
         
+        if ($isNewSearch) {
+            $searchParams = $request->only($searchFields);
+            session([$sessionKey => $searchParams]);
+        } else {
+            $searchParams = session($sessionKey, []);
+            $request->merge($searchParams);
+        }
+        
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $period = $request->input('period');
         $attendanceStatus = $request->input('attendance_status');
         $vehicleTypeId = $request->input('vehicle_type_id');
         $agencyId = $request->input('agency_id');

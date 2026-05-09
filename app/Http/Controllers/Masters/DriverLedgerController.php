@@ -20,6 +20,31 @@ class DriverLedgerController extends Controller
 {
     public function index(Request $request)
     {
+        $sessionKey = 'driver_ledger_search';
+        
+        $searchFields = ['start_date', 'end_date', 'period', 'display_days'];
+        
+        $isNewSearch = false;
+        foreach ($searchFields as $field) {
+            if ($request->filled($field)) {
+                $isNewSearch = true;
+                break;
+            }
+        }
+        
+        if ($request->has('reset_search')) {
+            session()->forget($sessionKey);
+            $isNewSearch = false;
+        }
+        
+        if ($isNewSearch) {
+            $searchParams = $request->only($searchFields);
+            session([$sessionKey => $searchParams]);
+        } else {
+            $searchParams = session($sessionKey, []);
+            $request->merge($searchParams);
+        }
+        
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
         $period = $request->input('period');

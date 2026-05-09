@@ -138,7 +138,7 @@
             </div>
             
             <div class="col-auto">
-                <a href="{{ route('masters.operation-ledger.index') }}" class="btn btn-sm btn-outline-secondary">リセット</a>
+                <a href="{{ route('masters.operation-ledger.index', ['reset_search' => 1]) }}" class="btn btn-sm btn-outline-secondary">リセット</a>
             </div>
         </form>
     </div>

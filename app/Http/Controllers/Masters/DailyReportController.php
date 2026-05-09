@@ -19,6 +19,31 @@ class DailyReportController extends Controller
 {
     public function index(Request $request)
     {
+        $sessionKey = 'daily_reports_search';
+        
+        $searchFields = ['date_from', 'date_to'];
+        
+        $isNewSearch = false;
+        foreach ($searchFields as $field) {
+            if ($request->filled($field)) {
+                $isNewSearch = true;
+                break;
+            }
+        }
+        
+        if ($request->has('reset_search')) {
+            session()->forget($sessionKey);
+            $isNewSearch = false;
+        }
+        
+        if ($isNewSearch) {
+            $searchParams = $request->only($searchFields);
+            session([$sessionKey => $searchParams]);
+        } else {
+            $searchParams = session($sessionKey, []);
+            $request->merge($searchParams);
+        }
+        
         $query = DriverDailyReport::with(['driver', 'vehicle']);
         
         if ($request->filled('date_from')) {

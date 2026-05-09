@@ -86,17 +86,17 @@
                                             </select>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="d-flex w-50 gap-2">
                                         <div class="d-flex align-items-center flex-fill">
                                             <span class="span-label" style="min-width: 50px;">担当</span>
-                                            <input type="text" class="form-control form-control-sm border w-100" name="agency_contact_name" value="{{ old('agency_contact_name', $groupInfo->agency_contact_name) }}" id="agency_contact_name">
+                                            <input type="text" class="form-control form-control-sm border w-100" name="agency_contact_name" value="{{ old('agency_contact_name', $groupInfo->agency_contact_name ?? $defaultStaffName) }}" id="agency_contact_name">
                                         </div>
                                         <div class="d-flex align-items-center flex-fill">
                                             <span class="span-label" style="min-width: 50px;">営業所</span>
                                             <div class="flex-1 position-relative w-100">
-                                                <input type="text" class="form-control form-control-sm border search-input w-100" id="branch_search" value="{{ old('vehicle_branch', $groupInfo->vehicle_branch) }}" autocomplete="off">
-                                                <input type="hidden" name="vehicle_branch" id="vehicle_branch" value="{{ old('vehicle_branch', $groupInfo->vehicle_branch) }}">
+                                                <input type="text" class="form-control form-control-sm border search-input w-100" id="branch_search" value="{{ old('vehicle_branch', $groupInfo->vehicle_branch ?? $defaultBranchName) }}" autocomplete="off">
+                                                <input type="hidden" name="vehicle_branch" id="vehicle_branch" value="{{ old('vehicle_branch', $groupInfo->vehicle_branch ?? $defaultBranchName) }}">
                                                 <div class="suggestions-container" id="branch_suggestions" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -437,7 +437,13 @@
                                             <div class="d-flex w-100">
                                                 <div class="d-flex align-items-center" style="width: 50%;">
                                                     <span class="span-label" style="white-space: normal; word-break: break-all; line-height: 1.2; min-width: 70px;">ステップカー</span>
-                                                    <input type="text" class="form-control form-control-sm border" name="bus_assignments[{{ $vehicleIndex }}][step_car]" value="{{ $busAssignment->step_car ?? '' }}" style="flex: 1;">
+                                                    <input type="text" class="form-control form-control-sm border" name="bus_assignments[{{ $vehicleIndex }}][step_car]" value="{{ $busAssignment->step_car ?? '' }}" style="flex: 1;" id="step_car_{{ $vehicleIndex }}">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary ms-1 copy-stepcar-btn border" 
+                                                                data-vehicle-index="{{ $vehicleIndex }}" 
+                                                                style="padding: 4px 8px; font-size: 0.7rem; white-space: nowrap;"
+                                                                title="団体名をコピー">
+                                                            <i class="bi bi-files"></i> Copy
+                                                        </button>
                                                 </div>
                                                 
                                                 <div class="d-flex" style="width: 50%; gap: 8px;">
@@ -927,7 +933,13 @@
                                         <div class="d-flex w-100">
                                             <div class="d-flex align-items-center" style="width: 50%;">
                                                 <span class="span-label" style="white-space: normal; word-break: break-all; line-height: 1.2; min-width: 70px;">ステップカー</span>
-                                                <input type="text" class="form-control form-control-sm border" name="bus_assignments[1][step_car]" value="{{ $busAssignment->step_car ?? '' }}" style="flex: 1;">
+                                                <input type="text" class="form-control form-control-sm border" name="bus_assignments[1][step_car]" value="{{ $busAssignment->step_car ?? '' }}" style="flex: 1;" id="step_car_1">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary ms-1 copy-stepcar-btn border" 
+                                                        data-vehicle-index="1" 
+                                                        style="padding: 4px 8px; font-size: 0.7rem; white-space: nowrap;"
+                                                        title="団体名をコピー">
+                                                    <i class="bi bi-files"></i> Copy
+                                                </button>
                                             </div>
                                             
                                             <div class="d-flex" style="width: 50%; gap: 8px;">
@@ -2464,85 +2476,97 @@ function updateBusDetailClickHandler(e) {
         }
     }
 
-function copyClickHandler(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const sourceCard = this.closest('.card');
-    const container = document.getElementById('operation-details-container');
-    
-    const existingCards = document.querySelectorAll('#operation-details-container > .card');
-    const newIndex = existingCards.length + 1;
-    const newBusId = 'copy_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    
-    let sourceTable = sourceCard.querySelector('#itinerary-table tbody');
-    if (!sourceTable) {
-        sourceTable = sourceCard.querySelector('.vehicle-itinerary-table tbody');
-    }
-    if (!sourceTable) {
-        sourceTable = sourceCard.querySelector('table tbody');
-    }
-    
-    if (!sourceTable) {
-        alert('行程テーブルが見つかりません。');
-        return;
-    }
-    
-    const sourceRows = sourceTable.querySelectorAll('tr.itinerary-row');
-    
-    const cleanedSourceRows = [];
-    sourceRows.forEach(row => {
-        const clonedRow = row.cloneNode(true);
-        const dateInput = clonedRow.querySelector('input[name*="[date]"]');
-        if (dateInput && dateInput.value.includes(' ')) {
-            dateInput.value = dateInput.value.split(' ')[0];
+    function copyClickHandler(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const sourceCard = this.closest('.card');
+        const container = document.getElementById('operation-details-container');
+        
+        
+        // 获取最大索引 + 1
+        const existingCards = document.querySelectorAll('#operation-details-container > .card');
+        let maxIndex = 0;
+        existingCards.forEach(card => {
+            const idx = parseInt(card.getAttribute('data-vehicle-index'));
+            if (!isNaN(idx) && idx > maxIndex) {
+                maxIndex = idx;
+            }
+        });
+        const newIndex = maxIndex + 1;
+        
+        // const existingCards = document.querySelectorAll('#operation-details-container > .card');
+        // const newIndex = existingCards.length + 1;
+        const newBusId = 'copy_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        let sourceTable = sourceCard.querySelector('#itinerary-table tbody');
+        if (!sourceTable) {
+            sourceTable = sourceCard.querySelector('.vehicle-itinerary-table tbody');
         }
-        cleanedSourceRows.push(clonedRow);
-    });
+        if (!sourceTable) {
+            sourceTable = sourceCard.querySelector('table tbody');
+        }
+        
+        if (!sourceTable) {
+            alert('行程テーブルが見つかりません。');
+            return;
+        }
+        
+        const sourceRows = sourceTable.querySelectorAll('tr.itinerary-row');
+        
+        const cleanedSourceRows = [];
+        sourceRows.forEach(row => {
+            const clonedRow = row.cloneNode(true);
+            const dateInput = clonedRow.querySelector('input[name*="[date]"]');
+            if (dateInput && dateInput.value.includes(' ')) {
+                dateInput.value = dateInput.value.split(' ')[0];
+            }
+            cleanedSourceRows.push(clonedRow);
+        });
+        
+        const newCard = createCopyOperationDetailCard(newIndex, newBusId, cleanedSourceRows, sourceCard);
+        container.appendChild(newCard);
+        newCard.querySelector('.btn-pdf-export')?.setAttribute('data-bus-id', newBusId);
     
-    const newCard = createCopyOperationDetailCard(newIndex, newBusId, cleanedSourceRows, sourceCard);
-    container.appendChild(newCard);
-    newCard.querySelector('.btn-pdf-export')?.setAttribute('data-bus-id', newBusId);
-
-    reindexAllTables();
-    updateOperationDetailNumbers();
-    refreshEventListeners();
-
-    const newDateInputs = newCard.querySelectorAll('.datepicker-3months');
-    newDateInputs.forEach(function(dateInput) {
-        if (!dateInput._flatpickr) {
-            flatpickr(dateInput, {
-                locale: 'ja',
-                dateFormat: 'Y-m-d',
-                showMonths: 3,
-                allowInput: true,
-                clickOpens: true,
-                mode: 'single',
-                disableMobile: true,
-                wrap: false,
-                onOpen: function(selectedDates, dateStr, instance) {
-                    instance.calendarContainer.style.zIndex = '9999';
-                },
-                onReady: function(selectedDates, dateStr, instance) {
-                    const daysContainer = instance.daysContainer;
-                    if (daysContainer) {
-                        const dayContainers = daysContainer.querySelectorAll('.dayContainer');
-                        dayContainers.forEach(function(dayContainer) {
-                            const wrapper = document.createElement('div');
-                            wrapper.className = 'month-wrapper';
-                            dayContainer.parentNode.insertBefore(wrapper, dayContainer);
-                            wrapper.appendChild(dayContainer);
-                        });
+        reindexAllTables();
+        updateOperationDetailNumbers();
+        refreshEventListeners();
+    
+        const newDateInputs = newCard.querySelectorAll('.datepicker-3months');
+        newDateInputs.forEach(function(dateInput) {
+            if (!dateInput._flatpickr) {
+                flatpickr(dateInput, {
+                    locale: 'ja',
+                    dateFormat: 'Y-m-d',
+                    showMonths: 3,
+                    allowInput: true,
+                    clickOpens: true,
+                    mode: 'single',
+                    disableMobile: true,
+                    wrap: false,
+                    onOpen: function(selectedDates, dateStr, instance) {
+                        instance.calendarContainer.style.zIndex = '9999';
+                    },
+                    onReady: function(selectedDates, dateStr, instance) {
+                        const daysContainer = instance.daysContainer;
+                        if (daysContainer) {
+                            const dayContainers = daysContainer.querySelectorAll('.dayContainer');
+                            dayContainers.forEach(function(dayContainer) {
+                                const wrapper = document.createElement('div');
+                                wrapper.className = 'month-wrapper';
+                                dayContainer.parentNode.insertBefore(wrapper, dayContainer);
+                                wrapper.appendChild(dayContainer);
+                            });
+                        }
                     }
-                }
-            });
-        }
-    });
-
-    setTimeout(() => {
-        setupSelectChangeHandlers(newIndex);
-    }, 100);
-}
+                });
+            }
+        });
+    
+        setTimeout(() => {
+            setupSelectChangeHandlers(newIndex);
+        }, 100);
+    }
 
     function refreshEventListeners() {
         document.querySelectorAll('.add-row-btn').forEach(btn => {
@@ -2573,6 +2597,25 @@ function copyClickHandler(e) {
         document.querySelectorAll('.update-btn').forEach(btn => {
             btn.removeEventListener('click', updateBusDetailClickHandler);
             btn.addEventListener('click', updateBusDetailClickHandler);
+        });
+        
+        document.querySelectorAll('.copy-stepcar-btn').forEach(btn => {
+            btn.removeEventListener('click', btn._copyStepcarHandler);
+            const copyStepcarHandler = function() {
+                const vehicleIndex = this.getAttribute('data-vehicle-index');
+                const groupNameInput = document.querySelector('input[name="group_name"]');
+                const stepCarInput = document.getElementById(`step_car_${vehicleIndex}`);
+                
+                if (groupNameInput && stepCarInput) {
+                    stepCarInput.value = groupNameInput.value;
+                    stepCarInput.style.backgroundColor = '#e8f0fe';
+                    setTimeout(() => {
+                        stepCarInput.style.backgroundColor = '';
+                    }, 200);
+                }
+            };
+            btn.addEventListener('click', copyStepcarHandler);
+            btn._copyStepcarHandler = copyStepcarHandler;
         });
         
         bindPdfExportEvents();
@@ -3317,7 +3360,13 @@ function copyClickHandler(e) {
                                 <div class="d-flex w-100">
                                     <div class="d-flex align-items-center" style="width: 50%;">
                                         <span class="span-label" style="white-space: normal; word-break: break-all; line-height: 1.2; min-width: 70px;">ステップカー</span>
-                                        <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][step_car]" value="">
+                                        <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][step_car]" value="" id="step_car_${newIndex}">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary ms-1 copy-stepcar-btn border" 
+                                                data-vehicle-index="${newIndex}" 
+                                                style="padding: 4px 8px; font-size: 0.7rem; white-space: nowrap;"
+                                                title="団体名をコピー">
+                                            <i class="bi bi-files"></i> Copy
+                                        </button>
                                     </div>
                                     <div class="d-flex" style="width: 50%; gap: 8px;">
                                         <div class="d-flex align-items-center" style="width: 50%;">
@@ -4733,5 +4782,34 @@ function bindPdfExportEvents() {
         btn._pdfHandler = pdfHandler;
     });
 }
+
+
+
+
+        
+        
+        
+
+
+
+
+// document.querySelectorAll('.copy-stepcar-btn').forEach(btn => {
+//     btn.addEventListener('click', function() {
+//         const vehicleIndex = this.getAttribute('data-vehicle-index');
+//         const groupNameInput = document.querySelector('input[name="group_name"]');
+//         const stepCarInput = document.getElementById(`step_car_${vehicleIndex}`);
+        
+//         if (groupNameInput && stepCarInput) {
+//             stepCarInput.value = groupNameInput.value;
+//             stepCarInput.style.backgroundColor = '#e8f0fe';
+//             setTimeout(() => {
+//                 stepCarInput.style.backgroundColor = '';
+//             }, 200);
+//         }
+//     });
+// });
+
+
+
 </script>
 @endpush

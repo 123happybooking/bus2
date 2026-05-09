@@ -36,12 +36,12 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
 
 <table>
  <tr>
-  <td class="bg-gray">ID</td>
-  <td style="width:25%;" colspan="4">{{ $busAssignment->group_info_id ?? '' }}-{{ $busAssignment->id ?? '' }}</td>
-  <td class="bg-gray">業務分類</td>
-  <td colspan="2">{{ $businessCategoryName ?? '' }}</td>
-  <td class="bg-gray">担当</td>
-  <td>{{ $manager ?? '' }}</td>
+  <td style="width:12%;" class="bg-gray">ID</td>
+  <td style="width:40%;" colspan="4">{{ $busAssignment->group_info_id ?? '' }}-{{ $busAssignment->id ?? '' }}</td>
+  <td style="width:12%;" class="bg-gray">業務分類</td>
+  <td style="width:12%;" colspan="2">{{ $businessCategoryName ?? '' }}</td>
+  <td style="width:12%;" class="bg-gray">担当</td>
+  <td style="width:12%;">{{ $manager ?? '' }}</td>
  </tr>
 
  <tr>
@@ -90,10 +90,10 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
  @foreach($itineraryRows as $row)
  <tr>
   <td rowspan="2" class="bg-gray">{{ $row['day'] }}</td>
-  <td>{{ $row['start_time'] }}</td>
+  <td style="width:10%;">{{ $row['start_time'] }}</td>
   <td colspan="3">{{ $row['start_location'] }}</td>
   <td>--></td>
-  <td>{{ $row['end_time'] }}</td>
+  <td style="width:10%;">{{ $row['end_time'] }}</td>
   <td colspan="3">{{ $row['end_location'] }}</td>
  </tr>
  <tr>

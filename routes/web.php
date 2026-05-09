@@ -185,6 +185,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
             Route::get('/{id}/edit', [BusAssignmentController::class, 'edit'])->name('edit');
             Route::put('/{id}', [BusAssignmentController::class, 'update'])->name('update');
             Route::delete('/{id}', [BusAssignmentController::class, 'destroy'])->name('destroy');
+            Route::post('/batch-export-pdf', [BusAssignmentController::class, 'batchExportPdf'])->name('batch-export-pdf');
         });
         
         Route::prefix('daily-reports')->name('daily-reports.')->group(function () {

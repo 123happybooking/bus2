@@ -232,10 +232,15 @@
                                 style="background-color: #2563eb; color: white; border-color: #2563eb; font-size: 0.8rem;">
                             検索
                         </button>
-                        <a href="{{ route('masters.bus-assignments.index') }}" class="btn btn-sm btn-outline-secondary px-2"
+                        <a href="{{ route('masters.bus-assignments.index', ['reset_search' => 1]) }}" class="btn btn-sm btn-outline-secondary px-2"
                            style="border-color: #E5E7EB; color: #374151; font-size: 0.8rem;">
                             クリア
                         </a>
+                        
+                        
+                        <button type="button" id="batchExportBtn" class="btn btn-sm btn-success" style="background-color: #dc2626; border-color: #dc2626;">
+                            <i class="bi bi-file-pdf"></i> 一括指示書PDF
+                        </button>
                     </div>
                 </div>
             </div>
@@ -246,6 +251,9 @@
         <table class="table table-sm table-bordered mb-0 table-list">
             <thead>
                 <tr>
+                    <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 40px;">
+                        <input type="checkbox" id="selectAllCheckbox" style="margin: 0;">
+                    </th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 60px;">No.</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">運行日</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">車両名<br>号車</th>
@@ -273,6 +281,9 @@
                     $endLocation = $endItinerary ? $endItinerary->end_location : '';
                 @endphp
                 <tr>
+                    <td class="text-center px-1 py-1 align-middle">
+                        <input type="checkbox" class="bus-checkbox" data-bus-id="{{ $assignment->id }}" style="margin: 0;">
+                    </td>
                     <td class="text-center px-1 py-1 align-middle">{{ $assignments->firstItem() + $index }}</td>
                     <td class="px-1 py-1 align-middle">
                         <span>{{ $assignment->start_date ? \Carbon\Carbon::parse($assignment->start_date)->format('Y/m/d') : '---' }}</span>
@@ -403,6 +414,7 @@
                         <div class="d-flex flex-column gap-1">
                             <a href="{{ route('masters.bus-assignments.show', $assignment->id) }}" style="color: #2563eb; text-decoration: none; font-size: 0.7rem;">詳細</a>
                             <a href="{{ route('masters.group-infos.edit', $assignment->groupInfo?->id) }}" style="color: #2563eb; text-decoration: none; font-size: 0.7rem;">編集</a>
+                            <a href="{{ route('masters.group-infos.export-pdf-bus-assignment', $assignment->id) }}" target="_blank" style="color: #2563eb; text-decoration: none; font-size: 0.7rem;">指示書PDF</a>
                         </div>
                      </td>
                 </tr>
@@ -499,10 +511,54 @@
         </div>
     </div>
 </div>
+
+
+
+
+
+<div id="batchExportModal" class="batch-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
+    <div class="batch-modal-content" style="background-color: #fff; border-radius: 12px; width: 400px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div class="batch-modal-header" style="padding: 15px 20px; border-bottom: 1px solid #e5e7eb;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #374151;">一括出力確認</h3>
+        </div>
+        <div class="batch-modal-body" id="batchModalBody" style="padding: 20px;">
+            <p id="confirmMessage">選択された運行の指示書PDFを一括出力します。</p>
+            <p id="fileCountMessage" style="font-weight: 500; color: #2563eb;"></p>
+            <div id="loadingSpinner" style="display: none; text-align: center; padding: 20px;">
+                <div class="spinner"></div>
+                <p style="margin-top: 12px; color: #6b7280;">出力中... しばらくお待ちください</p>
+            </div>
+        </div>
+        <div class="batch-modal-footer" id="batchModalFooter" style="padding: 15px 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" id="cancelBatchBtn" class="btn btn-sm btn-outline-secondary" style="padding: 6px 16px;">キャンセル</button>
+            <button type="button" id="confirmBatchBtn" class="btn btn-sm btn-success" style="background-color: #2563eb; border-color: #2563eb; padding: 6px 16px;">確定して出力</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('styles')
 <style>
+.batch-modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+
+
 .table td { vertical-align: middle; line-height: 1.3; }
 .table hr { margin: 2px 0; opacity: 0.3; }
 
@@ -1069,6 +1125,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     initStatusSelect();
     
+    
+    const driverSelect = document.querySelector('select[name="driver_id"]');
+    if (driverSelect) {
+        driverSelect.addEventListener('change', function() {
+            document.getElementById('searchForm').submit();
+        });
+    }
+    
     const periodSelect = document.getElementById('period_select');
     if (periodSelect) {
         periodSelect.addEventListener('change', function() {
@@ -1242,5 +1306,280 @@ document.getElementById('per_page_select').addEventListener('change', function()
     
     window.location.href = url.toString();
 });
+
+
+
+
+
+
+
+// const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+// const busCheckboxes = document.querySelectorAll('.bus-checkbox');
+// const batchExportBtn = document.getElementById('batchExportBtn');
+
+// function updateSelectedCount() {
+//     const checked = document.querySelectorAll('.bus-checkbox:checked');
+//     const count = checked.length;
+    
+//     if (selectAllCheckbox) {
+//         const allChecked = busCheckboxes.length > 0 && busCheckboxes.length === checked.length;
+//         selectAllCheckbox.checked = allChecked;
+//     }
+// }
+
+// if (selectAllCheckbox) {
+//     selectAllCheckbox.addEventListener('change', function() {
+//         busCheckboxes.forEach(cb => {
+//             cb.checked = selectAllCheckbox.checked;
+//         });
+//         updateSelectedCount();
+//     });
+// }
+
+// busCheckboxes.forEach(cb => {
+//     cb.addEventListener('change', updateSelectedCount);
+// });
+
+// updateSelectedCount();
+
+// batchExportBtn.addEventListener('click', function() {
+//     const selectedBuses = document.querySelectorAll('.bus-checkbox:checked');
+    
+//     if (selectedBuses.length === 0) {
+//         alert('運行を選択してください。');
+//         return;
+//     }
+    
+//     const driverId = document.querySelector('select[name="driver_id"]')?.value;
+//     const driverName = document.querySelector('select[name="driver_id"] option:checked')?.text;
+//     const startDate = document.getElementById('start_date')?.value;
+//     const endDate = document.getElementById('end_date')?.value;
+    
+//     if (!driverId) {
+//         alert('運転手を選択してください。');
+//         return;
+//     }
+    
+//     if (!startDate || !endDate) {
+//         alert('日付範囲を選択してください。');
+//         return;
+//     }
+    
+//     const busIds = Array.from(selectedBuses).map(cb => cb.getAttribute('data-bus-id'));
+    
+//     const formData = new FormData();
+//     formData.append('bus_ids', JSON.stringify(busIds));
+//     formData.append('start_date', startDate);
+//     formData.append('end_date', endDate);
+//     formData.append('driver_name', driverName);
+//     formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+    
+//     const originalText = batchExportBtn.innerHTML;
+//     batchExportBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 出力中...';
+//     batchExportBtn.disabled = true;
+    
+//     fetch('{{ route("masters.bus-assignments.batch-export-pdf") }}', {
+//         method: 'POST',
+//         headers: {
+//             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+//             'Content-Type': 'application/json',
+//             'Accept': 'application/json'
+//         },
+//         body: JSON.stringify({
+//             bus_ids: busIds,
+//             start_date: startDate,
+//             end_date: endDate,
+//             driver_name: driverName
+//         })
+//     })
+//     .then(response => {
+//         if (!response.ok) {
+//             return response.json().then(err => { throw err; });
+//         }
+//         return response.blob();
+//     })
+//     .then(blob => {
+//         const url = window.URL.createObjectURL(blob);
+//         const a = document.createElement('a');
+//         a.href = url;
+//         const startDateFormatted = startDate.replace(/-/g, '');
+//         const endDateFormatted = endDate.replace(/-/g, '');
+//         a.download = `${driverName}_指示書_${startDateFormatted}_${endDateFormatted}.pdf`;
+//         document.body.appendChild(a);
+//         a.click();
+//         window.URL.revokeObjectURL(url);
+//         a.remove();
+        
+//         batchExportBtn.innerHTML = originalText;
+//         batchExportBtn.disabled = false;
+//     })
+//     .catch(error => {
+//         alert('エラー: ' + (error.message || '出力に失敗しました'));
+//         batchExportBtn.innerHTML = originalText;
+//         batchExportBtn.disabled = false;
+//     });
+// });
+
+
+
+
+
+const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+const busCheckboxes = document.querySelectorAll('.bus-checkbox');
+const batchExportBtn = document.getElementById('batchExportBtn');
+
+const batchModal = document.getElementById('batchExportModal');
+const confirmMessage = document.getElementById('confirmMessage');
+const fileCountMessage = document.getElementById('fileCountMessage');
+const loadingSpinner = document.getElementById('loadingSpinner');
+const batchModalFooter = document.getElementById('batchModalFooter');
+const confirmBtn = document.getElementById('confirmBatchBtn');
+const cancelBtn = document.getElementById('cancelBatchBtn');
+
+let pendingExportData = null;
+
+function updateSelectedCount() {
+    const checked = document.querySelectorAll('.bus-checkbox:checked');
+    const count = checked.length;
+    
+    if (selectAllCheckbox) {
+        const allChecked = busCheckboxes.length > 0 && busCheckboxes.length === checked.length;
+        selectAllCheckbox.checked = allChecked;
+    }
+}
+
+function closeBatchModal() {
+    batchModal.style.display = 'none';
+    loadingSpinner.style.display = 'none';
+    batchModalFooter.style.display = 'flex';
+    if (pendingExportData) {
+        pendingExportData = null;
+    }
+}
+
+function openBatchModal() {
+    batchModal.style.display = 'flex';
+}
+
+if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', function() {
+        busCheckboxes.forEach(cb => {
+            cb.checked = selectAllCheckbox.checked;
+        });
+        updateSelectedCount();
+    });
+}
+
+busCheckboxes.forEach(cb => {
+    cb.addEventListener('change', updateSelectedCount);
+});
+
+updateSelectedCount();
+
+batchExportBtn.addEventListener('click', function() {
+    const selectedBuses = document.querySelectorAll('.bus-checkbox:checked');
+    
+    if (selectedBuses.length === 0) {
+        alert('運行を選択してください。');
+        return;
+    }
+    
+    const driverId = document.querySelector('select[name="driver_id"]')?.value;
+    // const driverName = document.querySelector('select[name="driver_id"] option:checked')?.text;
+    const driverName = document.querySelector('select[name="driver_id"] option:checked')?.text.split('(')[0].trim();
+    const startDate = document.getElementById('start_date')?.value;
+    const endDate = document.getElementById('end_date')?.value;
+    
+    if (!driverId) {
+        alert('運転手を選択してください。');
+        return;
+    }
+    
+    if (!startDate || !endDate) {
+        alert('日付範囲を選択してください。');
+        return;
+    }
+    
+    const busIds = Array.from(selectedBuses).map(cb => cb.getAttribute('data-bus-id'));
+    
+    pendingExportData = {
+        busIds: busIds,
+        startDate: startDate,
+        endDate: endDate,
+        driverName: driverName,
+        driverId: driverId
+    };
+    
+    confirmMessage.textContent = `選択された運行の指示書PDFを一括出力します。`;
+    fileCountMessage.textContent = `出力ファイル数: ${busIds.length}件`;
+    fileCountMessage.style.display = 'block';
+    loadingSpinner.style.display = 'none';
+    batchModalFooter.style.display = 'flex';
+    
+    openBatchModal();
+});
+
+confirmBtn.addEventListener('click', function() {
+    if (!pendingExportData) {
+        closeBatchModal();
+        return;
+    }
+    
+    confirmMessage.textContent = `出力中...`;
+    fileCountMessage.style.display = 'none';
+    loadingSpinner.style.display = 'block';
+    batchModalFooter.style.display = 'none';
+    
+    const { busIds, startDate, endDate, driverName } = pendingExportData;
+    
+    fetch('{{ route("masters.bus-assignments.batch-export-pdf") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            bus_ids: busIds,
+            start_date: startDate,
+            end_date: endDate,
+            driver_name: driverName
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw err; });
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const startDateFormatted = startDate.replace(/-/g, '');
+        const endDateFormatted = endDate.replace(/-/g, '');
+        a.download = `${driverName}_運行指示書_${startDateFormatted}_${endDateFormatted}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+        
+        closeBatchModal();
+    })
+    .catch(error => {
+        alert('エラー: ' + (error.message || '出力に失敗しました'));
+        closeBatchModal();
+    });
+});
+
+cancelBtn.addEventListener('click', closeBatchModal);
+
+batchModal.addEventListener('click', function(e) {
+    if (e.target === batchModal) {
+        closeBatchModal();
+    }
+});
+
+
 </script>
 @endpush

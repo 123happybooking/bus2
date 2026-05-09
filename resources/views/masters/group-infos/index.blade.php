@@ -33,7 +33,7 @@
                 </button>
             </div>
             <div class="col-auto">
-                <a href="{{ route('masters.group-infos.index') }}" class="btn btn-sm btn-outline-secondary px-3" 
+                <a href="{{ route('masters.group-infos.index', ['reset_search' => 1]) }}" class="btn btn-sm btn-outline-secondary px-3" 
                    style="border-color: #E5E7EB; color: #374151; font-size: 0.875rem;">
                     クリア
                 </a>

@@ -29,6 +29,31 @@ class GroupInfoController extends Controller
 {
     public function index(Request $request)
     {
+        $sessionKey = 'group_infos_search';
+        
+        $searchFields = ['date_from', 'date_to'];
+        
+        $isNewSearch = false;
+        foreach ($searchFields as $field) {
+            if ($request->filled($field)) {
+                $isNewSearch = true;
+                break;
+            }
+        }
+        
+        if ($request->has('reset_search')) {
+            session()->forget($sessionKey);
+            $isNewSearch = false;
+        }
+        
+        if ($isNewSearch) {
+            $searchParams = $request->only($searchFields);
+            session([$sessionKey => $searchParams]);
+        } else {
+            $searchParams = session($sessionKey, []);
+            $request->merge($searchParams);
+        }
+        
         $query = GroupInfo::query();
 
         if ($request->filled('search')) {
@@ -117,6 +142,23 @@ class GroupInfoController extends Controller
             ->orderBy('display_order')
             ->orderBy('id')
             ->get(['id', 'name']);
+            
+            
+        $defaultStaffName = session('staff_name', '');
+        $defaultBranchName = '';
+        $defaultBranchId = '';
+        
+        $userId = session('user_id');
+        if ($userId) {
+            $staff = DB::table('staffs')->where('id', $userId)->first();
+            if ($staff && $staff->branch_id) {
+                $defaultBranchId = $staff->branch_id;
+                $branch = DB::table('branches')->where('id', $staff->branch_id)->first();
+                if ($branch) {
+                    $defaultBranchName = $branch->branch_name ?? '';
+                }
+            }
+        }
         
         return view('masters.group-infos.create', compact(
             'agencies', 
@@ -131,7 +173,10 @@ class GroupInfoController extends Controller
             'startDate', 
             'endDate',
             'vehicleGrades',
-            'options'
+            'options',
+            'defaultStaffName',
+            'defaultBranchName',
+            'defaultBranchId' 
         ));
     }
 
@@ -947,6 +992,23 @@ class GroupInfoController extends Controller
         ->orderBy('id')
         ->get();
         
+        
+        $defaultStaffName = session('staff_name', '');
+        $defaultBranchName = '';
+        $defaultBranchId = '';
+        
+        $userId = session('user_id');
+        if ($userId) {
+            $staff = DB::table('staffs')->where('id', $userId)->first();
+            if ($staff && $staff->branch_id) {
+                $defaultBranchId = $staff->branch_id;
+                $branch = DB::table('branches')->where('id', $staff->branch_id)->first();
+                if ($branch) {
+                    $defaultBranchName = $branch->branch_name ?? '';
+                }
+            }
+        }
+        
         return view('masters.group-infos.edit', compact(
             'groupInfo', 
             'agencies',
@@ -965,7 +1027,10 @@ class GroupInfoController extends Controller
             'selectedOptions',
             'singleBusFiles',
             'compensationsByBus',
-            'compensationTypes'
+            'compensationTypes',
+            'defaultStaffName',
+            'defaultBranchName',
+            'defaultBranchId'
         ));
     }
 
@@ -3564,169 +3629,169 @@ class GroupInfoController extends Controller
         
         
         
-
-
-
-public function exportPdfBusAssignment($busId)
-{
-    $busAssignment = BusAssignment::with([
-        'groupInfo',
-        'vehicle',
-        'driver',
-        'guide',
-        'dailyItineraries',
-    ])->findOrFail($busId);
     
-    $busAssignment->dailyItineraries = $busAssignment->dailyItineraries
-        ->sortBy('date')
-        ->sortBy('time_start')
-        ->values();
     
-    $groupInfo = $busAssignment->groupInfo;
-    $vehicle = $busAssignment->vehicle;
-    $driver = $busAssignment->driver;
-    $guide = $busAssignment->guide;
     
-    $companyInfo = ['name' => '', 'tel' => ''];
-    $companyLogo = null;
-    
-    try {
-        $userCompany = DB::table('user_company_info')->first();
-        if ($userCompany) {
-            $companyInfo['name'] = $userCompany->user_company_name ?? '';
-            $companyInfo['tel'] = $userCompany->phone_number ?? '';
-            if (!empty($userCompany->setup_company_seal)) {
-                $logoPath = storage_path('app/public/' . $userCompany->setup_company_seal);
-                $companyLogo = url('/storage/' . $userCompany->setup_company_seal);
+    public function exportPdfBusAssignment($busId)
+    {
+        $busAssignment = BusAssignment::with([
+            'groupInfo',
+            'vehicle',
+            'driver',
+            'guide',
+            'dailyItineraries',
+        ])->findOrFail($busId);
+        
+        $busAssignment->dailyItineraries = $busAssignment->dailyItineraries
+            ->sortBy('date')
+            ->sortBy('time_start')
+            ->values();
+        
+        $groupInfo = $busAssignment->groupInfo;
+        $vehicle = $busAssignment->vehicle;
+        $driver = $busAssignment->driver;
+        $guide = $busAssignment->guide;
+        
+        $companyInfo = ['name' => '', 'tel' => ''];
+        $companyLogo = null;
+        
+        try {
+            $userCompany = DB::table('user_company_info')->first();
+            if ($userCompany) {
+                $companyInfo['name'] = $userCompany->user_company_name ?? '';
+                $companyInfo['tel'] = $userCompany->phone_number ?? '';
+                if (!empty($userCompany->setup_company_seal)) {
+                    $logoPath = storage_path('app/public/' . $userCompany->setup_company_seal);
+                    $companyLogo = url('/storage/' . $userCompany->setup_company_seal);
+                }
             }
+        } catch (\Exception $e) {}
+        
+        $businessCategoryName = '';
+        if ($groupInfo && $groupInfo->reservation_categories_id) {
+            $category = DB::table('reservation_categories')->find($groupInfo->reservation_categories_id);
+            $businessCategoryName = $category->category_name ?? '';
         }
-    } catch (\Exception $e) {}
-    
-    $businessCategoryName = '';
-    if ($groupInfo && $groupInfo->reservation_categories_id) {
-        $category = DB::table('reservation_categories')->find($groupInfo->reservation_categories_id);
-        $businessCategoryName = $category->category_name ?? '';
-    }
-    
-    $manager = $groupInfo->agency_contact_name ?? '';
-    $route = $busAssignment->dailyItineraries->first()->itinerary ?? '';
-    
-    $office = '';
-    if ($vehicle && $vehicle->branch_id) {
-        $branch = DB::table('branches')->find($vehicle->branch_id);
-        $office = $branch->branch_name ?? '';
-    }
-    
-    $vehicleName = $vehicle->vehicle_code ?? '';
-    $vehicleColor = $vehicle->vehicle_color ?? '';
-    $vehicleNumber = $vehicle->registration_number ?? '';
-    $busNumber = $busAssignment->vehicle_number ?? '';
-    $luggage = $busAssignment->luggage ?? '';
-    $representativeName = $busAssignment->representative ?? '';
-    $representativeContact = $busAssignment->representative_phone ?? '';
-    
-    $weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-    $operationDate = Carbon::parse($busAssignment->operation_date ?? $busAssignment->start_date);
-    $formattedDate = $operationDate->format('Y年n月j日') . '(' . $weekdays[$operationDate->dayOfWeek] . ')';
-    
-    $adultCount = $groupInfo->adult_count ?? 0;
-    $childCount = $groupInfo->child_count ?? 0;
-    $personnelCount = '大：' . $adultCount . ' 小：' . $childCount;
-    
-    $itineraryRows = [];
-    foreach ($busAssignment->dailyItineraries as $index => $itinerary) {
-        $itineraryRows[] = [
-            'day' => sprintf('Day-%02d', $index + 1),
-            'start_time' => $itinerary->time_start ? Carbon::parse($itinerary->time_start)->format('H:i') : '',
-            'start_location' => $itinerary->start_location ?? '',
-            'arrow' => '-->',
-            'end_time' => $itinerary->time_end ? Carbon::parse($itinerary->time_end)->format('H:i') : '',
-            'end_location' => $itinerary->end_location ?? '',
-            'description' => $itinerary->itinerary ?? '',
+        
+        $manager = $groupInfo->agency_contact_name ?? '';
+        $route = $busAssignment->dailyItineraries->first()->itinerary ?? '';
+        
+        $office = '';
+        if ($vehicle && $vehicle->branch_id) {
+            $branch = DB::table('branches')->find($vehicle->branch_id);
+            $office = $branch->branch_name ?? '';
+        }
+        
+        $vehicleName = $vehicle->vehicle_code ?? '';
+        $vehicleColor = $vehicle->vehicle_color ?? '';
+        $vehicleNumber = $vehicle->registration_number ?? '';
+        $busNumber = $busAssignment->vehicle_number ?? '';
+        $luggage = $busAssignment->luggage ?? '';
+        $representativeName = $busAssignment->representative ?? '';
+        $representativeContact = $busAssignment->representative_phone ?? '';
+        
+        $weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+        $operationDate = Carbon::parse($busAssignment->operation_date ?? $busAssignment->start_date);
+        $formattedDate = $operationDate->format('Y年n月j日') . '(' . $weekdays[$operationDate->dayOfWeek] . ')';
+        
+        $adultCount = $groupInfo->adult_count ?? 0;
+        $childCount = $groupInfo->child_count ?? 0;
+        $personnelCount = '大：' . $adultCount . ' 小：' . $childCount;
+        
+        $itineraryRows = [];
+        foreach ($busAssignment->dailyItineraries as $index => $itinerary) {
+            $itineraryRows[] = [
+                'day' => sprintf('Day-%02d', $index + 1),
+                'start_time' => $itinerary->time_start ? Carbon::parse($itinerary->time_start)->format('H:i') : '',
+                'start_location' => $itinerary->start_location ?? '',
+                'arrow' => '-->',
+                'end_time' => $itinerary->time_end ? Carbon::parse($itinerary->time_end)->format('H:i') : '',
+                'end_location' => $itinerary->end_location ?? '',
+                'description' => $itinerary->itinerary ?? '',
+            ];
+        }
+        
+        if (empty($itineraryRows)) {
+            $itineraryRows[] = ['day' => 'Day-01', 'start_time' => '', 'start_location' => '', 'arrow' => '-->', 'end_time' => '', 'end_location' => '', 'description' => ''];
+        }
+        
+        $optionsNames = '';
+        if ($busAssignment->options) {
+            $optionIds = explode(',', $busAssignment->options);
+            $options = DB::table('option')->whereIn('id', $optionIds)->pluck('name')->toArray();
+            $optionsNames = implode('、', $options);
+        }
+        
+        $issueDate = Carbon::now()->format('Y/m/d');
+        $issueBy = session('username', auth()->user()->name ?? '');
+        
+        $data = [
+            'companyInfo' => $companyInfo,
+            'companyLogo' => $companyLogo,
+            'busAssignment' => $busAssignment,
+            'groupInfo' => $groupInfo,
+            'vehicle' => $vehicle,
+            'driver' => $driver,
+            'guide' => $guide,
+            'formattedDate' => $formattedDate,
+            'personnelCount' => $personnelCount,
+            'itineraryRows' => $itineraryRows,
+            'issueDate' => $issueDate,
+            'issueBy' => $issueBy,
+            'businessCategoryName' => $businessCategoryName,
+            'manager' => $manager,
+            'route' => $route,
+            'office' => $office,
+            'vehicleName' => $vehicleName,
+            'vehicleColor' => $vehicleColor,
+            'vehicleNumber' => $vehicleNumber,
+            'busNumber' => $busNumber,
+            'luggage' => $luggage,
+            'representativeName' => $representativeName,
+            'representativeContact' => $representativeContact,
+            'optionsNames' => $optionsNames,
         ];
+        
+        $html = view('masters.group-infos.bus-assignment-pdf', $data)->render();
+        
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_footer' => 10,
+            'tempDir' => sys_get_temp_dir(),
+            'fontDir' => [
+                base_path('vendor/mpdf/mpdf/ttfonts'),
+                storage_path('fonts'),
+            ],
+            'fontdata' => [
+                'ipaexgothic' => ['R' => 'ipaexgothic.ttf', 'useOTL' => 0x80],
+                'ipaexmincho' => ['R' => 'ipaexmincho.ttf', 'useOTL' => 0x80],
+            ],
+            'default_font' => 'ipaexgothic',
+        ]);
+        
+        $mpdf->shrink_tables_to_fit = 0;
+        $mpdf->keep_table_proportions = true;
+        $mpdf->autoScriptToLang = true;
+        $mpdf->autoLangToFont = true;
+        
+        $mpdf->SetHTMLFooter('
+            <table style="width: 100%; border: 0; margin-top: 5px;">
+                <tr>
+                    <td style="text-align: left; width: 50%; font-size: 9pt; border: 0;">{PAGENO} / {nbpg}</td>
+                    <td style="text-align: right; width: 50%;font-size: 9pt; border: 0;">
+                        発行日：' . date('Y/m/d') . '　　
+                        発行担当：' . (session('staff_name') ?? 'システム') . '
+                    </td>
+                </tr>
+            </table>
+        ');
+        
+        $mpdf->WriteHTML($html);
+        
+        return $mpdf->Output('運行指示書_' . ($driver->name ?? '不明') . '_' . $busAssignment->id . '_' . $operationDate->format('ymd') . '.pdf', 'D');
     }
     
-    if (empty($itineraryRows)) {
-        $itineraryRows[] = ['day' => 'Day-01', 'start_time' => '', 'start_location' => '', 'arrow' => '-->', 'end_time' => '', 'end_location' => '', 'description' => ''];
-    }
-    
-    $optionsNames = '';
-    if ($busAssignment->options) {
-        $optionIds = explode(',', $busAssignment->options);
-        $options = DB::table('option')->whereIn('id', $optionIds)->pluck('name')->toArray();
-        $optionsNames = implode('、', $options);
-    }
-    
-    $issueDate = Carbon::now()->format('Y/m/d');
-    $issueBy = session('username', auth()->user()->name ?? '');
-    
-    $data = [
-        'companyInfo' => $companyInfo,
-        'companyLogo' => $companyLogo,
-        'busAssignment' => $busAssignment,
-        'groupInfo' => $groupInfo,
-        'vehicle' => $vehicle,
-        'driver' => $driver,
-        'guide' => $guide,
-        'formattedDate' => $formattedDate,
-        'personnelCount' => $personnelCount,
-        'itineraryRows' => $itineraryRows,
-        'issueDate' => $issueDate,
-        'issueBy' => $issueBy,
-        'businessCategoryName' => $businessCategoryName,
-        'manager' => $manager,
-        'route' => $route,
-        'office' => $office,
-        'vehicleName' => $vehicleName,
-        'vehicleColor' => $vehicleColor,
-        'vehicleNumber' => $vehicleNumber,
-        'busNumber' => $busNumber,
-        'luggage' => $luggage,
-        'representativeName' => $representativeName,
-        'representativeContact' => $representativeContact,
-        'optionsNames' => $optionsNames,
-    ];
-    
-    $html = view('masters.group-infos.bus-assignment-pdf', $data)->render();
-    
-    $mpdf = new \Mpdf\Mpdf([
-        'mode' => 'utf-8',
-        'format' => 'A4',
-        'margin_footer' => 10,
-        'tempDir' => sys_get_temp_dir(),
-        'fontDir' => [
-            base_path('vendor/mpdf/mpdf/ttfonts'),
-            storage_path('fonts'),
-        ],
-        'fontdata' => [
-            'ipaexgothic' => ['R' => 'ipaexgothic.ttf', 'useOTL' => 0x80],
-            'ipaexmincho' => ['R' => 'ipaexmincho.ttf', 'useOTL' => 0x80],
-        ],
-        'default_font' => 'ipaexgothic',
-    ]);
-    
-    $mpdf->shrink_tables_to_fit = 0;
-    $mpdf->keep_table_proportions = true;
-    $mpdf->autoScriptToLang = true;
-    $mpdf->autoLangToFont = true;
-    
-    $mpdf->SetHTMLFooter('
-        <table style="width: 100%; border: 0; margin-top: 5px;">
-            <tr>
-                <td style="text-align: left; width: 50%; font-size: 9pt; border: 0;">{PAGENO} / {nbpg}</td>
-                <td style="text-align: right; width: 50%;font-size: 9pt; border: 0;">
-                    発行日：' . date('Y/m/d') . '　　
-                    発行担当：' . (session('staff_name') ?? 'システム') . '
-                </td>
-            </tr>
-        </table>
-    ');
-    
-    $mpdf->WriteHTML($html);
-    
-    return $mpdf->Output('運行指示書_' . ($driver->name ?? '不明') . '_' . $busAssignment->id . '_' . $operationDate->format('ymd') . '.pdf', 'D');
-}
-
 
 
     
