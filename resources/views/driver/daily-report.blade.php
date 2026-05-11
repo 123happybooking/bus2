@@ -77,6 +77,24 @@
                 <span class="unit">km</span>
             </div>
         </div>
+        
+        <div class="form-group">
+            <label class="form-label">実車距離</label>
+            <div class="input-with-unit">
+                <input type="number" name="actual_distance" id="actual_distance" class="form-input" 
+                       value="{{ old('actual_distance', $report->actual_distance) }}" min="0" step="1" {{ $allowEdit ? '' : 'readonly disabled' }}>
+                <span class="unit">km</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">空車距離</label>
+            <div class="input-with-unit">
+                <input type="number" name="empty_distance" id="empty_distance" class="form-input" 
+                       value="{{ old('empty_distance', $report->empty_distance) }}" min="0" step="1" {{ $allowEdit ? '' : 'readonly disabled' }}>
+                <span class="unit">km</span>
+            </div>
+        </div>
 
         <div class="form-group">
             <label class="form-label">備考</label>
@@ -513,6 +531,8 @@ if (document.getElementById('saveBtn')) {
     const startWorkTimeInput = document.getElementById('start_work_time');
     const endWorkTimeInput = document.getElementById('end_work_time');
     const remarkTextarea = document.getElementById('remark');
+    const actualDistance = document.getElementById('actual_distance');
+    const emptyDistance = document.getElementById('empty_distance');
     
     startMileageInput.addEventListener('input', updateDistance);
     endMileageInput.addEventListener('input', updateDistance);
@@ -528,6 +548,8 @@ if (document.getElementById('saveBtn')) {
             start_work_time: startWorkTimeInput ? startWorkTimeInput.value : null,
             end_work_time: endWorkTimeInput ? endWorkTimeInput.value : null,
             remark: remarkTextarea ? remarkTextarea.value : null,
+            actual_distance: actualDistance ? actualDistance.value : null,
+            empty_distance: emptyDistance ? emptyDistance.value : null,
         };
         
         fetch(`/driver/daily-reports/${reportId}`, {

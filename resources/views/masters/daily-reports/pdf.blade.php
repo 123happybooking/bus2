@@ -49,6 +49,9 @@
         word-break: break-all;
         word-wrap: break-word;
     }
+    .table-list td.text-right {
+        text-align: right;
+    }
     .header {
         width: 100%;
         margin: 0 0 4pt 0;
@@ -73,6 +76,7 @@
     .clearfix {
         clear: both;
     }
+    .remark { text-align: left; vertical-align: top; height: 60pt;}
 </style>
 </head>
 <body>
@@ -124,7 +128,7 @@
         <th>帰庫メーター</th>
         <td>{{ $report->end_mileage ?? '' }} km</td>
         <th>実写走行</th>
-        <td>{{ $actualDistance ?? '' }} km</td>
+        <td>{{ $report->actual_distance ?? '' }} km</td>
     </tr>
     <tr>
         <th>出庫メーター</th>
@@ -132,7 +136,7 @@
         <th>終業時刻</th>
         <td>{{ $report->end_work_time ? \Carbon\Carbon::parse($report->end_work_time)->format('H:i') : '' }}</td>
         <th>空車走行</th>
-        <td>{{ $emptyDistance ?? '' }} km</td>
+        <td>{{ $report->empty_distance ?? '' }} km</td>
     </tr>
     <tr>
         <td colspan="6">
@@ -144,8 +148,8 @@
                 <tr>
                     <td style="width: 15%;">時刻</td>
                     <td style="width: 40%;">地名</td>
-                    <td style="width: 15%;">メーター</td>
-                    <td style="width: 15%;">内容</td>
+                    <td style="width: 15%;" class="text-right">メーター</td>
+                    <td style="width: 15%;" class="text-right">内容</td>
                     <td style="width: 15%;" colspan="2">備考</td>
                 </tr>
                 
@@ -153,8 +157,8 @@
                 <tr>
                     <td>{{ $log['time'] ?? '' }}</td>
                     <td>{{ $log['location'] ?? '' }}</td>
-                    <td>{{ $log['meter'] ?? '' }}</td>
-                    <td>{{ $log['content'] ?? '' }}</td>
+                    <td class="text-right">{{ $log['meter'] ?? '' }}</td>
+                    <td class="text-right">{{ $log['content'] ?? '' }}</td>
                     <td colspan="2">{{ $log['remark'] ?? '' }}</td>
                 </tr>
                 @endforeach
@@ -163,11 +167,9 @@
         </td>
     </tr>
     <tr>
-        <td colspan="6">
+        <td colspan="6" class="remark">
+            立替
             <table class="table-no-border table-list">
-                <tr>
-                    <td colspan="6" style="font-size: 11pt; font-weight: bold;">立替</td>
-                </tr>
                 @foreach($completedItineraries as $itinerary)
                     <tr>
                         <td colspan="6">
@@ -189,7 +191,7 @@
                         <td>{{ $expense['type_name'] ?? '' }}</td>
                         <td class="text-right">{{ number_format($expense['amount'] ?? 0) }} 円</td>
                         <td>{{ $expense['payment_method_name'] ?? '' }}</td>
-                        <td>{{ $expense['agency_flag'] ? 'あり' : 'なし' }}</td>
+                        <td>{{ $expense['agency_flag'] ? '有り' : '' }}</td>
                         <td>{{ $expense['remark'] ?? '' }}</td>
                     </tr>
                     @endforeach
@@ -198,7 +200,7 @@
         </td>
     </tr>
     <tr>
-        <td colspan="6">備考：{{ $report->remark ?? '--' }}</td>
+        <td colspan="6" class="remark">備考<br>{{ $report->remark ?? '--' }}</td>
     </tr>
 </table>
 

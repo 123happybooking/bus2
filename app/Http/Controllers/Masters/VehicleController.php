@@ -11,6 +11,7 @@ use App\Models\Masters\VehicleGrade;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 
 class VehicleController extends Controller
 {
@@ -66,6 +67,7 @@ class VehicleController extends Controller
             'is_active' => 'required|boolean',
             'remarks' => 'nullable|string|max:500',
             'display_order' => 'nullable|integer|min:0',
+            'vehicle_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ], [
             'branch_id.required' => '所属営業所を選択してください',
             'vehicle_code.required' => '車両コードを入力してください',
@@ -83,12 +85,22 @@ class VehicleController extends Controller
             'remarks.max' => '備考は500文字以内で入力してください。',
             'display_order.integer' => '表示順序は数値で入力してください。',
             'display_order.min' => '表示順序は0以上の数値で入力してください。',
+            'vehicle_image.image' => '画像ファイルをアップロードしてください',
+            'vehicle_image.mimes' => '画像形式はJPEG、PNG、JPG、GIFのみ対応しています',
+            'vehicle_image.max' => '画像サイズは5MB以下にしてください',
         ]);
 
         if (!isset($validated['display_order']) || $validated['display_order'] === null) {
             $maxOrder = Vehicle::max('display_order');
             $validated['display_order'] = ($maxOrder !== null) ? $maxOrder + 1 : 1;
         }
+
+        if ($request->hasFile('vehicle_image')) {
+            $path = $request->file('vehicle_image')->store('vehicles', 'public');
+            $validated['image_path'] = $path;
+        }
+
+        unset($validated['vehicle_image']);
 
         Vehicle::create($validated);
 
@@ -110,6 +122,7 @@ class VehicleController extends Controller
                 'vehicle_model' => $vehicle->vehicleModel->model_name ?? '',
                 'vehicle_branch' => $vehicle->branch->branch_name ?? '',
                 'seating_capacity' => $vehicle->seating_capacity ?? '',
+                'image_path' => $vehicle->image_path ? asset('storage/' . $vehicle->image_path) : null,
             ]);
         }
         
@@ -141,6 +154,8 @@ class VehicleController extends Controller
             'is_active' => 'required|boolean',
             'remarks' => 'nullable|string|max:500',
             'display_order' => 'nullable|integer|min:0',
+            'vehicle_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'remove_image' => 'nullable|boolean',
         ], [
             'branch_id.required' => '所属営業所を選択してください',
             'vehicle_code.required' => '車両コードを入力してください',
@@ -160,9 +175,30 @@ class VehicleController extends Controller
             'remarks.max' => '備考は500文字以内で入力してください。',
             'display_order.integer' => '表示順序は数値で入力してください。',
             'display_order.min' => '表示順序は0以上の数値で入力してください。',
+            'vehicle_image.image' => '画像ファイルをアップロードしてください',
+            'vehicle_image.mimes' => '画像形式はJPEG、PNG、JPG、GIFのみ対応しています',
+            'vehicle_image.max' => '画像サイズは5MB以下にしてください',
         ]);
 
         $vehicle = Vehicle::findOrFail($id);
+
+        if ($request->hasFile('vehicle_image')) {
+            if ($vehicle->image_path && Storage::disk('public')->exists($vehicle->image_path)) {
+                Storage::disk('public')->delete($vehicle->image_path);
+            }
+            $path = $request->file('vehicle_image')->store('vehicles', 'public');
+            $validated['image_path'] = $path;
+        }
+
+        if ($request->input('remove_image') == 1) {
+            if ($vehicle->image_path && Storage::disk('public')->exists($vehicle->image_path)) {
+                Storage::disk('public')->delete($vehicle->image_path);
+            }
+            $validated['image_path'] = null;
+        }
+
+        unset($validated['vehicle_image'], $validated['remove_image']);
+
         $vehicle->update($validated);
 
         return redirect()->route('masters.vehicles.index')
@@ -172,6 +208,11 @@ class VehicleController extends Controller
     public function destroy($id): RedirectResponse
     {
         $vehicle = Vehicle::findOrFail($id);
+        
+        if ($vehicle->image_path && Storage::disk('public')->exists($vehicle->image_path)) {
+            Storage::disk('public')->delete($vehicle->image_path);
+        }
+        
         $vehicle->delete();
 
         return redirect()->route('masters.vehicles.index')

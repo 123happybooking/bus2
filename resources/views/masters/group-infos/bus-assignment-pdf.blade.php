@@ -4,10 +4,10 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>運行指示書</title>
 <style>
-table { width: 100%; border: 0; border-collapse: collapse; }
-td { text-align: center; vertical-align: middle; background-color: #fff; padding: 3px; border: 1px solid #000; font-size: 11pt; line-height: 150%; height: 20pt; word-break: break-all; word-wrap: break-word;}
-.remark { height: 60pt;}
-.bg-gray { background-color: #F2F2F2; }
+table { width: 100%; border: 0; border-collapse: collapse; table-layout: fixed; }
+td { text-align: center; vertical-align: middle; background-color: #fff; padding: 3px; border: 1px solid #000; font-size: 10pt; line-height: 150%; height: 20pt; word-break: break-all; word-wrap: break-word;}
+.remark { text-align: left; vertical-align: top; height: 60pt;}
+.bg-gray { text-align: left; background-color: #F2F2F2; }
 
 .header { width: 100%; margin: 0 0 4pt 0;}
 .header .c1 { float: left; width: 50%; font-size: 24pt; display: block; }
@@ -36,12 +36,12 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
 
 <table>
  <tr>
-  <td style="width:12%;" class="bg-gray">ID</td>
-  <td style="width:40%;" colspan="4">{{ $busAssignment->group_info_id ?? '' }}-{{ $busAssignment->id ?? '' }}</td>
-  <td style="width:12%;" class="bg-gray">業務分類</td>
-  <td style="width:12%;" colspan="2">{{ $businessCategoryName ?? '' }}</td>
-  <td style="width:12%;" class="bg-gray">担当</td>
-  <td style="width:12%;">{{ $manager ?? '' }}</td>
+  <td style="width:10%;" class="bg-gray">ID</td>
+  <td style="width:45%;" colspan="4">{{ $busAssignment->group_info_id ?? '' }}-{{ $busAssignment->id ?? '' }}</td>
+  <td style="width:10%;" class="bg-gray">業務分類</td>
+  <td style="width:10%;" colspan="2">{{ $businessCategoryName ?? '' }}</td>
+  <td style="width:10%;" class="bg-gray">担当</td>
+  <td style="width:15%;">{{ $manager ?? '' }}</td>
  </tr>
 
  <tr>
@@ -70,8 +70,8 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
  <tr>
   <td class="bg-gray">団体名</td>
   <td colspan="2">{{ $busAssignment->step_car ?? '' }}</td>
-  <td style="width:10%;" class="bg-gray">号車</td>
-  <td style="width:10%;">{{ $busNumber ?? '' }}</td>
+  <td style="width:6%;" class="bg-gray">号車</td>
+  <td style="width:8%;">{{ $busNumber ?? '' }}</td>
   <td rowspan="2" class="bg-gray">代表者</td>
   <td colspan="4" rowspan="2">
     {{ $representativeName ?? '' }}{{ $representativeContact ? '/' . $representativeContact : '' }}
@@ -108,11 +108,11 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
  </tr>
 
  <tr>
-  <td colspan="10" class="remark">注意：{{ $optionsNames ?? '--' }}</td>
+  <td colspan="10" class="remark">注意<br>{{ $optionsNames ?? '--' }}</td>
  </tr>
 
  <tr>
-  <td colspan="10" class="remark">備考：{{ $busAssignment->operation_remarks ?? '--' }}</td>
+  <td colspan="10" class="remark">備考<br>{{ $busAssignment->operation_remarks ?? '--' }}</td>
  </tr>
 
  <tr>
@@ -121,10 +121,10 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
  </tr>
 
  <tr>
-  <td colspan="7">集金</td>
-  <td>責任者</td>
-  <td>確認</td>
-  <td>担当</td>
+  <td colspan="7" class="remark">集金</td>
+  <td class="remark">責任者</td>
+  <td class="remark">確認</td>
+  <td class="remark">担当</td>
 
  </tr>
 </table>

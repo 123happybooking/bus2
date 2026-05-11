@@ -20,7 +20,7 @@ class OperationLedgerController extends Controller
     {
         $sessionKey = 'operation_ledger_search';
         
-        $searchFields = ['start_date', 'end_date', 'period', 'display_days'];
+        $searchFields = ['start_date', 'period', 'display_days'];
         
         $isNewSearch = false;
         foreach ($searchFields as $field) {
@@ -44,8 +44,8 @@ class OperationLedgerController extends Controller
         }
         
         $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-        $period = $request->input('period');
+        $period = $request->input('period', 1);
+        $displayDays = $request->input('display_days', 7);
         $attendanceStatus = $request->input('attendance_status');
         $vehicleTypeId = $request->input('vehicle_type_id');
         $agencyId = $request->input('agency_id');
@@ -56,32 +56,30 @@ class OperationLedgerController extends Controller
         $groupName = $request->input('group_name');
         $branchIds = $request->input('branch_ids', []);
         
-        $displayDays = $request->input('display_days', 7);
-        
-        if ($period && !$startDate && !$endDate) {
+        if (!$startDate) {
             $startDate = Carbon::today()->format('Y-m-d');
-            $endDate = Carbon::today()->addDays($period * 7 - 1)->format('Y-m-d');
-            $displayDays = $period * 7;
         }
         
-        if (!$startDate && !$endDate && !$period) {
-            $startDate = Carbon::today()->format('Y-m-d');
-            $endDate = Carbon::today()->addDays(6)->format('Y-m-d');
+        $start = Carbon::parse($startDate);
+        
+        if ($period == 1) {
+            $end = $start->copy()->addDays(6);
+            $displayDays = 7;
+        } elseif ($period == 2) {
+            $end = $start->copy()->addDays(13);
+            $displayDays = 14;
+        } elseif ($period == 3) {
+            $end = $start->copy()->addDays(20);
+            $displayDays = 21;
+        } elseif ($period == 4) {
+            $end = $start->copy()->addMonth()->subDay();
+            $displayDays = $start->diffInDays($end) + 1;
+        } else {
+            $end = $start->copy()->addDays(6);
             $displayDays = 7;
         }
         
-        if ($request->has('start_date') && !$request->has('end_date') && !$request->has('period')) {
-            $start = Carbon::parse($startDate);
-            $end = $start->copy()->addDays($displayDays - 1);
-            $endDate = $end->format('Y-m-d');
-        }
-        
-        $startDate = $startDate ?? Carbon::today()->format('Y-m-d');
-        $endDate = $endDate ?? Carbon::today()->addDays(6)->format('Y-m-d');
-        
-        $start = Carbon::parse($startDate);
-        $end = Carbon::parse($endDate);
-        $displayDays = $start->diffInDays($end) + 1;
+        $endDate = $end->format('Y-m-d');
         
         $dates = [];
         $current = clone $start;

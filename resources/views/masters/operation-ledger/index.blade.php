@@ -17,11 +17,6 @@
                        class="form-control form-control-sm datepicker-3months" style="width: 120px;" placeholder="開始日" 
                        id="start_date" onchange="submitWithEndDate()">
             </div>
-            <div class="col-auto">
-                <input type="text" name="end_date" value="{{ $endDate }}" 
-                       class="form-control form-control-sm datepicker-3months" style="width: 120px;" placeholder="終了日" 
-                       id="end_date">
-            </div>
             
             <div class="col-auto">
                 <select name="period" class="form-select form-select-sm" style="width: 100px;" id="period_select">
@@ -832,15 +827,6 @@ function getCurrentDisplayDays() {
     if (displayDays) {
         return parseInt(displayDays);
     }
-    
-    const startDate = document.getElementById('start_date')?.value;
-    const endDate = document.getElementById('end_date')?.value;
-    if (startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        return Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
-    }
-    
     return 7;
 }
 
@@ -853,19 +839,27 @@ function formatDate(date) {
 
 function submitWithEndDate() {
     const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
-    const displayDaysInput = document.getElementById('display_days');
-    
     if (!startDateInput.value) return;
     
-    let displayDays = getCurrentDisplayDays();
+    const periodSelect = document.getElementById('period_select');
+    const periodValue = periodSelect ? parseInt(periodSelect.value) : 1;
     
-    const newStart = new Date(startDateInput.value);
-    const newEnd = new Date(newStart);
-    newEnd.setDate(newStart.getDate() + displayDays - 1);
+    let endDate = new Date(startDateInput.value);
+    if (periodValue === 1) {
+        endDate.setDate(endDate.getDate() + 6);
+    } else if (periodValue === 2) {
+        endDate.setDate(endDate.getDate() + 13);
+    } else if (periodValue === 3) {
+        endDate.setDate(endDate.getDate() + 20);
+    } else if (periodValue === 4) {
+        endDate.setMonth(endDate.getMonth() + 1);
+        endDate.setDate(endDate.getDate() - 1);
+    } else {
+        endDate.setDate(endDate.getDate() + 6);
+    }
     
-    endDateInput.value = formatDate(newEnd);
-    
+    const displayDays = Math.round((endDate - new Date(startDateInput.value)) / (1000 * 60 * 60 * 24)) + 1;
+    const displayDaysInput = document.getElementById('display_days');
     if (displayDaysInput) {
         displayDaysInput.value = displayDays;
     }
@@ -875,52 +869,41 @@ function submitWithEndDate() {
 
 function moveDate(unit, direction) {
     const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
-    const displayDaysInput = document.getElementById('display_days');
     const periodSelect = document.getElementById('period_select');
+    const displayDaysInput = document.getElementById('display_days');
     
     let currentStart = startDateInput.value ? new Date(startDateInput.value) : new Date();
-    let currentEnd = endDateInput.value ? new Date(endDateInput.value) : new Date();
-    
     let newStart = new Date(currentStart);
-    let newEnd = new Date(currentEnd);
     
     if (unit === 'week') {
-        const weekDays = 7 * direction;
-        newStart.setDate(currentStart.getDate() + weekDays);
-        newEnd.setDate(currentEnd.getDate() + weekDays);
+        newStart.setDate(currentStart.getDate() + (7 * direction));
     } else if (unit === 'month') {
         newStart.setMonth(currentStart.getMonth() + direction);
-        newEnd.setMonth(currentEnd.getMonth() + direction);
-        
         if (newStart.getDate() !== currentStart.getDate()) {
             newStart.setDate(0);
-        }
-        if (newEnd.getDate() !== currentEnd.getDate()) {
-            newEnd.setDate(0);
         }
     }
     
     startDateInput.value = formatDate(newStart);
-    endDateInput.value = formatDate(newEnd);
+    
+    const periodValue = periodSelect ? parseInt(periodSelect.value) : 1;
+    let newEnd = new Date(newStart);
+    if (periodValue === 1) {
+        newEnd.setDate(newStart.getDate() + 6);
+    } else if (periodValue === 2) {
+        newEnd.setDate(newStart.getDate() + 13);
+    } else if (periodValue === 3) {
+        newEnd.setDate(newStart.getDate() + 20);
+    } else if (periodValue === 4) {
+        newEnd.setMonth(newStart.getMonth() + 1);
+        newEnd.setDate(newEnd.getDate() - 1);
+    } else {
+        newEnd.setDate(newStart.getDate() + 6);
+    }
     
     const newDisplayDays = Math.round((newEnd - newStart) / (1000 * 60 * 60 * 24)) + 1;
     if (displayDaysInput) {
         displayDaysInput.value = newDisplayDays;
-    }
-    
-    if (periodSelect) {
-        if (newDisplayDays === 7) {
-            periodSelect.value = '1';
-        } else if (newDisplayDays === 14) {
-            periodSelect.value = '2';
-        } else if (newDisplayDays === 21) {
-            periodSelect.value = '3';
-        } else if (newDisplayDays >= 28 && newDisplayDays <= 31) {
-            periodSelect.value = '4';
-        } else {
-            periodSelect.value = '';
-        }
     }
     
     document.getElementById('searchForm').submit();
@@ -929,13 +912,14 @@ function moveDate(unit, direction) {
 function setToday() {
     const today = new Date();
     const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
-    const displayDaysInput = document.getElementById('display_days');
     const periodSelect = document.getElementById('period_select');
+    const displayDaysInput = document.getElementById('display_days');
     
     let period = periodSelect ? parseInt(periodSelect.value) : 1;
-    let endDate = new Date(today);
     
+    startDateInput.value = formatDate(today);
+    
+    let endDate = new Date(today);
     if (period === 1) {
         endDate.setDate(today.getDate() + 6);
     } else if (period === 2) {
@@ -943,15 +927,11 @@ function setToday() {
     } else if (period === 3) {
         endDate.setDate(today.getDate() + 20);
     } else if (period === 4) {
-        endDate = new Date(today);
         endDate.setMonth(today.getMonth() + 1);
         endDate.setDate(endDate.getDate() - 1);
     } else {
         endDate.setDate(today.getDate() + 6);
     }
-    
-    startDateInput.value = formatDate(today);
-    endDateInput.value = formatDate(endDate);
     
     const actualDays = Math.round((endDate - today) / (1000 * 60 * 60 * 24)) + 1;
     if (displayDaysInput) {
@@ -964,30 +944,24 @@ function setToday() {
 function submitPeriod() {
     const periodSelect = document.getElementById('period_select');
     const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
     const displayDaysInput = document.getElementById('display_days');
     
     const period = parseInt(periodSelect.value);
-    const today = new Date();
-    let startDate = new Date(today);
-    let endDate = new Date(today);
+    let startDate = startDateInput.value ? new Date(startDateInput.value) : new Date();
     
+    let endDate = new Date(startDate);
     if (period === 1) {
-        endDate.setDate(today.getDate() + 6);
+        endDate.setDate(startDate.getDate() + 6);
     } else if (period === 2) {
-        endDate.setDate(today.getDate() + 13);
+        endDate.setDate(startDate.getDate() + 13);
     } else if (period === 3) {
-        endDate.setDate(today.getDate() + 20);
+        endDate.setDate(startDate.getDate() + 20);
     } else if (period === 4) {
-        endDate = new Date(today);
-        endDate.setMonth(today.getMonth() + 1);
+        endDate.setMonth(startDate.getMonth() + 1);
         endDate.setDate(endDate.getDate() - 1);
     } else {
-        endDate.setDate(today.getDate() + 6);
+        endDate.setDate(startDate.getDate() + 6);
     }
-    
-    startDateInput.value = formatDate(startDate);
-    endDateInput.value = formatDate(endDate);
     
     const actualDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
     if (displayDaysInput) {

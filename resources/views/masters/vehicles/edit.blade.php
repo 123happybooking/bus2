@@ -50,7 +50,7 @@
                 </div>
                 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('masters.vehicles.update', $vehicle) }}" id="vehicleForm">
+                    <form method="POST" action="{{ route('masters.vehicles.update', $vehicle) }}" id="vehicleForm" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
@@ -129,26 +129,26 @@
                                 @enderror
                             </div>
                         
-                            <div class="col-md-6">
-                                <label for="vehicle_color" class="form-label">車両色</label>
-                                <select name="vehicle_color" id="vehicle_color" class="form-select @error('vehicle_color') is-invalid @enderror">
-                                    <option value="">選択してください</option>
-                                    <option value="ホワイト" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'ホワイト' ? 'selected' : '' }}>ホワイト</option>
-                                    <option value="ブラック" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'ブラック' ? 'selected' : '' }}>ブラック</option>
-                                    <option value="シルバー" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'シルバー' ? 'selected' : '' }}>シルバー</option>
-                                    <option value="グレー" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'グレー' ? 'selected' : '' }}>グレー</option>
-                                    <option value="レッド" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'レッド' ? 'selected' : '' }}>レッド</option>
-                                    <option value="ブルー" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'ブルー' ? 'selected' : '' }}>ブルー</option>
-                                    <option value="グリーン" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'グリーン' ? 'selected' : '' }}>グリーン</option>
-                                    <option value="イエロー" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'イエロー' ? 'selected' : '' }}>イエロー</option>
-                                    <option value="オレンジ" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'オレンジ' ? 'selected' : '' }}>オレンジ</option>
-                                    <option value="ゴールド" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'ゴールド' ? 'selected' : '' }}>ゴールド</option>
-                                    <option value="その他" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'その他' ? 'selected' : '' }}>その他</option>
-                                </select>
-                                @error('vehicle_color')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                            <!--<div class="col-md-6">-->
+                            <!--    <label for="vehicle_color" class="form-label">車両色</label>-->
+                            <!--    <select name="vehicle_color" id="vehicle_color" class="form-select @error('vehicle_color') is-invalid @enderror">-->
+                            <!--        <option value="">選択してください</option>-->
+                            <!--        <option value="ホワイト" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'ホワイト' ? 'selected' : '' }}>ホワイト</option>-->
+                            <!--        <option value="ブラック" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'ブラック' ? 'selected' : '' }}>ブラック</option>-->
+                            <!--        <option value="シルバー" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'シルバー' ? 'selected' : '' }}>シルバー</option>-->
+                            <!--        <option value="グレー" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'グレー' ? 'selected' : '' }}>グレー</option>-->
+                            <!--        <option value="レッド" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'レッド' ? 'selected' : '' }}>レッド</option>-->
+                            <!--        <option value="ブルー" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'ブルー' ? 'selected' : '' }}>ブルー</option>-->
+                            <!--        <option value="グリーン" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'グリーン' ? 'selected' : '' }}>グリーン</option>-->
+                            <!--        <option value="イエロー" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'イエロー' ? 'selected' : '' }}>イエロー</option>-->
+                            <!--        <option value="オレンジ" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'オレンジ' ? 'selected' : '' }}>オレンジ</option>-->
+                            <!--        <option value="ゴールド" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'ゴールド' ? 'selected' : '' }}>ゴールド</option>-->
+                            <!--        <option value="その他" {{ old('vehicle_color', $vehicle->vehicle_color ?? '') == 'その他' ? 'selected' : '' }}>その他</option>-->
+                            <!--    </select>-->
+                            <!--    @error('vehicle_color')-->
+                            <!--        <div class="invalid-feedback">{{ $message }}</div>-->
+                            <!--    @enderror-->
+                            <!--</div>-->
 
                             <div class="col-md-6">
                                 <label for="registration_number" class="form-label">登録番号</label>
@@ -206,6 +206,33 @@
                                        value="{{ old('display_order', $vehicle->display_order) }}" 
                                        min="0" placeholder="例: 10">
                                 @error('display_order')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="vehicle_image" class="form-label">車両画像</label>
+                                
+                                @if($vehicle->image_path)
+                                <div class="mb-3" id="currentImageContainer">
+                                    <div class="position-relative" style="display: inline-block;">
+                                        <img src="{{ asset('storage/' . $vehicle->image_path) }}" 
+                                             alt="{{ $vehicle->registration_number }}" 
+                                             style="max-width: 100px; max-height: 100px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+                                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" 
+                                                id="removeImageBtn" style="transform: translate(50%, -50%); border-radius: 50%;">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                    <input type="hidden" name="remove_image" id="removeImage" value="0">
+                                </div>
+                                @endif
+                                
+                                <input type="file" name="vehicle_image" id="vehicle_image" 
+                                       class="form-control @error('vehicle_image') is-invalid @enderror"
+                                       accept="image/jpeg,image/png,image/jpg,image/gif">
+                                <small class="form-text text-muted">対応形式: JPG, JPEG, PNG, GIF (最大 5MB)</small>
+                                @error('vehicle_image')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -281,7 +308,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const vehicleTypeSelect = document.getElementById('vehicle_type_id');
     const vehicleModelSelect = document.getElementById('vehicle_model_id');
-    const currentModelId = {{ old('vehicle_model_id', $vehicle->vehicle_model_id ?? 'null') }};
+    const currentModelId = {{ old('vehicle_model_id', $vehicle->vehicle_model_id) ?: 'null' }};
     
     function updateModelDropdown(selectedTypeId = null) {
         const selectedOption = vehicleTypeSelect.options[vehicleTypeSelect.selectedIndex];
@@ -354,5 +381,88 @@ document.addEventListener('DOMContentLoaded', function() {
         vehicleModelSelect.disabled = true;
     }
 });
+
+
+
+
+
+const vehicleImageInput = document.getElementById('vehicle_image');
+if (vehicleImageInput) {
+    vehicleImageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const currentImageContainer = document.getElementById('currentImageContainer');
+                if (currentImageContainer) {
+                    const img = currentImageContainer.querySelector('img');
+                    if (img) {
+                        img.src = event.target.result;
+                    } else {
+                        const container = document.createElement('div');
+                        container.className = 'mb-3';
+                        container.id = 'currentImageContainer';
+                        container.innerHTML = `
+                            <div class="position-relative" style="display: inline-block;">
+                                <img src="${event.target.result}" alt="プレビュー" style="max-width: 100px; max-height: 100px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+                                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" id="newRemoveImageBtn" style="transform: translate(50%, -50%); border-radius: 50%;">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                            <input type="hidden" name="remove_image" id="removeImage" value="0">
+                        `;
+                        vehicleImageInput.parentNode.insertBefore(container, vehicleImageInput);
+                        
+                        const removeBtn = document.getElementById('newRemoveImageBtn');
+                        if (removeBtn) {
+                            removeBtn.addEventListener('click', function() {
+                                container.remove();
+                                vehicleImageInput.value = '';
+                                document.getElementById('removeImage').value = '1';
+                            });
+                        }
+                    }
+                } else {
+                    const container = document.createElement('div');
+                    container.className = 'mb-3';
+                    container.id = 'currentImageContainer';
+                    container.innerHTML = `
+                        <div class="position-relative" style="display: inline-block;">
+                            <img src="${event.target.result}" alt="プレビュー" style="max-width: 100px; max-height: 100px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" id="newRemoveImageBtn" style="transform: translate(50%, -50%); border-radius: 50%;">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                        <input type="hidden" name="remove_image" id="removeImage" value="0">
+                    `;
+                    vehicleImageInput.parentNode.insertBefore(container, vehicleImageInput);
+                    
+                    const removeBtn = document.getElementById('newRemoveImageBtn');
+                    if (removeBtn) {
+                        removeBtn.addEventListener('click', function() {
+                            container.remove();
+                            vehicleImageInput.value = '';
+                            document.getElementById('removeImage').value = '1';
+                        });
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+const removeImageBtn = document.getElementById('removeImageBtn');
+if (removeImageBtn) {
+    removeImageBtn.addEventListener('click', function() {
+        if (confirm('画像を削除してもよろしいですか？')) {
+            document.getElementById('removeImage').value = '1';
+            const container = document.getElementById('currentImageContainer');
+            if (container) {
+                container.style.display = 'none';
+            }
+        }
+    });
+}
 </script>
 @endpush

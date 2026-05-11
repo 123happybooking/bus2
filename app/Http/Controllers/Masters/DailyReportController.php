@@ -7,6 +7,8 @@ use App\Models\Driver\DriverDailyReport;
 use App\Models\Driver\DriverOperationLog;
 use App\Models\Driver\DriverOperationStatus;
 use App\Models\Driver\DriverExpense;
+use App\Models\Driver\DriverExpenseType;
+use App\Models\Driver\DriverPaymentMethod;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Masters\Driver;
 use App\Models\Masters\Vehicle;
@@ -94,9 +96,28 @@ class DailyReportController extends Controller
                 ->get();
         }
         
+        $expenseTypes = DriverExpenseType::orderBy('id')->get();
+        $paymentMethods = DriverPaymentMethod::orderBy('id')->get();
+        
+        $expenses = DriverExpense::with(['expenseType', 'paymentMethod'])
+            ->where('driver_id', $report->driver_id)
+            ->whereDate('expense_date', $report->date)
+            ->orderBy('expense_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $expensesByItinerary = [];
+        foreach ($expenses as $expense) {
+            $itineraryId = $expense->itinerary_id;
+            if (!isset($expensesByItinerary[$itineraryId])) {
+                $expensesByItinerary[$itineraryId] = [];
+            }
+            $expensesByItinerary[$itineraryId][] = $expense;
+        }
+        
         $operationTypes = DriverOperationStatus::orderBy('display_order', 'asc')->get();
         
-        return view('masters.daily-reports.edit', compact('report', 'itineraries', 'operationTypes'));
+        return view('masters.daily-reports.edit', compact('report', 'itineraries', 'operationTypes', 'expensesByItinerary', 'expenseTypes', 'paymentMethods'));
     }
     
     public function update(Request $request, $id)
@@ -110,6 +131,8 @@ class DailyReportController extends Controller
             'start_mileage' => 'nullable|integer|min:0',
             'end_time' => 'nullable|date_format:H:i',
             'end_mileage' => 'nullable|integer|min:0',
+            'actual_distance' => 'nullable|integer|min:0',
+            'empty_distance' => 'nullable|integer|min:0',
             'weather' => 'nullable|string|max:50',
             'remark' => 'nullable|string|max:500',
             'allow_edit' => 'nullable|boolean',
@@ -125,6 +148,8 @@ class DailyReportController extends Controller
             'start_mileage' => $request->start_mileage,
             'end_time' => $request->end_time,
             'end_mileage' => $request->end_mileage,
+            'actual_distance' => $request->actual_distance,
+            'empty_distance' => $request->empty_distance,
             'weather' => $request->weather,
             'remark' => $request->remark,
             'allow_edit' => $request->has('allow_edit'),
@@ -197,6 +222,58 @@ class DailyReportController extends Controller
             } else {
                 $itinerary->update(['operation_status' => null]);
             }
+        }
+        
+                
+        if ($request->has('expenses')) {
+            foreach ($request->expenses as $itineraryId => $expenses) {
+                foreach ($expenses as $expenseData) {
+                    if (isset($expenseData['id']) && $expenseData['id']) {
+                        $expense = DriverExpense::find($expenseData['id']);
+                        if ($expense) {
+                            $updateData = [
+                                'expense_date' => $expenseData['expense_date'],
+                                'type_id' => $expenseData['type_id'],
+                                'amount' => $expenseData['amount'],
+                                'payment_method_id' => $expenseData['payment_method_id'],
+                                'agency_flag' => isset($expenseData['agency_flag']) ? 1 : 0,
+                                'remark' => $expenseData['remark'],
+                                'updated_by' => $userId,
+                            ];
+                            
+                            if (is_null($expense->bus_assignment_id)) {
+                                $itinerary = DailyItinerary::find($expense->itinerary_id);
+                                if ($itinerary && $itinerary->bus_assignment_id) {
+                                    $updateData['bus_assignment_id'] = $itinerary->bus_assignment_id;
+                                }
+                            }
+                            
+                            $expense->update($updateData);
+                        }
+                    } else {
+                        $itinerary = DailyItinerary::find($itineraryId);
+                        $busAssignmentId = $itinerary ? $itinerary->bus_assignment_id : null;
+                        
+                        DriverExpense::create([
+                            'bus_assignment_id' => $busAssignmentId,
+                            'itinerary_id' => $itineraryId,
+                            'driver_id' => $report->driver_id,
+                            'expense_date' => $expenseData['expense_date'],
+                            'amount' => $expenseData['amount'],
+                            'type_id' => $expenseData['type_id'],
+                            'payment_method_id' => $expenseData['payment_method_id'],
+                            'agency_flag' => isset($expenseData['agency_flag']) ? 1 : 0,
+                            'remark' => $expenseData['remark'],
+                            'created_by' => $userId,
+                            'updated_by' => $userId,
+                        ]);
+                    }
+                }
+            }
+        }
+        
+        if ($request->has('deleted_expense_ids')) {
+            DriverExpense::whereIn('id', $request->deleted_expense_ids)->delete();
         }
         
         return redirect()->route('masters.daily-reports.edit', $report->id)

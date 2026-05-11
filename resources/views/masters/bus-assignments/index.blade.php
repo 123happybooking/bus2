@@ -24,10 +24,7 @@
                     <div class="d-flex align-items-center">
                         <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">運行日</span>
                         <input type="text" name="start_date" value="{{ request('start_date', \Carbon\Carbon::today()->format('Y-m-d')) }}" 
-                               class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" placeholder="YYYY-MM-DD" id="start_date">
-                        <span class="mx-1">~</span>
-                        <input type="text" name="end_date" value="{{ request('end_date', \Carbon\Carbon::today()->addDays(6)->format('Y-m-d')) }}" 
-                               class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" placeholder="YYYY-MM-DD" id="end_date">
+                               class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" placeholder="YYYY-MM-DD" id="start_date" onchange="submitWithEndDate()">
                         
                         <select name="period" class="form-select form-select-sm" style="width: 100px; margin-left: 8px;" id="period_select">
                             <option value="1" {{ request('period') == 1 ? 'selected' : '' }}>1週間</option>
@@ -825,15 +822,6 @@ function getCurrentDisplayDays() {
     if (displayDays) {
         return parseInt(displayDays);
     }
-    
-    const startDate = document.getElementById('start_date')?.value;
-    const endDate = document.getElementById('end_date')?.value;
-    if (startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        return Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
-    }
-    
     return 7;
 }
 
@@ -846,19 +834,27 @@ function formatDate(date) {
 
 function submitWithEndDate() {
     const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
-    const displayDaysInput = document.getElementById('display_days');
-    
     if (!startDateInput.value) return;
     
-    let displayDays = getCurrentDisplayDays();
+    const periodSelect = document.getElementById('period_select');
+    const periodValue = periodSelect ? parseInt(periodSelect.value) : 1;
     
-    const newStart = new Date(startDateInput.value);
-    const newEnd = new Date(newStart);
-    newEnd.setDate(newStart.getDate() + displayDays - 1);
+    let endDate = new Date(startDateInput.value);
+    if (periodValue === 1) {
+        endDate.setDate(endDate.getDate() + 6);
+    } else if (periodValue === 2) {
+        endDate.setDate(endDate.getDate() + 13);
+    } else if (periodValue === 3) {
+        endDate.setDate(endDate.getDate() + 20);
+    } else if (periodValue === 4) {
+        endDate.setMonth(endDate.getMonth() + 1);
+        endDate.setDate(endDate.getDate() - 1);
+    } else {
+        endDate.setDate(endDate.getDate() + 6);
+    }
     
-    endDateInput.value = formatDate(newEnd);
-    
+    const displayDays = Math.round((endDate - new Date(startDateInput.value)) / (1000 * 60 * 60 * 24)) + 1;
+    const displayDaysInput = document.getElementById('display_days');
     if (displayDaysInput) {
         displayDaysInput.value = displayDays;
     }
@@ -868,52 +864,41 @@ function submitWithEndDate() {
 
 function moveDate(unit, direction) {
     const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
-    const displayDaysInput = document.getElementById('display_days');
     const periodSelect = document.getElementById('period_select');
+    const displayDaysInput = document.getElementById('display_days');
     
     let currentStart = startDateInput.value ? new Date(startDateInput.value) : new Date();
-    let currentEnd = endDateInput.value ? new Date(endDateInput.value) : new Date();
-    
     let newStart = new Date(currentStart);
-    let newEnd = new Date(currentEnd);
     
     if (unit === 'week') {
-        const weekDays = 7 * direction;
-        newStart.setDate(currentStart.getDate() + weekDays);
-        newEnd.setDate(currentEnd.getDate() + weekDays);
+        newStart.setDate(currentStart.getDate() + (7 * direction));
     } else if (unit === 'month') {
         newStart.setMonth(currentStart.getMonth() + direction);
-        newEnd.setMonth(currentEnd.getMonth() + direction);
-        
         if (newStart.getDate() !== currentStart.getDate()) {
             newStart.setDate(0);
-        }
-        if (newEnd.getDate() !== currentEnd.getDate()) {
-            newEnd.setDate(0);
         }
     }
     
     startDateInput.value = formatDate(newStart);
-    endDateInput.value = formatDate(newEnd);
+    
+    const periodValue = periodSelect ? parseInt(periodSelect.value) : 1;
+    let newEnd = new Date(newStart);
+    if (periodValue === 1) {
+        newEnd.setDate(newStart.getDate() + 6);
+    } else if (periodValue === 2) {
+        newEnd.setDate(newStart.getDate() + 13);
+    } else if (periodValue === 3) {
+        newEnd.setDate(newStart.getDate() + 20);
+    } else if (periodValue === 4) {
+        newEnd.setMonth(newStart.getMonth() + 1);
+        newEnd.setDate(newEnd.getDate() - 1);
+    } else {
+        newEnd.setDate(newStart.getDate() + 6);
+    }
     
     const newDisplayDays = Math.round((newEnd - newStart) / (1000 * 60 * 60 * 24)) + 1;
     if (displayDaysInput) {
         displayDaysInput.value = newDisplayDays;
-    }
-    
-    if (periodSelect) {
-        if (newDisplayDays === 7) {
-            periodSelect.value = '1';
-        } else if (newDisplayDays === 14) {
-            periodSelect.value = '2';
-        } else if (newDisplayDays === 21) {
-            periodSelect.value = '3';
-        } else if (newDisplayDays >= 28 && newDisplayDays <= 31) {
-            periodSelect.value = '4';
-        } else {
-            periodSelect.value = '';
-        }
     }
     
     document.getElementById('searchForm').submit();
@@ -922,13 +907,14 @@ function moveDate(unit, direction) {
 function setToday() {
     const today = new Date();
     const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
-    const displayDaysInput = document.getElementById('display_days');
     const periodSelect = document.getElementById('period_select');
+    const displayDaysInput = document.getElementById('display_days');
     
     let period = periodSelect ? parseInt(periodSelect.value) : 1;
-    let endDate = new Date(today);
     
+    startDateInput.value = formatDate(today);
+    
+    let endDate = new Date(today);
     if (period === 1) {
         endDate.setDate(today.getDate() + 6);
     } else if (period === 2) {
@@ -936,15 +922,11 @@ function setToday() {
     } else if (period === 3) {
         endDate.setDate(today.getDate() + 20);
     } else if (period === 4) {
-        endDate = new Date(today);
         endDate.setMonth(today.getMonth() + 1);
         endDate.setDate(endDate.getDate() - 1);
     } else {
         endDate.setDate(today.getDate() + 6);
     }
-    
-    startDateInput.value = formatDate(today);
-    endDateInput.value = formatDate(endDate);
     
     const actualDays = Math.round((endDate - today) / (1000 * 60 * 60 * 24)) + 1;
     if (displayDaysInput) {
@@ -957,30 +939,24 @@ function setToday() {
 function submitPeriod() {
     const periodSelect = document.getElementById('period_select');
     const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
     const displayDaysInput = document.getElementById('display_days');
     
     const period = parseInt(periodSelect.value);
-    const today = new Date();
-    let startDate = new Date(today);
-    let endDate = new Date(today);
+    let startDate = startDateInput.value ? new Date(startDateInput.value) : new Date();
     
+    let endDate = new Date(startDate);
     if (period === 1) {
-        endDate.setDate(today.getDate() + 6);
+        endDate.setDate(startDate.getDate() + 6);
     } else if (period === 2) {
-        endDate.setDate(today.getDate() + 13);
+        endDate.setDate(startDate.getDate() + 13);
     } else if (period === 3) {
-        endDate.setDate(today.getDate() + 20);
+        endDate.setDate(startDate.getDate() + 20);
     } else if (period === 4) {
-        endDate = new Date(today);
-        endDate.setMonth(today.getMonth() + 1);
+        endDate.setMonth(startDate.getMonth() + 1);
         endDate.setDate(endDate.getDate() - 1);
     } else {
-        endDate.setDate(today.getDate() + 6);
+        endDate.setDate(startDate.getDate() + 6);
     }
-    
-    startDateInput.value = formatDate(startDate);
-    endDateInput.value = formatDate(endDate);
     
     const actualDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
     if (displayDaysInput) {
@@ -1120,11 +1096,7 @@ function initStatusSelect() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    let startDateValue = null;
-    let endDateValue = null;
-    
     initStatusSelect();
-    
     
     const driverSelect = document.querySelector('select[name="driver_id"]');
     if (driverSelect) {
@@ -1140,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    const startDatePicker = flatpickr('input[name="start_date"]', {
+    flatpickr('input[name="start_date"]', {
         locale: 'ja',
         dateFormat: 'Y-m-d',
         showMonths: 3,
@@ -1149,37 +1121,6 @@ document.addEventListener('DOMContentLoaded', function() {
         disableMobile: true,
         onOpen: function(selectedDates, dateStr, instance) {
             instance.calendarContainer.style.zIndex = '9999';
-            if (startDateValue) {
-                instance.redraw();
-            }
-        },
-        onChange: function(selectedDates, dateStr, instance) {
-            if (selectedDates.length > 0) {
-                startDateValue = selectedDates[0];
-                endDatePicker.setDate(selectedDates[0]);
-                endDatePicker.open();
-                endDatePicker.set('minDate', selectedDates[0]);
-                setTimeout(function() {
-                    endDatePicker.redraw();
-                    instance.redraw();
-                }, 10);
-            } else {
-                startDateValue = null;
-                endDatePicker.set('minDate', null);
-                endDatePicker.redraw();
-                instance.redraw();
-            }
-        },
-        onDayCreate: function(dObj, dStr, fp, dayElem) {
-            const dayDate = dayElem.dateObj;
-            if (!dayDate) return;
-            
-            const dayDateStr = dayDate.toDateString();
-            
-            if (startDateValue && dayDateStr === startDateValue.toDateString()) {
-                dayElem.classList.remove('flatpickr-disabled');
-                dayElem.classList.add('start-range-highlight');
-            }
         },
         onReady: function(selectedDates, dateStr, instance) {
             const daysContainer = instance.daysContainer;
@@ -1191,76 +1132,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     dayContainer.parentNode.insertBefore(wrapper, dayContainer);
                     wrapper.appendChild(dayContainer);
                 });
-            }
-            if (startDateValue) {
-                instance.redraw();
-            }
-        }
-    });
-    
-    const endDatePicker = flatpickr('input[name="end_date"]', {
-        locale: 'ja',
-        dateFormat: 'Y-m-d',
-        showMonths: 3,
-        allowInput: true,
-        clickOpens: true,
-        disableMobile: true,
-        minDate: startDatePicker.input.value || null,
-        onOpen: function(selectedDates, dateStr, instance) {
-            instance.calendarContainer.style.zIndex = '9999';
-            if (startDateValue) {
-                setTimeout(function() {
-                    instance.redraw();
-                }, 10);
-            }
-        },
-        onChange: function(selectedDates, dateStr, instance) {
-            if (selectedDates.length > 0) {
-                endDateValue = selectedDates[0];
-            } else {
-                endDateValue = null;
-            }
-            instance.redraw();
-        },
-        onDayCreate: function(dObj, dStr, fp, dayElem) {
-            const dayDate = dayElem.dateObj;
-            if (!dayDate) return;
-            
-            const dayDateStr = dayDate.toDateString();
-            
-            if (startDateValue && dayDateStr === startDateValue.toDateString()) {
-                dayElem.classList.remove('flatpickr-disabled');
-                dayElem.classList.add('start-range-highlight');
-            }
-            
-            if (endDateValue && dayDateStr === endDateValue.toDateString()) {
-                dayElem.classList.remove('flatpickr-disabled');
-                dayElem.classList.add('end-range-highlight');
-            }
-            
-            if (startDateValue && endDateValue && dayDate) {
-                const startTime = startDateValue.getTime();
-                const endTime = endDateValue.getTime();
-                const dayTime = dayDate.getTime();
-                
-                if (dayTime > startTime && dayTime < endTime) {
-                    dayElem.classList.add('in-range-highlight');
-                }
-            }
-        },
-        onReady: function(selectedDates, dateStr, instance) {
-            const daysContainer = instance.daysContainer;
-            if (daysContainer) {
-                const dayContainers = daysContainer.querySelectorAll('.dayContainer');
-                dayContainers.forEach(function(dayContainer) {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'month-wrapper';
-                    dayContainer.parentNode.insertBefore(wrapper, dayContainer);
-                    wrapper.appendChild(dayContainer);
-                });
-            }
-            if (startDateValue) {
-                instance.redraw();
             }
         }
     });
@@ -1277,7 +1148,6 @@ document.getElementById('per_page_select').addEventListener('change', function()
     const groupName = document.querySelector('input[name="group_name"]')?.value;
     const startDate = document.querySelector('input[name="start_date"]')?.value;
     const endDate = document.querySelector('input[name="end_date"]')?.value;
-    const dateType = document.querySelector('select[name="date_type"]')?.value;
     const reservationId = document.querySelector('input[name="reservation_id"]')?.value;
     const operationId = document.querySelector('input[name="operation_id"]')?.value;
     const branchId = document.querySelector('select[name="branch_id"]')?.value;
@@ -1293,7 +1163,6 @@ document.getElementById('per_page_select').addEventListener('change', function()
     if (groupName) url.searchParams.set('group_name', groupName);
     if (startDate) url.searchParams.set('start_date', startDate);
     if (endDate) url.searchParams.set('end_date', endDate);
-    if (dateType) url.searchParams.set('date_type', dateType);
     if (reservationId) url.searchParams.set('reservation_id', reservationId);
     if (operationId) url.searchParams.set('operation_id', operationId);
     if (branchId) url.searchParams.set('branch_id', branchId);

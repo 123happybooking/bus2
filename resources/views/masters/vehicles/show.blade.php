@@ -86,14 +86,14 @@
                                     @endif
                                 </dd>
                                 
-                                <dt class="col-sm-4">車両色</dt>
-                                <dd class="col-sm-8">
-                                    @if($vehicle->vehicle_color)
-                                        {{ $vehicle->vehicle_color }}
-                                    @else
-                                        <span class="text-muted">未設定</span>
-                                    @endif
-                                </dd>
+                                <!--<dt class="col-sm-4">車両色</dt>-->
+                                <!--<dd class="col-sm-8">-->
+                                <!--    @if($vehicle->vehicle_color)-->
+                                <!--        {{ $vehicle->vehicle_color }}-->
+                                <!--    @else-->
+                                <!--        <span class="text-muted">未設定</span>-->
+                                <!--    @endif-->
+                                <!--</dd>-->
                                 
                                 <dt class="col-sm-4">乗車定員</dt>
                                 <dd class="col-sm-8">{{ $vehicle->seating_capacity }}名</dd>
@@ -113,6 +113,17 @@
                                         <span class="badge bg-success">有効</span>
                                     @else
                                         <span class="badge bg-secondary">無効</span>
+                                    @endif
+                                </dd>
+                                
+                                <dt class="col-sm-4">車両画像</dt>
+                                <dd class="col-sm-8">
+                                    @if($vehicle->image_path)
+                                        <img src="{{ asset('storage/' . $vehicle->image_path) }}" 
+                                             alt="{{ $vehicle->registration_number }}" 
+                                             style="width: 100px; height: 100px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+                                    @else
+                                        <span class="text-muted">画像はありません</span>
                                     @endif
                                 </dd>
                             </dl>
@@ -152,9 +163,9 @@
                                 <dd class="col-sm-8">
                                     @php
                                         $ownershipTypes = [
-                                            'company' => '会社所有',
-                                            'rental' => 'レンタル',
-                                            'personal' => '個人所有'
+                                            'own' => '自社',
+                                            'reservable' => '予約用',
+                                            'rental' => '傭車'
                                         ];
                                     @endphp
                                     <span class="badge bg-info">{{ $ownershipTypes[$vehicle->ownership_type] ?? $vehicle->ownership_type }}</span>

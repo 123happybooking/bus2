@@ -184,6 +184,8 @@ class DriverDailyReportController extends Controller
             'weather' => null,
             'start_work_time' => null,
             'end_work_time' => null,
+            'actual_distance' => null,
+            'empty_distance' => null,
             'remark' => null,
             'created_by' => $userId,
             'updated_by' => $userId,
@@ -220,6 +222,8 @@ class DriverDailyReportController extends Controller
             'weather' => 'nullable|string|max:50',
             'start_work_time' => 'nullable|date_format:H:i',
             'end_work_time' => 'nullable|date_format:H:i',
+            'actual_distance' => 'nullable|integer|min:0',
+            'empty_distance' => 'nullable|integer|min:0',
             'remark' => 'nullable|string|max:500', 
         ]);
         
@@ -232,6 +236,8 @@ class DriverDailyReportController extends Controller
             'weather' => $request->weather,
             'start_work_time' => $request->start_work_time,
             'end_work_time' => $request->end_work_time,
+            'actual_distance' => $request->actual_distance,
+            'empty_distance' => $request->empty_distance,
             'remark' => $request->remark,
             'updated_by' => $userId,
         ]);

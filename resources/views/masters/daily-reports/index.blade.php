@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', '运行日报')
+@section('title', '運行日報')
 
 @section('content')
 <div class="container-fluid px-4 py-0">
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0" style="color: #374151; font-size: 1.25rem;">运行日报</h5>
+        <h5 class="mb-0" style="color: #374151; font-size: 1.25rem;">運行日報</h5>
     </div>
 
     <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">

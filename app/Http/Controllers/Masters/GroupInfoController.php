@@ -3692,7 +3692,16 @@ class GroupInfoController extends Controller
         
         $weekdays = ['日', '月', '火', '水', '木', '金', '土'];
         $operationDate = Carbon::parse($busAssignment->operation_date ?? $busAssignment->start_date);
-        $formattedDate = $operationDate->format('Y年n月j日') . '(' . $weekdays[$operationDate->dayOfWeek] . ')';
+        $startDate = Carbon::parse($busAssignment->start_date);
+        $endDate = Carbon::parse($busAssignment->end_date);
+        
+        if ($startDate->toDateString() === $endDate->toDateString()) {
+            $formattedDate = $startDate->format('Y年n月j日') . '(' . $weekdays[$startDate->dayOfWeek] . ')';
+        } else {
+            $formattedDate = $startDate->format('Y年n月j日') . '(' . $weekdays[$startDate->dayOfWeek] . ')';
+            $formattedDate .= ' ～ ';
+            $formattedDate .= $endDate->format('Y年n月j日') . '(' . $weekdays[$endDate->dayOfWeek] . ')';
+        }
         
         $adultCount = $groupInfo->adult_count ?? 0;
         $childCount = $groupInfo->child_count ?? 0;
@@ -3700,8 +3709,11 @@ class GroupInfoController extends Controller
         
         $itineraryRows = [];
         foreach ($busAssignment->dailyItineraries as $index => $itinerary) {
+            $date = Carbon::parse($itinerary->date);
+            $formattedDay = $date->format('Y/m/d') . '(' . $weekdays[$date->dayOfWeek] . ')';
+            
             $itineraryRows[] = [
-                'day' => sprintf('Day-%02d', $index + 1),
+                'day' => $formattedDay,
                 'start_time' => $itinerary->time_start ? Carbon::parse($itinerary->time_start)->format('H:i') : '',
                 'start_location' => $itinerary->start_location ?? '',
                 'arrow' => '-->',
@@ -3712,7 +3724,18 @@ class GroupInfoController extends Controller
         }
         
         if (empty($itineraryRows)) {
-            $itineraryRows[] = ['day' => 'Day-01', 'start_time' => '', 'start_location' => '', 'arrow' => '-->', 'end_time' => '', 'end_location' => '', 'description' => ''];
+            $date = Carbon::parse($busAssignment->start_date);
+            $formattedDay = $date->format('Y/m/d') . '(' . $weekdays[$date->dayOfWeek] . ')';
+            
+            $itineraryRows[] = [
+                'day' => $formattedDay,
+                'start_time' => '',
+                'start_location' => '',
+                'arrow' => '-->',
+                'end_time' => '',
+                'end_location' => '',
+                'description' => '',
+            ];
         }
         
         $optionsNames = '';

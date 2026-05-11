@@ -21,6 +21,8 @@ class DriverDailyReport extends Model
         'end_mileage',
         'start_work_time',
         'end_work_time',
+        'actual_distance',
+        'empty_distance',
         'weather',
         'remark',
         'allow_edit',

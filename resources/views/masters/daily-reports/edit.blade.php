@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', '运行日报編集')
+@section('title', '運行日報編集')
 
 @section('content')
 <div class="container-fluid px-4 py-0">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0 page-title">运行日报編集</h5>
+        <h5 class="mb-0 page-title">運行日報編集</h5>
         <div>
             <a href="{{ route('masters.daily-reports.export-pdf', $report->id) }}" class="btn btn-sm btn-outline-danger me-2" target="_blank">
                 <i class="bi bi-file-pdf"></i> PDF导出
@@ -51,11 +51,11 @@
                 @method('PUT')
                 
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label class="form-label">日付</label>
                         <input type="text" class="form-control bg-light" value="{{ \Carbon\Carbon::parse($report->date)->format('Y年m月d日') }}" readonly>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label class="form-label">天気</label>
                         <select name="weather" class="form-select">
                             <option value="">-- 選択 --</option>
@@ -66,16 +66,16 @@
                             <option value="霧" {{ old('weather', $report->weather) == '霧' ? 'selected' : '' }}>霧</option>
                         </select>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label class="form-label">運転手</label>
                         <input type="text" class="form-control bg-light" value="{{ $report->driver->name ?? '-' }}" readonly>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label class="form-label">車両</label>
                         <input type="text" class="form-control bg-light" value="{{ $report->vehicle->registration_number ?? '-' }}" readonly>
                     </div>
                     
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label for="start_work_time" class="form-label">始業時刻</label>
                         <input type="time" name="start_work_time" id="start_work_time" class="form-control @error('start_work_time') is-invalid @enderror" 
                                value="{{ old('start_work_time', $report->start_work_time ? \Carbon\Carbon::parse($report->start_work_time)->format('H:i') : '') }}">
@@ -83,7 +83,7 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label for="end_work_time" class="form-label">終業時刻</label>
                         <input type="time" name="end_work_time" id="end_work_time" class="form-control @error('end_work_time') is-invalid @enderror" 
                                value="{{ old('end_work_time', $report->end_work_time ? \Carbon\Carbon::parse($report->end_work_time)->format('H:i') : '') }}">
@@ -92,7 +92,7 @@
                         @enderror
                     </div>
                 
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label for="start_time" class="form-label">出庫時間</label>
                         <input type="time" name="start_time" id="start_time" class="form-control @error('start_time') is-invalid @enderror" 
                                value="{{ old('start_time', $report->start_time ? \Carbon\Carbon::parse($report->start_time)->format('H:i') : '') }}">
@@ -100,7 +100,7 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label for="start_mileage" class="form-label">出庫時メーター</label>
                         <div class="input-group">
                             <input type="number" name="start_mileage" id="start_mileage" class="form-control @error('start_mileage') is-invalid @enderror" 
@@ -112,7 +112,7 @@
                         @enderror
                     </div>
                 
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label for="end_time" class="form-label">帰庫時間</label>
                         <input type="time" name="end_time" id="end_time" class="form-control @error('end_time') is-invalid @enderror" 
                                value="{{ old('end_time', $report->end_time ? \Carbon\Carbon::parse($report->end_time)->format('H:i') : '') }}">
@@ -120,7 +120,7 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label for="end_mileage" class="form-label">帰庫時メーター</label>
                         <div class="input-group">
                             <input type="number" name="end_mileage" id="end_mileage" class="form-control @error('end_mileage') is-invalid @enderror" 
@@ -131,12 +131,34 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label class="form-label">走行距離</label>
                         <div class="input-group">
                             <input type="text" id="distance" class="form-control bg-light" readonly>
                             <span class="input-group-text">km</span>
                         </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="actual_distance" class="form-label">実車距離</label>
+                        <div class="input-group">
+                            <input type="number" name="actual_distance" id="actual_distance" class="form-control @error('actual_distance') is-invalid @enderror" 
+                                   value="{{ old('actual_distance', $report->actual_distance) }}" min="0" step="1">
+                            <span class="input-group-text">km</span>
+                        </div>
+                        @error('actual_distance')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-md-3">
+                        <label for="empty_distance" class="form-label">空車距離</label>
+                        <div class="input-group">
+                            <input type="number" name="empty_distance" id="empty_distance" class="form-control @error('empty_distance') is-invalid @enderror" 
+                                   value="{{ old('empty_distance', $report->empty_distance) }}" min="0" step="1">
+                            <span class="input-group-text">km</span>
+                        </div>
+                        @error('empty_distance')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     
                     <div class="col-md-12">
@@ -177,58 +199,149 @@
                         </span>
                     </div>
                     <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered mb-0 logs-table" style="font-size: 0.8rem;" data-itinerary-index="{{ $itineraryIndex }}">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th style="width: 15%;">時間</th>
-                                        <th style="width: 10%;">走行距離</th>
-                                        <th style="width: 40%;">住所</th>
-                                        <th style="width: 15%;">操作</th>
-                                        <th style="width: 10%; text-align: center;">行操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="logs-tbody">
-                                    @php
-                                        $logIndex = 0;
-                                    @endphp
-                                    @foreach($itinerary->operationLogs as $log)
-                                    <tr class="log-row" data-log-id="{{ $log->id }}" data-index="{{ $logIndex }}">
-                                        <td>
-                                            <input type="time" class="form-control form-control-sm log-time-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][logged_at]" value="{{ \Carbon\Carbon::parse($log->logged_at)->format('H:i') }}" style="font-size: 0.75rem;">
-                                            <input type="hidden" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][id]" value="{{ $log->id }}">
-                                            <input type="hidden" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][display_order]" value="{{ $logIndex }}">
-                                        </td>
-                                        <td>
-                                            <input type="number" class="form-control form-control-sm log-mileage-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][mileage]" value="{{ $log->mileage }}" min="0" style="font-size: 0.75rem;">
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm log-address-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][address]" value="{{ $log->address ?? '' }}" style="font-size: 0.75rem;">
-                                        </td>
-                                        <td>
-                                            <select class="form-select form-select-sm log-action-select" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][action]" style="font-size: 0.75rem;">
-                                                @foreach($operationTypes as $type)
-                                                <option value="{{ $type->name }}" {{ $log->action == $type->name ? 'selected' : '' }}>
-                                                    {{ $type->name }}
-                                                </option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="d-flex justify-content-center gap-1">
-                                                <button type="button" class="btn btn-outline-success btn-sm add-log-btn" title="行を追加">
-                                                    <i class="bi bi-plus-lg"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-outline-danger btn-sm delete-log-btn" title="行を削除">
-                                                    <i class="bi bi-dash-lg"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @php $logIndex++; @endphp
-                                    @endforeach
-                                </tbody>
-                            </table>
+                        <div class="expense-section">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-0 logs-table" style="font-size: 0.8rem;" data-itinerary-index="{{ $itineraryIndex }}">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 15%;">時間</th>
+                                            <th style="width: 10%;">走行距離</th>
+                                            <th style="width: 40%;">住所</th>
+                                            <th style="width: 15%;">操作</th>
+                                            <th style="width: 10%; text-align: center;">行操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="logs-tbody">
+                                        @php
+                                            $logIndex = 0;
+                                        @endphp
+                                        @foreach($itinerary->operationLogs as $log)
+                                        <tr class="log-row" data-log-id="{{ $log->id }}" data-index="{{ $logIndex }}">
+                                            <td>
+                                                <input type="time" class="form-control form-control-sm log-time-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][logged_at]" value="{{ \Carbon\Carbon::parse($log->logged_at)->format('H:i') }}" style="font-size: 0.75rem;">
+                                                <input type="hidden" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][id]" value="{{ $log->id }}">
+                                                <input type="hidden" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][display_order]" value="{{ $logIndex }}">
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control form-control-sm log-mileage-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][mileage]" value="{{ $log->mileage }}" min="0" style="font-size: 0.75rem;">
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control form-control-sm log-address-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][address]" value="{{ $log->address ?? '' }}" style="font-size: 0.75rem;">
+                                            </td>
+                                            <td>
+                                                <select class="form-select form-select-sm log-action-select" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][action]" style="font-size: 0.75rem;">
+                                                    @foreach($operationTypes as $type)
+                                                    <option value="{{ $type->name }}" {{ $log->action == $type->name ? 'selected' : '' }}>
+                                                        {{ $type->name }}
+                                                    </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-flex justify-content-center gap-1">
+                                                    <button type="button" class="btn btn-outline-success btn-sm add-log-btn" title="行を追加">
+                                                        <i class="bi bi-plus-lg"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm delete-log-btn" title="行を削除">
+                                                        <i class="bi bi-dash-lg"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @php $logIndex++; @endphp
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        @php
+                            $itineraryExpenses = $expensesByItinerary[$itinerary->id] ?? [];
+                        @endphp
+                        <div class="expense-section pt-0">
+                            <div class="table-responsive">
+                                <b>立替</b>
+                                <table class="table table-sm table-bordered expense-table" style="font-size: 0.75rem; background-color: #fff; margin-bottom: 0;">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 12%;">日付</th>
+                                            <th style="width: 15%;">種別</th>
+                                            <th style="width: 10%;">金額</th>
+                                            <th style="width: 12%;">支払方法</th>
+                                            <th style="width: 8%;">代理店</th>
+                                            <th style="width: 33%;">備考</th>
+                                            <th style="width: 10%; text-align: center;">行操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="expense-tbody" data-itinerary-id="{{ $itinerary->id }}" data-itinerary-index="{{ $itineraryIndex }}" data-expense-date="{{ \Carbon\Carbon::parse($report->date)->format('Y-m-d') }}">
+                                        @forelse($itineraryExpenses as $expenseIndex => $expense)
+                                        <tr class="expense-row" data-expense-id="{{ $expense->id }}" data-expense-index="{{ $expenseIndex }}">
+                                            <td>
+                                                <input type="date" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][expense_date]" 
+                                                       value="{{ \Carbon\Carbon::parse($expense->expense_date)->format('Y-m-d') }}" 
+                                                       class="form-control form-control-sm expense-date-input" style="font-size: 0.7rem;">
+                                            </td>
+                                            <td>
+                                                <select name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][type_id]" class="form-select form-select-sm expense-type-select" style="font-size: 0.7rem;">
+                                                    <option value="">-- 選択 --</option>
+                                                    @foreach($expenseTypes ?? [] as $type)
+                                                    <option value="{{ $type->id }}" {{ $expense->type_id == $type->id ? 'selected' : '' }}>
+                                                        {{ $type->type_name }}
+                                                    </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="number" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][amount]" 
+                                                       value="{{ $expense->amount }}" step="1" min="0"
+                                                       class="form-control form-control-sm expense-amount-input" style="font-size: 0.7rem; text-align: right;">
+                                            </td>
+                                            <td>
+                                                <select name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][payment_method_id]" class="form-select form-select-sm expense-payment-select" style="font-size: 0.7rem;">
+                                                    <option value="">-- 選択 --</option>
+                                                    @foreach($paymentMethods ?? [] as $method)
+                                                    <option value="{{ $method->id }}" {{ $expense->payment_method_id == $method->id ? 'selected' : '' }}>
+                                                        {{ $method->method_name }}
+                                                    </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                                                    <input type="checkbox" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][agency_flag]" value="1" 
+                                                           class="form-check-input expense-agency-checkbox" id="agency_flag_{{ $expense->id }}"
+                                                           {{ $expense->agency_flag ? 'checked' : '' }}
+                                                           style="cursor: pointer;">
+                                                    <label class="form-check-label ms-1 expense-agency-label" for="agency_flag_{{ $expense->id }}" style="font-size: 0.7rem; cursor: pointer;">代理店</label>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <input type="text" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][remark]" 
+                                                       value="{{ $expense->remark }}" placeholder="備考"
+                                                       class="form-control form-control-sm expense-remark-input" style="font-size: 0.7rem;">
+                                            </td>
+                                            <input type="hidden" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][id]" value="{{ $expense->id }}">
+                                            <td class="text-center">
+                                                <div class="d-flex justify-content-center gap-1">
+                                                    <button type="button" class="btn btn-outline-success btn-sm add-expense-row-btn" title="行を追加" style="padding: 2px 6px;">
+                                                        <i class="bi bi-plus-lg"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm delete-expense-row-btn" title="行を削除" style="padding: 2px 6px;">
+                                                        <i class="bi bi-dash-lg"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @empty
+                                        <tr class="expense-row expense-empty-row">
+                                            <td colspan="7" class="text-center text-muted" style="padding: 20px;">
+                                                立替金データがありません。「+」ボタンをクリックして追加してください。
+                                             </td>
+                                         </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -293,163 +406,468 @@
         </div>
     </div>
 </div>
+@endsection
 
+@push('scripts')
 <script>
-    const startMileageInput = document.getElementById('start_mileage');
-    const endMileageInput = document.getElementById('end_mileage');
-    const distanceInput = document.getElementById('distance');
+const startMileageInput = document.getElementById('start_mileage');
+const endMileageInput = document.getElementById('end_mileage');
+const distanceInput = document.getElementById('distance');
+
+function calculateDistance() {
+    const start = parseInt(startMileageInput.value) || 0;
+    const end = parseInt(endMileageInput.value) || 0;
     
-    function calculateDistance() {
-        const start = parseInt(startMileageInput.value) || 0;
-        const end = parseInt(endMileageInput.value) || 0;
+    if (end >= start) {
+        distanceInput.value = end - start;
+    } else {
+        distanceInput.value = '';
+    }
+}
+
+startMileageInput.addEventListener('input', calculateDistance);
+endMileageInput.addEventListener('input', calculateDistance);
+calculateDistance();
+
+function reindexRows(table) {
+    const tbody = table.querySelector('.logs-tbody');
+    const rows = tbody.querySelectorAll('.log-row');
+    const itineraryIndex = table.getAttribute('data-itinerary-index');
+    
+    rows.forEach((row, newIndex) => {
+        row.setAttribute('data-index', newIndex);
         
-        if (start > 0 && end > 0 && end >= start) {
-            distanceInput.value = end - start;
-        } else {
-            distanceInput.value = '';
+        const timeInput = row.querySelector('.log-time-input');
+        const idInput = row.querySelector('input[name*="[id]"]');
+        const mileageInput = row.querySelector('.log-mileage-input');
+        const addressInput = row.querySelector('.log-address-input');
+        const actionSelect = row.querySelector('.log-action-select');
+        const displayOrderInput = row.querySelector('input[name*="[display_order]"]');
+        
+        if (timeInput) {
+            timeInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][logged_at]`);
         }
+        if (idInput) {
+            idInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][id]`);
+        }
+        if (mileageInput) {
+            mileageInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][mileage]`);
+        }
+        if (addressInput) {
+            addressInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][address]`);
+        }
+        if (actionSelect) {
+            actionSelect.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][action]`);
+        }
+        if (displayOrderInput) {
+            displayOrderInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][display_order]`);
+            displayOrderInput.value = newIndex;
+        } else {
+            const newDisplayOrder = document.createElement('input');
+            newDisplayOrder.type = 'hidden';
+            newDisplayOrder.name = `logs[${itineraryIndex}][${newIndex}][display_order]`;
+            newDisplayOrder.value = newIndex;
+            row.cells[0].appendChild(newDisplayOrder);
+        }
+    });
+}
+
+function addLogRow(button) {
+    const row = button.closest('.log-row');
+    const tbody = row.parentNode;
+    const table = row.closest('.logs-table');
+    const itineraryIndex = table.getAttribute('data-itinerary-index');
+    
+    const newRow = document.createElement('tr');
+    newRow.className = 'log-row';
+    newRow.setAttribute('data-log-id', '');
+    newRow.setAttribute('data-index', '');
+    
+    const currentRowCount = tbody.querySelectorAll('.log-row').length;
+    const newIndex = currentRowCount;
+    
+    newRow.innerHTML = `
+        <tr>
+            <input type="time" class="form-control form-control-sm log-time-input" name="logs[${itineraryIndex}][${newIndex}][logged_at]" style="font-size: 0.75rem;">
+            <input type="hidden" name="logs[${itineraryIndex}][${newIndex}][id]" value="">
+            <input type="hidden" name="logs[${itineraryIndex}][${newIndex}][display_order]" value="${newIndex}">
+        </td>
+        <td>
+            <input type="number" class="form-control form-control-sm log-mileage-input" name="logs[${itineraryIndex}][${newIndex}][mileage]" min="0" style="font-size: 0.75rem;">
+        </td>
+        <td>
+            <input type="text" class="form-control form-control-sm log-address-input" name="logs[${itineraryIndex}][${newIndex}][address]" style="font-size: 0.75rem;">
+        </td>
+        <td>
+            <select class="form-select form-select-sm log-action-select" name="logs[${itineraryIndex}][${newIndex}][action]" style="font-size: 0.75rem;">
+                @foreach($operationTypes as $type)
+                <option value="{{ $type->name }}">{{ $type->name }}</option>
+                @endforeach
+            </select>
+        </td>
+        <td class="text-center">
+            <div class="d-flex justify-content-center gap-1">
+                <button type="button" class="btn btn-outline-success btn-sm add-log-btn" title="行を追加">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm delete-log-btn" title="行を削除">
+                    <i class="bi bi-dash-lg"></i>
+                </button>
+            </div>
+        </td>
+    `;
+    
+    const referenceRow = button.closest('.log-row');
+    referenceRow.parentNode.insertBefore(newRow, referenceRow.nextSibling);
+    
+    const newAddBtn = newRow.querySelector('.add-log-btn');
+    const newDeleteBtn = newRow.querySelector('.delete-log-btn');
+    
+    newAddBtn.addEventListener('click', function() { addLogRow(this); });
+    newDeleteBtn.addEventListener('click', function() { deleteLogRow(this); });
+    
+    reindexRows(table);
+}
+
+function deleteLogRow(button) {
+    const row = button.closest('.log-row');
+    const tbody = row.parentNode;
+    const table = row.closest('.logs-table');
+    
+    if (tbody.querySelectorAll('.log-row').length <= 1) {
+        if (confirm('最後の行を削除しますか？')) {
+            row.remove();
+            reindexRows(table);
+        }
+    } else {
+        row.remove();
+        reindexRows(table);
+    }
+}
+
+document.querySelectorAll('.logs-table').forEach(table => {
+    const tbody = table.querySelector('.logs-tbody');
+    const addButtons = tbody.querySelectorAll('.add-log-btn');
+    const deleteButtons = tbody.querySelectorAll('.delete-log-btn');
+    
+    addButtons.forEach(btn => {
+        btn.removeEventListener('click', btn._addHandler);
+        btn._addHandler = function() { addLogRow(this); };
+        btn.addEventListener('click', btn._addHandler);
+    });
+    
+    deleteButtons.forEach(btn => {
+        btn.removeEventListener('click', btn._deleteHandler);
+        btn._deleteHandler = function() { deleteLogRow(this); };
+        btn.addEventListener('click', btn._deleteHandler);
+    });
+});
+
+function getDefaultExpenseDate(tbody) {
+    return tbody.getAttribute('data-expense-date') || new Date().toISOString().split('T')[0];
+}
+
+function generateExpenseIndex() {
+    return Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+}
+
+function addExpenseRow(button) {
+    const currentRow = button.closest('.expense-row');
+    const tbody = currentRow.closest('.expense-tbody');
+    const itineraryId = tbody.getAttribute('data-itinerary-id');
+    const itineraryIndex = tbody.getAttribute('data-itinerary-index');
+    const defaultDate = getDefaultExpenseDate(tbody);
+    const newIndex = generateExpenseIndex();
+    
+    const emptyRow = tbody.querySelector('.expense-empty-row');
+    if (emptyRow) {
+        emptyRow.remove();
     }
     
-    startMileageInput.addEventListener('input', calculateDistance);
-    endMileageInput.addEventListener('input', calculateDistance);
-    calculateDistance();
-    
-    function reindexRows(table) {
-        const tbody = table.querySelector('.logs-tbody');
-        const rows = tbody.querySelectorAll('.log-row');
-        const itineraryIndex = table.getAttribute('data-itinerary-index');
-        
-        rows.forEach((row, newIndex) => {
-            row.setAttribute('data-index', newIndex);
-            
-            const timeInput = row.querySelector('.log-time-input');
-            const idInput = row.querySelector('input[name*="[id]"]');
-            const mileageInput = row.querySelector('.log-mileage-input');
-            const addressInput = row.querySelector('.log-address-input');
-            const actionSelect = row.querySelector('.log-action-select');
-            const displayOrderInput = row.querySelector('input[name*="[display_order]"]');
-            
-            if (timeInput) {
-                const oldName = timeInput.getAttribute('name');
-                timeInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][logged_at]`);
-            }
-            if (idInput) {
-                idInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][id]`);
-            }
-            if (mileageInput) {
-                mileageInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][mileage]`);
-            }
-            if (addressInput) {
-                addressInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][address]`);
-            }
-            if (actionSelect) {
-                actionSelect.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][action]`);
-            }
-            if (displayOrderInput) {
-                displayOrderInput.setAttribute('name', `logs[${itineraryIndex}][${newIndex}][display_order]`);
-                displayOrderInput.value = newIndex;
-            } else {
-                const newDisplayOrder = document.createElement('input');
-                newDisplayOrder.type = 'hidden';
-                newDisplayOrder.name = `logs[${itineraryIndex}][${newIndex}][display_order]`;
-                newDisplayOrder.value = newIndex;
-                row.cells[0].appendChild(newDisplayOrder);
-            }
-        });
-    }
-    
-    function addLogRow(button) {
-        const row = button.closest('.log-row');
-        const tbody = row.parentNode;
-        const table = row.closest('.logs-table');
-        const itineraryIndex = table.getAttribute('data-itinerary-index');
-        
-        const newRow = document.createElement('tr');
-        newRow.className = 'log-row';
-        newRow.setAttribute('data-log-id', '');
-        newRow.setAttribute('data-index', '');
-        
-        const currentRowCount = tbody.querySelectorAll('.log-row').length;
-        const newIndex = currentRowCount;
-        
-        newRow.innerHTML = `
+    const newRowHtml = `
+        <tr class="expense-row" data-expense-id="" data-expense-index="${newIndex}">
             <td>
-                <input type="time" class="form-control form-control-sm log-time-input" name="logs[${itineraryIndex}][${newIndex}][logged_at]" style="font-size: 0.75rem;">
-                <input type="hidden" name="logs[${itineraryIndex}][${newIndex}][id]" value="">
-                <input type="hidden" name="logs[${itineraryIndex}][${newIndex}][display_order]" value="${newIndex}">
+                <input type="date" name="expenses[${itineraryId}][${newIndex}][expense_date]" 
+                       value="${defaultDate}"
+                       class="form-control form-control-sm expense-date-input" style="font-size: 0.7rem;">
             </td>
             <td>
-                <input type="number" class="form-control form-control-sm log-mileage-input" name="logs[${itineraryIndex}][${newIndex}][mileage]" min="0" style="font-size: 0.75rem;">
+                <select name="expenses[${itineraryId}][${newIndex}][type_id]" class="form-select form-select-sm expense-type-select" style="font-size: 0.7rem;">
+                    <option value="">-- 選択 --</option>
+                    @foreach($expenseTypes ?? [] as $type)
+                    <option value="{{ $type->id }}">{{ $type->type_name }}</option>
+                    @endforeach
+                </select>
             </td>
             <td>
-                <input type="text" class="form-control form-control-sm log-address-input" name="logs[${itineraryIndex}][${newIndex}][address]" style="font-size: 0.75rem;">
+                <input type="number" name="expenses[${itineraryId}][${newIndex}][amount]" value="0" step="1" min="0"
+                       class="form-control form-control-sm expense-amount-input" style="font-size: 0.7rem; text-align: right;">
             </td>
             <td>
-                <select class="form-select form-select-sm log-action-select" name="logs[${itineraryIndex}][${newIndex}][action]" style="font-size: 0.75rem;">
-                    @foreach($operationTypes as $type)
-                    <option value="{{ $type->name }}">{{ $type->name }}</option>
+                <select name="expenses[${itineraryId}][${newIndex}][payment_method_id]" class="form-select form-select-sm expense-payment-select" style="font-size: 0.7rem;">
+                    <option value="">-- 選択 --</option>
+                    @foreach($paymentMethods ?? [] as $method)
+                    <option value="{{ $method->id }}">{{ $method->method_name }}</option>
                     @endforeach
                 </select>
             </td>
             <td class="text-center">
+                <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                    <input type="checkbox" name="expenses[${itineraryId}][${newIndex}][agency_flag]" value="1" 
+                           class="form-check-input expense-agency-checkbox" id="agency_flag_${newIndex}"
+                           style="cursor: pointer;">
+                    <label class="form-check-label ms-1 expense-agency-label" for="agency_flag_${newIndex}" style="font-size: 0.7rem; cursor: pointer;">代理店</label>
+                </div>
+            </td>
+            <td>
+                <input type="text" name="expenses[${itineraryId}][${newIndex}][remark]" placeholder="備考"
+                       class="form-control form-control-sm expense-remark-input" style="font-size: 0.7rem;">
+            </td>
+            <td class="text-center">
                 <div class="d-flex justify-content-center gap-1">
-                    <button type="button" class="btn btn-outline-success btn-sm add-log-btn" title="行を追加">
+                    <button type="button" class="btn btn-outline-success btn-sm add-expense-row-btn" title="行を追加" style="padding: 2px 6px;">
                         <i class="bi bi-plus-lg"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-danger btn-sm delete-log-btn" title="行を削除">
+                    <button type="button" class="btn btn-outline-danger btn-sm delete-expense-row-btn" title="行を削除" style="padding: 2px 6px;">
                         <i class="bi bi-dash-lg"></i>
                     </button>
                 </div>
             </td>
+        </table>
+    `;
+    
+    currentRow.insertAdjacentHTML('afterend', newRowHtml);
+    const newRow = currentRow.nextElementSibling;
+    bindExpenseRowEvents(newRow);
+}
+
+function deleteExpenseRow(button) {
+    const row = button.closest('.expense-row');
+    const tbody = row.closest('.expense-tbody');
+    
+    const expenseId = row.getAttribute('data-expense-id');
+    if (expenseId && expenseId !== '') {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'deleted_expense_ids[]';
+        input.value = expenseId;
+        document.getElementById('dailyReportForm').appendChild(input);
+    }
+    
+    row.remove();
+    
+    const remainingRows = tbody.querySelectorAll('.expense-row:not(.expense-empty-row)');
+    if (remainingRows.length === 0) {
+        const itineraryId = tbody.getAttribute('data-itinerary-id');
+        const itineraryIndex = tbody.getAttribute('data-itinerary-index');
+        const defaultDate = getDefaultExpenseDate(tbody);
+        
+        tbody.innerHTML = `
+            <tr class="expense-row expense-empty-row">
+                <td colspan="7" class="text-center text-muted" style="padding: 20px;">
+                    立替金データがありません。「+」ボタンをクリックして追加してください。
+                 </td>
+             </tr>
         `;
         
-        const referenceRow = button.closest('.log-row');
-        referenceRow.parentNode.insertBefore(newRow, referenceRow.nextSibling);
-        
-        const newAddBtn = newRow.querySelector('.add-log-btn');
-        const newDeleteBtn = newRow.querySelector('.delete-log-btn');
-        
-        newAddBtn.addEventListener('click', function() { addLogRow(this); });
-        newDeleteBtn.addEventListener('click', function() { deleteLogRow(this); });
-        
-        reindexRows(table);
-    }
-    
-    function deleteLogRow(button) {
-        const row = button.closest('.log-row');
-        const tbody = row.parentNode;
-        const table = row.closest('.logs-table');
-        
-        if (tbody.querySelectorAll('.log-row').length <= 1) {
-            if (confirm('最後の行を削除しますか？')) {
-                row.remove();
-                reindexRows(table);
-            }
-        } else {
-            row.remove();
-            reindexRows(table);
+        const emptyRow = tbody.querySelector('.expense-empty-row');
+        const addBtnInEmptyRow = emptyRow.querySelector('.add-expense-row-btn');
+        if (addBtnInEmptyRow) {
+            const newAddBtn = addBtnInEmptyRow.cloneNode(true);
+            addBtnInEmptyRow.parentNode.replaceChild(newAddBtn, addBtnInEmptyRow);
+            newAddBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                tbody.innerHTML = '';
+                const newIndex = generateExpenseIndex();
+                const newRowHtml = `
+                    <tr class="expense-row" data-expense-id="" data-expense-index="${newIndex}">
+                        <td>
+                            <input type="date" name="expenses[${itineraryId}][${newIndex}][expense_date]" 
+                                   value="${defaultDate}"
+                                   class="form-control form-control-sm expense-date-input" style="font-size: 0.7rem;">
+                        </td>
+                        <td>
+                            <select name="expenses[${itineraryId}][${newIndex}][type_id]" class="form-select form-select-sm expense-type-select" style="font-size: 0.7rem;">
+                                <option value="">-- 選択 --</option>
+                                @foreach($expenseTypes ?? [] as $type)
+                                <option value="{{ $type->id }}">{{ $type->type_name }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="expenses[${itineraryId}][${newIndex}][amount]" value="0" step="1" min="0"
+                                   class="form-control form-control-sm expense-amount-input" style="font-size: 0.7rem; text-align: right;">
+                        </td>
+                        <td>
+                            <select name="expenses[${itineraryId}][${newIndex}][payment_method_id]" class="form-select form-select-sm expense-payment-select" style="font-size: 0.7rem;">
+                                <option value="">-- 選択 --</option>
+                                @foreach($paymentMethods ?? [] as $method)
+                                <option value="{{ $method->id }}">{{ $method->method_name }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                                <input type="checkbox" name="expenses[${itineraryId}][${newIndex}][agency_flag]" value="1" 
+                                       class="form-check-input expense-agency-checkbox" id="agency_flag_${newIndex}"
+                                       style="cursor: pointer;">
+                                <label class="form-check-label ms-1 expense-agency-label" for="agency_flag_${newIndex}" style="font-size: 0.7rem; cursor: pointer;">代理店</label>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" name="expenses[${itineraryId}][${newIndex}][remark]" placeholder="備考"
+                                   class="form-control form-control-sm expense-remark-input" style="font-size: 0.7rem;">
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1">
+                                <button type="button" class="btn btn-outline-success btn-sm add-expense-row-btn" title="行を追加" style="padding: 2px 6px;">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm delete-expense-row-btn" title="行を削除" style="padding: 2px 6px;">
+                                    <i class="bi bi-dash-lg"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', newRowHtml);
+                bindExpenseRowEvents(tbody.querySelector('.expense-row'));
+            });
         }
     }
+}
+
+function bindExpenseRowEvents(row) {
+    if (row.classList && row.classList.contains('expense-empty-row')) {
+        const addBtn = row.querySelector('.add-expense-row-btn');
+        if (addBtn) {
+            const newAddBtn = addBtn.cloneNode(true);
+            addBtn.parentNode.replaceChild(newAddBtn, addBtn);
+            newAddBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const tbody = row.closest('.expense-tbody');
+                const itineraryId = tbody.getAttribute('data-itinerary-id');
+                const itineraryIndex = tbody.getAttribute('data-itinerary-index');
+                const defaultDate = getDefaultExpenseDate(tbody);
+                const newIndex = generateExpenseIndex();
+                
+                tbody.innerHTML = '';
+                const newRowHtml = `
+                    <tr class="expense-row" data-expense-id="" data-expense-index="${newIndex}">
+                        <td>
+                            <input type="date" name="expenses[${itineraryId}][${newIndex}][expense_date]" 
+                                   value="${defaultDate}"
+                                   class="form-control form-control-sm expense-date-input" style="font-size: 0.7rem;">
+                        </td>
+                        <td>
+                            <select name="expenses[${itineraryId}][${newIndex}][type_id]" class="form-select form-select-sm expense-type-select" style="font-size: 0.7rem;">
+                                <option value="">-- 選択 --</option>
+                                @foreach($expenseTypes ?? [] as $type)
+                                <option value="{{ $type->id }}">{{ $type->type_name }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="expenses[${itineraryId}][${newIndex}][amount]" value="0" step="1" min="0"
+                                   class="form-control form-control-sm expense-amount-input" style="font-size: 0.7rem; text-align: right;">
+                        </td>
+                        <td>
+                            <select name="expenses[${itineraryId}][${newIndex}][payment_method_id]" class="form-select form-select-sm expense-payment-select" style="font-size: 0.7rem;">
+                                <option value="">-- 選択 --</option>
+                                @foreach($paymentMethods ?? [] as $method)
+                                <option value="{{ $method->id }}">{{ $method->method_name }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                                <input type="checkbox" name="expenses[${itineraryId}][${newIndex}][agency_flag]" value="1" 
+                                       class="form-check-input expense-agency-checkbox" id="agency_flag_${newIndex}"
+                                       style="cursor: pointer;">
+                                <label class="form-check-label ms-1 expense-agency-label" for="agency_flag_${newIndex}" style="font-size: 0.7rem; cursor: pointer;">代理店</label>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" name="expenses[${itineraryId}][${newIndex}][remark]" placeholder="備考"
+                                   class="form-control form-control-sm expense-remark-input" style="font-size: 0.7rem;">
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1">
+                                <button type="button" class="btn btn-outline-success btn-sm add-expense-row-btn" title="行を追加" style="padding: 2px 6px;">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm delete-expense-row-btn" title="行を削除" style="padding: 2px 6px;">
+                                    <i class="bi bi-dash-lg"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', newRowHtml);
+                bindExpenseRowEvents(tbody.querySelector('.expense-row'));
+            });
+        }
+        return;
+    }
     
-    document.querySelectorAll('.logs-table').forEach(table => {
-        const tbody = table.querySelector('.logs-tbody');
-        const addButtons = tbody.querySelectorAll('.add-log-btn');
-        const deleteButtons = tbody.querySelectorAll('.delete-log-btn');
-        
-        addButtons.forEach(btn => {
-            btn.removeEventListener('click', btn._addHandler);
-            btn._addHandler = function() { addLogRow(this); };
-            btn.addEventListener('click', btn._addHandler);
+    const addBtn = row.querySelector('.add-expense-row-btn');
+    const deleteBtn = row.querySelector('.delete-expense-row-btn');
+    
+    if (addBtn) {
+        const newAddBtn = addBtn.cloneNode(true);
+        addBtn.parentNode.replaceChild(newAddBtn, addBtn);
+        newAddBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            addExpenseRow(this);
         });
-        
-        deleteButtons.forEach(btn => {
-            btn.removeEventListener('click', btn._deleteHandler);
-            btn._deleteHandler = function() { deleteLogRow(this); };
-            btn.addEventListener('click', btn._deleteHandler);
+    }
+    
+    if (deleteBtn) {
+        const newDeleteBtn = deleteBtn.cloneNode(true);
+        deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
+        newDeleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            deleteExpenseRow(this);
         });
+    }
+    
+    const agencyCheckbox = row.querySelector('.expense-agency-checkbox');
+    const agencyLabel = row.querySelector('.expense-agency-label');
+    if (agencyCheckbox && agencyLabel) {
+        const newAgencyCheckbox = agencyCheckbox.cloneNode(true);
+        agencyCheckbox.parentNode.replaceChild(newAgencyCheckbox, agencyCheckbox);
+        
+        const newAgencyLabel = agencyLabel.cloneNode(true);
+        agencyLabel.parentNode.replaceChild(newAgencyLabel, agencyLabel);
+        
+        newAgencyLabel.addEventListener('click', function(e) {
+            e.preventDefault();
+            const cb = document.getElementById(this.getAttribute('for'));
+            if (cb) {
+                cb.checked = !cb.checked;
+            }
+        });
+    }
+}
+
+document.querySelectorAll('.expense-tbody').forEach(tbody => {
+    if (!tbody.getAttribute('data-expense-date')) {
+        const defaultDate = new Date().toISOString().split('T')[0];
+        tbody.setAttribute('data-expense-date', defaultDate);
+    }
+    
+    const rows = tbody.querySelectorAll('.expense-row');
+    rows.forEach(row => {
+        bindExpenseRowEvents(row);
     });
+});
 </script>
-@endsection
+@endpush
 
 @push('styles')
 <style>
@@ -507,6 +925,11 @@
 
 .table td, .table th {
     vertical-align: middle;
+}
+
+.expense-section {
+    padding: 12px 16px;
+    background-color: #fff;
 }
 </style>
 @endpush

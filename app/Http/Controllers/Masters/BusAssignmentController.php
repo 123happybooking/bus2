@@ -28,9 +28,9 @@ class BusAssignmentController extends Controller
     public function index(Request $request)
     {
         $sessionKey = 'bus_assignments_search';
-        
-        $searchFields = ['start_date', 'end_date', 'date_type'];
-        
+                
+        $searchFields = ['start_date', 'period', 'display_days'];
+                
         $isNewSearch = false;
         foreach ($searchFields as $field) {
             if ($request->filled($field)) {
@@ -38,12 +38,12 @@ class BusAssignmentController extends Controller
                 break;
             }
         }
-        
+                
         if ($request->has('reset_search')) {
             session()->forget($sessionKey);
             $isNewSearch = false;
         }
-        
+                
         if ($isNewSearch) {
             $searchParams = $request->only($searchFields);
             session([$sessionKey => $searchParams]);
@@ -52,11 +52,9 @@ class BusAssignmentController extends Controller
             $request->merge($searchParams);
         }
         
-        
         $groupName = $request->input('group_name');
         $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-        $dateType = $request->input('date_type');
+        $period = $request->input('period', 1);
         $reservationId = $request->input('reservation_id');
         $operationId = $request->input('operation_id');
         $branchId = $request->input('branch_id');
@@ -67,32 +65,45 @@ class BusAssignmentController extends Controller
         $agencyId = $request->input('agency_id');
         $reservationCategoriesId = $request->input('reservation_categories_id');
         $showCancelEstimate = $request->input('show_cancel_estimate');
-    
+        
         $hasExactSearch = !empty($reservationId) || !empty($operationId) || !empty($groupName);
-    
-        if ($dateType == 'today') {
+        
+        if (!$startDate && !$hasExactSearch) {
             $startDate = now()->format('Y-m-d');
-            $endDate = now()->format('Y-m-d');
-        } elseif ($dateType == 'same') {
-            if ($startDate) {
-                $endDate = $startDate;
-            }
-        } else {
-            if (!$hasExactSearch) {
-                $startDate = $startDate ?? now()->format('Y-m-d');
-                $endDate = $endDate ?? now()->addMonths(2)->format('Y-m-d');
-            }
         }
-    
+        
+        if ($startDate) {
+            $start = Carbon::parse($startDate);
+            
+            if ($period == 1) {
+                $end = $start->copy()->addDays(6);
+                $displayDays = 7;
+            } elseif ($period == 2) {
+                $end = $start->copy()->addDays(13);
+                $displayDays = 14;
+            } elseif ($period == 3) {
+                $end = $start->copy()->addDays(20);
+                $displayDays = 21;
+            } elseif ($period == 4) {
+                $end = $start->copy()->addMonth()->subDay();
+                $displayDays = $start->diffInDays($end) + 1;
+            } else {
+                $end = $start->copy()->addDays(6);
+                $displayDays = 7;
+            }
+            
+            $endDate = $end->format('Y-m-d');
+        }
+        
         $query = BusAssignment::with([
-                'groupInfo',
-                'vehicle.vehicleModel',
-                'driver',
-                'guide',
-                'dailyItineraries' => function($query) {
-                    $query->orderBy('date', 'asc')->orderBy('time_start', 'asc');
-                }
-            ]);
+            'groupInfo',
+            'vehicle.vehicleModel',
+            'driver',
+            'guide',
+            'dailyItineraries' => function($query) {
+                $query->orderBy('date', 'asc')->orderBy('time_start', 'asc');
+            }
+        ]);
     
         if ($operationId) {
             $query->where('id', $operationId);
@@ -146,7 +157,6 @@ class BusAssignmentController extends Controller
                            ->where('end_date', '>=', $endDate);
                   });
             });
-        } elseif ($hasExactSearch && $startDate && $endDate && $dateType !== 'custom') {
         }
     
         if ($vehicleName) {
@@ -216,7 +226,6 @@ class BusAssignmentController extends Controller
             'groupName',
             'startDate',
             'endDate',
-            'dateType',
             'reservationId',
             'operationId',
             'branchId',
