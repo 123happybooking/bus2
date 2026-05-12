@@ -17,15 +17,15 @@
                     <div class="card-body">
                         @if($errors->any())
                             <div class="alert alert-danger">
-                                {{ $errors->first('email') }}
+                                {{ $errors->first('name') }}
                             </div>
                         @endif
 
                         <form method="POST" action="{{ route('admin.login') }}">
                             @csrf
                             <div class="mb-3">
-                                <label for="email" class="form-label">メールアドレス</label>
-                                <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" required autofocus>
+                                <label for="name" class="form-label">ユーザー名</label>
+                                <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" required autofocus>
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">パスワード</label>

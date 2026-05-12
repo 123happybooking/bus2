@@ -18,19 +18,22 @@ class AdminAuthController extends Controller
         session()->regenerateToken();
         
         $credentials = $request->validate([
-            'email' => 'required|email',
+            'name' => 'required|string',
             'password' => 'required'
         ]);
     
-        if (Auth::guard('admin')->attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::guard('admin')->attempt([
+            'name' => $request->name,
+            'password' => $request->password
+        ], $request->boolean('remember'))) {
             
             $admin = Auth::guard('admin')->user();
             
             if (isset($admin->is_active) && !$admin->is_active) {
                 Auth::guard('admin')->logout();
                 return back()->withErrors([
-                    'email' => 'このアカウントは無効になっています。',
-                ])->onlyInput('email');
+                    'name' => 'このアカウントは無効になっています。',
+                ])->onlyInput('name');
             }
             
             $request->session()->regenerate();
@@ -49,8 +52,8 @@ class AdminAuthController extends Controller
         }
     
         return back()->withErrors([
-            'email' => 'メールアドレスまたはパスワードが正しくありません。',
-        ])->onlyInput('email');
+            'name' => 'ユーザー名またはパスワードが正しくありません。',
+        ])->onlyInput('name');
     }
 
     public function logout(Request $request)

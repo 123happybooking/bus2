@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'グループ情報一覧')
+@section('title', '予約一覧')
 
 @section('content')
 <div class="container-fluid px-4 py-0">
@@ -13,30 +13,48 @@
     </div>
 
     <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">
-        <form method="GET" action="{{ route('masters.group-infos.index') }}" class="row g-2">
-            <div class="col-auto">
-                <input type="text" name="date_from" value="{{ request('date_from', \Carbon\Carbon::today()->format('Y-m-d')) }}" 
-                       class="form-control form-control-sm datepicker-3months" style="width: 140px; border-color: #E5E7EB;" placeholder="YYYY-MM-DD">
-            </div>
-            <div class="col-auto">
-                <input type="text" name="date_end" value="{{ request('date_end', \Carbon\Carbon::today()->format('Y-m-d')) }}" 
-                       class="form-control form-control-sm datepicker-3months" style="width: 140px; border-color: #E5E7EB;" placeholder="YYYY-MM-DD">
-            </div>
-            <div class="col">
-                <input type="text" name="search" value="{{ request('search') }}" 
-                       class="form-control form-control-sm" style="border-color: #E5E7EB;" placeholder="代理店・車両...">
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-sm px-3" 
-                        style="background-color: #2563eb; color: white; border-color: #2563eb; font-size: 0.875rem;">
-                    検索
-                </button>
-            </div>
-            <div class="col-auto">
-                <a href="{{ route('masters.group-infos.index', ['reset_search' => 1]) }}" class="btn btn-sm btn-outline-secondary px-3" 
-                   style="border-color: #E5E7EB; color: #374151; font-size: 0.875rem;">
-                    クリア
-                </a>
+        <form method="GET" action="{{ route('masters.group-infos.index') }}" class="row g-1" id="searchForm">
+            <input type="hidden" name="display_days" id="display_days" value="{{ $displayDays ?? 7 }}">
+            
+            <div class="col-12">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">開始日</span>
+                        <input type="text" name="start_date" value="{{ request('start_date', \Carbon\Carbon::today()->format('Y-m-d')) }}" 
+                               class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" placeholder="開始日" id="start_date" onchange="submitWithEndDate()">
+                        
+                        <select name="period" class="form-select form-select-sm" style="width: 100px; margin-left: 8px;" id="period_select">
+                            <option value="1" {{ request('period') == 1 ? 'selected' : '' }}>1週間</option>
+                            <option value="2" {{ request('period') == 2 ? 'selected' : '' }}>2週間</option>
+                            <option value="3" {{ request('period') == 3 ? 'selected' : '' }}>3週間</option>
+                            <option value="4" {{ request('period') == 4 ? 'selected' : '' }}>1ヶ月</option>
+                        </select>
+                        
+                        <div class="btn-group btn-group-sm ms-2">
+                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', -1)">&lt;&lt;</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', -1)">&lt;</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setToday()">今日</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', 1)">&gt;</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', 1)">&gt;&gt;</button>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <input type="text" name="search" value="{{ request('search') }}" 
+                               class="form-control form-control-sm" style="border-color: #E5E7EB;" placeholder="代理店・車両...">
+                    </div>
+                    
+                    <div class="d-flex gap-1">
+                        <button type="submit" class="btn btn-sm px-3"
+                                style="background-color: #2563eb; color: white; border-color: #2563eb; font-size: 0.875rem;">
+                            検索
+                        </button>
+                        <a href="{{ route('masters.group-infos.index', ['reset_search' => 1]) }}" class="btn btn-sm btn-outline-secondary px-3"
+                           style="border-color: #E5E7EB; color: #374151; font-size: 0.875rem;">
+                            リセット
+                        </a>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
@@ -222,7 +240,6 @@
 </div>
 @endsection
 
-
 @push('styles')
 <style>
 .table-list {
@@ -289,6 +306,41 @@ a:hover {
     animation: fadeIn 0.2s ease;
 }
 
+.btn-outline-secondary {
+    color: #212529 !important;
+    background-color: #fff !important;
+    border-color: #ced4da !important;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #e9ecef !important;
+    border-color: #adb5bd !important;
+    color: #212529 !important;
+}
+
+.btn-group .btn-outline-secondary {
+    background-color: #fff;
+    border-color: #ced4da;
+    color: #212529;
+}
+
+.btn-group .btn-outline-secondary:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: #212529;
+}
+
+.btn-group .btn-check:checked + .btn-outline-secondary {
+    background-color: #cfe2ff !important;
+    color: #212529;
+    font-weight: 500 !important;
+}
+
+.btn-group .btn-check:checked + .btn-outline-secondary:hover {
+    background-color: #b6d4fe !important;
+    color: #212529;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -334,9 +386,157 @@ small {
 </style>
 @endpush
 
-
 @push('scripts')
 <script>
+function getCurrentDisplayDays() {
+    let displayDays = document.getElementById('display_days')?.value;
+    if (displayDays) {
+        return parseInt(displayDays);
+    }
+    return 7;
+}
+
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function submitWithEndDate() {
+    const startDateInput = document.getElementById('start_date');
+    if (!startDateInput.value) return;
+    
+    const periodSelect = document.getElementById('period_select');
+    const periodValue = periodSelect ? parseInt(periodSelect.value) : 1;
+    
+    let endDate = new Date(startDateInput.value);
+    if (periodValue === 1) {
+        endDate.setDate(endDate.getDate() + 6);
+    } else if (periodValue === 2) {
+        endDate.setDate(endDate.getDate() + 13);
+    } else if (periodValue === 3) {
+        endDate.setDate(endDate.getDate() + 20);
+    } else if (periodValue === 4) {
+        endDate.setMonth(endDate.getMonth() + 1);
+        endDate.setDate(endDate.getDate() - 1);
+    } else {
+        endDate.setDate(endDate.getDate() + 6);
+    }
+    
+    const displayDays = Math.round((endDate - new Date(startDateInput.value)) / (1000 * 60 * 60 * 24)) + 1;
+    const displayDaysInput = document.getElementById('display_days');
+    if (displayDaysInput) {
+        displayDaysInput.value = displayDays;
+    }
+    
+    document.getElementById('searchForm').submit();
+}
+
+function moveDate(unit, direction) {
+    const startDateInput = document.getElementById('start_date');
+    const periodSelect = document.getElementById('period_select');
+    const displayDaysInput = document.getElementById('display_days');
+    
+    let currentStart = startDateInput.value ? new Date(startDateInput.value) : new Date();
+    let newStart = new Date(currentStart);
+    
+    if (unit === 'week') {
+        newStart.setDate(currentStart.getDate() + (7 * direction));
+    } else if (unit === 'month') {
+        newStart.setMonth(currentStart.getMonth() + direction);
+        if (newStart.getDate() !== currentStart.getDate()) {
+            newStart.setDate(0);
+        }
+    }
+    
+    startDateInput.value = formatDate(newStart);
+    
+    const periodValue = periodSelect ? parseInt(periodSelect.value) : 1;
+    let newEnd = new Date(newStart);
+    if (periodValue === 1) {
+        newEnd.setDate(newStart.getDate() + 6);
+    } else if (periodValue === 2) {
+        newEnd.setDate(newStart.getDate() + 13);
+    } else if (periodValue === 3) {
+        newEnd.setDate(newStart.getDate() + 20);
+    } else if (periodValue === 4) {
+        newEnd.setMonth(newStart.getMonth() + 1);
+        newEnd.setDate(newEnd.getDate() - 1);
+    } else {
+        newEnd.setDate(newStart.getDate() + 6);
+    }
+    
+    const newDisplayDays = Math.round((newEnd - newStart) / (1000 * 60 * 60 * 24)) + 1;
+    if (displayDaysInput) {
+        displayDaysInput.value = newDisplayDays;
+    }
+    
+    document.getElementById('searchForm').submit();
+}
+
+function setToday() {
+    const today = new Date();
+    const startDateInput = document.getElementById('start_date');
+    const periodSelect = document.getElementById('period_select');
+    const displayDaysInput = document.getElementById('display_days');
+    
+    let period = periodSelect ? parseInt(periodSelect.value) : 1;
+    
+    startDateInput.value = formatDate(today);
+    
+    let endDate = new Date(today);
+    if (period === 1) {
+        endDate.setDate(today.getDate() + 6);
+    } else if (period === 2) {
+        endDate.setDate(today.getDate() + 13);
+    } else if (period === 3) {
+        endDate.setDate(today.getDate() + 20);
+    } else if (period === 4) {
+        endDate.setMonth(today.getMonth() + 1);
+        endDate.setDate(endDate.getDate() - 1);
+    } else {
+        endDate.setDate(today.getDate() + 6);
+    }
+    
+    const actualDays = Math.round((endDate - today) / (1000 * 60 * 60 * 24)) + 1;
+    if (displayDaysInput) {
+        displayDaysInput.value = actualDays;
+    }
+    
+    document.getElementById('searchForm').submit();
+}
+
+function submitPeriod() {
+    const periodSelect = document.getElementById('period_select');
+    const startDateInput = document.getElementById('start_date');
+    const displayDaysInput = document.getElementById('display_days');
+    
+    const period = parseInt(periodSelect.value);
+    let startDate = startDateInput.value ? new Date(startDateInput.value) : new Date();
+    
+    let endDate = new Date(startDate);
+    if (period === 1) {
+        endDate.setDate(startDate.getDate() + 6);
+    } else if (period === 2) {
+        endDate.setDate(startDate.getDate() + 13);
+    } else if (period === 3) {
+        endDate.setDate(startDate.getDate() + 20);
+    } else if (period === 4) {
+        endDate.setMonth(startDate.getMonth() + 1);
+        endDate.setDate(endDate.getDate() - 1);
+    } else {
+        endDate.setDate(startDate.getDate() + 6);
+    }
+    
+    const actualDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    if (displayDaysInput) {
+        displayDaysInput.value = actualDays;
+    }
+    
+    document.getElementById('searchForm').submit();
+}
+
 function openIframeModal(url, title = '新規グループ作成') {
     const iframe = document.getElementById('modalIframe');
     const modal = document.getElementById('iframeModal');
@@ -410,21 +610,22 @@ if (perPageSelect) {
         const url = new URL(window.location.href);
         url.searchParams.set('per_page', this.value);
         const search = document.querySelector('input[name="search"]')?.value;
-        const dateFrom = document.querySelector('input[name="date_from"]')?.value;
-        const dateEnd = document.querySelector('input[name="date_end"]')?.value;
+        const startDate = document.querySelector('input[name="start_date"]')?.value;
         if (search) url.searchParams.set('search', search);
-        if (dateFrom) url.searchParams.set('date_from', dateFrom);
-        if (dateEnd) url.searchParams.set('date_end', dateEnd);
+        if (startDate) url.searchParams.set('start_date', startDate);
         window.location.href = url.toString();
     });
 }
 
+const periodSelect = document.getElementById('period_select');
+if (periodSelect) {
+    periodSelect.addEventListener('change', function() {
+        submitPeriod();
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-    let startDateValue = null;
-    let endDateValue = null;
-    
-    const startDatePicker = flatpickr('input[name="date_from"]', {
+    flatpickr('input[name="start_date"]', {
         locale: 'ja',
         dateFormat: 'Y-m-d',
         showMonths: 3,
@@ -433,37 +634,6 @@ document.addEventListener('DOMContentLoaded', function() {
         disableMobile: true,
         onOpen: function(selectedDates, dateStr, instance) {
             instance.calendarContainer.style.zIndex = '9999';
-            if (startDateValue) {
-                instance.redraw();
-            }
-        },
-        onChange: function(selectedDates, dateStr, instance) {
-            if (selectedDates.length > 0) {
-                startDateValue = selectedDates[0];
-                endDatePicker.setDate(selectedDates[0]);
-                endDatePicker.open();
-                endDatePicker.set('minDate', selectedDates[0]);
-                setTimeout(function() {
-                    endDatePicker.redraw();
-                    instance.redraw();
-                }, 10);
-            } else {
-                startDateValue = null;
-                endDatePicker.set('minDate', null);
-                endDatePicker.redraw();
-                instance.redraw();
-            }
-        },
-        onDayCreate: function(dObj, dStr, fp, dayElem) {
-            const dayDate = dayElem.dateObj;
-            if (!dayDate) return;
-            
-            const dayDateStr = dayDate.toDateString();
-            
-            if (startDateValue && dayDateStr === startDateValue.toDateString()) {
-                dayElem.classList.remove('flatpickr-disabled');
-                dayElem.classList.add('start-range-highlight');
-            }
         },
         onReady: function(selectedDates, dateStr, instance) {
             const daysContainer = instance.daysContainer;
@@ -475,76 +645,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     dayContainer.parentNode.insertBefore(wrapper, dayContainer);
                     wrapper.appendChild(dayContainer);
                 });
-            }
-            if (startDateValue) {
-                instance.redraw();
-            }
-        }
-    });
-    
-    const endDatePicker = flatpickr('input[name="date_end"]', {
-        locale: 'ja',
-        dateFormat: 'Y-m-d',
-        showMonths: 3,
-        allowInput: true,
-        clickOpens: true,
-        disableMobile: true,
-        minDate: startDatePicker.input.value || null,
-        onOpen: function(selectedDates, dateStr, instance) {
-            instance.calendarContainer.style.zIndex = '9999';
-            if (startDateValue) {
-                setTimeout(function() {
-                    instance.redraw();
-                }, 10);
-            }
-        },
-        onChange: function(selectedDates, dateStr, instance) {
-            if (selectedDates.length > 0) {
-                endDateValue = selectedDates[0];
-            } else {
-                endDateValue = null;
-            }
-            instance.redraw();
-        },
-        onDayCreate: function(dObj, dStr, fp, dayElem) {
-            const dayDate = dayElem.dateObj;
-            if (!dayDate) return;
-            
-            const dayDateStr = dayDate.toDateString();
-            
-            if (startDateValue && dayDateStr === startDateValue.toDateString()) {
-                dayElem.classList.remove('flatpickr-disabled');
-                dayElem.classList.add('start-range-highlight');
-            }
-            
-            if (endDateValue && dayDateStr === endDateValue.toDateString()) {
-                dayElem.classList.remove('flatpickr-disabled');
-                dayElem.classList.add('end-range-highlight');
-            }
-            
-            if (startDateValue && endDateValue && dayDate) {
-                const startTime = startDateValue.getTime();
-                const endTime = endDateValue.getTime();
-                const dayTime = dayDate.getTime();
-                
-                if (dayTime > startTime && dayTime < endTime) {
-                    dayElem.classList.add('in-range-highlight');
-                }
-            }
-        },
-        onReady: function(selectedDates, dateStr, instance) {
-            const daysContainer = instance.daysContainer;
-            if (daysContainer) {
-                const dayContainers = daysContainer.querySelectorAll('.dayContainer');
-                dayContainers.forEach(function(dayContainer) {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'month-wrapper';
-                    dayContainer.parentNode.insertBefore(wrapper, dayContainer);
-                    wrapper.appendChild(dayContainer);
-                });
-            }
-            if (startDateValue) {
-                instance.redraw();
             }
         }
     });

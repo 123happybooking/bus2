@@ -54,9 +54,11 @@ class DriverLedgerController extends Controller
         $reservationStatus = $request->input('reservation_status');
         $hasGuide = $request->input('has_guide');
         $attendanceStatus = $request->input('attendance_status');
-        $branchId = $request->input('branch_id');
+        $branchIds = $request->input('branch_ids', []);
         $reservationId = $request->input('reservation_id');
         $groupName = $request->input('group_name');
+        $operationId = $request->input('operation_id');
+        $reservationCategoriesId = $request->input('reservation_categories_id');
                 
         if (!$startDate) {
             $startDate = Carbon::today()->format('Y-m-d');
@@ -83,6 +85,8 @@ class DriverLedgerController extends Controller
                 
         $endDate = $end->format('Y-m-d');
         
+        $hasExactSearch = !empty($reservationId) || !empty($operationId);
+        
         $dates = [];
         $current = clone $start;
         while ($current <= $end) {
@@ -107,8 +111,8 @@ class DriverLedgerController extends Controller
             ->when($attendanceStatus, function($query) use ($attendanceStatus) {
                 $query->where('attendance_status', $attendanceStatus);
             })
-            ->when($branchId, function($query) use ($branchId) {
-                $query->where('branch_id', $branchId);
+            ->when(!empty($branchIds), function($query) use ($branchIds) {
+                $query->whereIn('branch_id', $branchIds);
             })
             ->when($driverId, function($query) use ($driverId) {
                 $query->where('id', $driverId);
@@ -155,21 +159,29 @@ class DriverLedgerController extends Controller
         $agencies = Agency::orderBy('agency_name')->get();
         
         $allItineraries = DailyItinerary::with(['busAssignment', 'groupInfo', 'busAssignment.vehicle', 'busAssignment.guide'])
-            ->whereBetween('date', [$startDate, $endDate])
             ->whereNotNull('driver_id')
+            ->when(!$hasExactSearch, function($query) use ($startDate, $endDate) {
+                return $query->whereBetween('date', [$startDate, $endDate]);
+            })
+            ->when($hasExactSearch, function($query) use ($reservationId, $operationId) {
+                if ($reservationId) {
+                    $query->whereHas('groupInfo', function($q) use ($reservationId) {
+                        $q->where('id', $reservationId);
+                    });
+                }
+                if ($operationId) {
+                    $query->where('bus_assignment_id', $operationId);
+                }
+                return $query;
+            })
+            ->when(!empty($branchIds), function($query) use ($branchIds) {
+                $query->whereHas('busAssignment.vehicle', function($q) use ($branchIds) {
+                    $q->whereIn('branch_id', $branchIds);
+                });
+            })
             ->when($vehicleTypeId, function($query) use ($vehicleTypeId) {
                 $query->whereHas('busAssignment.vehicle', function($q) use ($vehicleTypeId) {
                     $q->where('vehicle_type_id', $vehicleTypeId);
-                });
-            })
-            ->when($reservationId, function($query) use ($reservationId) {
-                $query->whereHas('groupInfo', function($q) use ($reservationId) {
-                    $q->where('id', $reservationId);
-                });
-            })
-            ->when($groupName, function($query) use ($groupName) {
-                $query->whereHas('groupInfo', function($q) use ($groupName) {
-                    $q->where('group_name', 'like', '%' . $groupName . '%');
                 });
             })
             ->when($vehicleId, function($query) use ($vehicleId) {
@@ -179,8 +191,21 @@ class DriverLedgerController extends Controller
                 $query->where('driver_id', $driverId);
             })
             ->when($agencyId, function($query) use ($agencyId) {
-                $query->whereHas('groupInfo', function($q) use ($agencyId) {
-                    $q->where('agency_id', $agencyId);
+                $agency = Agency::find($agencyId);
+                if ($agency) {
+                    $query->whereHas('groupInfo', function($q) use ($agency) {
+                        $q->where('agency', $agency->agency_name);
+                    });
+                }
+            })
+            ->when($reservationCategoriesId, function($query) use ($reservationCategoriesId) {
+                $query->whereHas('groupInfo', function($q) use ($reservationCategoriesId) {
+                    $q->where('reservation_categories_id', $reservationCategoriesId);
+                });
+            })
+            ->when($groupName, function($query) use ($groupName) {
+                $query->whereHas('groupInfo', function($q) use ($groupName) {
+                    $q->where('group_name', 'like', '%' . $groupName . '%');
                 });
             })
             ->when($reservationStatus, function($query) use ($reservationStatus) {
@@ -200,8 +225,50 @@ class DriverLedgerController extends Controller
             ->orderBy('date', 'asc')
             ->orderBy('time_start', 'asc')
             ->get();
+            
+        if ($hasExactSearch && $allItineraries->isNotEmpty()) {
+            $minDate = $allItineraries->min('date');
+            $maxDate = $allItineraries->max('date');
+            
+            if ($minDate && $maxDate) {
+                $minCarbon = Carbon::parse($minDate);
+                $maxCarbon = Carbon::parse($maxDate);
+                $daysDiff = $minCarbon->diffInDays($maxCarbon) + 1;
+                
+                if ($daysDiff <= 7) {
+                    $start = $minCarbon;
+                    $end = $start->copy()->addDays(6);
+                } else {
+                    $start = $minCarbon;
+                    $end = $maxCarbon;
+                }
+                
+                $startDate = $start->format('Y-m-d');
+                $endDate = $end->format('Y-m-d');
+                $displayDays = $start->diffInDays($end) + 1;
+                
+                $dates = [];
+                $current = clone $start;
+                while ($current <= $end) {
+                    $holidayInfo = HolidayHelper::getHolidayInfo($current);
+                    
+                    $dates[] = [
+                        'date' => $current->copy(),
+                        'day_of_week' => $this->getJapaneseDayOfWeek($current->dayOfWeek),
+                        'display' => $current->format('n/j') . '（' . $this->getJapaneseDayOfWeek($current->dayOfWeek) . '）',
+                        'is_saturday' => $current->dayOfWeek == 6,
+                        'is_sunday' => $current->dayOfWeek == 0,
+                        'is_holiday' => $holidayInfo['is_holiday'],
+                        'holiday_name' => $holidayInfo['name'],
+                    ];
+                    $current->addDay();
+                }
+                
+                $dateRemarks = GroupInfoDateRemark::getRemarksByDateRange($startDate, $endDate);
+            }
+        }
         
-        $reservationCategories = ReservationCategory::pluck('color_code', 'id')->toArray();
+        $reservationColorMap = ReservationCategory::pluck('color_code', 'id')->toArray();
         
         $busColors = [];
         foreach ($allItineraries as $itinerary) {
@@ -212,8 +279,8 @@ class DriverLedgerController extends Controller
                     $statusColor = $this->getReservationStatusColor($groupInfo->reservation_status ?? '');
                     $categoryId = $groupInfo->reservation_categories_id;
                     $categoryColor = 'transparent';
-                    if ($categoryId && $categoryId != 0 && isset($reservationCategories[$categoryId])) {
-                        $categoryColor = $reservationCategories[$categoryId];
+                    if ($categoryId && $categoryId != 0 && isset($reservationColorMap[$categoryId])) {
+                        $categoryColor = $reservationColorMap[$categoryId];
                     }
                     $busColors[$busId] = [
                         'status_color' => $statusColor,
@@ -257,7 +324,6 @@ class DriverLedgerController extends Controller
         $driverIds = $drivers->pluck('id')->toArray();
         $attendances = DriverAttendance::getAttendanceByDateRange($driverIds, $startDate, $endDate);
         
-        // 预处理勤怠组信息
         $attendanceGroups = [];
         foreach ($drivers as $driver) {
             foreach ($dates as $dateInfo) {
@@ -266,11 +332,9 @@ class DriverLedgerController extends Controller
                 $current = $attendances[$key] ?? null;
                 
                 if ($current && $current->category) {
-                    // 查找连续组
                     $groupStartDate = $dateStr;
                     $groupEndDate = $dateStr;
                     
-                    // 向前查找连续日期
                     $tempDate = Carbon::parse($dateStr)->subDay();
                     while (true) {
                         $tempKey = $driver->id . '_' . $tempDate->format('Y-m-d');
@@ -283,7 +347,6 @@ class DriverLedgerController extends Controller
                         }
                     }
                     
-                    // 向后查找连续日期
                     $tempDate = Carbon::parse($dateStr)->addDay();
                     while (true) {
                         $tempKey = $driver->id . '_' . $tempDate->format('Y-m-d');
@@ -310,6 +373,9 @@ class DriverLedgerController extends Controller
             }
         }
         
+        $reservationCategories = ReservationCategory::where('is_active', true)->orderBy('display_order', 'asc')->get();
+        $agencies = Agency::where('is_active', true)->orderBy('display_order', 'asc')->orderBy('agency_code', 'asc')->get();
+        
         return view('masters.driver-ledger.index', compact(
             'dates',
             'groupedDrivers',
@@ -329,11 +395,13 @@ class DriverLedgerController extends Controller
             'reservationStatus',
             'hasGuide',
             'attendanceStatus',
-            'branchId',
+            'branchIds',
             'reservationId',
             'groupName',
             'attendances',
-            'attendanceGroups'
+            'attendanceGroups',
+            'reservationCategories',
+            'drivers'
         ));
     }
     

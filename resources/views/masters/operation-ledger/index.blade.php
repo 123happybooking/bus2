@@ -9,131 +9,183 @@
     </div>
     
     <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">
-        <form method="GET" action="{{ route('masters.operation-ledger.index') }}" class="row g-2 align-items-center" id="searchForm">
+        <form method="GET" action="{{ route('masters.operation-ledger.index') }}" class="row g-1" id="searchForm">
             <input type="hidden" name="display_days" id="display_days" value="{{ $displayDays ?? 7 }}">
             
-            <div class="col-auto">
-                <input type="text" name="start_date" value="{{ $startDate }}" 
-                       class="form-control form-control-sm datepicker-3months" style="width: 120px;" placeholder="開始日" 
-                       id="start_date" onchange="submitWithEndDate()">
-            </div>
-            
-            <div class="col-auto">
-                <select name="period" class="form-select form-select-sm" style="width: 100px;" id="period_select">
-                    <option value="1" {{ request('period') == 1 ? 'selected' : '' }}>1週間</option>
-                    <option value="2" {{ request('period') == 2 ? 'selected' : '' }}>2週間</option>
-                    <option value="3" {{ request('period') == 3 ? 'selected' : '' }}>3週間</option>
-                    <option value="4" {{ request('period') == 4 ? 'selected' : '' }}>1ヶ月</option>
-                </select>
-            </div>
-            
-            <div class="col-auto">
-                <div class="btn-group btn-group-sm">
-                    <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', -1)">&lt;&lt;</button>
-                    <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', -1)">&lt;</button>
-                    <button type="button" class="btn btn-outline-secondary" onclick="setToday()">今日</button>
-                    <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', 1)">&gt;</button>
-                    <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', 1)">&gt;&gt;</button>
-                </div>
-            </div>
-            
-            <div class="col-auto">
-                <select name="vehicle_type_id" class="form-select form-select-sm">
-                    <option value="">車種：全て</option>
-                    @foreach($vehicleTypes ?? [] as $type)
-                        <option value="{{ $type->id }}" {{ request('vehicle_type_id') == $type->id ? 'selected' : '' }}>
-                            {{ $type->type_name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            
-            <div class="col-auto">
-                <input type="text" name="reservation_id" value="{{ request('reservation_id') }}" 
-                       class="form-control form-control-sm" style="width: 100px;" placeholder="予約ID">
-            </div>
-            
-            <div class="col-auto">
-                <input type="text" name="group_name" value="{{ request('group_name') }}" 
-                       class="form-control form-control-sm" style="width: 120px;" placeholder="団体名">
-            </div>
-            
-            <div class="col-auto branch-dropdown">
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 140px; text-align: left; background-color: #fff; border-color: #ced4da;">
-                        <span id="branchSelectedText">営業所</span>
-                        <span id="branchSelectedCount" class="selected-count" style="display: none;">0</span>
-                    </button>
-                    <div class="dropdown-menu p-0" style="min-width: 220px;">
-                        <div class="dropdown-header border-bottom px-3 py-2">
-                            <label class="d-flex align-items-center w-100" style="cursor: pointer;">
-                                <input type="checkbox" id="branchSelectAll" class="me-2"> 
-                                <span>全て選択</span>
-                            </label>
-                        </div>
-                        <div style="max-height: 250px; overflow-y: auto;">
-                            @foreach($branches ?? [] as $branch)
-                                <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
-                                    <input type="checkbox" name="branch_checkbox" value="{{ $branch->id }}" class="me-2 branch-checkbox"
-                                        {{ in_array($branch->id, (array)request('branch_ids', [])) ? 'checked' : '' }}>
-                                    {{ $branch->branch_name }}
-                                </label>
-                            @endforeach
+            <div class="col-12">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">運行日</span>
+                        <input type="text" name="start_date" value="{{ $startDate }}" 
+                               class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" placeholder="開始日" id="start_date" onchange="submitWithEndDate()">
+                        
+                        <select name="period" class="form-select form-select-sm" style="width: 100px; margin-left: 8px;" id="period_select">
+                            <option value="1" {{ request('period') == 1 ? 'selected' : '' }}>1週間</option>
+                            <option value="2" {{ request('period') == 2 ? 'selected' : '' }}>2週間</option>
+                            <option value="3" {{ request('period') == 3 ? 'selected' : '' }}>3週間</option>
+                            <option value="4" {{ request('period') == 4 ? 'selected' : '' }}>1ヶ月</option>
+                        </select>
+                        
+                        <div class="btn-group btn-group-sm ms-2">
+                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', -1)">&lt;&lt;</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', -1)">&lt;</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setToday()">今日</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', 1)">&gt;</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', 1)">&gt;&gt;</button>
                         </div>
                     </div>
-                </div>
-            </div>
-            
-            <div class="col-auto">
-                <select name="reservation_status" class="form-select form-select-sm">
-                    <option value="">予約状態：全て</option>
-                    <option value="予約" {{ request('reservation_status') == '予約' ? 'selected' : '' }} style="background-color: #ccf5ff;">予約</option>
-                    <option value="仮押さえ" {{ request('reservation_status') == '仮押さえ' ? 'selected' : '' }} style="background-color: #ffff99;">仮押さえ</option>
-                    <option value="見積" {{ request('reservation_status') == '見積' ? 'selected' : '' }} style="background-color: #ccffcc;">見積</option>
-                    <option value="危ない" {{ request('reservation_status') == '危ない' ? 'selected' : '' }} style="background-color: #ffcccc;">危ない</option>
-                    <option value="確定待ち" {{ request('reservation_status') == '確定待ち' ? 'selected' : '' }} style="background-color: #ffd9b3;">確定待ち</option>
-                    <option value="確定" {{ request('reservation_status') == '確定' ? 'selected' : '' }} style="background-color: #cbb87c;">確定</option>
-                    <option value="送信済" {{ request('reservation_status') == '送信済' ? 'selected' : '' }} style="background-color: #e6e6fa;">送信済</option>
-                    <option value="実績待ち" {{ request('reservation_status') == '実績待ち' ? 'selected' : '' }} style="background-color: #e0b0ff;">実績待ち</option>
-                    <option value="運行済" {{ request('reservation_status') == '運行済' ? 'selected' : '' }} style="background-color: #c0c0c0;">運行済</option>
-                    <option value="請求済" {{ request('reservation_status') == '請求済' ? 'selected' : '' }} style="background-color: #b0e0e6;">請求済</option>
-                    <option value="キャンセル" {{ request('reservation_status') == 'キャンセル' ? 'selected' : '' }} style="background-color: #d3d3d3;">キャンセル</option>
-                    <option value="稼働不可" {{ request('reservation_status') == '稼働不可' ? 'selected' : '' }} style="background-color: #2c2c2c; color: white;">稼働不可</option>
-                </select>
-            </div>
-            
-            <div class="col-auto">
-                <div class="btn-group btn-group-sm" role="group">
-                    <input type="radio" class="btn-check" name="color_type" id="color_type_status" value="status" autocomplete="off" 
-                           {{ (request('color_type') == 'status' || !request()->has('color_type')) ? 'checked' : '' }} onchange="this.form.submit()">
-                    <label class="btn btn-outline-secondary" for="color_type_status" style="background-color: #fff; border-color: #ced4da;">
-                        <span style="display:inline-block; width:12px; height:12px; background-color:#ccf5ff; border:1px solid #999; margin-right:4px;"></span>
-                        予約状態
-                    </label>
-                    
-                    <input type="radio" class="btn-check" name="color_type" id="color_type_category" value="category" autocomplete="off" 
-                           {{ request('color_type') == 'category' ? 'checked' : '' }} onchange="this.form.submit()">
-                    <label class="btn btn-outline-secondary" for="color_type_category" style="background-color: #fff; border-color: #ced4da;">
-                        <span style="display:inline-block; width:12px; height:12px; background: linear-gradient(45deg, #ff9999, #99ff99); border:1px solid #999; margin-right:4px;"></span>
-                        予約分類
-                    </label>
-                </div>
-            </div>
-            
-            <div class="col-auto">
-                <div class="form-check">
-                    <input type="checkbox" class="form-check-input" id="has_guide" name="has_guide" value="1" 
-                           {{ request('has_guide') == '1' ? 'checked' : '' }}>
-                    <label class="form-check-label" for="has_guide" style="font-size: 0.8rem;">添乗員あり</label>
-                </div>
-            </div>
     
-            <div class="col-auto">
-                <button type="submit" class="btn btn-sm btn-primary">検索</button>
-            </div>
-            
-            <div class="col-auto">
-                <a href="{{ route('masters.operation-ledger.index', ['reset_search' => 1]) }}" class="btn btn-sm btn-outline-secondary">リセット</a>
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">予約ID</span>
+                        <input type="text" name="reservation_id" value="{{ request('reservation_id') }}"
+                               class="form-control form-control-sm" style="width: 90px; border-color: #E5E7EB;">
+                    </div>
+    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">運行ID</span>
+                        <input type="text" name="operation_id" value="{{ request('operation_id') }}"
+                               class="form-control form-control-sm" style="width: 90px; border-color: #E5E7EB;">
+                    </div>
+    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">営業所</span>
+                        <div class="branch-dropdown">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 100px; text-align: left; background-color: #fff; border-color: #ced4da;">
+                                    <span id="branchSelectedText">選択</span>
+                                    <span id="branchSelectedCount" class="selected-count" style="display: none;">0</span>
+                                </button>
+                                <div class="dropdown-menu p-0" style="min-width: 200px;">
+                                    <div class="dropdown-header border-bottom px-3 py-2">
+                                        <label class="d-flex align-items-center w-100" style="cursor: pointer;">
+                                            <input type="checkbox" id="branchSelectAll" class="me-2"> 
+                                            <span>全て選択</span>
+                                        </label>
+                                    </div>
+                                    <div style="max-height: 250px; overflow-y: auto;">
+                                        @foreach($branches ?? [] as $branch)
+                                            <label class="dropdown-item d-flex align-items-center" style="cursor: pointer;">
+                                                <input type="checkbox" name="branch_checkbox" value="{{ $branch->id }}" class="me-2 branch-checkbox"
+                                                    {{ in_array($branch->id, (array)request('branch_ids', [])) ? 'checked' : '' }}>
+                                                {{ $branch->branch_name }}
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">業務分類</span>
+                        <select name="reservation_categories_id" class="form-select form-select-sm" style="width: 120px; border-color: #E5E7EB;">
+                            <option value="">選択</option>
+                            @foreach($reservationCategories ?? [] as $category)
+                                <option value="{{ $category->id }}" {{ request('reservation_categories_id') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->category_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">運転手</span>
+                        <select name="driver_id" class="form-select form-select-sm" style="width: 120px; border-color: #E5E7EB;">
+                            <option value="">選択</option>
+                            @foreach($drivers ?? [] as $driver)
+                                <option value="{{ $driver->id }}" {{ request('driver_id') == $driver->id ? 'selected' : '' }}>
+                                    {{ $driver->name }} @if($driver->driver_code)({{ $driver->driver_code }})@endif
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">代理店</span>
+                        <select name="agency_id" class="form-select form-select-sm" style="width: 120px; border-color: #E5E7EB;">
+                            <option value="">選択</option>
+                            @foreach($agencies ?? [] as $agency)
+                                <option value="{{ $agency->id }}" {{ request('agency_id') == $agency->id ? 'selected' : '' }}>
+                                    {{ $agency->agency_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">車種</span>
+                        <select name="vehicle_type_id" class="form-select form-select-sm" style="width: 100px; border-color: #E5E7EB;">
+                            <option value="">選択</option>
+                            @foreach($vehicleTypes ?? [] as $type)
+                                <option value="{{ $type->id }}" {{ request('vehicle_type_id') == $type->id ? 'selected' : '' }}>
+                                    {{ $type->type_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">団体名</span>
+                        <input type="text" name="group_name" value="{{ request('group_name') }}"
+                               class="form-control form-control-sm" style="width: 120px; border-color: #E5E7EB;" placeholder="団体名">
+                    </div>
+    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">予約状態</span>
+                        <select name="reservation_status" class="form-select form-select-sm" style="width: 100px; border-color: #E5E7EB;">
+                            <option value="">選択</option>
+                            <option value="予約" {{ request('reservation_status') == '予約' ? 'selected' : '' }} style="background-color: #ccf5ff;">予約</option>
+                            <option value="仮押さえ" {{ request('reservation_status') == '仮押さえ' ? 'selected' : '' }} style="background-color: #ffff99;">仮押さえ</option>
+                            <option value="見積" {{ request('reservation_status') == '見積' ? 'selected' : '' }} style="background-color: #ccffcc;">見積</option>
+                            <option value="危ない" {{ request('reservation_status') == '危ない' ? 'selected' : '' }} style="background-color: #ffcccc;">危ない</option>
+                            <option value="確定待ち" {{ request('reservation_status') == '確定待ち' ? 'selected' : '' }} style="background-color: #ffd9b3;">確定待ち</option>
+                            <option value="確定" {{ request('reservation_status') == '確定' ? 'selected' : '' }} style="background-color: #cbb87c;">確定</option>
+                            <option value="送信済" {{ request('reservation_status') == '送信済' ? 'selected' : '' }} style="background-color: #e6e6fa;">送信済</option>
+                            <option value="実績待ち" {{ request('reservation_status') == '実績待ち' ? 'selected' : '' }} style="background-color: #e0b0ff;">実績待ち</option>
+                            <option value="運行済" {{ request('reservation_status') == '運行済' ? 'selected' : '' }} style="background-color: #c0c0c0;">運行済</option>
+                            <option value="請求済" {{ request('reservation_status') == '請求済' ? 'selected' : '' }} style="background-color: #b0e0e6;">請求済</option>
+                            <option value="キャンセル" {{ request('reservation_status') == 'キャンセル' ? 'selected' : '' }} style="background-color: #d3d3d3;">キャンセル</option>
+                            <option value="稼働不可" {{ request('reservation_status') == '稼働不可' ? 'selected' : '' }} style="background-color: #2c2c2c; color: white;">稼働不可</option>
+                        </select>
+                    </div>
+    
+                    <div class="d-flex align-items-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <input type="radio" class="btn-check" name="color_type" id="color_type_status" value="status" autocomplete="off" 
+                                   {{ (request('color_type') == 'status' || !request()->has('color_type')) ? 'checked' : '' }} onchange="this.form.submit()">
+                            <label class="btn btn-outline-secondary" for="color_type_status" style="background-color: #fff; border-color: #ced4da;">
+                                <span style="display:inline-block; width:12px; height:12px; background-color:#ccf5ff; border:1px solid #999; margin-right:4px;"></span>
+                                予約状態
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="color_type" id="color_type_category" value="category" autocomplete="off" 
+                                   {{ request('color_type') == 'category' ? 'checked' : '' }} onchange="this.form.submit()">
+                            <label class="btn btn-outline-secondary" for="color_type_category" style="background-color: #fff; border-color: #ced4da;">
+                                <span style="display:inline-block; width:12px; height:12px; background: linear-gradient(45deg, #ff9999, #99ff99); border:1px solid #999; margin-right:4px;"></span>
+                                予約分類
+                            </label>
+                        </div>
+                    </div>
+    
+                    <div class="d-flex align-items-center">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="has_guide" name="has_guide" value="1" 
+                                   {{ request('has_guide') == '1' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="has_guide" style="font-size: 0.8rem;">添乗員あり</label>
+                        </div>
+                    </div>
+    
+                    <div class="d-flex gap-1">
+                        <button type="submit" class="btn btn-sm px-3"
+                                style="background-color: #2563eb; color: white; border-color: #2563eb; font-size: 0.875rem;">
+                            検索
+                        </button>
+                        <a href="{{ route('masters.operation-ledger.index', ['reset_search' => 1]) }}" class="btn btn-sm btn-outline-secondary px-3"
+                           style="border-color: #E5E7EB; color: #374151; font-size: 0.875rem;">
+                            リセット
+                        </a>
+                    </div>
+                </div>
             </div>
         </form>
     </div>

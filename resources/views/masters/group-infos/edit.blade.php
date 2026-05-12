@@ -169,41 +169,6 @@
                                             <input type="text" class="form-control form-control-sm border w-100" name="luggage" id="luggage" value="{{ old('luggage', $groupInfo->luggage ?? '') }}" min="0">
                                         </div>
                                     </div>
-                                    
-                                    
-
-                                    
-                                    
-                                                
-                                    <!--<div class="d-flex align-items-center me-2 flex-fill">-->
-                                    <!--    <span class="span-label">ガイド</span>-->
-                                    <!--    <div class="flex-1 position-relative">-->
-                                    <!--        <select class="form-select form-select-sm border guide-select" id="guide_select" name="guide_id" style="width: 100%;">-->
-                                    <!--            <option value="">-- ガイドを選択 --</option>-->
-                                    <!--            @foreach($guides as $guide)-->
-                                    <!--                <option value="{{ $guide->id }}" {{ $groupInfo->guide_id == $guide->id ? 'selected' : '' }}>-->
-                                    <!--                    {{ $guide->name }} {{ $guide->guide_code ? '(' . $guide->guide_code . ')' : '' }}-->
-                                    <!--                </option>-->
-                                    <!--            @endforeach-->
-                                    <!--        </select>-->
-                                    <!--        <input type="hidden" name="guide" id="guide" value="{{ $groupInfo->guide ?? '' }}">-->
-                                    <!--    </div>-->
-                                    <!--</div>-->
-                                    <!--<div class="d-flex align-items-center flex-fill">-->
-                                    <!--    <span class="span-label">車輛等級</span>-->
-                                    <!--    <select name="vehicle_grade_id" id="vehicle_grade_id" class="form-select form-select-sm border" style="width: 100%;">-->
-                                    <!--        @foreach($vehicleGrades ?? [] as $grade)-->
-                                    <!--            <option value="{{ $grade->id }}" -->
-                                    <!--                {{ (old('vehicle_grade_id', $groupInfo->vehicle_grade_id ?? '')) == $grade->id ? 'selected' : '' }}>-->
-                                    <!--                {{ $grade->description }} ({{ $grade->grade_name }})-->
-                                    <!--            </option>-->
-                                    <!--        @endforeach-->
-                                    <!--    </select>-->
-                                    <!--</div>-->
-                                    
-                                    
-                                    
-                                    
                                 </div>
                             </div>
                         </div>
@@ -356,12 +321,6 @@
                                     style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
                                 <i class="bi bi-file-pdf"></i> 運行指示書PDF
                             </button>
-                            <!--<span style="font-size: 0.75rem; color: #a0aec0;">-->
-                            <!--    {{ $vehicleName }} -->
-                            <!--    @if($driverName)-->
-                            <!--        ({{ $driverName }})-->
-                            <!--    @endif-->
-                            <!--</span>-->
                         </h6>
                             <div class="d-flex align-items-center ms-auto" style="gap: 15px;">
                                 <div class="form-check d-flex align-items-center">
@@ -541,7 +500,7 @@
                                         <div class="d-flex w-100" style="border-bottom: 1px solid #aaa;">
                                             <span class="tab-button2 active flex-fill text-center px-2 py-1" data-container="{{ $vehicleIndex }}" data-tab2="basic2-{{ $vehicleIndex }}" style="background-color: white; border: 1px solid #aaa; border-bottom-color: white; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #374151; font-size: 0.8rem; cursor: pointer;">基本</span>
                                             <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="{{ $vehicleIndex }}" data-tab2="doc-{{ $vehicleIndex }}" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">給与</span>
-                                            <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="{{ $vehicleIndex }}" data-tab2="history2-{{ $vehicleIndex }}" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">精算</span>
+                                            <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="{{ $vehicleIndex }}" data-tab2="expense-{{ $vehicleIndex }}" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">立替</span>
                                         </div>
 
                                         <div id="basic2-{{ $vehicleIndex }}" class="tab-content2" style="border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: auto; height: 102px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
@@ -668,34 +627,102 @@
                                             </div>
                                         </div>
 
-                                        <div id="history2-{{ $vehicleIndex }}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: auto; min-height: 100px; max-height: 100px; overflow-y: auto;">
-                                            <span style="color:red;">因为不确定这个内容你是否还需要，暂时保留，如果不需要，等到对接报账数据的时候，清除掉</span>
-                                            @if(isset($group['logs']) && $group['logs']->count() > 0)
-                                                <table class="table table-sm table-bordered" style="font-size: 11px; margin-bottom: 0;">
-                                                    <thead style="background-color: #f3f4f6;">
+                                        <div id="expense-{{ $vehicleIndex }}" class="tab-content2 expense-tab" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
+                                            <div class="expense-container" data-bus-id="{{ $busId }}" data-vehicle-index="{{ $vehicleIndex }}">
+                                                @php
+                                                    $busExpenses = $expensesByBus[$busId] ?? [];
+                                                @endphp
+                                                
+                                                @if(count($busExpenses) > 0)
+                                                <table class="table table-sm table-bordered expense-table" style="font-size: 11px; margin-bottom: 5px;">
+                                                    <thead>
                                                         <tr>
-                                                            <th style="width: 8%; text-align: center;">#</th>
-                                                            <th>操作内容</th>
-                                                            <th style="width: 15%;">ユーザー</th>
-                                                            <th style="width: 25%;">操作日時</th>
+                                                            <th style="width: 15%; background-color: #f8f9fa; text-align: center;">日付</th>
+                                                            <th style="width: 20%; background-color: #f8f9fa; text-align: center;">種別</th>
+                                                            <th style="width: 12%; background-color: #f8f9fa; text-align: center;">金額</th>
+                                                            <th style="width: 15%; background-color: #f8f9fa; text-align: center;">支払方法</th>
+                                                            <th style="width: 8%; background-color: #f8f9fa; text-align: center;">代理店</th>
+                                                            <th style="width: 10%; background-color: #f8f9fa; text-align: center;">操作</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody>
-                                                        @foreach($group['logs'] as $logIndex => $log)
-                                                            <tr>
-                                                                <td style="text-align: center;">{{ $logIndex + 1 }}</td>
-                                                                <td>{{ $log->action_description }}</td>
-                                                                <td>{{ $log->username ?? $log->user_id ?? 'system' }}</td>
-                                                                <td style="white-space: nowrap;">{{ $log->created_at ? $log->created_at->format('Y/m/d H:i:s') : '' }}</td>
-                                                            </tr>
+                                                    <tbody class="expense-tbody">
+                                                        @php $totalExpenseAmount = 0; @endphp
+                                                        @foreach($busExpenses as $expIndex => $expense)
+                                                        <tr class="expense-row" data-expense-index="{{ $expIndex }}">
+                                                            <td>
+                                                                <input type="hidden" name="bus_assignments[{{ $vehicleIndex }}][expenses][{{ $expIndex }}][id]" value="{{ $expense->id }}">
+                                                                <input type="date" class="form-control form-control-sm expense-date" 
+                                                                       name="bus_assignments[{{ $vehicleIndex }}][expenses][{{ $expIndex }}][expense_date]" 
+                                                                       value="{{ $expense->expense_date }}">
+                                                            </td>
+                                                            <td>
+                                                                <select class="form-select form-select-sm expense-type" 
+                                                                        name="bus_assignments[{{ $vehicleIndex }}][expenses][{{ $expIndex }}][type_id]">
+                                                                    <option value="">-- 選択 --</option>
+                                                                    @foreach($expenseTypes ?? [] as $type)
+                                                                        <option value="{{ $type->id }}" {{ $expense->type_id == $type->id ? 'selected' : '' }}>
+                                                                            {{ $type->type_name }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </td>
+                                                            <td>
+                                                                <input type="number" class="form-control form-control-sm expense-amount" 
+                                                                       name="bus_assignments[{{ $vehicleIndex }}][expenses][{{ $expIndex }}][amount]" 
+                                                                       value="{{ intval($expense->amount) }}" step="1" min="0">
+                                                            </td>
+                                                            <td>
+                                                                <select class="form-select form-select-sm expense-payment" 
+                                                                        name="bus_assignments[{{ $vehicleIndex }}][expenses][{{ $expIndex }}][payment_method_id]">
+                                                                    <option value="">-- 選択 --</option>
+                                                                    @foreach($paymentMethods ?? [] as $method)
+                                                                        <option value="{{ $method->id }}" {{ $expense->payment_method_id == $method->id ? 'selected' : '' }}>
+                                                                            {{ $method->method_name }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                                                                    <input type="checkbox" class="form-check-input expense-agency" 
+                                                                           name="bus_assignments[{{ $vehicleIndex }}][expenses][{{ $expIndex }}][agency_flag]" 
+                                                                           value="1" {{ $expense->agency_flag ? 'checked' : '' }}
+                                                                           id="expense_agency_{{ $vehicleIndex }}_{{ $expIndex }}">
+                                                                </div>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <div class="d-flex justify-content-center gap-1">
+                                                                    <button type="button" class="btn btn-sm btn-outline-success add-expense-row">
+                                                                        <i class="bi bi-plus-lg"></i>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-outline-danger remove-expense-row">
+                                                                        <i class="bi bi-dash-lg"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        @php $totalExpenseAmount += $expense->amount; @endphp
                                                         @endforeach
                                                     </tbody>
+                                                    <tfoot>
+                                                        <tr style="background-color: #f8f9fa; font-weight: bold;">
+                                                            <td colspan="4" class="text-end">合計</td>
+                                                            <td class="text-end"><span class="total-expense-display">¥ {{ number_format($totalExpenseAmount) }}</span></td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </tfoot>
                                                 </table>
-                                            @else
-                                                <div class="dashed-box" style="color: #6b7280; font-size: 11px; padding: 16px; background-color: #f9fafb; border-radius: 4px; text-align: center; border: 1px dashed #d1d5db;">
-                                                    --
+                                                @else
+                                                <div class="text-center py-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary add-first-expense-row" 
+                                                            data-bus-id="{{ $busId }}" data-vehicle-index="{{ $vehicleIndex }}">
+                                                        <i class="bi bi-plus-lg"></i> 立替を追加
+                                                    </button>
                                                 </div>
-                                            @endif
+                                                @endif
+                                                
+                                                <input type="hidden" class="total-expense-hidden" name="bus_assignments[{{ $vehicleIndex }}][expenses_total]" value="{{ $totalExpenseAmount ?? 0 }}">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -852,12 +879,6 @@
                                     style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
                                 <i class="bi bi-file-pdf"></i> 運行指示書PDF
                             </button>
-                            <!--<span style="font-size: 0.75rem; color: #a0aec0;">-->
-                            <!--    {{ $vehicleName }} -->
-                            <!--    @if($driverName)-->
-                            <!--        ({{ $driverName }})-->
-                            <!--    @endif-->
-                            <!--</span>-->
                         </h6>
                         <div class="d-flex align-items-center ms-auto" style="gap: 15px;">
                             <div class="form-check d-flex align-items-center">
@@ -1037,7 +1058,7 @@
                                     <div class="d-flex w-100" style="border-bottom: 1px solid #aaa;">
                                         <span class="tab-button2 active flex-fill text-center px-2 py-1" data-container="1" data-tab2="basic2-1" style="background-color: white; border: 1px solid #aaa; border-bottom-color: white; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #374151; font-size: 0.8rem; cursor: pointer;">基本</span>
                                         <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="1" data-tab2="doc-1" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">給与</span>
-                                        <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="1" data-tab2="history2-1" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">精算</span>
+                                        <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="1" data-tab2="expense-1" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">立替</span>
                                     </div>
             
                                     <div id="basic2-1" class="tab-content2" style="border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: auto; height: 102px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
@@ -1164,40 +1185,102 @@
                                         </div>
                                     </div>
             
-                                    <div id="history2-1" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: auto; min-height: 100px; max-height: 100px; overflow-y: auto;">
-                                        @php
-                                            $singleBusId = $busAssignment->id ?? '';
-                                            $singleLogs = \App\Models\Masters\BusAssignmentLog::where('bus_assignment_id', $singleBusId)
-                                                ->orderBy('created_at', 'desc')
-                                                ->get();
-                                        @endphp
-                                        @if($singleLogs->count() > 0)
-                                            <span style="color:red;">因为不确定这个内容你是否还需要，暂时保留，如果不需要，等到对接报账数据的时候，清除掉</span>
-                                            <table class="table table-sm table-bordered" style="font-size: 11px; margin-bottom: 0;">
-                                                <thead style="background-color: #f3f4f6;">
+                                    <div id="expense-1" class="tab-content2 expense-tab" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
+                                        <div class="expense-container" data-bus-id="{{ $busId }}" data-vehicle-index="1">
+                                            @php
+                                                $busExpenses = $expensesByBus[$busId] ?? [];
+                                            @endphp
+                                            
+                                            @if(count($busExpenses) > 0)
+                                            <table class="table table-sm table-bordered expense-table" style="font-size: 11px; margin-bottom: 5px;">
+                                                <thead>
                                                     <tr>
-                                                        <th style="width: 8%; text-align: center;">#</th>
-                                                        <th>操作内容</th>
-                                                        <th style="width: 15%;">ユーザー</th>
-                                                        <th style="width: 25%;">操作日時</th>
+                                                        <th style="width: 15%; background-color: #f8f9fa; text-align: center;">日付</th>
+                                                        <th style="width: 20%; background-color: #f8f9fa; text-align: center;">種別</th>
+                                                        <th style="width: 12%; background-color: #f8f9fa; text-align: center;">金額</th>
+                                                        <th style="width: 15%; background-color: #f8f9fa; text-align: center;">支払方法</th>
+                                                        <th style="width: 8%; background-color: #f8f9fa; text-align: center;">代理店</th>
+                                                        <th style="width: 10%; background-color: #f8f9fa; text-align: center;">操作</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody>
-                                                    @foreach($singleLogs as $logIndex => $log)
-                                                        <tr>
-                                                            <td style="text-align: center;">{{ $logIndex + 1 }}</td>
-                                                            <td>{{ $log->action_description }}</td>
-                                                            <td>{{ $log->username ?? $log->user_id ?? 'system' }}</td>
-                                                            <td style="white-space: nowrap;">{{ $log->created_at ? $log->created_at->format('Y/m/d H:i:s') : '' }}</td>
-                                                        </tr>
+                                                <tbody class="expense-tbody">
+                                                    @php $totalExpenseAmount = 0; @endphp
+                                                    @foreach($busExpenses as $expIndex => $expense)
+                                                    <tr class="expense-row" data-expense-index="{{ $expIndex }}">
+                                                        <td>
+                                                            <input type="hidden" name="bus_assignments[1][expenses][{{ $expIndex }}][id]" value="{{ $expense->id }}">
+                                                            <input type="date" class="form-control form-control-sm expense-date" 
+                                                                   name="bus_assignments[1][expenses][{{ $expIndex }}][expense_date]" 
+                                                                   value="{{ $expense->expense_date }}">
+                                                        </td>
+                                                        <td>
+                                                            <select class="form-select form-select-sm expense-type" 
+                                                                    name="bus_assignments[1][expenses][{{ $expIndex }}][type_id]">
+                                                                <option value="">-- 選択 --</option>
+                                                                @foreach($expenseTypes ?? [] as $type)
+                                                                    <option value="{{ $type->id }}" {{ $expense->type_id == $type->id ? 'selected' : '' }}>
+                                                                        {{ $type->type_name }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" class="form-control form-control-sm expense-amount" 
+                                                                   name="bus_assignments[1][expenses][{{ $expIndex }}][amount]" 
+                                                                   value="{{ intval($expense->amount) }}" step="1" min="0">
+                                                        </td>
+                                                        <td>
+                                                            <select class="form-select form-select-sm expense-payment" 
+                                                                    name="bus_assignments[1][expenses][{{ $expIndex }}][payment_method_id]">
+                                                                <option value="">-- 選択 --</option>
+                                                                @foreach($paymentMethods ?? [] as $method)
+                                                                    <option value="{{ $method->id }}" {{ $expense->payment_method_id == $method->id ? 'selected' : '' }}>
+                                                                        {{ $method->method_name }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                                                                <input type="checkbox" class="form-check-input expense-agency" 
+                                                                       name="bus_assignments[1][expenses][{{ $expIndex }}][agency_flag]" 
+                                                                       value="1" {{ $expense->agency_flag ? 'checked' : '' }}
+                                                                       id="expense_agency_1_{{ $expIndex }}">
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <div class="d-flex justify-content-center gap-1">
+                                                                <button type="button" class="btn btn-sm btn-outline-success add-expense-row">
+                                                                    <i class="bi bi-plus-lg"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-outline-danger remove-expense-row">
+                                                                    <i class="bi bi-dash-lg"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    @php $totalExpenseAmount += $expense->amount; @endphp
                                                     @endforeach
                                                 </tbody>
+                                                <tfoot>
+                                                    <tr style="background-color: #f8f9fa; font-weight: bold;">
+                                                        <td colspan="4" class="text-end">合計</td>
+                                                        <td class="text-end"><span class="total-expense-display">¥ {{ number_format($totalExpenseAmount) }}</span></td>
+                                                        <td></td>
+                                                    </tr>
+                                                </tfoot>
                                             </table>
-                                        @else
-                                            <div class="dashed-box" style="color: #6b7280; font-size: 11px; padding: 16px; background-color: #f9fafb; border-radius: 4px; text-align: center; border: 1px dashed #d1d5db;">
-                                                --
+                                            @else
+                                            <div class="text-center py-2">
+                                                <button type="button" class="btn btn-sm btn-outline-primary add-first-expense-row" 
+                                                        data-bus-id="{{ $busId }}" data-vehicle-index="1">
+                                                    <i class="bi bi-plus-lg"></i> 立替を追加
+                                                </button>
                                             </div>
-                                        @endif
+                                            @endif
+                                            
+                                            <input type="hidden" class="total-expense-hidden" name="bus_assignments[1][expenses_total]" value="{{ $totalExpenseAmount ?? 0 }}">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1886,6 +1969,102 @@ span.flatpickr-weekday {
 .compensation-amount {
     text-align: right;
 }
+
+
+
+
+.expense-table td {
+    padding: 1px;
+    font-size: 10px;
+}
+
+.expense-table input,
+.expense-table select {
+    padding: 0;
+    font-size: 10px;
+    line-height: 120%;
+    min-height: 20px;
+}
+
+.expense-table button {
+    padding: 0 3px !important;
+}
+
+.expense-table input[type="number"] {
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.expense-table input[type="number"]::-webkit-inner-spin-button,
+.expense-table input[number]::-webkit-outer-spin-button {
+    display: none;
+}
+
+.expense-amount {
+    text-align: right;
+}
+
+.expense-agency-label {
+    font-size: 9px;
+    margin-left: 2px;
+}
+.expense-agency {
+    width: 16px;
+    height: 16px;
+    min-height: 16px !important;
+    margin: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.add-expense-row,
+.remove-expense-row {
+    padding: 2px 6px;
+    font-size: 10px;
+}
+
+#operation-details-container .tab-content2.expense-tab {
+    padding: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+    min-height: 120px;
+}
+
+.add-first-expense-row {
+    font-size: 10px;
+    padding: 4px 12px;
+}
+
+#operation-details-container .tab-content2.expense-tab {
+    padding: 6px;
+    max-height: 280px;
+    overflow-y: auto;
+    min-height: 120px;
+}
+
+.add-first-expense-row {
+    font-size: 11px;
+    padding: 4px 12px;
+}
+
+#operation-details-container .tab-content2.expense-tab {
+    padding: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    min-height: 140px;
+}
+
+.expense-container .add-first-expense-row {
+    font-size: 12px;
+    padding: 4px 12px;
+}
+
+#operation-details-container .tab-content2.expense-tab {
+    padding: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+    min-height: 120px;
+}
 </style>
 @endpush
 
@@ -2207,20 +2386,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (data.success) {
-                alert(data.message || '保存しました。');
-                if (data.redirect) {
-                    setTimeout(() => {
-                        window.location.href = data.redirect;
-                    }, 500);
-                } else {
-                    setTimeout(() => {
-                        location.reload();
-                    }, 500);
+                showSuccessMessage(data.message || '保存しました。');
+                window.scrollTo(0, 0);
+                
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+                const tempDisabled = document.querySelectorAll('[data-temp-disabled="true"]');
+                tempDisabled.forEach(field => {
+                    field.setAttribute('disabled', 'disabled');
+                    field.removeAttribute('data-temp-disabled');
+                });
+                
+                if (data.bus_assignments) {
+                    updateBusAssignmentsData(data.bus_assignments);
                 }
             } else {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
-                alert(data.message || '保存中にエラーが発生しました。');
+                showErrorMessage(data.message || '保存中にエラーが発生しました。');
+                window.scrollTo(0, 0);
                 const tempDisabled = document.querySelectorAll('[data-temp-disabled="true"]');
                 tempDisabled.forEach(field => {
                     field.setAttribute('disabled', 'disabled');
@@ -2483,8 +2668,6 @@ function updateBusDetailClickHandler(e) {
         const sourceCard = this.closest('.card');
         const container = document.getElementById('operation-details-container');
         
-        
-        // 获取最大索引 + 1
         const existingCards = document.querySelectorAll('#operation-details-container > .card');
         let maxIndex = 0;
         existingCards.forEach(card => {
@@ -2495,8 +2678,6 @@ function updateBusDetailClickHandler(e) {
         });
         const newIndex = maxIndex + 1;
         
-        // const existingCards = document.querySelectorAll('#operation-details-container > .card');
-        // const newIndex = existingCards.length + 1;
         const newBusId = 'copy_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         
         let sourceTable = sourceCard.querySelector('#itinerary-table tbody');
@@ -3458,7 +3639,7 @@ function updateBusDetailClickHandler(e) {
                             <div class="d-flex w-100" style="border-bottom: 1px solid #aaa;">
                                 <span class="tab-button2 active flex-fill text-center px-2 py-1" data-container="${newIndex}" data-tab2="basic2-${newIndex}" style="background-color: white; border: 1px solid #aaa; border-bottom-color: white; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #374151; font-size: 0.8rem; cursor: pointer;">基本</span>
                                 <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="${newIndex}" data-tab2="doc-${newIndex}" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">給与</span>
-                                <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="${newIndex}" data-tab2="history2-${newIndex}" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">精算</span>
+                                <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="${newIndex}" data-tab2="expense-${newIndex}" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">立替</span>
                             </div>
     
                             <div id="basic2-${newIndex}" class="tab-content2" style="border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 102px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
@@ -3489,9 +3670,15 @@ function updateBusDetailClickHandler(e) {
                                 </div>
                             </div>
     
-                            <div id="history2-${newIndex}" class="tab-content2" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 100px; overflow: auto;">
-                                <div class="dashed-box" style="color: #6b7280; font-size: 11px; padding: 16px; background-color: #f9fafb; border-radius: 4px; text-align: center; border: 1px dashed #d1d5db;">
-                                    --
+                            <div id="expense-${newIndex}" class="tab-content2 expense-tab" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
+                                <div class="expense-container" data-bus-id="${newBusId}" data-vehicle-index="${newIndex}">
+                                    <div class="text-center py-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary add-first-expense-row" 
+                                                data-bus-id="${newBusId}" data-vehicle-index="${newIndex}">
+                                            <i class="bi bi-plus-lg"></i> 立替を追加
+                                        </button>
+                                    </div>
+                                    <input type="hidden" class="total-expense-hidden" name="bus_assignments[${newIndex}][expenses_total]" value="0">
                                 </div>
                             </div>
                         </div>
@@ -3540,6 +3727,193 @@ function updateBusDetailClickHandler(e) {
                 </div>
             </div>
         `;
+        
+        
+        
+                
+        const newExpenseFirstBtn = newCard.querySelector('.add-first-expense-row');
+        if (newExpenseFirstBtn) {
+            if (newExpenseFirstBtn._firstAddHandler) {
+                newExpenseFirstBtn.removeEventListener('click', newExpenseFirstBtn._firstAddHandler);
+            }
+            const firstAddHandler = function() {
+                const busId = this.getAttribute('data-bus-id');
+                const vehicleIndex = this.getAttribute('data-vehicle-index');
+                const container = this.closest('.expense-container');
+                
+                const tableHtml = `
+                    <table class="table table-sm table-bordered expense-table" style="font-size: 11px; margin-bottom: 5px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%; background-color: #f8f9fa; text-align: center;">日付</th>
+                                <th style="width: 20%; background-color: #f8f9fa; text-align: center;">種別</th>
+                                <th style="width: 12%; background-color: #f8f9fa; text-align: center;">金額</th>
+                                <th style="width: 15%; background-color: #f8f9fa; text-align: center;">支払方法</th>
+                                <th style="width: 8%; background-color: #f8f9fa; text-align: center;">代理店</th>
+                                <th style="width: 10%; background-color: #f8f9fa; text-align: center;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="expense-tbody">
+                            <tr class="expense-row" data-expense-index="0">
+                                <td>
+                                    <input type="date" class="form-control form-control-sm expense-date" 
+                                           name="bus_assignments[${vehicleIndex}][expenses][0][expense_date]" 
+                                           value="${new Date().toISOString().split('T')[0]}">
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm expense-type" 
+                                            name="bus_assignments[${vehicleIndex}][expenses][0][type_id]">
+                                        <option value="">-- 選択 --</option>
+                                        @foreach($expenseTypes ?? [] as $type)
+                                            <option value="{{ $type->id }}">{{ $type->type_name }}</option>
+                                        @endforeach
+                                    </select>
+                                 </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm expense-amount text-end" 
+                                           name="bus_assignments[${vehicleIndex}][expenses][0][amount]" 
+                                           value="0" step="1" min="0">
+                                 </td>
+                                <td>
+                                    <select class="form-select form-select-sm expense-payment" 
+                                            name="bus_assignments[${vehicleIndex}][expenses][0][payment_method_id]">
+                                        <option value="">-- 選択 --</option>
+                                        @foreach($paymentMethods ?? [] as $method)
+                                            <option value="{{ $method->id }}">{{ $method->method_name }}</option>
+                                        @endforeach
+                                    </select>
+                                 </td>
+                                <td class="text-center">
+                                    <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                                        <input type="checkbox" class="form-check-input expense-agency" 
+                                               name="bus_assignments[${vehicleIndex}][expenses][0][agency_flag]" 
+                                               value="1" id="expense_agency_${vehicleIndex}_0">
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-success add-expense-row" style="padding: 2px 5px;">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-expense-row" style="padding: 2px 5px;">
+                                            <i class="bi bi-dash-lg"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="background-color: #f8f9fa; font-weight: bold;">
+                                <td colspan="2" class="text-end">合計</td>
+                                <td class="text-end"><span class="total-expense-display">¥ 0</span></td>
+                                <td colspan="4"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <input type="hidden" class="total-expense-hidden" name="bus_assignments[${vehicleIndex}][expenses_total]" value="0">
+                `;
+                
+                container.innerHTML = tableHtml;
+                
+                if (typeof initExpenseTable === 'function') {
+                    initExpenseTable(container);
+                }
+            };
+            
+            newExpenseFirstBtn.addEventListener('click', firstAddHandler);
+            newExpenseFirstBtn._firstAddHandler = firstAddHandler;
+        }
+        
+        const newCompensationFirstBtn = newCard.querySelector('.add-first-compensation-row');
+        if (newCompensationFirstBtn) {
+            if (newCompensationFirstBtn._firstAddHandler) {
+                newCompensationFirstBtn.removeEventListener('click', newCompensationFirstBtn._firstAddHandler);
+            }
+            const compFirstAddHandler = function() {
+                const busId = this.getAttribute('data-bus-id');
+                const vehicleIndex = this.getAttribute('data-vehicle-index');
+                const container = this.closest('.compensation-container');
+                
+                const tableHtml = `
+                    <table class="table table-sm table-bordered compensation-table" style="font-size: 11px; margin-bottom: 5px;">
+                        <thead style="text-align: center;">
+                            <tr>
+                                <th style="width: 20%; background-color: #f8f9fa;">対象日</th>
+                                <th style="width: 25%; background-color: #f8f9fa;">報酬種別</th>
+                                <th style="width: 15%; background-color: #f8f9fa;">単価</th>
+                                <th style="width: 10%; background-color: #f8f9fa;">数量</th>
+                                <th style="width: 15%; background-color: #f8f9fa;">金額</th>
+                                <th style="width: 15%; background-color: #f8f9fa;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="compensation-tbody">
+                            <tr class="compensation-row" data-comp-index="0">
+                                <tr>
+                                    <input type="text" class="form-control form-control-sm compensation-date datepicker-single" 
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][target_date]" value="" placeholder="YYYY-MM-DD">
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm compensation-type" 
+                                            name="bus_assignments[${vehicleIndex}][compensations][0][comp_id]">
+                                        <option value="">-- 選択 --</option>
+                                        @foreach($compensationTypes ?? [] as $type)
+                                            <option value="{{ $type->id }}">{{ $type->comp_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm compensation-price" 
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][price]" value="0" step="1" min="0">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm compensation-qty" 
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][qty]" value="0" step="1" min="0">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm compensation-amount" 
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][amount]" value="0" readonly style="background-color: #f3f4f6;">
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-success add-compensation-row" style="padding: 2px 6px; font-size: 10px;">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-compensation-row" style="padding: 2px 6px; font-size: 10px;">
+                                        <i class="bi bi-dash-lg"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="background-color: #f8f9fa; font-weight: bold;">
+                                <td colspan="4" class="text-end">合計</td>
+                                <td class="text-end"><span class="total-amount-display">¥ 0</span></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <input type="hidden" class="total-amount-hidden" name="bus_assignments[${vehicleIndex}][compensations_total]" value="0">
+                `;
+                
+                container.innerHTML = tableHtml;
+                
+                if (typeof initCompensationTable === 'function') {
+                    initCompensationTable(container);
+                }
+                
+                container.querySelectorAll('.compensation-date').forEach(dateInput => {
+                    if (!dateInput._flatpickr) {
+                        flatpickr(dateInput, {
+                            locale: 'ja',
+                            dateFormat: 'Y-m-d',
+                            allowInput: true,
+                            disableMobile: true
+                        });
+                    }
+                });
+            };
+            newCompensationFirstBtn.addEventListener('click', compFirstAddHandler);
+            newCompensationFirstBtn._firstAddHandler = compFirstAddHandler;
+        }
     
         return newCard;
     }
@@ -4792,22 +5166,298 @@ function bindPdfExportEvents() {
 
 
 
-
-// document.querySelectorAll('.copy-stepcar-btn').forEach(btn => {
-//     btn.addEventListener('click', function() {
-//         const vehicleIndex = this.getAttribute('data-vehicle-index');
-//         const groupNameInput = document.querySelector('input[name="group_name"]');
-//         const stepCarInput = document.getElementById(`step_car_${vehicleIndex}`);
+function initExpenseTable(container) {
+    const tbody = container.querySelector('.expense-tbody');
+    if (!tbody) return;
+    
+    function updateTotalAmount(container) {
+        const rows = container.querySelectorAll('.expense-row');
+        let total = 0;
+        rows.forEach(row => {
+            const amount = parseFloat(row.querySelector('.expense-amount')?.value) || 0;
+            total += amount;
+        });
+        const displaySpan = container.querySelector('.total-expense-display');
+        const hiddenInput = container.querySelector('.total-expense-hidden');
+        if (displaySpan) {
+            displaySpan.textContent = '¥ ' + total.toLocaleString();
+        }
+        if (hiddenInput) {
+            hiddenInput.value = total;
+        }
+    }
+    
+    function reindexRows(container) {
+        const rows = container.querySelectorAll('.expense-row');
+        const vehicleIndex = container.getAttribute('data-vehicle-index');
+        rows.forEach((row, idx) => {
+            const inputs = row.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) {
+                    const newName = name.replace(/expenses\[\d+\]/, `expenses[${idx}]`);
+                    input.setAttribute('name', newName);
+                }
+            });
+            row.setAttribute('data-expense-index', idx);
+            
+            const checkbox = row.querySelector('.expense-agency');
+            if (checkbox) {
+                const newId = `expense_agency_${vehicleIndex}_${idx}`;
+                checkbox.id = newId;
+                const label = row.querySelector('label[for^="expense_agency_"]');
+                if (label) {
+                    label.setAttribute('for', newId);
+                }
+            }
+        });
+    }
+    
+    function addExpenseRow(row) {
+        const container = row.closest('.expense-container');
+        const tbody = container.querySelector('.expense-tbody');
+        const rowCount = tbody.querySelectorAll('.expense-row').length;
+        const vehicleIndex = container.getAttribute('data-vehicle-index');
+        const defaultDate = new Date().toISOString().split('T')[0];
         
-//         if (groupNameInput && stepCarInput) {
-//             stepCarInput.value = groupNameInput.value;
-//             stepCarInput.style.backgroundColor = '#e8f0fe';
-//             setTimeout(() => {
-//                 stepCarInput.style.backgroundColor = '';
-//             }, 200);
-//         }
-//     });
-// });
+        const newRow = document.createElement('tr');
+        newRow.className = 'expense-row';
+        newRow.setAttribute('data-expense-index', rowCount);
+        newRow.innerHTML = `
+            <td>
+                <input type="date" class="form-control form-control-sm expense-date" 
+                       name="bus_assignments[${vehicleIndex}][expenses][${rowCount}][expense_date]" 
+                       value="${defaultDate}">
+            </td>
+            <td>
+                <select class="form-select form-select-sm expense-type" 
+                        name="bus_assignments[${vehicleIndex}][expenses][${rowCount}][type_id]">
+                    <option value="">-- 選択 --</option>
+                    @foreach($expenseTypes ?? [] as $type)
+                        <option value="{{ $type->id }}">{{ $type->type_name }}</option>
+                    @endforeach
+                </select>
+            </td>
+            <td>
+                <input type="number" class="form-control form-control-sm expense-amount text-end" 
+                       name="bus_assignments[${vehicleIndex}][expenses][${rowCount}][amount]" 
+                       value="0" step="1" min="0">
+            </td>
+            <td>
+                <select class="form-select form-select-sm expense-payment" 
+                        name="bus_assignments[${vehicleIndex}][expenses][${rowCount}][payment_method_id]">
+                    <option value="">-- 選択 --</option>
+                    @foreach($paymentMethods ?? [] as $method)
+                        <option value="{{ $method->id }}">{{ $method->method_name }}</option>
+                    @endforeach
+                </select>
+            </td>
+            <td class="text-center">
+                <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                    <input type="checkbox" class="form-check-input expense-agency" 
+                           name="bus_assignments[${vehicleIndex}][expenses][${rowCount}][agency_flag]" 
+                           value="1" id="expense_agency_${vehicleIndex}_${rowCount}">
+                </div>
+            </td>
+            <td class="text-center">
+                <div class="d-flex justify-content-center gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-success add-expense-row" style="padding: 2px 5px;">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-expense-row" style="padding: 2px 5px;">
+                        <i class="bi bi-dash-lg"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        
+        if (row) {
+            row.parentNode.insertBefore(newRow, row.nextSibling);
+        } else {
+            tbody.appendChild(newRow);
+        }
+        
+        bindExpenseRowEvents(newRow, container);
+        reindexRows(container);
+        updateTotalAmount(container);
+    }
+    
+    function removeExpenseRow(row, container) {
+        const tbody = container.querySelector('.expense-tbody');
+        const rows = tbody.querySelectorAll('.expense-row');
+        
+        const idInput = row.querySelector('input[name*="[id]"]');
+        const recordId = idInput ? idInput.value : null;
+        
+        if (recordId && recordId !== '') {
+            const vehicleIndex = container.getAttribute('data-vehicle-index');
+            const deletedIdsInput = document.createElement('input');
+            deletedIdsInput.type = 'hidden';
+            deletedIdsInput.name = `bus_assignments[${vehicleIndex}][deleted_expense_ids][]`;
+            deletedIdsInput.value = recordId;
+            deletedIdsInput.className = 'deleted-expense-id';
+            container.appendChild(deletedIdsInput);
+        }
+        
+        row.remove();
+        
+        const remainingRows = tbody.querySelectorAll('.expense-row');
+        if (remainingRows.length === 0) {
+            const busId = container.getAttribute('data-bus-id');
+            const vehicleIndex = container.getAttribute('data-vehicle-index');
+            const hiddenInput = container.querySelector('.total-expense-hidden');
+            
+            container.innerHTML = `
+                <div class="text-center py-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary add-first-expense-row" 
+                            data-bus-id="${busId}" data-vehicle-index="${vehicleIndex}"
+                            style="font-size: 11px; padding: 4px 12px;">
+                        <i class="bi bi-plus-lg"></i> 立替を追加
+                    </button>
+                </div>
+            `;
+            if (hiddenInput) container.appendChild(hiddenInput);
+            return;
+        }
+        
+        reindexRows(container);
+        updateTotalAmount(container);
+    }
+    
+    function bindExpenseRowEvents(row, container) {
+        const amountInput = row.querySelector('.expense-amount');
+        if (amountInput) {
+            amountInput.removeEventListener('input', amountInput._inputHandler);
+            amountInput._inputHandler = () => updateTotalAmount(container);
+            amountInput.addEventListener('input', amountInput._inputHandler);
+        }
+        
+        const addBtn = row.querySelector('.add-expense-row');
+        if (addBtn) {
+            addBtn.removeEventListener('click', addBtn._clickHandler);
+            addBtn._clickHandler = () => addExpenseRow(row);
+            addBtn.addEventListener('click', addBtn._clickHandler);
+        }
+        
+        const removeBtn = row.querySelector('.remove-expense-row');
+        if (removeBtn) {
+            removeBtn.removeEventListener('click', removeBtn._clickHandler);
+            removeBtn._clickHandler = () => removeExpenseRow(row, container);
+            removeBtn.addEventListener('click', removeBtn._clickHandler);
+        }
+        
+        const agencyCheckbox = row.querySelector('.expense-agency');
+        const agencyLabel = row.querySelector('label[for^="expense_agency_"]');
+        if (agencyCheckbox && agencyLabel) {
+            agencyLabel.removeEventListener('click', agencyLabel._clickHandler);
+            agencyLabel._clickHandler = function(e) {
+                e.preventDefault();
+                agencyCheckbox.checked = !agencyCheckbox.checked;
+            };
+            agencyLabel.addEventListener('click', agencyLabel._clickHandler);
+        }
+    }
+    
+    const existingRows = tbody.querySelectorAll('.expense-row');
+    existingRows.forEach(row => {
+        bindExpenseRowEvents(row, container);
+    });
+    
+    updateTotalAmount(container);
+}
+
+document.querySelectorAll('.expense-container').forEach(container => {
+    if (container.querySelector('.expense-tbody')) {
+        initExpenseTable(container);
+    }
+});
+
+document.querySelectorAll('.add-first-expense-row').forEach(btn => {
+    btn.removeEventListener('click', btn._firstAddHandler);
+    const firstAddHandler = function() {
+        const busId = this.getAttribute('data-bus-id');
+        const vehicleIndex = this.getAttribute('data-vehicle-index');
+        const container = this.closest('.expense-container');
+        
+        const tableHtml = `
+
+            <table class="table table-sm table-bordered expense-table" style="font-size: 11px; margin-bottom: 5px;">
+                <thead>
+                    <tr>
+                        <th style="width: 15%; background-color: #f8f9fa; text-align: center;">日付</th>
+                        <th style="width: 20%; background-color: #f8f9fa; text-align: center;">種別</th>
+                        <th style="width: 12%; background-color: #f8f9fa; text-align: center;">金額</th>
+                        <th style="width: 15%; background-color: #f8f9fa; text-align: center;">支払方法</th>
+                        <th style="width: 8%; background-color: #f8f9fa; text-align: center;">代理店</th>
+                        <th style="width: 10%; background-color: #f8f9fa; text-align: center;">操作</th>
+                    </tr>
+                </thead>
+                <tbody class="expense-tbody">
+                    <tr class="expense-row" data-expense-index="0">
+                        <td>
+                            <input type="date" class="form-control form-control-sm expense-date" 
+                                   name="bus_assignments[${vehicleIndex}][expenses][0][expense_date]" 
+                                   value="${new Date().toISOString().split('T')[0]}">
+                        </td>
+                        <td>
+                            <select class="form-select form-select-sm expense-type" 
+                                    name="bus_assignments[${vehicleIndex}][expenses][0][type_id]">
+                                <option value="">-- 選択 --</option>
+                                @foreach($expenseTypes ?? [] as $type)
+                                    <option value="{{ $type->id }}">{{ $type->type_name }}</option>
+                                @endforeach
+                            </select>
+                         </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm expense-amount text-end" 
+                                   name="bus_assignments[${vehicleIndex}][expenses][0][amount]" 
+                                   value="0" step="1" min="0">
+                         </td>
+                        <td>
+                            <select class="form-select form-select-sm expense-payment" 
+                                    name="bus_assignments[${vehicleIndex}][expenses][0][payment_method_id]">
+                                <option value="">-- 選択 --</option>
+                                @foreach($paymentMethods ?? [] as $method)
+                                    <option value="{{ $method->id }}">{{ $method->method_name }}</option>
+                                @endforeach
+                            </select>
+                         </td>
+                        <td class="text-center">
+                            <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                                <input type="checkbox" class="form-check-input expense-agency" 
+                                       name="bus_assignments[${vehicleIndex}][expenses][0][agency_flag]" 
+                                       value="1" id="expense_agency_${vehicleIndex}_0">
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1">
+                                <button type="button" class="btn btn-sm btn-outline-success add-expense-row" style="padding: 2px 5px;">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-expense-row" style="padding: 2px 5px;">
+                                    <i class="bi bi-dash-lg"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr style="background-color: #f8f9fa; font-weight: bold;">
+                        <td colspan="2" class="text-end">合計</td>
+                        <td class="text-end"><span class="total-expense-display">¥ 0</span></td>
+                        <td colspan="4"></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <input type="hidden" class="total-expense-hidden" name="bus_assignments[${vehicleIndex}][expenses_total]" value="0">
+        `;
+        
+        container.innerHTML = tableHtml;
+        initExpenseTable(container);
+    };
+    btn.addEventListener('click', firstAddHandler);
+    btn._firstAddHandler = firstAddHandler;
+});
 
 
 

@@ -10,8 +10,6 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // dump(session()->all());
-        
         $totalUsers = User::count();
         $newUsersToday = User::whereDate('created_at', today())->count();
 

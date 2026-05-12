@@ -10,6 +10,7 @@ use App\Models\Masters\VehicleType;
 use App\Models\Masters\Agency;
 use App\Models\Masters\Branch;
 use App\Models\Masters\GroupInfoDateRemark;
+use App\Models\Masters\Driver;
 use App\Helpers\HolidayHelper;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -53,8 +54,11 @@ class OperationLedgerController extends Controller
         $hasGuide = $request->input('has_guide');
         
         $reservationId = $request->input('reservation_id');
+        $operationId = $request->input('operation_id');
         $groupName = $request->input('group_name');
         $branchIds = $request->input('branch_ids', []);
+        $reservationCategoriesId = $request->input('reservation_categories_id');
+        $driverId = $request->input('driver_id');
         
         if (!$startDate) {
             $startDate = Carbon::today()->format('Y-m-d');
@@ -80,6 +84,8 @@ class OperationLedgerController extends Controller
         }
         
         $endDate = $end->format('Y-m-d');
+        
+        $hasExactSearch = !empty($reservationId) || !empty($operationId);
         
         $dates = [];
         $current = clone $start;
@@ -141,18 +147,35 @@ class OperationLedgerController extends Controller
         $filteredVehicleIds = $vehicleQuery->pluck('id');
         
         $allItineraries = DailyItinerary::with(['busAssignment', 'groupInfo', 'busAssignment.driver', 'busAssignment.guide'])
-            ->whereBetween('date', [$startDate, $endDate])
-            ->whereIn('vehicle_id', $filteredVehicleIds)
-            ->whereNotNull('vehicle_id')
+            ->when(!$hasExactSearch, function($query) use ($filteredVehicleIds, $startDate, $endDate) {
+                return $query->whereIn('vehicle_id', $filteredVehicleIds)
+                             ->whereNotNull('vehicle_id')
+                             ->whereBetween('date', [$startDate, $endDate]);
+            })
+            ->when($hasExactSearch, function($query) use ($reservationId, $operationId) {
+                if ($reservationId) {
+                    $query->where('group_info_id', $reservationId);
+                }
+                if ($operationId) {
+                    $query->where('bus_assignment_id', $operationId);
+                }
+                return $query;
+            })
             ->when($agencyId, function($query) use ($agencyId) {
-                $query->whereHas('groupInfo', function($q) use ($agencyId) {
-                    $q->where('agency_id', $agencyId);
+                $agency = Agency::find($agencyId);
+                if ($agency) {
+                    $query->whereHas('groupInfo', function($q) use ($agency) {
+                        $q->where('agency', $agency->agency_name);
+                    });
+                }
+            })
+            ->when($reservationCategoriesId, function($query) use ($reservationCategoriesId) {
+                $query->whereHas('groupInfo', function($q) use ($reservationCategoriesId) {
+                    $q->where('reservation_categories_id', $reservationCategoriesId);
                 });
             })
-            ->when($reservationId, function($query) use ($reservationId) {
-                $query->whereHas('groupInfo', function($q) use ($reservationId) {
-                    $q->where('id', $reservationId);
-                });
+            ->when($driverId, function($query) use ($driverId) {
+                $query->where('driver_id', $driverId);
             })
             ->when($groupName, function($query) use ($groupName) {
                 $query->whereHas('groupInfo', function($q) use ($groupName) {
@@ -181,6 +204,48 @@ class OperationLedgerController extends Controller
             ->orderBy('date', 'asc')
             ->orderBy('time_start', 'asc')
             ->get();
+        
+        if ($hasExactSearch && $allItineraries->isNotEmpty()) {
+            $minDate = $allItineraries->min('date');
+            $maxDate = $allItineraries->max('date');
+            
+            if ($minDate && $maxDate) {
+                $minCarbon = Carbon::parse($minDate);
+                $maxCarbon = Carbon::parse($maxDate);
+                $daysDiff = $minCarbon->diffInDays($maxCarbon) + 1;
+                
+                if ($daysDiff <= 7) {
+                    $start = $minCarbon;
+                    $end = $start->copy()->addDays(6);
+                } else {
+                    $start = $minCarbon;
+                    $end = $maxCarbon;
+                }
+                
+                $startDate = $start->format('Y-m-d');
+                $endDate = $end->format('Y-m-d');
+                $displayDays = $start->diffInDays($end) + 1;
+                
+                $dates = [];
+                $current = clone $start;
+                while ($current <= $end) {
+                    $holidayInfo = HolidayHelper::getHolidayInfo($current);
+                    
+                    $dates[] = [
+                        'date' => $current->copy(),
+                        'day_of_week' => $this->getJapaneseDayOfWeek($current->dayOfWeek),
+                        'display' => $current->format('n/j') . '（' . $this->getJapaneseDayOfWeek($current->dayOfWeek) . '）',
+                        'is_saturday' => $current->dayOfWeek == 6,
+                        'is_sunday' => $current->dayOfWeek == 0,
+                        'is_holiday' => $holidayInfo['is_holiday'],
+                        'holiday_name' => $holidayInfo['name'],
+                    ];
+                    $current->addDay();
+                }
+                
+                $dateRemarks = GroupInfoDateRemark::getRemarksByDateRange($startDate, $endDate);
+            }
+        }
         
         $reservationCategories = ReservationCategory::pluck('color_code', 'id')->toArray();
         
@@ -239,6 +304,10 @@ class OperationLedgerController extends Controller
             ];
         }
         
+        $reservationCategories = ReservationCategory::where('is_active', true)->orderBy('display_order', 'asc')->get();
+        $drivers = Driver::where('is_active', true)->orderBy('display_order', 'asc')->orderBy('driver_code', 'asc')->get();
+        $agencies = Agency::where('is_active', true)->orderBy('display_order', 'asc')->orderBy('agency_code', 'asc')->get();
+        
         return view('masters.operation-ledger.index', compact(
             'dates',
             'groupedVehicles',
@@ -252,7 +321,9 @@ class OperationLedgerController extends Controller
             'displayDays',
             'reservationId',
             'groupName',
-            'branchIds'
+            'branchIds',
+            'reservationCategories',
+            'drivers'
         ));
     }
     

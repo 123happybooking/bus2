@@ -19,6 +19,9 @@ use App\Models\Masters\Option;
 use App\Models\Masters\GroupInfoFile;
 use App\Models\Masters\DriverCompensation;
 use App\Models\Masters\DriverCompensationType;
+use App\Models\Driver\DriverExpense;
+use App\Models\Driver\DriverExpenseType;
+use App\Models\Driver\DriverPaymentMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -31,7 +34,7 @@ class GroupInfoController extends Controller
     {
         $sessionKey = 'group_infos_search';
         
-        $searchFields = ['date_from', 'date_end'];
+        $searchFields = ['start_date', 'period', 'display_days'];
         
         $isNewSearch = false;
         foreach ($searchFields as $field) {
@@ -54,31 +57,60 @@ class GroupInfoController extends Controller
             $request->merge($searchParams);
         }
         
+        $startDate = $request->input('start_date');
+        $period = $request->input('period', 1);
+        $displayDays = $request->input('display_days', 7);
+        $search = $request->input('search');
+        
+        if (!$startDate) {
+            $startDate = Carbon::today()->format('Y-m-d');
+        }
+        
+        $start = Carbon::parse($startDate);
+        
+        if ($period == 1) {
+            $end = $start->copy()->addDays(6);
+            $displayDays = 7;
+        } elseif ($period == 2) {
+            $end = $start->copy()->addDays(13);
+            $displayDays = 14;
+        } elseif ($period == 3) {
+            $end = $start->copy()->addDays(20);
+            $displayDays = 21;
+        } elseif ($period == 4) {
+            $end = $start->copy()->addMonth()->subDay();
+            $displayDays = $start->diffInDays($end) + 1;
+        } else {
+            $end = $start->copy()->addDays(6);
+            $displayDays = 7;
+        }
+        
+        $endDate = $end->format('Y-m-d');
+        
         $query = GroupInfo::query();
-
-        if ($request->filled('search')) {
-            $search = $request->search;
+        
+        if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('agency', 'like', "%{$search}%")
                   ->orWhere('vehicle', 'like', "%{$search}%");
             });
         }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('start_date', '>=', $request->date_from);
+        
+        if ($startDate) {
+            $query->whereDate('start_date', '>=', $startDate);
         }
-
-        if ($request->filled('date_end')) {
-            $query->whereDate('end_date', '<=', $request->date_end);
+        
+        if ($endDate) {
+            $query->whereDate('end_date', '<=', $endDate);
         }
-
+        
         $perPage = $request->input('per_page', 20);
         $groupInfos = $query->orderBy('start_date', 'asc')
                            ->orderBy('start_time')
                            ->paginate($perPage)
                            ->withQueryString();
-
-        return view('masters.group-infos.index', compact('groupInfos'));
+        
+        return view('masters.group-infos.index', compact('groupInfos', 'displayDays'));
     }
 
     public function show($id)
@@ -1009,6 +1041,19 @@ class GroupInfoController extends Controller
             }
         }
         
+        
+        $expensesByBus = [];
+        foreach ($busAssignments as $busAssignment) {
+            $expensesByBus[$busAssignment->id] = DriverExpense::with(['expenseType', 'paymentMethod'])
+                ->where('bus_assignment_id', $busAssignment->id)
+                ->orderBy('expense_date', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+        
+        $expenseTypes = DriverExpenseType::orderBy('id')->get();
+        $paymentMethods = DriverPaymentMethod::orderBy('id')->get();
+        
         return view('masters.group-infos.edit', compact(
             'groupInfo', 
             'agencies',
@@ -1030,7 +1075,10 @@ class GroupInfoController extends Controller
             'compensationTypes',
             'defaultStaffName',
             'defaultBranchName',
-            'defaultBranchId'
+            'defaultBranchId',
+            'expensesByBus',
+            'expenseTypes',
+            'paymentMethods'
         ));
     }
 
@@ -2136,6 +2184,73 @@ class GroupInfoController extends Controller
                     $newTemporaryDriver = isset($submittedBusData['temporary_driver']) ? (bool)$submittedBusData['temporary_driver'] : false;
                     $newVehicleSpec = $finalVehicleSpec;
                     
+                    
+                    if (isset($submittedBusData['expenses']) && is_array($submittedBusData['expenses'])) {
+                        
+                        $existingExpenseIds = [];
+                        
+                        foreach ($submittedBusData['expenses'] as $expData) {
+                            if (empty($expData['type_id']) || empty($expData['amount']) || $expData['amount'] <= 0) {
+                                continue;
+                            }
+                            
+                            $expenseDate = $expData['expense_date'] ?? Carbon::today()->format('Y-m-d');
+                            $amount = (int)$expData['amount'];
+                            $typeId = (int)$expData['type_id'];
+                            $paymentMethodId = !empty($expData['payment_method_id']) ? (int)$expData['payment_method_id'] : null;
+                            $agencyFlag = isset($expData['agency_flag']) ? 1 : 0;
+                            $remark = $expData['remark'] ?? null;
+                            
+                            if (!empty($expData['id'])) {
+                                $existingExpense = DriverExpense::where('id', $expData['id'])
+                                    ->where('bus_assignment_id', $bus->id)
+                                    ->first();
+                                
+                                if ($existingExpense) {
+                                    $existingExpense->update([
+                                        'group_info_id' => $groupInfo->id,
+                                        'driver_id' => $bus->driver_id ?? 0,
+                                        'expense_date' => $expenseDate,
+                                        'amount' => $amount,
+                                        'type_id' => $typeId,
+                                        'payment_method_id' => $paymentMethodId,
+                                        'agency_flag' => $agencyFlag,
+                                        'remark' => $remark,
+                                        'updated_by' => $userId,
+                                        'updated_at' => now(),
+                                    ]);
+                                    $existingExpenseIds[] = $existingExpense->id;
+                                }
+                            } else {
+                                $newExpense = DriverExpense::create([
+                                    'group_info_id' => $groupInfo->id,
+                                    'bus_assignment_id' => $bus->id,
+                                    'itinerary_id' => null,
+                                    'driver_id' => $bus->driver_id ?? 0,
+                                    'expense_date' => $expenseDate,
+                                    'amount' => $amount,
+                                    'type_id' => $typeId,
+                                    'payment_method_id' => $paymentMethodId,
+                                    'agency_flag' => $agencyFlag,
+                                    'remark' => $remark,
+                                    'created_by' => $userId,
+                                    'updated_by' => $userId,
+                                    'created_at' => now(),
+                                    'updated_at' => now(),
+                                ]);
+                                $existingExpenseIds[] = $newExpense->id;
+                            }
+                        }
+                        
+                        if (!empty($existingExpenseIds)) {
+                            DriverExpense::where('bus_assignment_id', $bus->id)
+                                ->whereNotIn('id', $existingExpenseIds)
+                                ->delete();
+                        } else {
+                            DriverExpense::where('bus_assignment_id', $bus->id)->delete();
+                        }
+                    }
+                    
                     $bus->update([
                         'vehicle_id' => $finalVehicleId,
                         'driver_id' => $finalDriverId,
@@ -2391,16 +2506,15 @@ class GroupInfoController extends Controller
                     'success' => true,
                     'id' => $groupInfo->id,
                     'message' => 'グループ情報を更新しました。',
-                    'redirect' => route('masters.group-infos.show', $groupInfo->id) . '#edit-section',
-                    'reload' => true
                 ]);
             }
-    
-            return redirect()->route('masters.group-infos.show', $groupInfo->id) . '#edit-section'
+            
+            return redirect()->route('masters.group-infos.edit', $groupInfo->id)
                 ->with([
                     'success' => 'グループ情報を更新しました。データは正常に保存されました。',
                     'alert-type' => 'success'
                 ]);
+                
     
         } catch (\Exception $e) {
             DB::rollBack();

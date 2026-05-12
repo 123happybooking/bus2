@@ -23,7 +23,7 @@ class DailyReportController extends Controller
     {
         $sessionKey = 'daily_reports_search';
         
-        $searchFields = ['date_from', 'date_to'];
+        $searchFields = ['start_date', 'period', 'display_days'];
         
         $isNewSearch = false;
         foreach ($searchFields as $field) {
@@ -46,14 +46,43 @@ class DailyReportController extends Controller
             $request->merge($searchParams);
         }
         
-        $query = DriverDailyReport::with(['driver', 'vehicle']);
+        $startDate = $request->input('start_date');
+        $period = $request->input('period', 1);
+        $displayDays = $request->input('display_days', 7);
         
-        if ($request->filled('date_from')) {
-            $query->whereDate('date', '>=', $request->date_from);
+        if (!$startDate) {
+            $startDate = Carbon::today()->format('Y-m-d');
         }
         
-        if ($request->filled('date_to')) {
-            $query->whereDate('date', '<=', $request->date_to);
+        $start = Carbon::parse($startDate);
+        
+        if ($period == 1) {
+            $end = $start->copy()->addDays(6);
+            $displayDays = 7;
+        } elseif ($period == 2) {
+            $end = $start->copy()->addDays(13);
+            $displayDays = 14;
+        } elseif ($period == 3) {
+            $end = $start->copy()->addDays(20);
+            $displayDays = 21;
+        } elseif ($period == 4) {
+            $end = $start->copy()->addMonth()->subDay();
+            $displayDays = $start->diffInDays($end) + 1;
+        } else {
+            $end = $start->copy()->addDays(6);
+            $displayDays = 7;
+        }
+        
+        $endDate = $end->format('Y-m-d');
+        
+        $query = DriverDailyReport::with(['driver', 'vehicle']);
+        
+        if ($startDate) {
+            $query->whereDate('date', '>=', $startDate);
+        }
+        
+        if ($endDate) {
+            $query->whereDate('date', '<=', $endDate);
         }
         
         if ($request->filled('driver_id')) {
@@ -77,7 +106,7 @@ class DailyReportController extends Controller
             ->orderBy('registration_number')
             ->get(['id', 'registration_number']);
         
-        return view('masters.daily-reports.index', compact('reports', 'drivers', 'vehicles'));
+        return view('masters.daily-reports.index', compact('reports', 'drivers', 'vehicles', 'displayDays'));
     }
     
     public function edit($id)
