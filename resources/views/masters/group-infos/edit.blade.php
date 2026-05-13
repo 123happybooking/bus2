@@ -563,9 +563,9 @@
                                                         <tr class="compensation-row" data-comp-index="{{ $compIndex }}">
                                                             <td>
                                                                 <input type="hidden" name="bus_assignments[{{ $vehicleIndex }}][compensations][{{ $compIndex }}][id]" value="{{ $comp->id }}">
-                                                                <input type="text" class="form-control form-control-sm compensation-date datepicker-single" 
+                                                                <input type="date" class="form-control form-control-sm" 
                                                                        name="bus_assignments[{{ $vehicleIndex }}][compensations][{{ $compIndex }}][target_date]" 
-                                                                       value="{{ $comp->target_date }}" placeholder="YYYY-MM-DD">
+                                                                       value="{{ $comp->target_date }}">
                                                             </td>
                                                             <td>
                                                                 <select class="form-select form-select-sm compensation-type" 
@@ -683,7 +683,7 @@
                                                                 </select>
                                                             </td>
                                                             <td class="text-center">
-                                                                <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                                                                <div class="form-check d-flex justify-content-center" style="margin: 0; min-height: 1rem;">
                                                                     <input type="checkbox" class="form-check-input expense-agency" 
                                                                            name="bus_assignments[{{ $vehicleIndex }}][expenses][{{ $expIndex }}][agency_flag]" 
                                                                            value="1" {{ $expense->agency_flag ? 'checked' : '' }}
@@ -1106,7 +1106,7 @@
                                             @if(count($busCompensations) > 0)
                                             <table class="table table-sm table-bordered compensation-table" style="font-size: 11px; margin-bottom: 5px;">
                                                 <thead style="text-align: center;">
-                                                    <table>
+                                                    <tr>
                                                         <th style="width: 20%; background-color: #f8f9fa;">対象日</th>
                                                         <th style="width: 25%; background-color: #f8f9fa;">報酬種別</th>
                                                         <th style="width: 15%; background-color: #f8f9fa;">単価</th>
@@ -1121,9 +1121,9 @@
                                                     <tr class="compensation-row" data-comp-index="{{ $compIndex }}">
                                                         <td>
                                                             <input type="hidden" name="bus_assignments[1][compensations][{{ $compIndex }}][id]" value="{{ $comp->id }}">
-                                                            <input type="text" class="form-control form-control-sm compensation-date datepicker-single" 
+                                                            <input type="date" class="form-control form-control-sm" 
                                                                    name="bus_assignments[1][compensations][{{ $compIndex }}][target_date]" 
-                                                                   value="{{ $comp->target_date }}" placeholder="YYYY-MM-DD">
+                                                                   value="{{ $comp->target_date }}">
                                                         </td>
                                                         <td>
                                                             <select class="form-select form-select-sm compensation-type" 
@@ -1185,7 +1185,7 @@
                                         </div>
                                     </div>
             
-                                    <div id="expense-1" class="tab-content2 expense-tab" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
+                                    <div id="expense-1" class="tab-content2 expense-tab" style="display: none; border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
                                         <div class="expense-container" data-bus-id="{{ $busId }}" data-vehicle-index="1">
                                             @php
                                                 $busExpenses = $expensesByBus[$busId] ?? [];
@@ -1241,7 +1241,7 @@
                                                             </select>
                                                         </td>
                                                         <td class="text-center">
-                                                            <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                                                            <div class="form-check d-flex justify-content-center" style="margin: 0; min-height: 1rem;">
                                                                 <input type="checkbox" class="form-check-input expense-agency" 
                                                                        name="bus_assignments[1][expenses][{{ $expIndex }}][agency_flag]" 
                                                                        value="1" {{ $expense->agency_flag ? 'checked' : '' }}
@@ -1621,7 +1621,7 @@ input[readonly]:focus { outline: none; border-color: #E5E7EB; }
     border-top: 0;
     background-color: #fff;
     padding: 10px;
-    height: 140px;
+    height: 102px;
 }
 .container-fluid {
     max-width: 1600px;
@@ -1939,14 +1939,16 @@ span.flatpickr-weekday {
 .compensation-table td {
     padding: 1px;
     font-size: 10px;
+    vertical-align: middle;
 }
 
 .compensation-table input,
 .compensation-table select {
-    padding: 0;
+    padding: 1px 5px;
     font-size: 10px;
     line-height: 120%;
     min-height: 20px;
+    border: 1px #aaa solid !important;
 }
 
 .compensation-table button {
@@ -1976,14 +1978,16 @@ span.flatpickr-weekday {
 .expense-table td {
     padding: 1px;
     font-size: 10px;
+    vertical-align: middle;
 }
 
 .expense-table input,
 .expense-table select {
-    padding: 0;
+    padding: 1px 5px;
     font-size: 10px;
     line-height: 120%;
     min-height: 20px;
+    border: 1px #aaa solid !important;
 }
 
 .expense-table button {
@@ -2023,47 +2027,20 @@ span.flatpickr-weekday {
     font-size: 10px;
 }
 
-#operation-details-container .tab-content2.expense-tab {
-    padding: 6px;
-    max-height: 260px;
-    overflow-y: auto;
-    min-height: 120px;
-}
-
-.add-first-expense-row {
-    font-size: 10px;
-    padding: 4px 12px;
-}
-
-#operation-details-container .tab-content2.expense-tab {
-    padding: 6px;
-    max-height: 280px;
-    overflow-y: auto;
-    min-height: 120px;
-}
-
 .add-first-expense-row {
     font-size: 11px;
     padding: 4px 12px;
 }
 
-#operation-details-container .tab-content2.expense-tab {
-    padding: 8px;
-    max-height: 300px;
-    overflow-y: auto;
-    min-height: 140px;
-}
-
 .expense-container .add-first-expense-row {
     font-size: 12px;
-    padding: 4px 12px;
 }
 
 #operation-details-container .tab-content2.expense-tab {
     padding: 6px;
     max-height: 260px;
     overflow-y: auto;
-    min-height: 120px;
+    min-height: 102px;
 }
 </style>
 @endpush
@@ -2863,8 +2840,8 @@ function updateBusDetailClickHandler(e) {
                         <tbody class="compensation-tbody">
                             <tr class="compensation-row" data-comp-index="0">
                                 <td>
-                                    <input type="text" class="form-control form-control-sm compensation-date datepicker-single" 
-                                           name="bus_assignments[${vehicleIndex}][compensations][0][target_date]" value="" placeholder="YYYY-MM-DD">
+                                    <input type="date" class="form-control form-control-sm" 
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][target_date]" value="">
                                 </td>
                                 <td>
                                     <select class="form-select form-select-sm compensation-type" 
@@ -2877,11 +2854,11 @@ function updateBusDetailClickHandler(e) {
                                 </td>
                                 <td>
                                     <input type="number" class="form-control form-control-sm compensation-price" 
-                                           name="bus_assignments[${vehicleIndex}][compensations][0][price]" value="0" step="1" min="0">
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][price]" value="" step="1" min="0">
                                 </td>
                                 <td>
                                     <input type="number" class="form-control form-control-sm compensation-qty" 
-                                           name="bus_assignments[${vehicleIndex}][compensations][0][qty]" value="0" step="1" min="0">
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][qty]" value="" step="1" min="0">
                                 </td>
                                 <td>
                                     <input type="text" class="form-control form-control-sm compensation-amount" 
@@ -3772,7 +3749,7 @@ function updateBusDetailClickHandler(e) {
                                 <td>
                                     <input type="number" class="form-control form-control-sm expense-amount text-end" 
                                            name="bus_assignments[${vehicleIndex}][expenses][0][amount]" 
-                                           value="0" step="1" min="0">
+                                           value="" step="1" min="0">
                                  </td>
                                 <td>
                                     <select class="form-select form-select-sm expense-payment" 
@@ -3784,7 +3761,7 @@ function updateBusDetailClickHandler(e) {
                                     </select>
                                  </td>
                                 <td class="text-center">
-                                    <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                                    <div class="form-check d-flex justify-content-center" style="margin: 0; min-height: 1rem;">
                                         <input type="checkbox" class="form-check-input expense-agency" 
                                                name="bus_assignments[${vehicleIndex}][expenses][0][agency_flag]" 
                                                value="1" id="expense_agency_${vehicleIndex}_0">
@@ -3849,8 +3826,8 @@ function updateBusDetailClickHandler(e) {
                         <tbody class="compensation-tbody">
                             <tr class="compensation-row" data-comp-index="0">
                                 <tr>
-                                    <input type="text" class="form-control form-control-sm compensation-date datepicker-single" 
-                                           name="bus_assignments[${vehicleIndex}][compensations][0][target_date]" value="" placeholder="YYYY-MM-DD">
+                                    <input type="date" class="form-control form-control-sm" 
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][target_date]" value="">
                                 </td>
                                 <td>
                                     <select class="form-select form-select-sm compensation-type" 
@@ -3863,11 +3840,11 @@ function updateBusDetailClickHandler(e) {
                                 </td>
                                 <td>
                                     <input type="number" class="form-control form-control-sm compensation-price" 
-                                           name="bus_assignments[${vehicleIndex}][compensations][0][price]" value="0" step="1" min="0">
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][price]" value="" step="1" min="0">
                                 </td>
                                 <td>
                                     <input type="number" class="form-control form-control-sm compensation-qty" 
-                                           name="bus_assignments[${vehicleIndex}][compensations][0][qty]" value="0" step="1" min="0">
+                                           name="bus_assignments[${vehicleIndex}][compensations][0][qty]" value="" step="1" min="0">
                                 </td>
                                 <td>
                                     <input type="text" class="form-control form-control-sm compensation-amount" 
@@ -4967,7 +4944,7 @@ function initCompensationTable(container) {
         
         newRow.innerHTML = `
             <td>
-                <input type="text" class="form-control form-control-sm compensation-date datepicker-single" 
+                <input type="date" class="form-control form-control-sm" 
                        name="bus_assignments[${vehicleIndex}][compensations][${rowCount}][target_date]" value="">
             </td>
             <td>
@@ -4981,11 +4958,11 @@ function initCompensationTable(container) {
             </td>
             <td>
                 <input type="number" class="form-control form-control-sm compensation-price" 
-                       name="bus_assignments[${vehicleIndex}][compensations][${rowCount}][price]" value="0" step="1" min="0">
+                       name="bus_assignments[${vehicleIndex}][compensations][${rowCount}][price]" value="" step="1" min="0">
             </td>
             <td>
                 <input type="number" class="form-control form-control-sm compensation-qty" 
-                       name="bus_assignments[${vehicleIndex}][compensations][${rowCount}][qty]" value="0" step="1" min="0">
+                       name="bus_assignments[${vehicleIndex}][compensations][${rowCount}][qty]" value="" step="1" min="0">
             </td>
             <td>
                 <input type="text" class="form-control form-control-sm compensation-amount" 
@@ -5241,7 +5218,7 @@ function initExpenseTable(container) {
             <td>
                 <input type="number" class="form-control form-control-sm expense-amount text-end" 
                        name="bus_assignments[${vehicleIndex}][expenses][${rowCount}][amount]" 
-                       value="0" step="1" min="0">
+                       value="" step="1" min="0">
             </td>
             <td>
                 <select class="form-select form-select-sm expense-payment" 
@@ -5253,7 +5230,7 @@ function initExpenseTable(container) {
                 </select>
             </td>
             <td class="text-center">
-                <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                <div class="form-check d-flex justify-content-center" style="margin: 0; min-height: 1rem;">
                     <input type="checkbox" class="form-check-input expense-agency" 
                            name="bus_assignments[${vehicleIndex}][expenses][${rowCount}][agency_flag]" 
                            value="1" id="expense_agency_${vehicleIndex}_${rowCount}">
@@ -5411,7 +5388,7 @@ document.querySelectorAll('.add-first-expense-row').forEach(btn => {
                         <td>
                             <input type="number" class="form-control form-control-sm expense-amount text-end" 
                                    name="bus_assignments[${vehicleIndex}][expenses][0][amount]" 
-                                   value="0" step="1" min="0">
+                                   value="" step="1" min="0">
                          </td>
                         <td>
                             <select class="form-select form-select-sm expense-payment" 
@@ -5423,7 +5400,7 @@ document.querySelectorAll('.add-first-expense-row').forEach(btn => {
                             </select>
                          </td>
                         <td class="text-center">
-                            <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                            <div class="form-check d-flex justify-content-center" style="margin: 0; min-height: 1rem;">
                                 <input type="checkbox" class="form-check-input expense-agency" 
                                        name="bus_assignments[${vehicleIndex}][expenses][0][agency_flag]" 
                                        value="1" id="expense_agency_${vehicleIndex}_0">

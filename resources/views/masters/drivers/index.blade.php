@@ -164,7 +164,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center py-4">
+                        <td colspan="9" class="text-center py-4">
                             @if(request()->hasAny(['search', 'branch_id', 'is_active', 'license_expiring']))
                                 <div class="text-muted">
                                     <i class="bi bi-search display-6 mb-2"></i>

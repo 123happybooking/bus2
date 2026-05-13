@@ -262,7 +262,7 @@
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 120px;">団体名<br>ステッカー</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">代理店名<br>国籍</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 70px;">予約状況</th>
-                    <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 80px;">請求額<br>未納額</th>
+                    <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 80px;">給与</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 50px;">立替</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 70px;">操作</th>
                 </tr>
@@ -405,8 +405,26 @@
                             {{ $groupInfo?->reservation_status ?? '---' }}
                         </span>
                      </td>
-                    <td class="text-center px-1 py-1 align-middle">--<br>--</td>
-                    <td class="text-center px-1 py-1 align-middle">--</td>
+                    <td class="text-center px-1 py-1 align-middle">
+                        @php
+                            $compensation = $assignment->compensation_total ?? 0;
+                        @endphp
+                        @if($compensation > 0)
+                            ¥{{ number_format($compensation) }}
+                        @else
+                            --
+                        @endif
+                    </td>
+                    <td class="text-center px-1 py-1 align-middle">
+                        @php
+                            $expense = $assignment->expense_total ?? 0;
+                        @endphp
+                        @if($expense > 0)
+                            ¥{{ number_format($expense) }}
+                        @else
+                            --
+                        @endif
+                    </td>
                     <td class="text-center px-1 py-1 align-middle">
                         <div class="d-flex flex-column gap-1">
                             <a href="{{ route('masters.bus-assignments.show', $assignment->id) }}" style="color: #2563eb; text-decoration: none; font-size: 0.7rem;">詳細</a>
@@ -1178,121 +1196,6 @@ document.getElementById('per_page_select').addEventListener('change', function()
 
 
 
-
-
-
-
-// const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-// const busCheckboxes = document.querySelectorAll('.bus-checkbox');
-// const batchExportBtn = document.getElementById('batchExportBtn');
-
-// function updateSelectedCount() {
-//     const checked = document.querySelectorAll('.bus-checkbox:checked');
-//     const count = checked.length;
-    
-//     if (selectAllCheckbox) {
-//         const allChecked = busCheckboxes.length > 0 && busCheckboxes.length === checked.length;
-//         selectAllCheckbox.checked = allChecked;
-//     }
-// }
-
-// if (selectAllCheckbox) {
-//     selectAllCheckbox.addEventListener('change', function() {
-//         busCheckboxes.forEach(cb => {
-//             cb.checked = selectAllCheckbox.checked;
-//         });
-//         updateSelectedCount();
-//     });
-// }
-
-// busCheckboxes.forEach(cb => {
-//     cb.addEventListener('change', updateSelectedCount);
-// });
-
-// updateSelectedCount();
-
-// batchExportBtn.addEventListener('click', function() {
-//     const selectedBuses = document.querySelectorAll('.bus-checkbox:checked');
-    
-//     if (selectedBuses.length === 0) {
-//         alert('運行を選択してください。');
-//         return;
-//     }
-    
-//     const driverId = document.querySelector('select[name="driver_id"]')?.value;
-//     const driverName = document.querySelector('select[name="driver_id"] option:checked')?.text;
-//     const startDate = document.getElementById('start_date')?.value;
-//     const endDate = document.getElementById('end_date')?.value;
-    
-//     if (!driverId) {
-//         alert('運転手を選択してください。');
-//         return;
-//     }
-    
-//     if (!startDate || !endDate) {
-//         alert('日付範囲を選択してください。');
-//         return;
-//     }
-    
-//     const busIds = Array.from(selectedBuses).map(cb => cb.getAttribute('data-bus-id'));
-    
-//     const formData = new FormData();
-//     formData.append('bus_ids', JSON.stringify(busIds));
-//     formData.append('start_date', startDate);
-//     formData.append('end_date', endDate);
-//     formData.append('driver_name', driverName);
-//     formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-    
-//     const originalText = batchExportBtn.innerHTML;
-//     batchExportBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 出力中...';
-//     batchExportBtn.disabled = true;
-    
-//     fetch('{{ route("masters.bus-assignments.batch-export-pdf") }}', {
-//         method: 'POST',
-//         headers: {
-//             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-//             'Content-Type': 'application/json',
-//             'Accept': 'application/json'
-//         },
-//         body: JSON.stringify({
-//             bus_ids: busIds,
-//             start_date: startDate,
-//             end_date: endDate,
-//             driver_name: driverName
-//         })
-//     })
-//     .then(response => {
-//         if (!response.ok) {
-//             return response.json().then(err => { throw err; });
-//         }
-//         return response.blob();
-//     })
-//     .then(blob => {
-//         const url = window.URL.createObjectURL(blob);
-//         const a = document.createElement('a');
-//         a.href = url;
-//         const startDateFormatted = startDate.replace(/-/g, '');
-//         const endDateFormatted = endDate.replace(/-/g, '');
-//         a.download = `${driverName}_指示書_${startDateFormatted}_${endDateFormatted}.pdf`;
-//         document.body.appendChild(a);
-//         a.click();
-//         window.URL.revokeObjectURL(url);
-//         a.remove();
-        
-//         batchExportBtn.innerHTML = originalText;
-//         batchExportBtn.disabled = false;
-//     })
-//     .catch(error => {
-//         alert('エラー: ' + (error.message || '出力に失敗しました'));
-//         batchExportBtn.innerHTML = originalText;
-//         batchExportBtn.disabled = false;
-//     });
-// });
-
-
-
-
-
 const selectAllCheckbox = document.getElementById('selectAllCheckbox');
 const busCheckboxes = document.querySelectorAll('.bus-checkbox');
 const batchExportBtn = document.getElementById('batchExportBtn');
@@ -1354,20 +1257,21 @@ batchExportBtn.addEventListener('click', function() {
     }
     
     const driverId = document.querySelector('select[name="driver_id"]')?.value;
-    // const driverName = document.querySelector('select[name="driver_id"] option:checked')?.text;
     const driverName = document.querySelector('select[name="driver_id"] option:checked')?.text.split('(')[0].trim();
     const startDate = document.getElementById('start_date')?.value;
-    const endDate = document.getElementById('end_date')?.value;
+    const periodValue = document.getElementById('period_select')?.value;
     
     if (!driverId) {
         alert('運転手を選択してください。');
         return;
     }
     
-    if (!startDate || !endDate) {
-        alert('日付範囲を選択してください。');
+    if (!startDate) {
+        alert('開始日を選択してください。');
         return;
     }
+    
+    const endDate = calculateEndDate(startDate, periodValue);
     
     const busIds = Array.from(selectedBuses).map(cb => cb.getAttribute('data-bus-id'));
     
@@ -1387,6 +1291,41 @@ batchExportBtn.addEventListener('click', function() {
     
     openBatchModal();
 });
+
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function calculateEndDate(startDate, period) {
+    const start = new Date(startDate);
+    const end = new Date(start);
+    
+    const periodNum = parseInt(period);
+    
+    switch(periodNum) {
+        case 1:
+            end.setDate(start.getDate() + 6);
+            break;
+        case 2:
+            end.setDate(start.getDate() + 13);
+            break;
+        case 3:
+            end.setDate(start.getDate() + 20);
+            break;
+        case 4:
+            end.setMonth(start.getMonth() + 1);
+            end.setDate(end.getDate() - 1);
+            break;
+        default:
+            end.setDate(start.getDate() + 6);
+    }
+    
+    return formatDate(end);
+}
+
 
 confirmBtn.addEventListener('click', function() {
     if (!pendingExportData) {

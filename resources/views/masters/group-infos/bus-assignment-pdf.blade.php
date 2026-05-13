@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>運行指示書</title>
 <style>
-table { width: 100%; border: 0; border-collapse: collapse; table-layout: fixed; }
+table { width: 100%; border: 0; border-collapse: collapse;}
 td { text-align: center; vertical-align: middle; background-color: #fff; padding: 3px; border: 1px solid #000; font-size: 10pt; line-height: 150%; height: 20pt; word-break: break-all; word-wrap: break-word;}
 .remark { text-align: left; vertical-align: top; height: 60pt;}
 .bg-gray { text-align: left; background-color: #F2F2F2; }
@@ -37,43 +37,43 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
 <table>
  <tr>
   <td style="width:10%;" class="bg-gray">ID</td>
-  <td style="width:45%;" colspan="4">{{ $busAssignment->group_info_id ?? '' }}-{{ $busAssignment->id ?? '' }}</td>
+  <td style="width:45%;" colspan="5">{{ $busAssignment->group_info_id ?? '' }}-{{ $busAssignment->id ?? '' }}</td>
   <td style="width:10%;" class="bg-gray">業務分類</td>
-  <td style="width:10%;" colspan="2">{{ $businessCategoryName ?? '' }}</td>
+  <td style="width:10%;">{{ $businessCategoryName ?? '' }}</td>
   <td style="width:10%;" class="bg-gray">担当</td>
   <td style="width:15%;">{{ $manager ?? '' }}</td>
  </tr>
 
  <tr>
-  <td class="bg-gray">運行日</td>
-  <td colspan="4">{{ $formattedDate ?? '' }}</td>
-  <td class="bg-gray">行程</td>
-  <td colspan="2">{{ $route ?? '' }}</td>
-  <td class="bg-gray">営業所</td>
-  <td>{{ $office ?? '' }}</td>
+  <td style="width:10%;" class="bg-gray">運行日</td>
+  <td style="width:45%;" colspan="5">{{ $formattedDate ?? '' }}</td>
+  <td style="width:10%;" class="bg-gray">行程</td>
+  <td style="width:10%;">{{ $route ?? '' }}</td>
+  <td style="width:10%;" class="bg-gray">営業所</td>
+  <td style="width:15%;">{{ $office ?? '' }}</td>
  </tr>
 
  <tr>
-  <td class="bg-gray">車両名</td>
-  <td colspan="4">{{ $vehicleName ?? '' }}{{ $vehicleColor ? '/' . $vehicleColor : '' }}</td>
-  <td class="bg-gray">運転手</td>
-  <td colspan="4">{{ $driver->name ?? '' }}{{ ($driver->phone ?? $driver->mobile_phone ?? '') ? '/' . ($driver->phone ?? $driver->mobile_phone) : '' }}</td>
+  <td style="width:10%;" class="bg-gray">車両名</td>
+  <td style="width:45%;" colspan="5">{{ $vehicleName ?? '' }}{{ $vehicleColor ? '/' . $vehicleColor : '' }}</td>
+  <td style="width:10%;" class="bg-gray">運転手</td>
+  <td style="width:35%;" colspan="3">{{ $driver->name ?? '' }}{{ ($driver->phone ?? $driver->mobile_phone ?? '') ? '/' . ($driver->phone ?? $driver->mobile_phone) : '' }}</td>
  </tr>
 
  <tr>
-  <td class="bg-gray">車両No.</td>
-  <td colspan="4">{{ $vehicleNumber ?? '' }}</td>
-  <td class="bg-gray">添乗員</td>
-  <td colspan="4">{{ $guide->name ?? '' }}</td>
+  <td style="width:10%;" class="bg-gray">車両No.</td>
+  <td style="width:45%;" colspan="5">{{ $vehicleNumber ?? '' }}</td>
+  <td style="width:10%;" class="bg-gray">添乗員</td>
+  <td style="width:35%;" colspan="3">{{ $guide->name ?? '' }}</td>
  </tr>
 
  <tr>
-  <td class="bg-gray">団体名</td>
-  <td colspan="2">{{ $busAssignment->step_car ?? '' }}</td>
-  <td style="width:6%;" class="bg-gray">号車</td>
+  <td style="width:10%;" class="bg-gray">団体名</td>
+  <td style="width:30%;" colspan="3">{{ $busAssignment->step_car ?? '' }}</td>
+  <td style="width:7%;" class="bg-gray">号車</td>
   <td style="width:8%;">{{ $busNumber ?? '' }}</td>
-  <td rowspan="2" class="bg-gray">代表者</td>
-  <td colspan="4" rowspan="2">
+  <td style="width:10%;" rowspan="2" class="bg-gray">代表者</td>
+  <td style="width:35%;" colspan="3" rowspan="2">
     {{ $representativeName ?? '' }}{{ $representativeContact ? '/' . $representativeContact : '' }}
     @if(($groupInfo->agt_tour_id ?? '') || ($groupInfo->agency_country ?? ''))
         <br>{{ $groupInfo->agt_tour_id ?? '' }} {{ $groupInfo->agency_country ?? '' }}
@@ -81,51 +81,50 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
   </td>
  </tr>
  <tr>
-  <td class="bg-gray">人数</td>
-  <td colspan="2">{{ $personnelCount ?? '' }}</td>
-  <td class="bg-gray">荷物</td>
-  <td>{{ $luggage ?? '' }}</td>
+  <td style="width:10%;" class="bg-gray">人数</td>
+  <td style="width:30%;" colspan="3">{{ $personnelCount ?? '' }}</td>
+  <td style="width:7%;" class="bg-gray">荷物</td>
+  <td style="width:8%;">{{ $luggage ?? '' }}</td>
  </tr>
 
  @foreach($itineraryRows as $row)
  <tr>
-  <td rowspan="2" class="bg-gray">{{ $row['day'] }}</td>
+  <td style="width:10%;" rowspan="2" class="bg-gray">{{ $row['day'] }}</td>
   <td style="width:10%;">{{ $row['start_time'] }}</td>
-  <td colspan="3">{{ $row['start_location'] }}</td>
-  <td>--></td>
+  <td style="width:35%;" colspan="4">{{ $row['start_location'] }}</td>
+  <td style="width:10%;">--></td>
   <td style="width:10%;">{{ $row['end_time'] }}</td>
-  <td colspan="3">{{ $row['end_location'] }}</td>
+  <td style="width:25%;" colspan="2">{{ $row['end_location'] }}</td>
  </tr>
  <tr>
-  <td colspan="9">{{ $row['description'] }}</td>
+  <td style="width:90%;" colspan="9">{{ $row['description'] }}</td>
  </tr>
  @endforeach
 
  <tr>
-  <td colspan="8" class="remark">変更/理由</td>
-  <td class="remark">時刻</td>
-  <td class="remark">指示</td>
+  <td style="width:75%;" colspan="8" class="remark">変更/理由</td>
+  <td style="width:10%;" class="remark">時刻</td>
+  <td style="width:15%;" class="remark">指示</td>
  </tr>
 
  <tr>
-  <td colspan="10" class="remark">注意<br>{{ $optionsNames ?? '--' }}</td>
+  <td style="width:100%;" colspan="10" class="remark">注意<br>{{ $optionsNames ?? '--' }}</td>
  </tr>
 
  <tr>
-  <td colspan="10" class="remark">備考<br>{{ $busAssignment->operation_remarks ?? '--' }}</td>
+  <td style="width:100%;" colspan="10" class="remark">備考<br>{{ $busAssignment->operation_remarks ?? '--' }}</td>
  </tr>
 
  <tr>
-  <td colspan="5" class="remark">立替</td>
-  <td colspan="5" class="remark">会社精算</td>
+  <td style="width:45%;" colspan="5" class="remark">立替</td>
+  <td style="width:35%;" colspan="5" class="remark">会社精算</td>
  </tr>
 
  <tr>
-  <td colspan="7" class="remark">集金</td>
-  <td class="remark">責任者</td>
-  <td class="remark">確認</td>
-  <td class="remark">担当</td>
-
+  <td style="width:65%;" colspan="7" class="remark">集金</td>
+  <td style="width:10%;" class="remark">責任者</td>
+  <td style="width:10%;" class="remark">確認</td>
+  <td style="width:15%;" class="remark">担当</td>
  </tr>
 </table>
 

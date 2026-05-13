@@ -139,7 +139,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4">
+                                <td colspan="8" class="text-center py-4">
                                     @if(request('search'))
                                         <div class="text-muted">
                                             <i class="bi bi-search display-6 mb-2"></i>

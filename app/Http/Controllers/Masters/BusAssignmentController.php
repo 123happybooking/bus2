@@ -191,6 +191,20 @@ class BusAssignmentController extends Controller
             ->orderBy('start_time', 'asc')
             ->paginate($perPage)
             ->withQueryString();
+            
+                    
+        $busIds = $assignments->getCollection()->pluck('id')->toArray();
+        
+        $compensationSums = $this->getCompensationSums($busIds);
+        
+        $expenseSums = $this->getExpenseSums($busIds);
+        
+        $assignments->getCollection()->transform(function($assignment) use ($compensationSums, $expenseSums) {
+            $assignment->compensation_total = $compensationSums[$assignment->id] ?? 0;
+            $assignment->expense_total = $expenseSums[$assignment->id] ?? 0;
+            return $assignment;
+        });
+    
     
         $categoryIds = $assignments->getCollection()->filter(function($assignment) {
             return $assignment->groupInfo && $assignment->groupInfo->reservation_categories_id;
@@ -271,7 +285,6 @@ class BusAssignmentController extends Controller
             'adult_count' => 'nullable|integer',
             'child_count' => 'nullable|integer',
             'guide_count' => 'nullable|integer',
-            // 'luggage_count' => 'nullable|integer',
             'luggage' => 'nullable|string|max:255',
             'options' => 'nullable|array',
             'options.*' => 'exists:option,id',
@@ -496,8 +509,6 @@ class BusAssignmentController extends Controller
                 'adult_count' => 'nullable|integer|min:0',
                 'child_count' => 'nullable|integer|min:0',
                 'guide_count' => 'nullable|integer|min:0',
-                // 'other_count' => 'nullable|integer|min:0',
-                // 'luggage_count' => 'nullable|integer|min:0',
                 'luggage' => 'nullable|string|max:255',
                 'options' => 'nullable|array',
                 'options.*' => 'exists:option,id',
@@ -1835,4 +1846,44 @@ class BusAssignmentController extends Controller
             'optionsNames' => $optionsNames,
         ];
     }
+    
+    
+    
+    
+    private function getCompensationSums(array $busIds)
+    {
+        if (empty($busIds)) {
+            return [];
+        }
+        
+        $results = DB::table('driver_compensations')
+            ->whereIn('bus_assignment_id', $busIds)
+            ->select('bus_assignment_id', DB::raw('SUM(amount) as total'))
+            ->groupBy('bus_assignment_id')
+            ->get();
+        
+        return $results->pluck('total', 'bus_assignment_id')->toArray();
+    }
+    
+    private function getExpenseSums(array $busIds)
+    {
+        if (empty($busIds)) {
+            return [];
+        }
+        
+        $results = DB::table('driver_expenses')
+            ->leftJoin('driver_payment_methods', 'driver_expenses.payment_method_id', '=', 'driver_payment_methods.id')
+            ->whereIn('driver_expenses.bus_assignment_id', $busIds)
+            ->where(function($query) {
+                $query->where('driver_payment_methods.is_reimbursable', '!=', 0)
+                      ->orWhereNull('driver_payment_methods.is_reimbursable')
+                      ->orWhereNull('driver_expenses.payment_method_id');
+            })
+            ->select('driver_expenses.bus_assignment_id', DB::raw('SUM(driver_expenses.amount) as total'))
+            ->groupBy('driver_expenses.bus_assignment_id')
+            ->get();
+        
+        return $results->pluck('total', 'bus_assignment_id')->toArray();
+    }
+
 }

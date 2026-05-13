@@ -3904,7 +3904,7 @@ class GroupInfoController extends Controller
                 'ipaexgothic' => ['R' => 'ipaexgothic.ttf', 'useOTL' => 0x80],
                 'ipaexmincho' => ['R' => 'ipaexmincho.ttf', 'useOTL' => 0x80],
             ],
-            'default_font' => 'ipaexgothic',
+            'default_font' => 'ipaexgothic'
         ]);
         
         $mpdf->shrink_tables_to_fit = 0;
