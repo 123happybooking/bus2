@@ -144,6 +144,17 @@
                             </div>
                         </div>
                         
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check mt-4 pt-2">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" 
+                                       {{ old('is_active', $user->is_active) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_active">
+                                    アカウント有効
+                                </label>
+                                <small class="form-text text-muted d-block">チェックを外すとログインできなくなります</small>
+                            </div>
+                        </div>
+                        
                         <div class="d-flex justify-content-between mt-4">
                             <div>
                                 <button type="submit" class="btn btn-primary">

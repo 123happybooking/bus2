@@ -80,6 +80,7 @@
                         <th>ログインID</th>
                         <th>会社名</th>
                         <th>プラン</th>
+                        <th width="80">状態</th>
                         <th width="150">操作</th>
                     </tr>
                 </thead>
@@ -102,6 +103,13 @@
                             @endif
                         </td>
                         <td>
+                            @if($user->is_active)
+                                <span class="badge bg-success">有効</span>
+                            @else
+                                <span class="badge bg-secondary">無効</span>
+                            @endif
+                        </td>
+                        <td>
                             <div class="d-flex gap-1 justify-content-center">
                                 <a href="{{ route('admin.users.show', $user) }}" 
                                    class="btn btn-sm btn-outline-info" title="詳細">
@@ -111,21 +119,6 @@
                                    class="btn btn-sm btn-outline-primary" title="編集">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                
-                                <script>
-                                function confirmDelete(name) {
-                                    return confirm('本当にこのユーザーを削除しますか？\nこの操作は元に戻せません。');
-                                }
-                                </script>
-                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" 
-                                      class="d-inline" 
-                                      onsubmit="return confirmDelete('{{ $user->name }}')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="削除">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
                             </div>
                         </td>
                     </tr>

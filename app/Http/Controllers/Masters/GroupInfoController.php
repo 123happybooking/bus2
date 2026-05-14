@@ -3774,9 +3774,9 @@ class GroupInfoController extends Controller
             if ($userCompany) {
                 $companyInfo['name'] = $userCompany->user_company_name ?? '';
                 $companyInfo['tel'] = $userCompany->phone_number ?? '';
-                if (!empty($userCompany->setup_company_seal)) {
-                    $logoPath = storage_path('app/public/' . $userCompany->setup_company_seal);
-                    $companyLogo = url('/storage/' . $userCompany->setup_company_seal);
+                if (!empty($userCompany->company_logo)) {
+                    $logoPath = storage_path('app/public/' . $userCompany->company_logo);
+                    $companyLogo = url('/storage/' . $userCompany->company_logo);
                 }
             }
         } catch (\Exception $e) {}
@@ -3824,7 +3824,7 @@ class GroupInfoController extends Controller
         $itineraryRows = [];
         foreach ($busAssignment->dailyItineraries as $index => $itinerary) {
             $date = Carbon::parse($itinerary->date);
-            $formattedDay = $date->format('Y/m/d') . '(' . $weekdays[$date->dayOfWeek] . ')';
+            $formattedDay = $date->format('m/d');
             
             $itineraryRows[] = [
                 'day' => $formattedDay,
@@ -3839,7 +3839,7 @@ class GroupInfoController extends Controller
         
         if (empty($itineraryRows)) {
             $date = Carbon::parse($busAssignment->start_date);
-            $formattedDay = $date->format('Y/m/d') . '(' . $weekdays[$date->dayOfWeek] . ')';
+            $formattedDay = $date->format('m/d');
             
             $itineraryRows[] = [
                 'day' => $formattedDay,

@@ -457,7 +457,7 @@
 
         .sidebar-toggle-outer {
             position: fixed;
-            top: 12px;
+            top: 17px;
             left: 186px;
             width: 24px;
             height: 24px;
@@ -519,26 +519,46 @@
             align-items: center;
             gap: 15px;
         }
-
+        
         .user-info .user-name {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             color: #334155;
         }
-
+        
         .user-info .user-name i {
-            font-size: 18px;
+            font-size: 34px;
             color: #60a5fa;
+            line-height: 100%;
         }
-
+        
+        .user-info-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.3;
+        }
+        
+        .company-name-text {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1f2937;
+        }
+        
+        .staff-name-text {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        
         .role-badge {
             background-color: #e2e8f0;
-            color: #475569;
-            font-size: 0.75rem;
-            padding: 2px 8px;
-            border-radius: 12px;
+            color: #666;
+            font-size: 0.7rem;
+            padding: 0 3px;
+            border-radius: 3px;
             font-weight: normal;
+            white-space: nowrap;
+            margin: 0 0 0 2px;
         }
 
         .logout-btn {
@@ -556,6 +576,11 @@
 
         .logout-btn:hover {
             background-color: #fee2e2;
+        }
+
+        .logout-btn i {
+            font-size: 20px;
+            line-height: 100%;
         }
 
         .content-wrapper {
@@ -936,15 +961,15 @@
             .mobile-menu-toggle {
                 display: block;
                 position: fixed;
-                top: 15px;
+                top: 12px;
                 left: 15px;
                 z-index: 1001;
                 background: #2563eb;
                 border: none;
                 color: white;
-                width: 40px;
-                height: 40px;
-                border-radius: 8px;
+                width: 36px;
+                height: 32px;
+                border-radius: 5px;
                 font-size: 20px;
             }
             .top-bar {
@@ -955,6 +980,13 @@
                 display: none !important;
             }
             
+            .user-info {
+                gap: 0;
+            }
+            
+            .logout-btn {
+                display: none;
+            }
             
             .logout-btn span {
                 display: none;
@@ -1022,7 +1054,6 @@
                     <li><a href="{{ route('masters.group-infos.index') }}" data-route="group-infos">予約一覧</a></li>
                     <li><a href="{{ route('masters.bus-assignments.index') }}" data-route="bus-assignments">運行一覧</a></li>
                     <li><a href="{{ route('masters.daily-reports.index') }}" data-route="daily-reports">運行日報</a></li>
-                    <!--<li><a href="{{ route('masters.daily-itineraries.index') }}" data-route="daily-itineraries">日次一覧</a></li>-->
                     <li><a href="{{ route('masters.options.index') }}" data-route="options">オプション</a></li>
                     <li><a href="{{ route('masters.driver-payment-methods.index') }}" data-route="driver-payment-methods">支払方法</a></li>
                     <li><a href="{{ route('masters.driver-expense-types.index') }}" data-route="driver-expense-types">経費種別</a></li>
@@ -1129,6 +1160,17 @@
                 </ul>
             </div>
             @endif
+            
+            <div class="nav-item" style="margin-top: auto; border-top: 1px solid #2d3748; margin-top: 20px; padding-top: 10px;">
+                <form method="POST" action="{{ route('masters.logout') }}" id="sidebar-logout-form">
+                    @csrf
+                    <div class="nav-header" onclick="event.preventDefault(); document.getElementById('sidebar-logout-form').submit();" style="cursor: pointer;">
+                        <i class="bi bi-box-arrow-right menu-icon"></i>
+                        <span class="menu-title">ログアウト</span>
+                        <i class="bi bi-chevron-down menu-arrow" style="visibility: hidden;"></i>
+                    </div>
+                </form>
+            </div>
         </nav>
     </aside>
 
@@ -1138,8 +1180,7 @@
 
     <main class="main-content" id="mainContent">
         <div class="top-bar">
-
-            <div class="d-flex gap-2 ms-5 btn-list">
+            <div class="d-flex gap-2 ms-4 btn-list">
                 <a href="{{ route('masters.operation-ledger.index') }}" class="btn btn-outline-primary btn-sm px-2">
                     運行台帳
                 </a>
@@ -1161,25 +1202,30 @@
             <div class="user-info">
                 <div class="user-name">
                     <i class="bi bi-person-circle"></i>
-                    <span>{{ session('staff_name', 'ゲスト') }}</span>
-                    <span class="role-badge">
-                        @php
-                            $roleNames = [
-                                'admin' => '管理者',
-                                'operations_manager' => '運行管理者',
-                                'coordinator' => '運行手配',
-                                'manager' => '経理',
-                                'driver' => '運転手',
-                                'staff' => '一般スタッフ'
-                            ];
-                        @endphp
-                        {{ $roleNames[$role] ?? $role }}
-                    </span>
+                    <div class="user-info-text">
+                        <div class="company-name-text">{{ session('company_name', '') }}</div>
+                        <div class="staff-name-text">
+                            {{ session('staff_name', 'ゲスト') }}
+                            <span class="role-badge">
+                                @php
+                                    $roleNames = [
+                                        'admin' => '管理者',
+                                        'operations_manager' => '運行管理者',
+                                        'coordinator' => '運行手配',
+                                        'manager' => '経理',
+                                        'driver' => '運転手',
+                                        'staff' => '一般スタッフ'
+                                    ];
+                                @endphp
+                                {{ $roleNames[$role] ?? $role }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <form method="POST" action="{{ route('masters.logout') }}" style="margin: 0;">
                     @csrf
                     <button type="submit" class="logout-btn" onclick="return confirm('ログアウトしますか？');">
-                        <i class="bi bi-box-arrow-right"></i> <span>ログアウト</span>
+                        <i class="bi bi-box-arrow-right" title="ログアウト"></i>
                     </button>
                 </form>
             </div>

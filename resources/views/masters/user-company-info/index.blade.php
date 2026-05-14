@@ -362,18 +362,44 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <label for="setup_company_seal" class="form-label">社印</label>
                                 <div class="mb-2">
-                                    @if($UserCompanyInfo->setup_company_seal)
-                                        <div class="mb-2">
-                                            <img src="{{ asset('storage/' . $UserCompanyInfo->setup_company_seal) }}" alt="社印" style="max-height: 100px; border: 1px solid #ddd; padding: 5px;">
-                                        </div>
-                                    @endif
+                                    <div class="image-preview-container mb-2" id="sealPreview">
+                                        @if($UserCompanyInfo->setup_company_seal)
+                                            <img src="{{ asset('storage/' . $UserCompanyInfo->setup_company_seal) }}" alt="社印" style="height: 100px; border: 1px solid #ddd; padding: 5px;">
+                                        @else
+                                            <div class="text-center d-flex align-items-center justify-content-center" style="height: 100px; width: 120px; border: 1px solid #ddd; background-color: #fff;">
+                                                <i class="bi bi-image" style="font-size: 20px; color: #999;"></i>
+                                            </div>
+                                        @endif
+                                    </div>
                                     <input type="file" class="form-control @error('setup_company_seal') is-invalid @enderror" 
-                                           id="setup_company_seal" name="setup_company_seal" accept="image/*">
+                                           id="setup_company_seal" name="setup_company_seal" accept="image/*"
+                                           onchange="previewImage(this, 'sealPreview')">
                                 </div>
                                 @error('setup_company_seal')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="company_logo" class="form-label">会社ロゴ</label>
+                                <div class="mb-2">
+                                    <div class="image-preview-container mb-2" id="logoPreview">
+                                        @if($UserCompanyInfo->company_logo)
+                                            <img src="{{ asset('storage/' . $UserCompanyInfo->company_logo) }}" alt="会社ロゴ" style="height: 100px; border: 1px solid #ddd; padding: 5px;">
+                                        @else
+                                            <div class="text-center d-flex align-items-center justify-content-center" style="height: 100px; width: 120px; border: 1px solid #ddd; background-color: #fff;">
+                                                <i class="bi bi-image" style="font-size: 20px; color: #999;"></i>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <input type="file" class="form-control @error('company_logo') is-invalid @enderror" 
+                                           id="company_logo" name="company_logo" accept="image/*"
+                                           onchange="previewImage(this, 'logoPreview')">
+                                </div>
+                                @error('company_logo')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -427,4 +453,21 @@
     background-color: #e9ecef !important;
 }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+function previewImage(input, previewId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        const previewContainer = document.getElementById(previewId);
+        
+        reader.onload = function(e) {
+            previewContainer.innerHTML = `<img src="${e.target.result}" style="height: 100px; border: 1px solid #ddd; padding: 5px;">`;
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 @endpush

@@ -186,11 +186,19 @@ class BusAssignmentController extends Controller
         $query->orWhereDoesntHave('groupInfo');
         
         $perPage = $request->input('per_page', 20);
-        $assignments = $query->orderBy('vehicle_index', 'asc')
-            ->orderBy('start_date', 'asc')
-            ->orderBy('start_time', 'asc')
-            ->paginate($perPage)
-            ->withQueryString();
+        if ($request->input('sort_by_driver')) {
+                $assignments = $query->orderBy('driver_id', 'desc')
+                    ->orderBy('start_date', 'asc')
+                    ->orderBy('start_time', 'asc')
+                    ->paginate($perPage)
+                    ->withQueryString();
+        } else {
+                $assignments = $query->orderBy('vehicle_index', 'asc')
+                    ->orderBy('start_date', 'asc')
+                    ->orderBy('start_time', 'asc')
+                    ->paginate($perPage)
+                    ->withQueryString();
+        }
             
                     
         $busIds = $assignments->getCollection()->pluck('id')->toArray();
@@ -199,12 +207,27 @@ class BusAssignmentController extends Controller
         
         $expenseSums = $this->getExpenseSums($busIds);
         
-        $assignments->getCollection()->transform(function($assignment) use ($compensationSums, $expenseSums) {
+        $operationStatuses = [];
+        if (!empty($busIds)) {
+            $statusResults = DB::table('daily_itinerary')
+                ->whereIn('bus_assignment_id', $busIds)
+                ->whereNotNull('operation_status')
+                ->where('operation_status', '!=', '')
+                ->orderBy('date', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->select('bus_assignment_id', 'operation_status')
+                ->get()
+                ->unique('bus_assignment_id');
+            
+            $operationStatuses = $statusResults->pluck('operation_status', 'bus_assignment_id')->toArray();
+        }
+        
+        $assignments->getCollection()->transform(function($assignment) use ($compensationSums, $expenseSums, $operationStatuses) {
             $assignment->compensation_total = $compensationSums[$assignment->id] ?? 0;
             $assignment->expense_total = $expenseSums[$assignment->id] ?? 0;
+            $assignment->latest_operation_status = $operationStatuses[$assignment->id] ?? null;
             return $assignment;
         });
-    
     
         $categoryIds = $assignments->getCollection()->filter(function($assignment) {
             return $assignment->groupInfo && $assignment->groupInfo->reservation_categories_id;
@@ -1795,7 +1818,7 @@ class BusAssignmentController extends Controller
         $itineraryRows = [];
         foreach ($busAssignment->dailyItineraries as $index => $itinerary) {
             $itineraryRows[] = [
-                'day' => sprintf('Day-%02d', $index + 1),
+                'day' => Carbon::parse($itinerary->date)->format('m/d'),
                 'start_time' => $itinerary->time_start ? Carbon::parse($itinerary->time_start)->format('H:i') : '',
                 'start_location' => $itinerary->start_location ?? '',
                 'arrow' => '-->',
@@ -1806,7 +1829,16 @@ class BusAssignmentController extends Controller
         }
         
         if (empty($itineraryRows)) {
-            $itineraryRows[] = ['day' => 'Day-01', 'start_time' => '', 'start_location' => '', 'arrow' => '-->', 'end_time' => '', 'end_location' => '', 'description' => ''];
+            $today = Carbon::now();
+            $itineraryRows[] = [
+                'day' => $today->format('m/d'), 
+                'start_time' => '', 
+                'start_location' => '', 
+                'arrow' => '-->', 
+                'end_time' => '', 
+                'end_location' => '', 
+                'description' => ''
+            ];
         }
         
         $optionsNames = '';

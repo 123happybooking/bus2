@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Masters\User;
 use App\Models\Masters\LoginHistory;
+use App\Models\Masters\Driver;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -85,12 +86,22 @@ class AuthController extends Controller
                         'login_id' => $credentials['login_id'],
                         'name' => $staff->name,
                         'password' => Hash::make($credentials['password']),
+                        'is_active' => 1,
                         'last_login_at' => now(),
                     ]
                 );
                 
                 if (!$user->wasRecentlyCreated) {
                     $user->update(['last_login_at' => now()]);
+                }
+                
+                if (!$user->is_active) {
+                    DatabaseConnectionService::connectToDefaultDatabase();
+                    return back()
+                        ->withInput($request->only('login_id', 'user_company_id'))
+                        ->withErrors([
+                            'login_id' => 'このアカウントは無効になっています。管理者にお問い合わせください。'
+                        ]);
                 }
             } catch (\Exception $e) {
                 $user = new User();
@@ -107,11 +118,22 @@ class AuthController extends Controller
             $request->session()->put('role', $staff->role);
             
             if ($staff->role === 'driver') {
-                $driver = \App\Models\Masters\Driver::where('login_id', $staff->login_id)->first();
+                $driver = Driver::where('login_id', $staff->login_id)->first();
                 if ($driver) {
                     $request->session()->put('driver_id', $driver->id);
                     $request->session()->put('driver_name', $driver->name);
                 }
+            }
+            
+            try {
+                $company = DB::connection()->table('user_company_info')
+                    ->where('user_company_id', $companyId)
+                    ->first();
+                
+                $companyName = $company->company_name ?? '';
+                $request->session()->put('company_name', $companyName);
+            } catch (\Exception $e) {
+                $request->session()->put('company_name', '');
             }
             
             DatabaseConnectionService::connectToDefaultDatabase();

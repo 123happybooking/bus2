@@ -42,9 +42,6 @@
                     <a href="{{ route('masters.driver-compensations.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運転手精算</a>
                     <a href="{{ route('masters.attendance-categories.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運転手勤怠</a>
                     <a href="{{ route('masters.driver-operation-status.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">操作ステータス</a>
-                    <div class="dropdown-divider my-1"></div>
-                    <a href="{{ route('masters.basicinfo.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">デジタコデータアップロード</a>
-                    <a href="{{ route('masters.basicinfo.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">アップロード履歴</a>
                     @endif
                 </div>
             </div>
@@ -59,10 +56,10 @@
                 </div>
                 <div class="card-body p-2">
                     @if($isAdmin || $isOperationsManager || $isManager)
-                        <a class="btn btn-outline-secondary btn-sm w-100 mb-1" href="{{ route('masters.products.index') }}">品名</a>
-                        <a class="btn btn-outline-secondary btn-sm w-100 mb-1" href="{{ route('masters.currencies.index') }}">货币汇率</a>
-                        <a class="btn btn-outline-secondary btn-sm w-100 mb-1" href="{{ route('masters.invoices.index', ['group_id' => 12]) }}">請求管理</a>
+                        <a class="btn btn-outline-secondary btn-sm w-100 mb-1" href="{{ route('masters.invoices.index', ['group_id' => 12]) }}">請求一覧</a>
                         <a class="btn btn-outline-secondary btn-sm w-100 mb-1" href="{{ route('masters.payments.index') }}">入金管理</a>
+                        <a class="btn btn-outline-secondary btn-sm w-100 mb-1" href="{{ route('masters.products.index') }}">請求項目設定</a>
+                        <a class="btn btn-outline-secondary btn-sm w-100 mb-1" href="{{ route('masters.currencies.index') }}">為替レート</a>
                     @endif
                 </div>
             </div>

@@ -48,6 +48,7 @@ class UserCompanyInfoController extends Controller
                 'setup_end_time' => 'nullable|date_format:H:i',
                 'setup_bank_name' => 'nullable|string|max:255',
                 'setup_company_seal' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'company_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'start_year' => 'nullable|integer|min:2000|max:2099',
                 'fiscal_month' => 'nullable|integer|min:1|max:12',
             ];
@@ -96,6 +97,9 @@ class UserCompanyInfoController extends Controller
                 'setup_company_seal.image' => '社印は画像ファイルをアップロードしてください。',
                 'setup_company_seal.mimes' => '社印はjpeg、png、jpg、gif形式のファイルをアップロードしてください。',
                 'setup_company_seal.max' => '社印のファイルサイズは2MB以内でアップロードしてください。',
+                'company_logo.image' => '会社ロゴは画像ファイルをアップロードしてください。',
+                'company_logo.mimes' => '会社ロゴはjpeg、png、jpg、gif形式のファイルをアップロードしてください。',
+                'company_logo.max' => '会社ロゴのファイルサイズは2MB以内でアップロードしてください。',
                 'start_year.integer' => '開始年は整数で入力してください。',
                 'start_year.min' => '開始年は2000以上で入力してください。',
                 'start_year.max' => '開始年は2099以下で入力してください。',
@@ -112,12 +116,29 @@ class UserCompanyInfoController extends Controller
                 }
                 
                 $file = $request->file('setup_company_seal');
-                $fileName = time() . '_' . $file->getClientOriginalName();
+                $extension = $file->getClientOriginalExtension();
+                $fileName = time() . '_' . uniqid() . '_seal.' . $extension;
                 
                 $path = $file->storeAs('company_seals', $fileName, 'public');
                 
                 if ($path) {
                     $validated['setup_company_seal'] = $path;
+                }
+            }
+            
+            if ($request->hasFile('company_logo') && $request->file('company_logo')->isValid()) {
+                if ($userCompany->company_logo) {
+                    Storage::disk('public')->delete($userCompany->company_logo);
+                }
+                
+                $file = $request->file('company_logo');
+                $extension = $file->getClientOriginalExtension();
+                $fileName = time() . '_' . uniqid() . '_logo.' . $extension;
+                
+                $path = $file->storeAs('company_logos', $fileName, 'public');
+                
+                if ($path) {
+                    $validated['company_logo'] = $path;
                 }
             }
 

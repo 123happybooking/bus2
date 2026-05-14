@@ -406,13 +406,9 @@ class DailyReportController extends Controller
                 $companyInfo['name'] = $userCompany->user_company_name ?? '';
                 $companyInfo['tel'] = $userCompany->phone_number ?? '';
                 $companyInfo['fax'] = $userCompany->fax_number ?? '';
-                if (!empty($userCompany->setup_company_seal)) {
-                    $logoPath = storage_path('app/public/' . $userCompany->setup_company_seal);
-                    if (file_exists($logoPath)) {
-                        $companyLogo = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
-                    } elseif (file_exists(public_path($userCompany->setup_company_seal))) {
-                        $companyLogo = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path($userCompany->setup_company_seal)));
-                    }
+                if (!empty($userCompany->company_logo)) {
+                    $logoPath = storage_path('app/public/' . $userCompany->company_logo);
+                    $companyLogo = url('/storage/' . $userCompany->company_logo);
                 }
             }
             

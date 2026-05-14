@@ -69,9 +69,9 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
 
  <tr>
   <td style="width:10%;" class="bg-gray">団体名</td>
-  <td style="width:30%;" colspan="3">{{ $busAssignment->step_car ?? '' }}</td>
-  <td style="width:7%;" class="bg-gray">号車</td>
-  <td style="width:8%;">{{ $busNumber ?? '' }}</td>
+  <td colspan="3">{{ $busAssignment->step_car ?? '' }}</td>
+  <td style="width:10%;" class="bg-gray">号車</td>
+  <td style="width:10%;">{{ $busNumber ?? '' }}</td>
   <td style="width:10%;" rowspan="2" class="bg-gray">代表者</td>
   <td style="width:35%;" colspan="3" rowspan="2">
     {{ $representativeName ?? '' }}{{ $representativeContact ? '/' . $representativeContact : '' }}
@@ -81,10 +81,10 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
   </td>
  </tr>
  <tr>
-  <td style="width:10%;" class="bg-gray">人数</td>
-  <td style="width:30%;" colspan="3">{{ $personnelCount ?? '' }}</td>
-  <td style="width:7%;" class="bg-gray">荷物</td>
-  <td style="width:8%;">{{ $luggage ?? '' }}</td>
+  <td class="bg-gray">人数</td>
+  <td colspan="2">{{ $personnelCount ?? '' }}</td>
+  <td class="bg-gray">荷物</td>
+  <td colspan="2">{{ $luggage ?? '' }}</td>
  </tr>
 
  @foreach($itineraryRows as $row)
@@ -108,16 +108,22 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
  </tr>
 
  <tr>
-  <td style="width:100%;" colspan="10" class="remark">注意<br>{{ $optionsNames ?? '--' }}</td>
+  <td style="width:100%;" colspan="10" class="remark">
+      注意<br>
+      <span style="font-size: 12pt;">{{ $optionsNames ?? '--' }}</span>
+  </td>
  </tr>
 
  <tr>
-  <td style="width:100%;" colspan="10" class="remark">備考<br>{{ $busAssignment->operation_remarks ?? '--' }}</td>
+  <td style="width:100%;" colspan="10" class="remark">
+      備考<br>
+      <span style="font-size: 12pt;">{{ $busAssignment->operation_remarks ?? '--' }}</span>
+  </td>
  </tr>
 
  <tr>
-  <td style="width:45%;" colspan="5" class="remark">立替</td>
-  <td style="width:35%;" colspan="5" class="remark">会社精算</td>
+  <td style="width:60%;" colspan="6" class="remark">立替</td>
+  <td style="width:40%;" colspan="4" class="remark">会社精算</td>
  </tr>
 
  <tr>

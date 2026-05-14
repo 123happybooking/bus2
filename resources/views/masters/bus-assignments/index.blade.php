@@ -12,6 +12,10 @@
                     style="background-color: #2563eb; border-color: #2563eb; font-size: 0.875rem;">
                 <i class="bi bi-plus-lg"></i> 新規予約
             </button>
+            
+            <button type="button" id="batchExportBtn" class="btn btn-sm btn-success" style="background-color: #dc2626; border-color: #dc2626;">
+                <i class="bi bi-file-pdf"></i> 一括指示書PDF
+            </button>
         </div>
     </div>
 
@@ -224,6 +228,12 @@
                         <label for="show_cancel_estimate" style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0;">キャンセル・見積を表示</label>
                     </div>
 
+                    <div class="d-flex align-items-center ms-2">
+                        <input type="checkbox" name="sort_by_driver" id="sort_by_driver" value="1" 
+                               class="form-check-input me-1" style="margin-top: 0;" {{ request('sort_by_driver') ? 'checked' : '' }}>
+                        <label for="sort_by_driver" style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0;">運転手順でソート</label>
+                    </div>
+
                     <div class="d-flex gap-1">
                         <button type="submit" class="btn btn-sm px-2"
                                 style="background-color: #2563eb; color: white; border-color: #2563eb; font-size: 0.8rem;">
@@ -233,11 +243,6 @@
                            style="border-color: #E5E7EB; color: #374151; font-size: 0.8rem;">
                             クリア
                         </a>
-                        
-                        
-                        <button type="button" id="batchExportBtn" class="btn btn-sm btn-success" style="background-color: #dc2626; border-color: #dc2626;">
-                            <i class="bi bi-file-pdf"></i> 一括指示書PDF
-                        </button>
                     </div>
                 </div>
             </div>
@@ -262,6 +267,7 @@
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 120px;">団体名<br>ステッカー</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">代理店名<br>国籍</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 70px;">予約状況</th>
+                    <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 80px;">運行状態</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 80px;">給与</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 50px;">立替</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 70px;">操作</th>
@@ -285,7 +291,8 @@
                     <td class="px-1 py-1 align-middle">
                         <span>{{ $assignment->start_date ? \Carbon\Carbon::parse($assignment->start_date)->format('Y/m/d') : '---' }}</span>
                         @if($assignment->start_date != $assignment->end_date)
-                            <br><span>～ {{ $assignment->end_date ? \Carbon\Carbon::parse($assignment->end_date)->format('Y/m/d') : '---' }}</span>
+                            <br>～<br>
+                            <span>{{ $assignment->end_date ? \Carbon\Carbon::parse($assignment->end_date)->format('Y/m/d') : '---' }}</span>
                         @endif
                     </td>
                     <td class="px-1 py-1 align-middle">
@@ -303,15 +310,17 @@
                                 <br><span>{{ $assignment->vehicle_number }}</span>
                             @endif
                         @endif
-                     </td>
+                    </td>
                     <td class="px-1 py-1 align-middle">
                         @if($assignment->temporary_driver)
                             <span style="color: #f59e0b; font-weight: 600;">仮</span>
-                            {{ $assignment->driver?->name ?? '---' }}
-                        @else
-                            {{ $assignment->driver?->name ?? '---' }}
                         @endif
-                     </td>
+                        <a href="{{ route('masters.bus-assignments.index', array_merge(request()->except('driver_id'), ['driver_id' => $assignment->driver_id])) }}" 
+                           style="color: #2563eb; text-decoration: none;">
+                            {{ $assignment->driver?->name ?? '---' }}
+                        </a>
+                    </td>
+                     
                     <td class="px-1 py-1 align-middle text-center">
                         <a href="{{ route('masters.bus-assignments.index', ['reservation_id' => $assignment->group_info_id]) }}" class="text-decoration-none">
                             {{ $assignment->group_info_id ?? '---' }}
@@ -404,7 +413,19 @@
                         <span style="background-color: {{ $statusBgColor }}; color: {{ $statusTextColor }}; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; display: inline-block; white-space: nowrap;">
                             {{ $groupInfo?->reservation_status ?? '---' }}
                         </span>
-                     </td>
+                    </td>
+                    <td class="text-center px-1 py-1 align-middle">
+                        @php
+                            $operationStatus = $assignment->latest_operation_status ?? '';
+                        @endphp
+                        @if(!empty($operationStatus))
+                            <span style="background-color: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; display: inline-block; white-space: nowrap;">
+                                {{ $operationStatus }}
+                            </span>
+                        @else
+                            <span style="color: #9ca3af; font-size: 0.7rem;">--</span>
+                        @endif
+                    </td>
                     <td class="text-center px-1 py-1 align-middle">
                         @php
                             $compensation = $assignment->compensation_total ?? 0;

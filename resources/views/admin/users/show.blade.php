@@ -75,6 +75,15 @@
                                 
                                 <dt class="col-sm-4">契約開始日</dt>
                                 <dd class="col-sm-8">{{ $user->user_start_day ? $user->user_start_day->format('Y/m/d') : '-' }}</dd>
+                                
+                                <dt class="col-sm-4">状態</dt>
+                                <dd class="col-sm-8">
+                                    @if($user->is_active)
+                                        <span class="badge bg-success">有効</span>
+                                    @else
+                                        <span class="badge bg-secondary">無効</span>
+                                    @endif
+                                </dd>
                             </dl>
                         </div>
                         
@@ -99,20 +108,6 @@
                             <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left"></i> 一覧に戻る
                             </a>
-                            
-                            <script>
-                            function confirmDelete(name) {
-                                return confirm(`本当に「${name}」を削除しますか？\nこの操作は元に戻せません。`);
-                            }
-                            </script>
-                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" 
-                                  class="d-inline" onsubmit="return confirmDelete('{{ $user->name }}')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger">
-                                    <i class="bi bi-trash"></i> 削除
-                                </button>
-                            </form>
                         </div>
                     </div>
                 </div>

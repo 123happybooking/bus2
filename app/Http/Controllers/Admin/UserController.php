@@ -74,6 +74,7 @@ class UserController extends Controller
                 'user_company_name' => $validated['user_company_name'] ?? null,
                 'user_plan' => $validated['user_plan'] ?? null,
                 'user_start_day' => $validated['user_start_day'] ?? null,
+                'is_active' => 1,
             ]);
 
             if (!$user || !$user->exists) {
@@ -326,6 +327,7 @@ class UserController extends Controller
             'user_company_name' => 'required|string|max:255',
             'user_plan' => 'required|string|in:basic,premium,enterprise',
             'user_start_day' => 'required|date',
+            'is_active' => 'sometimes|boolean',
         ];
 
         $messages = [
@@ -353,6 +355,7 @@ class UserController extends Controller
                 'user_company_name' => $validated['user_company_name'] ?? null,
                 'user_plan' => $validated['user_plan'] ?? null,
                 'user_start_day' => $validated['user_start_day'] ?? null,
+                'is_active' => $request->has('is_active') ? 1 : 0,
             ];
 
             if (!empty($validated['password'])) {
@@ -425,28 +428,34 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        try {
-            $databaseName = 'bus_user_' . $user->id;
+        return redirect('/admin/users')
+            ->with([
+                'error' => '削除に失敗しました。システムエラーが発生しました。',
+                'alert-type' => 'danger'
+            ]);
+        
+        // try {
+        //     $databaseName = 'bus_user_' . $user->id;
             
-            try {
-                DB::statement("DROP DATABASE IF EXISTS `{$databaseName}`");
-            } catch (\Exception $e) {
-            }
+        //     try {
+        //         DB::statement("DROP DATABASE IF EXISTS `{$databaseName}`");
+        //     } catch (\Exception $e) {
+        //     }
             
-            $user->delete();
+        //     $user->delete();
             
-            return redirect('/admin/users')
-                ->with([
-                    'success' => 'ユーザーを削除しました。',
-                    'alert-type' => 'success'
-                ]);
+        //     return redirect('/admin/users')
+        //         ->with([
+        //             'success' => 'ユーザーを削除しました。',
+        //             'alert-type' => 'success'
+        //         ]);
                 
-        } catch (\Exception $e) {
-            return redirect('/admin/users')
-                ->with([
-                    'error' => '削除に失敗しました。システムエラーが発生しました。',
-                    'alert-type' => 'danger'
-                ]);
-        }
+        // } catch (\Exception $e) {
+        //     return redirect('/admin/users')
+        //         ->with([
+        //             'error' => '削除に失敗しました。システムエラーが発生しました。',
+        //             'alert-type' => 'danger'
+        //         ]);
+        // }
     }
 }
