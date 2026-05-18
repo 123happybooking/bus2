@@ -20,16 +20,20 @@
         
         <div class="mb-2">
             <label class="form-label">開始日</label>
-            <div class="d-flex align-items-center gap-2">
-                <input type="date" name="start_date" id="start_date" value="{{ $startDate }}" 
-                       class="form-control" style="width: 130px;" {{ !$canEdit ? 'readonly disabled' : '' }}>
-                <input type="time" name="start_time" id="start_time" value="{{ \Carbon\Carbon::parse($startTime)->format('H:i') }}" 
-                       class="form-control" step="60" {{ !$canEdit ? 'readonly disabled' : '' }}>
-                      ~
-                <input type="date" name="end_date" id="end_date" value="{{ $endDate }}" 
-                       class="form-control" style="width: 130px;" {{ !$canEdit ? 'readonly disabled' : '' }}>
-                <input type="time" name="end_time" id="end_time" value="{{ \Carbon\Carbon::parse($endTime)->format('H:i') }}" 
-                       class="form-control" step="60" {{ !$canEdit ? 'readonly disabled' : '' }}>
+            <div class="date-range-group">
+                <div class="date-start-group">
+                    <input type="date" name="start_date" id="start_date" value="{{ $startDate }}" 
+                           class="form-control" {{ !$canEdit ? 'readonly disabled' : '' }}>
+                    <input type="time" name="start_time" id="start_time" value="{{ \Carbon\Carbon::parse($startTime)->format('H:i') }}" 
+                           class="form-control" step="60" {{ !$canEdit ? 'readonly disabled' : '' }}>
+                </div>
+                <div class="date-separator">~</div>
+                <div class="date-end-group">
+                    <input type="date" name="end_date" id="end_date" value="{{ $endDate }}" 
+                           class="form-control" {{ !$canEdit ? 'readonly disabled' : '' }}>
+                    <input type="time" name="end_time" id="end_time" value="{{ \Carbon\Carbon::parse($endTime)->format('H:i') }}" 
+                           class="form-control" step="60" {{ !$canEdit ? 'readonly disabled' : '' }}>
+                </div>
             </div>
         </div>
         
@@ -82,6 +86,78 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 input[type="date"]::-webkit-calendar-picker-indicator:hover,
 input[type="time"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
+}
+
+
+.date-range-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+}
+
+.date-start-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.date-start-group input,
+.date-end-group input {
+    flex: 1;
+    min-width: 0;
+}
+
+.date-separator {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+.date-end-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+
+@media (max-width: 500px) {
+    .date-range-group {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+    
+    .date-start-group {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+    
+    .date-start-group input,
+    .date-end-group input {
+        flex: 1 !important;
+        width: auto !important;
+    }
+    
+    .date-separator {
+        text-align: center !important;
+        font-size: 0.9rem !important;
+        color: #6b7280 !important;
+        line-height: 3pt;
+    }
+    
+    .date-end-group {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
 }
 </style>
 @endpush

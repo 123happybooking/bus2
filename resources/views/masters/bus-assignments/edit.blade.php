@@ -55,14 +55,14 @@
         <input type="hidden" name="iframe" value="1" id="isIframe">
         <input type="hidden" name="group_info_id" id="group_info_id" value="{{ $busAssignment->group_info_id }}">
 
-        <div class="m-2">
-            <div class="d-flex align-items-center justify-content-between" style="flex-wrap: nowrap; gap: 6px;">
-                <div class="d-flex align-items-center" style="flex-shrink: 0;">
+        <div class="card mt-2 mb-2">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center flex-shrink-0">
                     <label for="status" class="label-text mr-2">車種指定</label>
                     <input type="checkbox" id="status" class="checkbox mr-5" name="vehicle_type_spec_check" value="1" {{ $busAssignment->vehicle_type_spec_check ? 'checked' : '' }} {{ $checkboxDisabled }}>
                 </div>
                 
-                <div class="d-flex align-items-center" style="flex-shrink: 0;">
+                <div class="d-flex align-items-center flex-shrink-0">
                     <label for="vehicle_grade_id" class="label-text mr-2">車輛等級</label>
                     <select id="vehicle_grade_id" name="group_info[vehicle_grade_id]" class="form-input-small" style="width: 80px;" {{ $disabledAttr }}>
                         @foreach($vehicleGrades ?? [] as $grade)
@@ -76,7 +76,7 @@
                     </select>
                 </div>
                 
-                <div class="d-flex align-items-center" style="flex-shrink: 0;">
+                <div class="d-flex align-items-center flex-shrink-0">
                     <label for="reservation_status" class="label-text mr-2">予約状況</label>
                         <select id="reservation_status" class="form-input-small" name="reservation_status" style="width: 80px;" {{ $disabledAttr }}>
                             <option value="予約" style="background-color: #ccf5ff; color: black;" {{ ($busAssignment->groupInfo->reservation_status ?? '') == '予約' ? 'selected' : '' }}>予約</option>
@@ -94,7 +94,7 @@
                         </select>
                 </div>
                 
-                <div class="d-flex align-items-center" style="flex-shrink: 0;">
+                <div class="d-flex align-items-center flex-shrink-0">
                     <label for="category" class="label-text mr-2">業務分類</label>
                     <select id="category" name="reservation_categories_id" class="form-input" style="width: 80px;" {{ $disabledAttr }}>
                         <option value="">-- 選択 --</option>
@@ -139,16 +139,22 @@
 
             <div class="d-flex mb-1">
                 <div class="label-width text-gray">開始日</div>
-                <div class="d-flex align-items-center" style="flex: 1;">
-                    <input type="text" name="start_date" value="{{ $busAssignment->start_date ? \Carbon\Carbon::parse($busAssignment->start_date)->format('Y-m-d') : '' }}" class="form-input-small input-width-date" id="start_date" style="flex: 1; min-width: 0;" placeholder="YYYY-MM-DD" autocomplete="off" {{ $readonlyAttr }}>
-                    <span class="mx-2">
-                        <input type="time" name="start_time" value="{{ $busAssignment->start_time ? \Carbon\Carbon::parse($busAssignment->start_time)->format('H:i') : '08:00' }}" class="form-input-small input-width-time" step="60" style="width: 90px;" {{ $readonlyAttr }}>
-                    </span>
-                    <span class="label-text mx-2" style="margin-left:0 !important;">~</span>
-                    <input type="text" name="end_date" value="{{ $busAssignment->end_date ? \Carbon\Carbon::parse($busAssignment->end_date)->format('Y-m-d') : '' }}" class="form-input-small input-width-date" id="end_date" style="flex: 1; min-width: 0;" placeholder="YYYY-MM-DD" autocomplete="off" {{ $readonlyAttr }}>
-                    <span class="ms-2">
-                        <input type="time" name="end_time" value="{{ $busAssignment->end_time ? \Carbon\Carbon::parse($busAssignment->end_time)->format('H:i') : '18:00' }}" class="form-input-small input-width-time" step="60" style="width: 90px;" {{ $readonlyAttr }}>
-                    </span>
+                <div class="d-flex align-items-center flex-nowrap date-range-responsive" style="flex: 1; gap: 6px;">
+                    <div class="flex-grow-1">
+                    <input type="text" name="start_date" value="{{ $busAssignment->start_date ? \Carbon\Carbon::parse($busAssignment->start_date)->format('Y-m-d') : '' }}" class="form-input-small input-width-date w-100" id="start_date" placeholder="YYYY-MM-DD" autocomplete="off" {{ $readonlyAttr }}>
+                    </div>
+                    <div class="flex-grow-1">
+                        <input type="time" name="start_time" value="{{ $busAssignment->start_time ? \Carbon\Carbon::parse($busAssignment->start_time)->format('H:i') : '08:00' }}" class="form-input-small input-width-time w-100" step="60" {{ $readonlyAttr }}>
+                    </div>
+                    <div class="text-center">
+                        <span class="label-text">~</span>
+                    </div>
+                    <div class="flex-grow-1">
+                    <input type="text" name="end_date" value="{{ $busAssignment->end_date ? \Carbon\Carbon::parse($busAssignment->end_date)->format('Y-m-d') : '' }}" class="form-input-small input-width-date w-100" id="end_date" placeholder="YYYY-MM-DD" autocomplete="off" {{ $readonlyAttr }}>
+                    </div>
+                    <div class="flex-grow-1">
+                        <input type="time" name="end_time" value="{{ $busAssignment->end_time ? \Carbon\Carbon::parse($busAssignment->end_time)->format('H:i') : '18:00' }}" class="form-input-small input-width-time w-100" step="60" {{ $readonlyAttr }}>
+                    </div>
                 </div>
             </div>
 
@@ -233,28 +239,24 @@
                             <div class="suggestions-container" id="agency_suggestions" style="display: none;"></div>
                         </div>
                         
-                        <div class="d-flex align-items-center mb-1">
-                            <div class="label-width text-gray text-center">团体名</div>
-                            <div class="flex-1">
-                                <input type="text" name="group_name" value="{{ $busAssignment->groupInfo->group_name ?? '' }}" class="form-input" placeholder="团体名を入力" {{ $readonlyAttr }}>
-                            </div>
+                        <div class="label-width text-gray text-center">团体名</div>
+                        <div class="flex-1">
+                            <input type="text" name="group_name" value="{{ $busAssignment->groupInfo->group_name ?? '' }}" class="form-input" placeholder="团体名を入力" {{ $readonlyAttr }}>
                         </div>
                     </div>
 
                     <div class="d-flex align-items-center mb-1">
                         <div class="label-width text-gray">大人</div>
-                        <div class="input-width-number mr-4">
+                        <div class="input-width-number mr-4" style="width: 30px;">
                             <input type="text" name="adult_count" id="adult_count" value="{{ $busAssignment->adult_count ?? '' }}" class="form-input" {{ $numberReadonly }}>
                         </div>
-                        <div class="label-width text-gray mr-2 text-center">小人</div>
-                        <div class="input-width-number mr-4">
+                        <div class="label-width text-gray mr-2 text-center" style="width: 30px;">小人</div>
+                        <div class="input-width-number mr-4" style="width: 30px;">
                             <input type="text" name="child_count" value="{{ $busAssignment->child_count ?? '' }}" class="form-input" {{ $numberReadonly }}>
                         </div>
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="label-width-large text-gray text-center">荷物数</div>
-                            <div class="flex-1">
-                                <input type="text" name="luggage" value="{{ $busAssignment->luggage ?? '' }}" class="form-input" {{ $readonlyAttr }} style="width: 214px;">
-                            </div>
+                        <div class="label-width-large text-gray text-center" style="width: 30px;">荷物</div>
+                        <div class="flex-1">
+                            <input type="text" name="luggage" value="{{ $busAssignment->luggage ?? '' }}" class="form-input" {{ $readonlyAttr }}>
                         </div>
                     </div>
 
@@ -396,12 +398,12 @@
             </div>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <div class="d-flex gap-2">
-                <button type="button" class="btn-primary" id="detailBtn">運行詳細</button>
-                <button type="submit" class="btn-primary" id="saveBtn">変更</button>
-                <button type="button" class="btn-secondary" id="closeBtn">閉じる</button>
-                <button type="button" class="btn btn-success btn-sm" id="copyGroupBtn">複製</button>
+        <div class="d-flex justify-content-between align-items-center mt-1 mb-2">
+            <div class="d-flex gap-2 w-100">
+                <button type="button" class="btn-primary flex-grow-1" id="detailBtn">運行詳細</button>
+                <button type="submit" class="btn-primary flex-grow-1" id="saveBtn">変更</button>
+                <button type="button" class="btn-secondary flex-grow-1" id="closeBtn">閉じる</button>
+                <button type="button" class="btn btn-success btn-sm flex-grow-1" id="copyGroupBtn">複製</button>
             </div>
         </div>
     </form>
@@ -427,10 +429,10 @@
     .tab-item.inactive { background-color: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; border-bottom: 1px solid #d1d5db; }
     .tab-line { height: 1px; background-color: #d1d5db; width: 100%; margin-top: -1px; z-index: 1; }
     .tab-content { padding-top: 4px; }
-    .btn-primary { background-color: #2563eb; border: none; color: white; font-size: 12px; padding: 6px 24px; border-radius: 4px; cursor: pointer; }
+    .btn-primary { background-color: #2563eb; border: none; color: white; font-size: 12px; padding: 6px; border-radius: 4px; cursor: pointer; }
     .btn-primary:hover { background-color: #1d4ed8; }
     .btn-primary:disabled { background-color: #93c5fd; cursor: not-allowed; }
-    .btn-secondary { background-color: #6b7280; border: none; color: white; font-size: 12px; padding: 6px 24px; border-radius: 4px; cursor: pointer; }
+    .btn-secondary { background-color: #6b7280; border: none; color: white; font-size: 12px; padding: 6px; border-radius: 4px; cursor: pointer; }
     .btn-secondary:hover { background-color: #4b5563; }
     .dashed-box { color: #6b7280; font-size: 11px; padding: 16px; background-color: #f9fafb; border-radius: 4px; text-align: center; border: 1px dashed #d1d5db; }
     .label-width { width: 50px; }
@@ -522,6 +524,106 @@
     input[type="time"]::-webkit-calendar-picker-indicator:hover {
         opacity: 1;
     }
+    
+    
+@media (max-width: 500px) {
+    .date-range-responsive {
+        flex-wrap: wrap !important;
+    }
+    
+    .date-range-responsive > div {
+        flex: 0 0 calc(50% - 3px) !important;
+        margin-bottom: 6px;
+    }
+    
+    .date-range-responsive > div:nth-child(3) {
+        flex: 0 0 100% !important;
+        text-align: center;
+        order: 2;
+        margin-bottom: 6px;
+    }
+    
+    .date-range-responsive > div:nth-child(1),
+    .date-range-responsive > div:nth-child(2) {
+        order: 1;
+    }
+    
+    .date-range-responsive > div:nth-child(4),
+    .date-range-responsive > div:nth-child(5) {
+        order: 3;
+    }
+    
+    .date-range-responsive .text-center {
+        line-height: 0px;
+        padding: 0;
+        margin: -5px 0 6px 0;
+    }
+    
+    
+    .date-range-responsive input[type="text"],
+    .date-range-responsive input[type="time"] {
+        height: 32px !important;
+        padding: 4px 8px !important;
+        font-size: 14px !important;
+        border: 1px solid #bbb !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
+    }
+    
+    .date-range-responsive input[type="time"] {
+        min-height: 32px !important;
+    }
+    
+    
+    
+    .card.mt-2.mb-2 .d-flex.align-items-center.justify-content-between {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px !important;
+    }
+    
+    .card.mt-2.mb-2 .d-flex.align-items-center.flex-shrink-0 {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        flex-shrink: 1 !important;
+        gap: 8px !important;
+        overflow: hidden !important;
+    }
+    
+    .card.mt-2.mb-2 .d-flex.align-items-center.flex-shrink-0 .label-text {
+        font-size: 0.7rem !important;
+        white-space: nowrap !important;
+        color: #374151 !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .card.mt-2.mb-2 .d-flex.align-items-center.flex-shrink-0 select,
+    .card.mt-2.mb-2 .d-flex.align-items-center.flex-shrink-0 .form-input,
+    .card.mt-2.mb-2 .d-flex.align-items-center.flex-shrink-0 .form-input-small {
+        width: auto !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+        background-color: #fff !important;
+        border: 1px solid #ccc !important;
+        border-radius: 4px !important;
+        color: #333 !important;
+        font-size: 0.7rem !important;
+        padding: 4px 6px !important;
+        height: 28px !important;
+    }
+    
+    .card.mt-2.mb-2 .d-flex.align-items-center.flex-shrink-0 input[type="checkbox"] {
+        width: 14px !important;
+        height: 14px !important;
+        margin: 0 !important;
+        flex-shrink: 0 !important;
+    }
+}
 </style>
 @endpush
 

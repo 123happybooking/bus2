@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>
         運行管理システム
         @if(View::hasSection('title'))
@@ -103,6 +104,7 @@
 
         .sidebar-nav {
             padding: 0 12px;
+            margin: 0 0 100px 0;
         }
         
         .sidebar-nav a { text-decoration: none; }
@@ -936,71 +938,97 @@
         }
 
 
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.mobile-open {
-                transform: translateX(0);
-            }
-            .sidebar-toggle-outer {
-                display: none;
-            }
-            .main-content {
-                margin-left: 0 !important;
-            }
-            .mobile-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 999;
-            }
-            .mobile-menu-toggle {
-                display: block;
-                position: fixed;
-                top: 12px;
-                left: 15px;
-                z-index: 1001;
-                background: #2563eb;
-                border: none;
-                color: white;
-                width: 36px;
-                height: 32px;
-                border-radius: 5px;
-                font-size: 20px;
-            }
-            .top-bar {
-                justify-content: flex-end;
-            }
-            
-            .top-bar .btn-list {
-                display: none !important;
-            }
-            
-            .user-info {
-                gap: 0;
-            }
-            
-            .logout-btn {
-                display: none;
-            }
-            
-            .logout-btn span {
-                display: none;
-            }
-            
-            .logout-btn i {
-                font-size: 18px;
-                margin: 0;
-            }
-            
-            .logout-btn {
-                padding: 6px 10px;
-            }
-        }
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100vh !important;
+    }
+    
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .sidebar-nav {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 20px !important;
+    }
+    
+    /* 确保退出登录按钮在底部 */
+    .sidebar .nav-item:last-child {
+        margin-top: auto !important;
+        border-top: 1px solid #2d3748 !important;
+        padding-top: 10px !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .sidebar-toggle-outer {
+        display: none;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+    }
+    
+    .mobile-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+    
+    .mobile-menu-toggle {
+        display: block;
+        position: fixed;
+        top: 12px;
+        left: 15px;
+        z-index: 1001;
+        background: #2563eb;
+        border: none;
+        color: white;
+        width: 36px;
+        height: 32px;
+        border-radius: 5px;
+        font-size: 20px;
+    }
+    
+    .top-bar {
+        justify-content: flex-end;
+    }
+    
+    .top-bar .btn-list {
+        display: none !important;
+    }
+    
+    .user-info {
+        gap: 0;
+    }
+    
+    .logout-btn {
+        display: none;
+    }
+    
+    .logout-btn span {
+        display: none;
+    }
+    
+    .logout-btn i {
+        font-size: 18px;
+        margin: 0;
+    }
+    
+    .logout-btn {
+        padding: 6px 10px;
+    }
+}
         
     </style>
     @stack('styles')

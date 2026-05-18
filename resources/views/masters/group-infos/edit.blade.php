@@ -310,19 +310,19 @@
                     @endphp
                     <div class="card shadow-sm mb-1 vehicle-detail-card" data-vehicle-id="{{ $vehicleId }}" data-vehicle-index="{{ $vehicleIndex }}" data-bus-id="{{ $busId }}">
                         <div class="card-header py-1 px-3 d-flex align-items-center" style="background-color: #141c28; border-bottom: 1px solid #aaa;">
-                        <h6 class="mb-0 me-3" style="color: #fff; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 10px;">
-                            <span>運行詳細-{{ sprintf('%02d', $vehicleIndex) }}</span>
-                            <span style="font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; background-color: {{ $group['completion_status'] == '完成' ? '#10b981' : '#f59e0b' }}; color: white;">
-                                {{ $group['completion_status'] }}
-                            </span>
-                            <button type="button" class="btn-pdf-export btn btn-sm" 
-                                    data-bus-id="{{ $busId }}" 
-                                    data-vehicle-index="{{ $vehicleIndex }}"
-                                    style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
-                                <i class="bi bi-file-pdf"></i> 運行指示書PDF
-                            </button>
-                        </h6>
-                            <div class="d-flex align-items-center ms-auto" style="gap: 15px;">
+                            <h6 class="mb-0 me-3" style="color: #fff; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 10px;">
+                                <span>運行詳細-{{ sprintf('%02d', $vehicleIndex) }}</span>
+                                <span style="font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; background-color: {{ $group['completion_status'] == '完成' ? '#10b981' : '#f59e0b' }}; color: white;">
+                                    {{ $group['completion_status'] }}
+                                </span>
+                                <button type="button" class="btn-pdf-export btn btn-sm" 
+                                        data-bus-id="{{ $busId }}" 
+                                        data-vehicle-index="{{ $vehicleIndex }}"
+                                        style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
+                                    <i class="bi bi-file-pdf"></i> 運行指示書PDF
+                                </button>
+                            </h6>
+                            <div class="d-flex align-items-center ms-auto card-header-actions" style="gap: 15px;">
                                 <div class="form-check d-flex align-items-center">
                                     <label class="form-check-label me-2" for="bus_assignments_{{ $vehicleIndex }}" style="font-size: 0.8rem; color: #fff;">最終確認</label>
                                     <input type="checkbox" class="form-check-input" id="bus_assignments_{{ $vehicleIndex }}" name="bus_assignments[{{ $vehicleIndex }}][status_finalized]" value="1" {{ $busAssignment && $busAssignment->status_finalized ? 'checked' : '' }} style="margin: 0;">
@@ -337,7 +337,7 @@
                                     <label class="form-check-label me-2" for="lock_arrangement_{{ $vehicleIndex }}" style="font-size: 0.8rem; color: #fff;">操作ロック</label>
                                     <input type="checkbox" class="form-check-input" id="lock_arrangement_{{ $vehicleIndex }}" name="bus_assignments[{{ $vehicleIndex }}][lock_arrangement]" value="1" {{ $busAssignment && $busAssignment->lock_arrangement ? 'checked' : '' }} style="margin: 0;">
                                 </div>
-                                <div class="d-flex align-items-center" style="gap: 5px;">
+                                <div class="d-flex align-items-center card-header-btns" style="gap: 5px;">
                                     <input type="text" class="form-control form-control-sm border merge-operation-id" placeholder="運行ID" style="width: 80px;">
                                     <button type="button" class="btn btn-sm btn-primary merge-btn" style="font-size: 0.75rem; padding: 4px 8px;">統合</button>
                                     <button type="button" class="btn btn-sm btn-secondary split-btn" style="font-size: 0.75rem; padding: 4px 8px;">分割</button>
@@ -351,7 +351,7 @@
                             <input type="hidden" name="bus_assignments[{{ $vehicleIndex }}][vehicle_index]" value="{{ $vehicleIndex }}">
                             
                             <div class="row" style="margin-right: -5px; margin-left: -5px;">
-                                <div class="col-md-6" style="width:60%; padding-right: 5px; padding-left: 5px;">
+                                <div class="col-md-6 yxxx-l" style="width:60%; padding-right: 5px; padding-left: 5px;">
                                     <div class="row mb-1">
                                         <div class="col-md-12">
                                             <div class="d-flex w-100">
@@ -363,7 +363,7 @@
                                                         </span>
                                                     </div>
                                                     
-                                                    <div class="d-flex align-items-center" style="width: 30%;">
+                                                    <div class="d-flex align-items-center vehicle_type_spec_check" style="width: 30%;">
                                                         <span class="span-label" style="width: auto !important;">車種指定</span>
                                                         <input type="checkbox" class="form-check-input" name="bus_assignments[{{ $vehicleIndex }}][vehicle_type_spec_check]" value="1" {{ $busAssignment && $busAssignment->vehicle_type_spec_check ? 'checked' : '' }} style="margin: 0;">
                                                     </div>
@@ -394,19 +394,19 @@
                                     <div class="row mb-1">
                                         <div class="col-md-12">
                                             <div class="d-flex w-100">
-                                                <div class="d-flex align-items-center" style="width: 50%;">
+                                                <div class="d-flex align-items-center row-step_car" style="width: 50%;">
                                                     <span class="span-label" style="white-space: normal; word-break: break-all; line-height: 1.2; min-width: 70px;">ステップカー</span>
                                                     <input type="text" class="form-control form-control-sm border" name="bus_assignments[{{ $vehicleIndex }}][step_car]" value="{{ $busAssignment->step_car ?? '' }}" style="flex: 1;" id="step_car_{{ $vehicleIndex }}">
-                                                        <button type="button" class="btn btn-sm btn-outline-secondary ms-1 copy-stepcar-btn border" 
-                                                                data-vehicle-index="{{ $vehicleIndex }}" 
-                                                                style="padding: 4px 8px; font-size: 0.7rem; white-space: nowrap;"
-                                                                title="団体名をコピー">
-                                                            <i class="bi bi-files"></i> Copy
-                                                        </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary ms-1 copy-stepcar-btn border" 
+                                                            data-vehicle-index="{{ $vehicleIndex }}" 
+                                                            style="padding: 4px 8px; font-size: 0.7rem; white-space: nowrap;"
+                                                            title="団体名をコピー">
+                                                        <i class="bi bi-files"></i> Copy
+                                                    </button>
                                                 </div>
                                                 
                                                 <div class="d-flex" style="width: 50%; gap: 8px;">
-                                                    <div class="d-flex align-items-center" style="width: 50%;">
+                                                    <div class="d-flex align-items-center adult-child" style="width: 50%;">
                                                         <span class="span-label">人数</span>
                                                         <div class="d-flex gap-1 flex-fill">
                                                             <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[{{ $vehicleIndex }}][adult_count]" value="{{ $busAssignment->adult_count ?? 0 }}" placeholder="大" min="0">
@@ -425,7 +425,7 @@
                                 
                                     <div class="row mb-1">
                                         <div class="col-md-12">
-                                            <div class="d-flex w-100">
+                                            <div class="d-flex w-100 vehicle-representative">
                                                 <div class="d-flex align-items-center" style="width: 50%;">
                                                     <span class="span-label">車両</span>
                                                     <select class="form-select form-select-sm border vehicle-select" 
@@ -441,12 +441,10 @@
                                                     </select>
                                                 </div>
                                                 
-                                                <div class="d-flex align-items-center" style="width: 25%;">
+                                                <div class="d-flex align-items-center representative-1" style="width: 50%;">
                                                     <span class="span-label">代表</span>
                                                     <input type="text" class="form-control form-control-sm border" name="bus_assignments[{{ $vehicleIndex }}][representative]" value="{{ $busAssignment->representative ?? '' }}" placeholder="Name">
-                                                </div>
-                                                
-                                                <div class="d-flex align-items-center" style="width: 25%;">
+                                                    
                                                     <input type="text" class="form-control form-control-sm border ms-2" name="bus_assignments[{{ $vehicleIndex }}][representative_phone]" value="{{ $busAssignment->representative_phone ?? '' }}" placeholder="Tel/Cell">
                                                 </div>
                                             </div>
@@ -456,7 +454,7 @@
                                     <div class="row mb-1">
                                         <div class="col-md-12">
                                             <div class="d-flex w-100">
-                                                <div class="d-flex align-items-center" style="width: 35%;">
+                                                <div class="d-flex align-items-center" style="width: 50%;">
                                                     <span class="span-label">運転手</span>
                                                     <select class="form-select form-select-sm border driver-select" 
                                                             id="driver_select_{{ $vehicleIndex }}" 
@@ -469,9 +467,7 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                </div>
-                                                
-                                                <div class="d-flex align-items-center" style="width: 15%;">
+                                                    
                                                     <span class="span-label">仮</span>
                                                     <input type="checkbox" class="form-check-input" name="bus_assignments[{{ $vehicleIndex }}][temporary_driver]" value="1" {{ $busAssignment && $busAssignment->temporary_driver ? 'checked' : '' }} style="margin: 0;">
                                                 </div>
@@ -880,7 +876,7 @@
                                 <i class="bi bi-file-pdf"></i> 運行指示書PDF
                             </button>
                         </h6>
-                        <div class="d-flex align-items-center ms-auto" style="gap: 15px;">
+                        <div class="d-flex align-items-center ms-auto card-header-actions" style="gap: 15px;">
                             <div class="form-check d-flex align-items-center">
                                 <label class="form-check-label me-2" for="bus_assignments_1" style="font-size: 0.8rem; color: #fff;">最終確認</label>
                                 <input type="checkbox" class="form-check-input" id="bus_assignments_1" name="bus_assignments[1][status_finalized]" value="1" {{ $busAssignment && $busAssignment->status_finalized ? 'checked' : '' }} style="margin: 0;">
@@ -895,7 +891,7 @@
                                 <label class="form-check-label me-2" for="lock_arrangement_1" style="font-size: 0.8rem; color: #fff;">操作ロック</label>
                                 <input type="checkbox" class="form-check-input" id="lock_arrangement_1" name="bus_assignments[1][lock_arrangement]" value="1" {{ $busAssignment && $busAssignment->lock_arrangement ? 'checked' : '' }} style="margin: 0;">
                             </div>
-                            <div class="d-flex align-items-center" style="gap: 5px;">
+                            <div class="d-flex align-items-center card-header-btns" style="gap: 5px;">
                                 <input type="text" class="form-control form-control-sm border merge-operation-id" placeholder="運行ID" style="width: 80px;">
                                 <button type="button" class="btn btn-sm btn-primary merge-btn" style="font-size: 0.75rem; padding: 4px 8px;">統合</button>
                                 <button type="button" class="btn btn-sm btn-secondary split-btn" style="font-size: 0.75rem; padding: 4px 8px;">分割</button>
@@ -921,7 +917,7 @@
                                                     </span>
                                                 </div>
                                                 
-                                                <div class="d-flex align-items-center" style="width: 30%;">
+                                                <div class="d-flex align-items-center vehicle_type_spec_check" style="width: 30%;">
                                                     <span class="span-label" style="width: auto !important;">車種指定</span>
                                                     <input type="checkbox" class="form-check-input" name="bus_assignments[1][vehicle_type_spec_check]" value="1" {{ $busAssignment && $busAssignment->vehicle_type_spec_check ? 'checked' : '' }} style="margin: 0;">
                                                 </div>
@@ -952,7 +948,7 @@
                                 <div class="row mb-1">
                                     <div class="col-md-12">
                                         <div class="d-flex w-100">
-                                            <div class="d-flex align-items-center" style="width: 50%;">
+                                            <div class="d-flex align-items-center row-step_car" style="width: 50%;">
                                                 <span class="span-label" style="white-space: normal; word-break: break-all; line-height: 1.2; min-width: 70px;">ステップカー</span>
                                                 <input type="text" class="form-control form-control-sm border" name="bus_assignments[1][step_car]" value="{{ $busAssignment->step_car ?? '' }}" style="flex: 1;" id="step_car_1">
                                                 <button type="button" class="btn btn-sm btn-outline-secondary ms-1 copy-stepcar-btn border" 
@@ -964,7 +960,7 @@
                                             </div>
                                             
                                             <div class="d-flex" style="width: 50%; gap: 8px;">
-                                                <div class="d-flex align-items-center" style="width: 50%;">
+                                                <div class="d-flex align-items-center adult-child" style="width: 50%;">
                                                     <span class="span-label">人数</span>
                                                     <div class="d-flex gap-1 flex-fill">
                                                         <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[1][adult_count]" value="{{ $busAssignment->adult_count ?? 0 }}" placeholder="大" min="0">
@@ -983,7 +979,7 @@
                             
                                 <div class="row mb-1">
                                     <div class="col-md-12">
-                                        <div class="d-flex w-100">
+                                        <div class="d-flex w-100 vehicle-representative">
                                             <div class="d-flex align-items-center" style="width: 50%;">
                                                 <span class="span-label">車両</span>
                                                 <select class="form-select form-select-sm border vehicle-select" 
@@ -999,12 +995,10 @@
                                                 </select>
                                             </div>
                                             
-                                            <div class="d-flex align-items-center" style="width: 25%;">
+                                            <div class="d-flex align-items-center representative-1" style="width: 50%;">
                                                 <span class="span-label">代表</span>
                                                 <input type="text" class="form-control form-control-sm border" name="bus_assignments[1][representative]" value="{{ $busAssignment->representative ?? '' }}" placeholder="Name">
-                                            </div>
-                                            
-                                            <div class="d-flex align-items-center" style="width: 25%;">
+                                                
                                                 <input type="text" class="form-control form-control-sm border ms-2" name="bus_assignments[1][representative_phone]" value="{{ $busAssignment->representative_phone ?? '' }}" placeholder="Tel/Cell">
                                             </div>
                                         </div>
@@ -1014,7 +1008,7 @@
                                 <div class="row mb-1">
                                     <div class="col-md-12">
                                         <div class="d-flex w-100">
-                                            <div class="d-flex align-items-center" style="width: 35%;">
+                                            <div class="d-flex align-items-center" style="width: 50%;">
                                                 <span class="span-label">運転手</span>
                                                 <select class="form-select form-select-sm border driver-select" 
                                                         id="driver_select_1" 
@@ -1027,9 +1021,7 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
-                                            </div>
-                                            
-                                            <div class="d-flex align-items-center" style="width: 15%;">
+                                                
                                                 <span class="span-label">仮</span>
                                                 <input type="checkbox" class="form-check-input" name="bus_assignments[1][temporary_driver]" value="1" {{ $busAssignment && $busAssignment->temporary_driver ? 'checked' : '' }} style="margin: 0;">
                                             </div>
@@ -2041,6 +2033,627 @@ span.flatpickr-weekday {
     max-height: 260px;
     overflow-y: auto;
     min-height: 102px;
+}
+
+
+
+
+
+
+
+@media (max-width: 768px) {
+    body {
+        padding: 2% !important;
+        overflow-x: hidden !important;
+    }
+    
+    .container-fluid {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+    
+    .page-title {
+        font-size: 0.9rem !important;
+    }
+    
+    .d-flex.justify-content-between.align-items-center.mb-3 {
+        flex-direction: column !important;
+        gap: 10px !important;
+        align-items: stretch !important;
+    }
+    
+    .d-flex.justify-content-between.align-items-center.mb-3 .d-flex {
+        justify-content: space-between !important;
+    }
+    
+    .card-body .row {
+        flex-direction: column !important;
+    }
+    
+    .card-body .row > [class*="col-"],
+    .card-body .row > [style*="width:60%"],
+    .card-body .row > [style*="width:40%"] {
+        width: 100% !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .d-flex.w-100.gap-2 {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    
+    .d-flex.w-100.gap-2 > .d-flex,
+    .d-flex.w-100.gap-2 > div {
+        width: 100% !important;
+    }
+    
+    .w-50 {
+        width: 100% !important;
+    }
+    
+    .span-label {
+        min-width: 55px !important;
+        width: 55px !important;
+        font-size: 0.7rem !important;
+        margin-right: 8px !important;
+    }
+    
+    .form-control-sm, .form-select-sm {
+        font-size: 0.7rem !important;
+        padding: 4px 6px !important;
+        height: auto !important;
+    }
+    
+    .btn-sm {
+        font-size: 0.7rem !important;
+        padding: 4px 8px !important;
+    }
+    
+    .tab-wrapper {
+        flex-wrap: wrap !important;
+    }
+    
+    .tab-item {
+        flex: 1 !important;
+        text-align: center !important;
+        padding: 6px 4px !important;
+        font-size: 0.65rem !important;
+    }
+    
+    .tab-content {
+        padding: 6px !important;
+    }
+    
+    .tab-content2 {
+        padding: 6px !important;
+    }
+    
+    .vehicle-detail-card .card-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        padding: 12px !important;
+    }
+    
+    .vehicle-detail-card .card-header h6 {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 0 !important;
+        width: 100% !important;
+        gap: 8px !important;
+    }
+    
+    .vehicle-detail-card .card-header h6 span:first-child {
+        font-size: 0.75rem !important;
+    }
+    
+    .vehicle-detail-card .card-header h6 span:nth-child(2) {
+        font-size: 0.6rem !important;
+        padding: 2px 6px !important;
+    }
+    
+    .vehicle-detail-card .card-header h6 .btn-pdf-export {
+        padding: 2px 6px !important;
+        font-size: 0.6rem !important;
+    }
+    
+    .vehicle-detail-card .card-header h6 .btn-pdf-export i {
+        font-size: 0.6rem !important;
+    }
+    
+    .card-header-actions {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 15px !important;
+        margin-left: 0 !important;
+    }
+    
+    .card-header-actions > .form-check {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin: 0 !important;
+    }
+    
+    .card-header-actions > .form-check .form-check-label {
+        font-size: 0.7rem !important;
+        color: #fff !important;
+        white-space: nowrap !important;
+    }
+    
+    .card-header-actions > .form-check .form-check-input {
+        margin: 0 !important;
+    }
+    
+    .card-header-btns {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+    
+    .card-header-btns .merge-operation-id {
+        width: 70px !important;
+        font-size: 0.65rem !important;
+        padding: 3px 4px !important;
+    }
+    
+    .card-header-btns .btn {
+        padding: 3px 6px !important;
+        font-size: 0.6rem !important;
+    }
+    
+    .vehicle-itinerary-table th, 
+    .vehicle-itinerary-table td {
+        font-size: 0.65rem !important;
+        padding: 4px 2px !important;
+    }
+    
+    .vehicle-itinerary-table td:last-child,
+    .vehicle-itinerary-table th:last-child {
+        width: auto !important;
+        min-width: 90px !important;
+        white-space: nowrap !important;
+    }
+    
+    .vehicle-itinerary-table td:last-child .d-flex {
+        gap: 2px !important;
+        justify-content: center !important;
+    }
+    
+    .vehicle-itinerary-table td:last-child .btn-sm {
+        padding: 2px 4px !important;
+        font-size: 0.5rem !important;
+        min-width: 22px !important;
+        height: auto !important;
+    }
+    
+    .vehicle-itinerary-table td:last-child .btn-sm i {
+        font-size: 0.45rem !important;
+    }
+    
+    .vehicle-itinerary-table textarea {
+        min-height: 40px !important;
+        font-size: 0.6rem !important;
+    }
+    
+    .vehicle-itinerary-table input {
+        font-size: 0.6rem !important;
+        padding: 2px 3px !important;
+    }
+    
+    .options-container {
+        gap: 6px !important;
+    }
+    
+    .options-container label {
+        font-size: 0.6rem !important;
+    }
+    
+    .compensation-table th,
+    .compensation-table td,
+    .expense-table th,
+    .expense-table td {
+        font-size: 9px !important;
+        padding: 2px 1px !important;
+    }
+    
+    .compensation-table input,
+    .compensation-table select,
+    .expense-table input,
+    .expense-table select {
+        font-size: 9px !important;
+        padding: 1px 3px !important;
+    }
+    
+    .compensation-table button,
+    .expense-table button {
+        padding: 1px 3px !important;
+    }
+    
+    .compensation-table .btn-sm,
+    .expense-table .btn-sm {
+        padding: 1px 3px !important;
+        font-size: 8px !important;
+    }
+    
+    .compensation-table .btn-sm i,
+    .expense-table .btn-sm i {
+        font-size: 8px !important;
+    }
+    
+    #operation-details-container .tab-content2.expense-tab {
+        max-height: 200px !important;
+        min-height: auto !important;
+        padding: 6px !important;
+    }
+    
+    .d-flex.align-items-center.gap-4.my-2 {
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+    
+    
+    .btn-primary, .btn-outline-secondary, .btn-outline-danger {
+        padding: 5px 12px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    
+    
+    
+    .yxxx-l {
+        width: 100% !important;
+        padding-right: 5% !important;
+        padding-left: 5% !important;
+    }
+    
+    .yxxx-l input {
+        margin: 0 !important;
+    }
+    
+    .yxxx-l .d-flex.w-100 {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+    
+    .yxxx-l .row.mb-1 {
+        margin-bottom: 0 !important;
+    }
+    
+    .yxxx-l .row.mb-1 .col-md-12 {
+        padding: 0 !important;
+    }
+    
+    .yxxx-l .d-flex[style*="width: 50%; gap: 8px;"] {
+        width: 100% !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+    }
+    
+    .yxxx-l .d-flex[style*="width: 50%; gap: 8px;"] > .d-flex {
+        flex: 1 !important;
+        width: auto !important;
+        flex-direction: row !important;
+    }
+    
+    .yxxx-l .d-flex[style*="width: 50%;"] {
+        width: 100% !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center[style*="width: 25%;"] {
+        width: 50% !important;
+        flex: 1 !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center[style*="width: 35%;"] {
+        width: 70% !important;
+        flex: 1 !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center[style*="width: 15%;"] {
+        width: 30% !important;
+        flex: 1 !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center[style*="width: 50%;"] {
+        width: 100% !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center .span-label {
+        flex-shrink: 0 !important;
+        width: 65px !important;
+        min-width: 65px !important;
+        font-size: 0.7rem !important;
+        white-space: nowrap !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center .form-control-sm,
+    .yxxx-l .d-flex.align-items-center .form-select-sm,
+    .yxxx-l .d-flex.align-items-center .border,
+    .yxxx-l .d-flex.align-items-center .w-100 {
+        flex: 1 !important;
+        width: auto !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center .d-flex.gap-1 {
+        flex: 1 !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center .d-flex.gap-1 input {
+        flex: 1 !important;
+        min-width: 0 !important;
+        width: auto !important;
+    }
+    
+    .yxxx-l .copy-stepcar-btn {
+        flex-shrink: 0 !important;
+        margin-left: 6px !important;
+        white-space: nowrap !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center[style*="width: 70%"] {
+        width: 70% !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center[style*="width: 30%"] {
+        width: 30% !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .yxxx-l .form-check-input {
+        flex-shrink: 0 !important;
+    }
+    
+    .yxxx-l select.form-select-sm {
+        flex: 1 !important;
+        min-width: 0 !important;
+        width: auto !important;
+    }
+    
+    
+    .vehicle-representative {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+    
+    .vehicle-representative > div:first-child {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        flex: 2 !important;
+        min-width: 0 !important;
+    }
+    
+    .vehicle-representative > div:first-child .span-label {
+        flex-shrink: 0 !important;
+        width: 45px !important;
+        min-width: 45px !important;
+    }
+    
+    .vehicle-representative > div:first-child .form-select-sm {
+        flex: 1 !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+    
+    .representative-1,
+    .representative-2 {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+    
+    .representative-1 .span-label {
+        flex-shrink: 0 !important;
+        width: 45px !important;
+        min-width: 45px !important;
+        font-size: 0.7rem !important;
+        white-space: nowrap !important;
+    }
+    
+    .representative-1 .form-control-sm,
+    .representative-2 .form-control-sm {
+        flex: 1 !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+    
+    .representative-2 .ms-2 {
+        margin-left: 4px !important;
+    }
+
+
+    
+
+    .adult-child {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+    }
+    
+    .adult-child .span-label {
+        flex-shrink: 0 !important;
+        width: 55px !important;
+        min-width: 55px !important;
+        font-size: 0.7rem !important;
+        white-space: nowrap !important;
+    }
+    
+    .adult-child .d-flex.gap-1 {
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 6px !important;
+        flex-wrap: nowrap !important;
+    }
+    
+    .adult-child .d-flex.gap-1 input {
+        flex: 1 !important;
+        min-width: 0 !important;
+        width: auto !important;
+        margin: 0 !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center .form-control-sm[id^="step_car_"] {
+        flex: 4 !important;
+    }
+    
+    
+    .yxxx-l .d-flex.align-items-center[style*="width: 50%; gap: 8px;"] > .d-flex.align-items-center[style*="width: 70%;"] {
+        flex: 2 !important;
+    }
+
+}
+
+@media (max-width: 480px) {
+    .card-header-actions > .form-check {
+        flex: 0 0 auto !important;
+    }
+    
+    .card-header-actions > .form-check .form-check-label {
+        font-size: 0.6rem !important;
+    }
+    
+    .vehicle-itinerary-table th, 
+    .vehicle-itinerary-table td {
+        font-size: 0.55rem !important;
+        padding: 3px 1px !important;
+    }
+    
+    .span-label {
+        min-width: 50px !important;
+        width: 50px !important;
+        font-size: 0.65rem !important;
+    }
+    
+    .tab-item {
+        font-size: 0.6rem !important;
+        padding: 4px 2px !important;
+    }
+    
+    .compensation-table th,
+    .compensation-table td,
+    .expense-table th,
+    .expense-table td {
+        font-size: 8px !important;
+    }
+    
+    .compensation-table th:nth-child(2),
+    .compensation-table td:nth-child(2),
+    .expense-table th:nth-child(2),
+    .expense-table td:nth-child(2) {
+        max-width: 70px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    
+    .compensation-table input,
+    .compensation-table select,
+    .expense-table input,
+    .expense-table select {
+        font-size: 8px !important;
+        padding: 1px 2px !important;
+    }
+    
+    .vehicle-detail-card .card-header h6 button {
+        padding: 2px 6px !important;
+        font-size: 0.6rem !important;
+    }
+    
+    .btn-primary, .btn-outline-secondary, .btn-outline-danger {
+        padding: 4px 10px !important;
+        font-size: 0.65rem !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center .span-label {
+        margin-bottom: 4px !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center .form-control-sm,
+    .yxxx-l .d-flex.align-items-center .form-select-sm,
+    .yxxx-l .d-flex.align-items-center .border {
+        width: 100% !important;
+    }
+    
+    
+    .yxxx-l .d-flex[style*="width: 50%; gap: 8px;"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+    
+    .yxxx-l .d-flex[style*="width: 50%; gap: 8px;"] > .d-flex {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center[style*="width: 50%;"] .span-label {
+        flex-shrink: 0 !important;
+        width: 60px !important;
+        min-width: 60px !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center[style*="width: 50%;"] .d-flex.gap-1 {
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 6px !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center[style*="width: 50%;"] .d-flex.gap-1 input {
+        flex: 1 !important;
+        min-width: 0 !important;
+        width: 50% !important;
+    }
+    
+    .yxxx-l .d-flex.align-items-center[style*="width: 50%;"] .w-100 {
+        flex: 1 !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+
 }
 </style>
 @endpush
@@ -3455,7 +4068,7 @@ function updateBusDetailClickHandler(e) {
                         <i class="bi bi-file-pdf"></i> 運行指示書PDF
                     </button>
                 </h6>
-                <div class="d-flex align-items-center ms-auto" style="gap: 15px;">
+                <div class="d-flex align-items-center ms-auto card-header-actions" style="gap: 15px;">
                     <div class="form-check d-flex align-items-center">
                         <label class="form-check-label me-2" for="bus_assignments_${newIndex}" style="font-size: 0.8rem; color: #fff;">最終確認</label>
                         <input type="checkbox" class="form-check-input" id="bus_assignments_${newIndex}" name="bus_assignments[${newIndex}][status_finalized]" value="1" style="margin: 0;">
@@ -3468,7 +4081,7 @@ function updateBusDetailClickHandler(e) {
                         <label class="form-check-label me-2" for="lock_arrangement_${newIndex}" style="font-size: 0.8rem; color: #fff;">操作ロック</label>
                         <input type="checkbox" class="form-check-input" id="lock_arrangement_${newIndex}" name="bus_assignments[${newIndex}][lock_arrangement]" value="1" style="margin: 0;">
                     </div>
-                    <div class="d-flex align-items-center" style="gap: 5px;">
+                    <div class="d-flex align-items-center card-header-btns" style="gap: 5px;">
                         <input type="text" class="form-control form-control-sm border merge-operation-id" placeholder="運行ID" style="width: 80px;">
                         <button type="button" class="btn btn-sm btn-primary merge-btn" style="font-size: 0.75rem; padding: 4px 8px;">統合</button>
                         <button type="button" class="btn btn-sm btn-secondary split-btn" style="font-size: 0.75rem; padding: 4px 8px;">分割</button>
@@ -3491,7 +4104,7 @@ function updateBusDetailClickHandler(e) {
                                             <span class="span-label">運行ID</span>
                                             <span class="border px-2 py-1 bg-white rounded w-100" style="color: #2563eb;">&nbsp;</span>
                                         </div>
-                                        <div class="d-flex align-items-center" style="width: 30%;">
+                                        <div class="d-flex align-items-center vehicle_type_spec_check" style="width: 30%;">
                                             <span class="span-label" style="width: auto !important;">車種指定</span>
                                             <input type="checkbox" class="form-check-input" name="bus_assignments[${newIndex}][vehicle_type_spec_check]" value="1" style="margin: 0;">
                                         </div>
@@ -3516,7 +4129,7 @@ function updateBusDetailClickHandler(e) {
                         <div class="row mb-1">
                             <div class="col-md-12">
                                 <div class="d-flex w-100">
-                                    <div class="d-flex align-items-center" style="width: 50%;">
+                                    <div class="d-flex align-items-center row-step_car" style="width: 50%;">
                                         <span class="span-label" style="white-space: normal; word-break: break-all; line-height: 1.2; min-width: 70px;">ステップカー</span>
                                         <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][step_car]" value="" id="step_car_${newIndex}">
                                         <button type="button" class="btn btn-sm btn-outline-secondary ms-1 copy-stepcar-btn border" 
@@ -3527,7 +4140,7 @@ function updateBusDetailClickHandler(e) {
                                         </button>
                                     </div>
                                     <div class="d-flex" style="width: 50%; gap: 8px;">
-                                        <div class="d-flex align-items-center" style="width: 50%;">
+                                        <div class="d-flex align-items-center adult-child" style="width: 50%;">
                                             <span class="span-label">人数</span>
                                             <div class="d-flex gap-1 flex-fill">
                                                 <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[${newIndex}][adult_count]" value="0" placeholder="大" min="0">
@@ -3545,7 +4158,7 @@ function updateBusDetailClickHandler(e) {
                     
                         <div class="row mb-1">
                             <div class="col-md-12">
-                                <div class="d-flex w-100">
+                                <div class="d-flex w-100 vehicle-representative">
                                     <div class="d-flex align-items-center" style="width: 50%;">
                                         <span class="span-label">車両</span>
                                         <select class="form-select form-select-sm border vehicle-select" 
@@ -3560,11 +4173,10 @@ function updateBusDetailClickHandler(e) {
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="d-flex align-items-center" style="width: 25%;">
+                                    <div class="d-flex align-items-center representative-1" style="width: 50%;">
                                         <span class="span-label">代表</span>
                                         <input type="text" class="form-control form-control-sm border" name="bus_assignments[${newIndex}][representative]" value="" placeholder="Name">
-                                    </div>
-                                    <div class="d-flex align-items-center" style="width: 25%;">
+                                        
                                         <input type="text" class="form-control form-control-sm border ms-2" name="bus_assignments[${newIndex}][representative_phone]" value="" placeholder="Tel/Cell">
                                     </div>
                                 </div>
@@ -3574,7 +4186,7 @@ function updateBusDetailClickHandler(e) {
                         <div class="row mb-1">
                             <div class="col-md-12">
                                 <div class="d-flex w-100">
-                                    <div class="d-flex align-items-center" style="width: 35%;">
+                                    <div class="d-flex align-items-center" style="width: 50%;">
                                         <span class="span-label">運転手</span>
                                         <select class="form-select form-select-sm border driver-select" 
                                                 id="driver_select_${newIndex}" 
@@ -3587,8 +4199,7 @@ function updateBusDetailClickHandler(e) {
                                                 </option>
                                             @endforeach
                                         </select>
-                                    </div>
-                                    <div class="d-flex align-items-center" style="width: 15%;">
+                                        
                                         <span class="span-label">仮</span>
                                         <input type="checkbox" class="form-check-input" name="bus_assignments[${newIndex}][temporary_driver]" value="1" style="margin: 0;">
                                     </div>

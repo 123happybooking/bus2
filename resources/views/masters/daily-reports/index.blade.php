@@ -18,15 +18,19 @@
                         <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">開始日</span>
                         <input type="text" name="start_date" value="{{ request('start_date', \Carbon\Carbon::today()->format('Y-m-d')) }}" 
                                class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" placeholder="開始日" id="start_date" onchange="submitWithEndDate()">
-                        
-                        <select name="period" class="form-select form-select-sm" style="width: 100px; margin-left: 8px;" id="period_select">
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <select name="period" class="form-select form-select-sm" id="period_select">
                             <option value="1" {{ request('period') == 1 ? 'selected' : '' }}>1週間</option>
                             <option value="2" {{ request('period') == 2 ? 'selected' : '' }}>2週間</option>
                             <option value="3" {{ request('period') == 3 ? 'selected' : '' }}>3週間</option>
                             <option value="4" {{ request('period') == 4 ? 'selected' : '' }}>1ヶ月</option>
                         </select>
-                        
-                        <div class="btn-group btn-group-sm ms-2">
+                    </div>
+                    
+                    <div class="d-flex align-items-center date-nav-wrapper">
+                        <div class="btn-group btn-group-sm w-100">
                             <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', -1)">&lt;&lt;</button>
                             <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', -1)">&lt;</button>
                             <button type="button" class="btn btn-outline-secondary" onclick="setToday()">今日</button>
@@ -301,6 +305,249 @@ a:hover {
     background-color: #e9ecef;
     border-color: #adb5bd;
     color: #212529;
+}
+
+
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+    
+    .bg-light.p-2 {
+        padding: 10px !important;
+    }
+    
+    .bg-light .d-flex.flex-wrap {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+    
+    .bg-light .d-flex.flex-wrap > .d-flex {
+        margin: 0 !important;
+        min-width: 0 !important;
+    }
+    
+    .d-flex.align-items-center {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-wrap: nowrap !important;
+    }
+    
+    .d-flex.align-items-center span:first-child {
+        font-size: 0.7rem !important;
+        font-weight: 500 !important;
+        min-width: 50px !important;
+        flex-shrink: 0 !important;
+        color: #374151 !important;
+    }
+    
+    .d-flex.align-items-center .form-control-sm,
+    .d-flex.align-items-center .form-select-sm {
+        flex: 1 !important;
+        min-width: 0 !important;
+        width: auto !important;
+        font-size: 0.7rem !important;
+        padding: 5px 6px !important;
+        height: auto !important;
+    }
+    
+    .branch-dropdown,
+    .status-dropdown {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    
+    .branch-dropdown .dropdown-toggle,
+    .status-dropdown .dropdown-toggle {
+        width: 100% !important;
+        min-width: 0 !important;
+        font-size: 0.7rem !important;
+        padding: 5px 6px !important;
+    }
+    
+    .dropdown-menu {
+        max-width: 90vw !important;
+    }
+    
+    .dropdown-item {
+        white-space: normal !important;
+        word-break: break-word !important;
+        font-size: 0.7rem !important;
+        padding: 6px 10px !important;
+    }
+    
+    .btn-group.btn-group-sm {
+        display: flex !important;
+        gap: 4px !important;
+    }
+    
+    .btn-group.btn-group-sm .btn {
+        padding: 4px 6px !important;
+        font-size: 0.65rem !important;
+    }
+    
+    .form-check {
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        white-space: nowrap !important;
+    }
+    
+    .form-check-label {
+        font-size: 0.7rem !important;
+        white-space: nowrap !important;
+    }
+    
+    .d-flex.gap-1 {
+        grid-column: span 2 !important;
+        justify-content: flex-end !important;
+        margin-top: 5px !important;
+        gap: 8px !important;
+    }
+    
+    .d-flex.gap-1 .btn-sm,
+    .d-flex.gap-1 a {
+        padding: 5px 14px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .selected-count {
+        font-size: 0.55rem !important;
+        padding: 0 3px !important;
+        min-width: 14px !important;
+    }
+    
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .ledger-table {
+        font-size: 0.7rem !important;
+        min-width: auto !important;
+    }
+    
+    .ledger-table th:first-child,
+    .ledger-table td:first-child {
+        min-width: 110px !important;
+        max-width: 130px !important;
+    }
+    
+    .ledger-table th:not(:first-child),
+    .ledger-table td:not(:first-child) {
+        min-width: 70px !important;
+    }
+    
+    .ledger-table th:first-child,
+    .ledger-table td:first-child {
+        position: sticky !important;
+        left: 0 !important;
+        z-index: 101 !important;
+    }
+    
+    .ledger-table th:first-child {
+        background-color: #e9ecef !important;
+    }
+    
+    .ledger-table tbody tr:nth-child(even) td:first-child {
+        background-color: #f8f9fa !important;
+    }
+    
+    .ledger-table tbody tr:nth-child(odd) td:first-child {
+        background-color: #fff !important;
+    }
+    
+    .timeline-event {
+        height: 45px !important;
+    }
+    
+    .event-content {
+        font-size: 0.5rem !important;
+        line-height: 1.2 !important;
+        white-space: normal !important;
+        overflow: hidden !important;
+        padding: 1px !important;
+    }
+    
+    .event-content div {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 0.45rem !important;
+    }
+    
+    .timeline-cell {
+        height: 45px !important;
+    }
+    
+    .itinerary-count-badge {
+        font-size: 0.4rem !important;
+        min-width: 12px !important;
+        height: 12px !important;
+        border-radius: 6px !important;
+        top: 1px !important;
+        left: 1px !important;
+    }
+    
+    .date-header-cell {
+        font-size: 0.6rem !important;
+        padding: 2px !important;
+    }
+    
+    .holiday-name,
+    .date-remark,
+    .stop-order-badge {
+        font-size: 0.4rem !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+    
+    #iframeModal #modalContent {
+        width: 95% !important;
+        max-width: 95% !important;
+    }
+    
+    #modalIframe {
+        height: 70vh !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .bg-light .d-flex.flex-wrap {
+        gap: 8px !important;
+    }
+    
+    .d-flex.align-items-center span:first-child {
+        font-size: 0.65rem !important;
+        min-width: 55px !important;
+    }
+    
+    .d-flex.align-items-center .form-control-sm,
+    .d-flex.align-items-center .form-select-sm {
+        font-size: 0.65rem !important;
+        padding: 5px 6px !important;
+    }
+    
+    .ledger-table th:first-child,
+    .ledger-table td:first-child {
+        min-width: 100px !important;
+    }
+    
+    .ledger-table th:not(:first-child),
+    .ledger-table td:not(:first-child) {
+        min-width: 60px !important;
+    }
+    
+    .event-content div:nth-child(3) {
+        display: none !important;
+    }
+    
+    .event-content div:nth-child(4) span:not(:first-child) {
+        display: none !important;
+    }
 }
 </style>
 @endpush

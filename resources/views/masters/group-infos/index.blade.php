@@ -383,6 +383,82 @@ small {
 .operation-links a:last-child {
     margin-right: 0;
 }
+
+
+
+@media (max-width: 768px) {
+    .bg-light .d-flex.flex-wrap {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+    
+    .bg-light .d-flex.flex-wrap > .d-flex {
+        margin: 0 !important;
+        min-width: 0 !important;
+    }
+    
+    .d-flex.align-items-center:first-child {
+        grid-column: span 2 !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+    
+    .d-flex.align-items-center:first-child .me-1 {
+        font-size: 0.7rem !important;
+        min-width: 45px !important;
+    }
+    
+    .d-flex.align-items-center:first-child .form-control-sm {
+        flex: 1 !important;
+        min-width: 100px !important;
+    }
+    
+    .d-flex.align-items-center:first-child .form-select-sm {
+        flex: 1 !important;
+        min-width: 80px !important;
+    }
+    
+    .btn-group.ms-2 {
+        margin-left: 0 !important;
+        margin-top: 8px !important;
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        gap: 8px !important;
+    }
+    
+    .btn-group.ms-2 .btn {
+        flex: 1 !important;
+        max-width: 60px !important;
+        padding: 6px 0 !important;
+        font-size: 0.7rem !important;
+        text-align: center !important;
+    }
+    
+    .bg-light .col {
+        grid-column: span 2 !important;
+        width: 100% !important;
+    }
+    
+    .bg-light .col input {
+        width: 100% !important;
+    }
+    
+    .d-flex.gap-1 {
+        grid-column: span 2 !important;
+        justify-content: flex-end !important;
+        margin-top: 5px !important;
+        gap: 8px !important;
+    }
+    
+    .d-flex.gap-1 .btn-sm,
+    .d-flex.gap-1 a {
+        padding: 5px 14px !important;
+        font-size: 0.7rem !important;
+    }
+}
 </style>
 @endpush
 

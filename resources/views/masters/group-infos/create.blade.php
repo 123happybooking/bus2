@@ -8,14 +8,14 @@
         @csrf
         <input type="hidden" name="iframe" value="1" id="isIframe">
 
-        <div class="m-2">
-            <div class="d-flex align-items-center justify-content-between" style="flex-wrap: nowrap; gap: 6px;">
-                <div class="d-flex align-items-center" style="flex-shrink: 0;">
+        <div class="card mt-2 mb-2">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center flex-shrink-0">
                     <label for="status" class="label-text mr-2">車両指定</label>
                     <input type="checkbox" id="status" class="checkbox mr-5" name="vehicle_selection" {{ old('vehicle_selection') ? 'checked' : '' }}>
                 </div>
                 
-                <div class="d-flex align-items-center" style="flex-shrink: 0;">
+                <div class="d-flex align-items-center flex-shrink-0">
                     <label for="vehicle_grade_id" class="label-text mr-2">車輛等級</label>
                     <select name="vehicle_grade_id" id="vehicle_grade_id" class="form-input-small" style="width:80px;">
                         @foreach($vehicleGrades ?? [] as $grade)
@@ -27,7 +27,7 @@
                     </select>
                 </div>
                 
-                <div class="d-flex align-items-center" style="flex-shrink: 0;">
+                <div class="d-flex align-items-center flex-shrink-0">
                     <label for="yoyaku" class="label-text mr-2">予約状況</label>
                     <select id="yoyaku" class="form-input-small" name="reservation_status" style="width:80px;">
                         <option value="予約" style="background-color: #ccf5ff; color: black;" {{ old('reservation_status') == '予約' ? 'selected' : '' }} selected>予約</option>
@@ -45,7 +45,7 @@
                     </select>
                 </div>
                 
-                <div class="d-flex align-items-center" style="flex-shrink: 0;">
+                <div class="d-flex align-items-center flex-shrink-0">
                     <label for="category" class="label-text mr-2">業務分類</label>
                     <select id="category" name="reservation_categories_id" class="form-input" style="width: 80px;">
                         <option value="">-- 選択 --</option>
@@ -76,16 +76,22 @@
 
             <div class="d-flex mb-1">
                 <div class="label-width text-gray">開始日</div>
-                <div class="d-flex align-items-center" style="flex: 1;">
-                    <input type="text" name="start_date" value="" class="form-input-small input-width-date datepicker-3months" id="start_date" style="flex: 1; min-width: 0;" placeholder="YYYY-MM-DD" autocomplete="off">
-                    <span class="mx-2">
-                        <input type="time" name="start_time" value="{{ old('start_time', '08:00') }}" class="form-input-small input-width-time" step="60" style="width: 90px;">
-                    </span>
-                    <span class="label-text mx-2" style="margin-left:0 !important;">~</span>
-                    <input type="text" name="end_date" value="" class="form-input-small input-width-date datepicker-3months" id="end_date" style="flex: 1; min-width: 0;" placeholder="YYYY-MM-DD" autocomplete="off">
-                    <span class="ms-2">
-                        <input type="time" name="end_time" value="{{ old('end_time', '18:00') }}" class="form-input-small input-width-time" step="60" style="width: 90px;">
-                    </span>
+                <div class="d-flex align-items-center flex-nowrap date-range-responsive" style="flex: 1; gap: 6px;">
+                    <div class="flex-grow-1">
+                        <input type="text" name="start_date" value="" class="form-input-small datepicker-3months w-100" id="start_date" placeholder="YYYY-MM-DD" autocomplete="off">
+                    </div>
+                    <div class="flex-grow-1">
+                        <input type="time" name="start_time" value="{{ old('start_time', '08:00') }}" class="form-input-small w-100" step="60">
+                    </div>
+                    <div class="text-center">
+                        <span class="label-text">~</span>
+                    </div>
+                    <div class="flex-grow-1">
+                        <input type="text" name="end_date" value="" class="form-input-small datepicker-3months w-100" id="end_date" placeholder="YYYY-MM-DD" autocomplete="off">
+                    </div>
+                    <div class="flex-grow-1">
+                        <input type="time" name="end_time" value="{{ old('end_time', '18:00') }}" class="form-input-small w-100" step="60">
+                    </div>
                 </div>
             </div>
 
@@ -141,7 +147,7 @@
                             <div class="suggestions-container" id="agency_suggestions" style="display: none;"></div>
                         </div>
                         
-                        <div class="label-width text-gray text-center" style="width: 60px;">团体名</div>
+                        <div class="label-width text-gray text-center">团体名</div>
                         <div class="flex-1">
                             <input type="text" name="group_name" value="{{ old('group_name') }}" class="form-input" placeholder="团体名を入力">
                         </div>
@@ -149,15 +155,15 @@
 
                     <div class="d-flex align-items-center mb-1">
                         <div class="label-width text-gray">大人</div>
-                        <div class="input-width-number mr-4">
+                        <div class="input-width-number mr-4" style="width: 30px;">
                             <input type="text" name="adult_count" id="adult_count" value="{{ old('adult_count', '') }}" class="form-input">
                         </div>
-                        <div class="label-width text-gray mr-2 text-center">小人</div>
-                        <div class="input-width-number mr-4">
+                        <div class="label-width text-gray mr-2 text-center" style="width: 30px;">小人</div>
+                        <div class="input-width-number mr-4" style="width: 30px;">
                             <input type="text" name="child_count" value="{{ old('child_count', '') }}" class="form-input" min="0">
                         </div>
-                        <div class="label-width text-gray mr-2 text-center">荷物数</div>
-                        <div class="input-width-number" style="width: 214px;">
+                        <div class="label-width text-gray mr-2 text-center" style="width: 30px;">荷物</div>
+                        <div class="input-width-number flex-1">
                             <input type="text" name="luggage" value="{{ old('luggage') }}" class="form-input">
                         </div>
                     </div>
@@ -270,7 +276,7 @@
             </div>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="d-flex justify-content-between align-items-center mt-1 mb-2">
             <div class="d-flex gap-2">
                 <button type="submit" class="btn-primary" id="saveBtn">作成</button>
                 <button type="button" class="btn-secondary" id="detailBtn" style="display: none;">詳細</button>
@@ -397,6 +403,106 @@
     input[type="time"]::-webkit-calendar-picker-indicator:hover {
         opacity: 1;
     }
+    
+    
+@media (max-width: 500px) {
+    .date-range-responsive {
+        flex-wrap: wrap !important;
+    }
+    
+    .date-range-responsive > div {
+        flex: 0 0 calc(50% - 3px) !important;
+        margin-bottom: 6px;
+    }
+    
+    .date-range-responsive > div:nth-child(3) {
+        flex: 0 0 100% !important;
+        text-align: center;
+        order: 2;
+        margin-bottom: 6px;
+    }
+    
+    .date-range-responsive > div:nth-child(1),
+    .date-range-responsive > div:nth-child(2) {
+        order: 1;
+    }
+    
+    .date-range-responsive > div:nth-child(4),
+    .date-range-responsive > div:nth-child(5) {
+        order: 3;
+    }
+    
+    .date-range-responsive .text-center {
+        line-height: 0px;
+        padding: 0;
+        margin: -5px 0 6px 0;
+    }
+    
+    
+    .date-range-responsive input[type="text"],
+    .date-range-responsive input[type="time"] {
+        height: 32px !important;
+        padding: 4px 8px !important;
+        font-size: 14px !important;
+        border: 1px solid #bbb !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
+    }
+    
+    .date-range-responsive input[type="time"] {
+        min-height: 32px !important;
+    }
+    
+    
+    
+    .card.mt-2.mb-2 .d-flex.align-items-center.justify-content-between {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px !important;
+    }
+    
+    .card.mt-2.mb-2 .d-flex.align-items-center.flex-shrink-0 {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        flex-shrink: 1 !important;
+        gap: 8px !important;
+        overflow: hidden !important;
+    }
+    
+    .card.mt-2.mb-2 .d-flex.align-items-center.flex-shrink-0 .label-text {
+        font-size: 0.7rem !important;
+        white-space: nowrap !important;
+        color: #374151 !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .card.mt-2.mb-2 .d-flex.align-items-center.flex-shrink-0 select,
+    .card.mt-2.mb-2 .d-flex.align-items-center.flex-shrink-0 .form-input,
+    .card.mt-2.mb-2 .d-flex.align-items-center.flex-shrink-0 .form-input-small {
+        width: auto !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+        background-color: #fff !important;
+        border: 1px solid #ccc !important;
+        border-radius: 4px !important;
+        color: #333 !important;
+        font-size: 0.7rem !important;
+        padding: 4px 6px !important;
+        height: 28px !important;
+    }
+    
+    .card.mt-2.mb-2 .d-flex.align-items-center.flex-shrink-0 input[type="checkbox"] {
+        width: 14px !important;
+        height: 14px !important;
+        margin: 0 !important;
+        flex-shrink: 0 !important;
+    }
+}
 </style>
 @endpush
 
