@@ -905,7 +905,7 @@
                         <input type="hidden" name="bus_assignments[1][vehicle_index]" value="1">
                         
                         <div class="row" style="margin-right: -5px; margin-left: -5px;">
-                            <div class="col-md-6" style="width:60%; padding-right: 5px; padding-left: 5px;">
+                            <div class="col-md-6 yxxx-l" style="width:60%; padding-right: 5px; padding-left: 5px;">
                                 <div class="row mb-1">
                                     <div class="col-md-12">
                                         <div class="d-flex w-100">
@@ -4095,7 +4095,7 @@ function updateBusDetailClickHandler(e) {
                 <input type="hidden" name="bus_assignments[${newIndex}][vehicle_index]" value="${newIndex}">
                 
                 <div class="row" style="margin-right: -5px; margin-left: -5px;">
-                    <div class="col-md-6" style="width:60%; padding-right: 5px; padding-left: 5px;">
+                    <div class="col-md-6 yxxx-l" style="width:60%; padding-right: 5px; padding-left: 5px;">
                         <div class="row mb-1">
                             <div class="col-md-12">
                                 <div class="d-flex w-100">
