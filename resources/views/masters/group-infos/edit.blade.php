@@ -90,7 +90,11 @@
                                     <div class="d-flex w-50 gap-2">
                                         <div class="d-flex align-items-center flex-fill">
                                             <span class="span-label" style="min-width: 50px;">担当</span>
-                                            <input type="text" class="form-control form-control-sm border w-100" name="agency_contact_name" value="{{ old('agency_contact_name', $groupInfo->agency_contact_name ?? $defaultStaffName) }}" id="agency_contact_name">
+                                            <div class="flex-1 position-relative w-100">
+                                                <input type="text" class="form-control form-control-sm border search-input w-100" id="staff_search" value="{{ old('agency_contact_name', $groupInfo->agency_contact_name ?? $defaultStaffName) }}" autocomplete="off">
+                                                <input type="hidden" name="agency_contact_name" value="{{ old('agency_contact_name', $groupInfo->agency_contact_name ?? $defaultStaffName) }}">
+                                                <div class="suggestions-container" id="staff_suggestions" style="display: none;"></div>
+                                            </div>
                                         </div>
                                         <div class="d-flex align-items-center flex-fill">
                                             <span class="span-label" style="min-width: 50px;">営業所</span>
@@ -159,8 +163,8 @@
                                         <div class="d-flex align-items-center w-50">
                                             <span class="span-label" style="min-width: 50px; white-space: nowrap;">人数</span>
                                             <div class="d-flex gap-1 flex-fill">
-                                                <input type="number" class="form-control form-control-sm border flex-fill" name="adult_count" id="adult_count" value="{{ old('adult_count', $groupInfo->adult_count) }}" placeholder="大人" min="0">
-                                                <input type="number" class="form-control form-control-sm border flex-fill" name="child_count" id="child_count" value="{{ old('child_count', $groupInfo->child_count) }}" placeholder="小人" min="0">
+                                                <input type="number" class="form-control form-control-sm border flex-fill" name="adult_count" id="adult_count" value="{{ old('adult_count', $groupInfo->adult_count == 0 ? '' : $groupInfo->adult_count) }}" placeholder="大人" min="0">
+                                                <input type="number" class="form-control form-control-sm border flex-fill" name="child_count" id="child_count" value="{{ old('child_count', $groupInfo->child_count == 0 ? '' : $groupInfo->child_count) }}" placeholder="小人" min="0">
                                             </div>
                                         </div>
                                         
@@ -409,8 +413,8 @@
                                                     <div class="d-flex align-items-center adult-child" style="width: 50%;">
                                                         <span class="span-label">人数</span>
                                                         <div class="d-flex gap-1 flex-fill">
-                                                            <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[{{ $vehicleIndex }}][adult_count]" value="{{ $busAssignment->adult_count ?? 0 }}" placeholder="大" min="0">
-                                                            <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[{{ $vehicleIndex }}][child_count]" value="{{ $busAssignment->child_count ?? 0 }}" placeholder="小" min="0">
+                                                            <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[{{ $vehicleIndex }}][adult_count]" value="{{ $busAssignment->adult_count ?: '' }}" placeholder="大" min="0">
+                                                            <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[{{ $vehicleIndex }}][child_count]" value="{{ $busAssignment->child_count ?: '' }}" placeholder="小" min="0">
                                                         </div>
                                                     </div>
                                                     
@@ -963,8 +967,8 @@
                                                 <div class="d-flex align-items-center adult-child" style="width: 50%;">
                                                     <span class="span-label">人数</span>
                                                     <div class="d-flex gap-1 flex-fill">
-                                                        <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[1][adult_count]" value="{{ $busAssignment->adult_count ?? 0 }}" placeholder="大" min="0">
-                                                        <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[1][child_count]" value="{{ $busAssignment->child_count ?? 0 }}" placeholder="小" min="0">
+                                                        <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[1][adult_count]" value="{{ $busAssignment->adult_count ?: '' }}" placeholder="大" min="0">
+                                                        <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[1][child_count]" value="{{ $busAssignment->child_count ?: '' }}" placeholder="小" min="0">
                                                     </div>
                                                 </div>
                                                 
@@ -3697,6 +3701,11 @@ function updateBusDetailClickHandler(e) {
                 const categorySearchInput = document.getElementById('category_search');
                 if (categoryIdInput) categoryIdInput.value = id;
                 if (categorySearchInput) categorySearchInput.value = data.display;
+            } else if (type === 'staff') {
+                const staffTabInput = document.querySelector('input[name="agency_contact_name"]');
+                if (staffTabInput) {
+                    staffTabInput.value = data.display;
+                }
             }
         });
 
@@ -4143,8 +4152,8 @@ function updateBusDetailClickHandler(e) {
                                         <div class="d-flex align-items-center adult-child" style="width: 50%;">
                                             <span class="span-label">人数</span>
                                             <div class="d-flex gap-1 flex-fill">
-                                                <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[${newIndex}][adult_count]" value="0" placeholder="大" min="0">
-                                                <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[${newIndex}][child_count]" value="0" placeholder="小" min="0">
+                                                <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[${newIndex}][adult_count]" value="" placeholder="大" min="0">
+                                                <input type="number" class="form-control form-control-sm border flex-fill" name="bus_assignments[${newIndex}][child_count]" value="" placeholder="小" min="0">
                                             </div>
                                         </div>
                                         <div class="d-flex align-items-center" style="width: 50%;">
@@ -4900,6 +4909,16 @@ function updateBusDetailClickHandler(e) {
             phone: item.phone_number,
             branch: item.branch?.branch_name || '',
             employment_type: item.employment_type
+        };
+    });
+    
+    const staffs = @json($staffs ?? []);
+    
+    setupSearch('staff', staffs, (item) => {
+        return {
+            display: item.name,
+            id: item.id,
+            name: item.name
         };
     });
 

@@ -74,6 +74,7 @@ use App\Http\Controllers\Masters\AccountCashController;
 use App\Http\Controllers\Masters\AccountDepositController;
 use App\Http\Controllers\Masters\AccountCashInController;
 use App\Http\Controllers\Masters\AccountCashOutController;
+use App\Http\Controllers\Masters\AccountConfigController;
 
 Route::get('/', function() {
     return redirect('/masters');
@@ -206,15 +207,25 @@ Route::prefix('masters')->name('masters.')->group(function () {
         
 
         Route::resource('currencies', CurrencyController::class)->names('currencies');
+        Route::get('invoices/get_journal', [InvoiceController::class, 'getJournal'])->name('invoices.journal.get');
+        Route::get('invoices/sum', [InvoiceController::class, 'sumInvoice'])->name('invoices.sum');
+        Route::get('invoices/excel', [InvoiceController::class, 'excel'])->name('invoices.pdf');
         Route::resource('invoices', InvoiceController::class)->names('invoices');
         Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
         Route::post('invoices/{invoice}/toggle-lock', [InvoiceController::class, 'toggleLock'])->name('invoices.toggle-lock');
         Route::post('invoices/bulk-toggle-lock', [InvoiceController::class, 'bulkToggleLock'])->name('invoices.bulk-toggle-lock');
         Route::post('invoices/bulk-pdf', [InvoiceController::class, 'bulkPdf'])->name('invoices.bulk-pdf');
+        Route::post('invoices/journal', [InvoiceController::class, 'storeJournal'])->name('invoices.journal.store');
         Route::get('/invoices/{invoice}/pdf-status', [InvoiceController::class, 'checkPdfStatus']);
         Route::post('reconcile/batch', [PaymentController::class, 'storeBatch'])->name('invoices.reconcile.batch.store');
         Route::get('invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
+
+
         Route::resource('payments', PaymentController::class)->names('payments');
+        Route::put('payments/detail_update/{detail}', [PaymentController::class, 'detailUpdate'])
+            ->name('payments.detail.update');
+        Route::delete('payments/detail/{detail}/delete', [PaymentController::class, 'detailDestroy'])
+            ->name('payments.detail.destroy');
         Route::resource('products', ProductController::class)->names('products');
 
         Route::resource('account-categories', AccountCategoryController::class)->names('account-categories');//财务类别
@@ -237,12 +248,27 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::resource('account-month-sums', AccountMonthSumController::class)->names('account-month-sums');//月次決算
 
         Route::resource('account-periods', AccountPeriodController::class)->names('account-periods');//周期
-        Route::resource('account-sums', AccountSumController::class)->names('account-sums');//月次決算
+        
+        Route::get('/account-sums/pdf', [AccountSumController::class, 'generatePdf'])->name('account-sums.pdf');
+        Route::resource('account-sums', AccountSumController::class)->names('account-sums');//试算表
+        
+        Route::post('/account-cash/journal', [AccountCashController::class, 'storeJournal'])->name('account-cash.journal.store');
+        Route::get('/account-cash/pdf', [AccountCashController::class, 'generatePdf'])->name('account-cash.pdf');
         Route::resource('account-cash', AccountCashController::class)->names('account-cash');//现金出纳账
+
+        Route::post('account-deposit/journal', [AccountDepositController::class, 'storeJournal'])->name('account-deposit.journal.store');
+        Route::get('/account-deposit/pdf', [AccountDepositController::class, 'generatePdf'])->name('account-deposit.pdf');
         Route::resource('account-deposit', AccountDepositController::class)->names('account-deposit');//预金出纳账
 
+        Route::get('/account-cash-ins/pdf', [AccountCashInController::class, 'generatePdf'])->name('account-cash-ins.pdf');
+        Route::post('account-cash-ins/saveAll', [AccountCashInController::class, 'saveAll'])->name('account-cash-ins.save-all');
         Route::resource('account-cash-ins', AccountCashInController::class)->names('account-cash-ins');//现金入力
+
+        Route::get('/account-cash-outs/pdf', [AccountCashOutController::class, 'generatePdf'])->name('account-cash-outs.pdf');
+        Route::post('account-cash-outs/saveAll', [AccountCashOutController::class, 'saveAll'])->name('account-cash-outs.save-all');
         Route::resource('account-cash-outs', AccountCashOutController::class)->names('account-cash-outs');//现金出力
+
+        Route::resource('account-config', AccountConfigController::class)->names('account-config');//基本配置
         
     });
 });

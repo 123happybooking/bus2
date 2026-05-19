@@ -7,9 +7,17 @@
     <!-- 1. 标题 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3>現金出納帳</h3>
-        <a href="#" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> 分录
-        </a>
+        <div>
+            <a href="#" 
+            class="btn btn-primary btn-sm " 
+            data-bs-toggle="modal" 
+            data-bs-target="#cashEntryModal">
+            簡単仕訳 
+            </a>
+            <a id="downloadPdf" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-download fa-sm text-white-50"></i> PDFダウンロード
+            </a>
+        </div>
     </div>
 
     <!-- 2. 搜索区域 (保持你原有的代码) -->
@@ -20,7 +28,7 @@
                     <div class="col-auto">
                         <div class="d-flex flex-column">
                             <label class="form-label mb-1 text-muted small">
-                                <i class="bi bi-calendar-event"></i> 周期/月份
+                                <i class="bi bi-calendar-event"></i> 決算期
                             </label>
                             <div class="d-flex align-items-center gap-2">
                                 <div class="position-relative">
@@ -65,10 +73,11 @@
                 .ledger-table th { background-color: #f8f9fa; font-weight: bold; text-align: center; }
                 .ledger-table .col-date { width: 10%; text-align: center; }
                 .ledger-table .col-account { width: 15%; }
-                .ledger-table .col-summary { width: 35%; }
+                .ledger-table .col-summary { width: 30%; }
                 .ledger-table .col-debit { width: 12%; text-align: right; }
                 .ledger-table .col-credit { width: 12%; text-align: right; }
-                .ledger-table .col-balance { width: 16%; text-align: right; }
+                .ledger-table .col-balance { width: 12%; text-align: right; }
+                .ledger-table .col-action { width: 10%; }
                 .ledger-table .summary-row td { background-color: #e9ecef !important; font-weight: bold; }
                 .ledger-table .opening-row td { background-color: #f8f9fa; font-weight: bold; color: #0d6efd; }
             </style>
@@ -91,6 +100,7 @@
                             <th class="col-debit">收入金額</th>
                             <th class="col-credit">支出金額</th>
                             <th class="col-balance">残高</th>
+                            <th class="col-action">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -184,6 +194,20 @@
                                 <td class="text-right col-balance">
                                     {{ $mark==1 ? number_format($currentBalance) : number_format(abs($currentBalance)) }}
                                 </td>
+                                <td class="col-action text-center">
+                                    <div class="btn-group btn-group-sm" onclick="event.stopPropagation();">
+                                        <form action="{{ route('masters.account-cash.destroy', $row['id'])  }}" 
+                                            method="POST" 
+                                            onsubmit="return confirm('本当に削除しますか？');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <!-- 保持原有的按钮结构 -->
+                                            <button type="submit" class="btn btn-link text-danger p-0" style="font-size: 0.8rem;">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
                             </tr>
 
                             @php
@@ -214,6 +238,8 @@
     </div>
 </div>
 
+@include('masters.account-cash.entry')
+
 <style>
 /* 页面原有的打印样式 */
 @media print {
@@ -240,5 +266,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+const currentParams = new URLSearchParams(window.location.search);
+
+const baseUrl = "{{ route('masters.account-cash.pdf') }}";
+
+// 构建最终 URL
+let finalUrl = baseUrl;
+if (currentParams.toString()) {
+    // 判断 baseUrl 是否已包含参数
+    finalUrl += baseUrl.includes('?') ? '&' : '?';
+    finalUrl += currentParams.toString();
+}
+
+// 赋值给按钮
+document.getElementById('downloadPdf').href = finalUrl;
 </script>
 @endsection

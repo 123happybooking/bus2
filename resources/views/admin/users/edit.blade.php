@@ -64,19 +64,17 @@
                                 @error('name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">255文字以内</small>
                             </div>
                             
                             <div class="col-md-6 mb-3">
-                                <label for="login_id" class="form-label required">ログインID</label>
+                                <label for="login_id" class="form-label">ログインID</label>
                                 <input type="text" class="form-control @error('login_id') is-invalid @enderror" 
                                        id="login_id" name="login_id" 
                                        value="{{ old('login_id', $user->login_id) }}" 
-                                       required maxlength="255" placeholder="例: taro.yamada">
+                                       disabled maxlength="255" placeholder="例: taro.yamada">
                                 @error('login_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">255文字以内、他と重複不可</small>
                             </div>
                         </div>
                         

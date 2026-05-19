@@ -35,6 +35,10 @@ class Invoice extends Model
         
     ];
 
+    protected $casts = [
+        'operation_date' => 'date',
+    ];
+
     // 关联：客户
     public function agency()
     {
@@ -69,5 +73,17 @@ class Invoice extends Model
     public function currency()
     {
         return $this->belongsTo(Currency::class);
+    }
+
+    public function journalLine()
+    {
+        return $this->hasOne(AccountJournalLine::class, 'invoice_id');
+    
+    }
+
+    public function paymentDetail()
+    {
+        return $this->hasOne(PaymentDetail::class, 'invoice_id')->latestOfMany();
+    
     }
 }

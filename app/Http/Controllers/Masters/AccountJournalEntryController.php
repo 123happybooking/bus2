@@ -214,6 +214,7 @@ class AccountJournalEntryController extends Controller
             'lines.*.account_sub_id' => 'nullable', // 允许为空
             'lines.*.account_sub_name' => 'nullable|string|max:255',      // 新增：允许接收文本
             'lines.*.partner_id' => 'nullable',        // 允许为空
+            'lines.*.deal_date' => 'nullable',        // 允许为空
             'lines.*.partner_name' => 'nullable|string|max:255',          // 新增：允许接收文本
             'lines.*.tax_type_id' => 'nullable|integer|exists:account_taxs,id',
             'lines.*.remark' => 'nullable|string|max:255',
@@ -328,6 +329,7 @@ class AccountJournalEntryController extends Controller
                     'account_id'       => (int)$line['account_id'],
                     'sub_account_id'   => $account_sub_id,
                     'partner_id'       => $partner_id,
+                    'deal_date'        => $line['deal_date'],
                     'amount'           => (float)$line['amount'],
                     'tax_type_id'      => $line['tax_type_id'] ?? null,
                     'created_at'       => now(),
@@ -406,7 +408,7 @@ class AccountJournalEntryController extends Controller
                             'name' => $line->subAccount->name ?? '',
                             'display_name' => $line->subAccount->name ?? '',
                         ] : null,
-
+                        'deal_date' => $line->deal_date,
                         'partner_id' => $line->partner_id,
                         'partner' => $line->partner ? ['id' => $line->partner->id, 'name' => $line->partner->name] : null,
 
@@ -449,8 +451,9 @@ class AccountJournalEntryController extends Controller
             'lines.*.account_sub_id' => 'nullable',
             'lines.*.account_sub_name' => 'nullable|string|max:255',
             'lines.*.partner_id' => 'nullable',
+            'lines.*.deal_date' => 'nullable',
             'lines.*.partner_name' => 'nullable|string|max:255',
-            'lines.*.tax_type_id' => 'required|integer|exists:account_taxs,id',
+            'lines.*.tax_type_id' => 'nullable|integer|exists:account_taxs,id',
         ], [
             'lines.*.amount.min' => '金額は 0 より大きい値にしてください。',
         ]);
@@ -547,6 +550,7 @@ class AccountJournalEntryController extends Controller
                     'account_id'       => (int)$line['account_id'],
                     'sub_account_id'   => $account_sub_id,
                     'partner_id'       => $partner_id,
+                    'deal_date'        => $line['deal_date'],
                     'amount'           => (float)$line['amount'],
                     'tax_type_id'      => $line['tax_type_id'] ?? null,
                     'created_at'       => now(),
@@ -583,13 +587,7 @@ class AccountJournalEntryController extends Controller
     public function destroy(Request $request, $id)
     {
         $entry = AccountJournalEntry::findOrFail($id);
-
-        // 检查是否允许删除 (例如：已过账的凭证不能删除)
-        // if ($entry->is_posted) { ... }
-
         try {
-            // 关联的明细会因为外键约束 (ON DELETE CASCADE) 自动删除，或者手动删除
-            // 如果没设级联删除，需手动：$entry->lines()->delete();
             
             $entry->delete();
 

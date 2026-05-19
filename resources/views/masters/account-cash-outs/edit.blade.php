@@ -94,6 +94,22 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                            <!-- <div class="col-md-6 mb-3">
+                                <label for="cashin_id" class="form-cashin">入力関連</label>
+                                <select class="form-select @error('cashin_id') is-invalid @enderror" 
+                                        id="cashin_id" name="cashin_id">
+                                    <option value="" >選択してください</option>
+                                    @foreach($cashIns as $key => $cashIn)
+                                        <option value="{{ $cashIn->id}}" 
+                                            {{  $cashIn->id == $cashOut->cashin_id ? 'selected' : '' }}>
+                                            {{ $cashIn -> title }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('cashin_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div> -->
                         </div>
 
                         <!-- 按钮区域 -->

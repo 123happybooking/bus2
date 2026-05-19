@@ -9,12 +9,14 @@ use App\Models\Masters\AccountJournalEntry;
 use App\Models\Masters\AccountJournalLine;
 use App\Models\Masters\AccountMonthDetail;
 use App\Models\Masters\AccountPeriod;
+use App\Models\Masters\AccountSub;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Spatie\Browsershot\Browsershot;
+use App\Models\Masters\UserCompanyInfo;
 
 class AccountLedgerController extends Controller
 {
@@ -23,9 +25,6 @@ class AccountLedgerController extends Controller
      */
     public function index(Request $request)
     {
-        // $account = Account::find(131);
-        // $subs = $account->subAccount;
-        // dump($subs);exit;
         $query = Account::query();
         
         // 搜索功能：科目代码、科目名称
@@ -293,6 +292,8 @@ class AccountLedgerController extends Controller
             $datas = $this->makeData($startDate, $endDate, $account);
         }
         $datas['mark'] = $mark;
+        $datas['company'] = UserCompanyInfo::first();
+        $datas['subAccountName'] = AccountSub::find($sub_account_id)->name ?? '';
 
 
         try {
@@ -343,7 +344,12 @@ class AccountLedgerController extends Controller
             }
 
             // 4. 生成文件名
-            $filename = $account->name. '.pdf';
+            if($datas['subAccountName']){
+                 $filename = $account->name."-".$datas['subAccountName']. '.pdf';
+            }else{
+                $filename = $account->name. '.pdf';
+            }
+           
 
             // 5. 返回响应 (现在 strlen 接收的肯定是字符串了)
             return response($pdfContent, 200, [

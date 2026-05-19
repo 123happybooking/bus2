@@ -1,206 +1,329 @@
 @extends('layouts.app')
-@section('title', '現金出力マスター')
 @section('content')
-<div class="container-fluid">
-    <!-- 标题与新建按钮 -->
+<style>
+    /* --- 全局通用样式 --- */
+    .bs-container {
+        padding: 15px;
+        background-color: #f4f6f9;
+        min-height: 100vh;
+    }
+    .main-section {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+    }
+    .section-header {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #333;
+        border-left: 5px solid #28a745;
+        padding-left: 10px;
+        margin-bottom: 20px;
+        margin-top: 30px;
+    }
+    .section-header:first-of-type {
+        margin-top: 0;
+    }
+
+    /* --- 表格基础样式 (无边框版) --- */
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .custom-table th,
+    .custom-table td {
+        padding: 6px 10px;
+        vertical-align: middle;
+        text-align: right;
+        font-size: 0.9rem;
+        border: none;
+    }
+    /* 项目名称列左对齐 */
+    .custom-table td.item-name {
+        text-align: left;
+        color: #444;
+    }
+    /* 表头样式 */
+    .custom-table thead th {
+        background-color: #f8f9fa;
+        text-align: right;
+        font-weight: bold;
+        color: #555;
+    }
+    .custom-table thead th.text-start {
+        text-align: left;
+    }
+
+    /* --- 输入框样式 --- */
+    .form-input {
+        width: 100%;
+        max-width: 140px;
+        padding: 5px 8px;
+        text-align: right;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        background-color: #fffbe6;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+    .form-input:focus {
+        background-color: #fff;
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        outline: none;
+    }
+
+    /* --- B/S表特有样式 --- */
+    .bs-table {
+        border: 1px solid #dee2e6;
+    }
+    .bs-table th,
+    .bs-table td {
+        border: 1px solid #dee2e6;
+    }
+    .bs-section-title {
+        background-color: #e9ecef;
+        font-weight: bold;
+        text-align: left !important;
+    }
+    .bs-subtotal {
+        background-color: #f8f9fa;
+    }
+
+    /* --- 通用 --- */
+    .btn-action {
+        padding: 0.15rem 0.5rem;
+        font-size: 0.8rem;
+        margin-left: 5px;
+    }
+</style>
+
+<div class="container-fluid bs-container">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4><i class="bi bi-cash-coin me-2 text-primary"></i>現金出力マスター</h4>
-        <a href="{{ route('masters.account-cash-outs.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> 新規追加
-        </a>
-    </div>
-
-    <!-- 成功提示 -->
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="position-relative">
+            <select id="periodSelect" name="period_id" class="form-select form-select-sm" style="min-width: 140px;">
+                @foreach($periods as $period)
+                    <option value="{{ $period->id }}" data-start="{{ $period->start }}" data-end="{{ $period->end }}" {{ $period_id == $period->id ? 'selected' : '' }}>
+                        {{ $period->title }}
+                    </option>
+                @endforeach
+            </select>
         </div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-
-    <!-- 搜索区域 -->
-    <div class="mb-3">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <form method="GET" action="{{ route('masters.account-cash-outs.index') }}" class="row g-3 align-items-end">
-                    <!-- 1. 搜索关键词 (タイトル) -->
-                    <div class="col-md-6">
-                        <label class="form-label small text-muted mb-1">検索キーワード</label>
-                        <input type="text" name="search" class="form-control" placeholder="タイトル" value="{{ request('search') }}">
-                    </div>
-                    <!-- 2. 按钮区域 -->
-                    <div class="col-md-auto d-flex align-items-end gap-2">
-                        <button type="submit" class="btn btn-outline-primary">
-                            <i class="bi bi-search"></i> 検索
-                        </button>
-                        @if(request('search'))
-                            <a href="{{ route('masters.account-cash-outs.index') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle"></i> クリア
-                            </a>
-                        @endif
-                    </div>
-                </form>
-            </div>
+        <div>
+            <!-- <a href="{{ route('masters.account-cash-outs.create') }}" class="btn btn-success btn-sm">
+                <i class="bi bi-plus-circle"></i> 新規追加
+            </a> -->
+            <a id="downloadPdf" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-download fa-sm text-white-50"></i> PDFダウンロード
+            </a>
         </div>
     </div>
 
-    <!-- 搜索结果提示 -->
-    @if(request('search'))
-        <div class="alert alert-info mb-3 d-flex align-items-center">
-            <i class="bi bi-info-circle me-2 fs-5"></i>
-            <div>
-                検索条件: "<strong>{{ request('search') }}</strong>"
-                @if($cashOuts->count() > 0)
-                    - {{ $cashOuts->total() }}件の結果が見つかりました
-                @else
-                    - 該当する現金出力が見つかりませんでした
-                @endif
-            </div>
-        </div>
-    @endif
 
-    <!-- 表格区域 -->
-    <div class="card shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-bordered mb-0 table-striped align-middle">
-                <thead class="table-secondary">
-                    <tr>
-                        <th class="text-center" style="width: 60px;">ID</th>
-                        <th class="text-center" style="width: 20%;">名称</th>
-                        <th class="text-center" style="width: 15%;">タイプID</th>
-                        <th class="text-center" style="width: 15%;">ソート</th>
-                        <th class="text-center" style="width: 150px;">操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($cashOuts as $item)
-                    <tr>
-                        <td class="text-center text-muted small">{{ $item->id }}</td>
-                        <td class="text-center">
-                            <span class="fw-bold text-dark">{{ $item->title }}</span>
-                        </td>
-                        <td class="text-center">
-                            <span>{{ $types[$item->type_id] ?? '' }}</span>
-                        </td>
-                        <td class="text-center small text-muted">
-                            {{ $item->sort }}
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1 justify-content-center">
-                                <a href="{{ route('masters.account-cash-outs.edit', $item) }}" class="btn btn-sm btn-outline-primary" title="編集">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form action="{{ route('masters.account-cash-outs.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('本当にこの現金出力「{{ $item->title }}」を削除しますか？\nこの操作は元に戻せません。')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="削除">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="5" class="text-center py-5">
-                            @if(request('search'))
-                                <div class="text-muted">
-                                    <i class="bi bi-search display-6 mb-2 d-block"></i>
-                                    <p class="mb-0 fw-bold">検索条件に一致する現金出力が見つかりませんでした</p>
-                                    <p class="small">検索キーワードを変更してお試しください</p>
-                                </div>
-                            @else
-                                <div class="text-muted">
-                                    <i class="bi bi-cash-coin display-6 mb-2 d-block"></i>
-                                    <p class="mb-0 fw-bold">現金出力データが登録されていません</p>
-                                    <p class="small">「新規追加」ボタンから最初のデータを登録してください</p>
-                                </div>
-                            @endif
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 分页区域 -->
-    @if($cashOuts->hasPages() || $cashOuts->total() > 0)
-    <div class="mt-4">
-        <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
-            <!-- 1. 左侧：行数选择器 -->
-            <div class="d-flex align-items-center">
-                <label for="per_page_select" class="form-label small text-muted mb-0 me-2">
-                    表示件数:
-                </label>
-                <select id="per_page_select" class="form-select form-select-sm" style="width: auto;">
-                    <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20 行</option>
-                    <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30 行</option>
-                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 行</option>
-                </select>
-            </div>
-            <!-- 2. 中间：分页链接 -->
-            <nav aria-label="Page navigation">
-                <ul class="pagination pagination-sm mb-0">
-                    <!-- 上一页 -->
-                    <li class="page-item {{ $cashOuts->onFirstPage() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $cashOuts->previousPageUrl() }}" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
+    <div class="main-section">
+        <table class="custom-table bs-table mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 35%;" class="text-start">項目</th>
+                    <th style="width: 18%;">金额</th> <!-- 注意：原代码colspan=5已修正为正常结构 -->
+                    <th style="width: 15%;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($cashOuts as $sectionIndex => $section)
                     @php 
-                        $current = $cashOuts->currentPage(); 
-                        $last = $cashOuts->lastPage(); 
-                        $start = max(1, $current - 2); 
-                        $end = min($last, $current + 2); 
+                        $items = $section['items']; 
+                        $title = $section['title']; 
                     @endphp
-                    @if($start > 1)
-                        <li class="page-item"><a class="page-link" href="{{ $cashOuts->url(1) }}">1</a></li>
-                        @if($start > 2)<li class="page-item disabled"><span class="page-link">...</span></li>@endif
-                    @endif
-                    @for($i = $start; $i <= $end; $i++)
-                        <li class="page-item {{ $i == $current ? 'active' : '' }}">
-                            <a class="page-link" href="{{ $cashOuts->url($i) }}">{{ $i }}</a>
-                        </li>
-                    @endfor
-                    @if($end < $last)
-                        @if($end < $last - 1)<li class="page-item disabled"><span class="page-link">...</span></li>@endif
-                        <li class="page-item"><a class="page-link" href="{{ $cashOuts->url($last) }}">{{ $last }}</a></li>
-                    @endif
-                    <li class="page-item {{ !$cashOuts->hasMorePages() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $cashOuts->nextPageUrl() }}" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-        <!-- 3. 统计信息 -->
-        <div class="text-center text-muted small mt-2">
-            表示中：{{ $cashOuts->firstItem() ?? 0 }} - {{ $cashOuts->lastItem() ?? 0 }} / 全 {{ $cashOuts->total() }} 件
-        </div>
+                    {{-- 分组标题 --}}
+                    <tr class="section-title">
+                        <td colspan="3" class="bs-section-title">{{ $title }}</td> <!-- 修正：colspan改为3，匹配实际列数 -->
+                    </tr>
+                    {{-- 数据行 --}}
+                    @foreach($items as $item)
+                        <tr>
+                            <td class="item-name">{{ $item->title }}</td>
+                            <td>
+                                <input type="text" class="form-input input-current" 
+                                       value="{{ $item->cashOutData?->current_amount ? number_format($item->cashOutData?->current_amount) : ''}}" 
+                                       data-pk="{{ $item->id }}" data-typeid="{{ $item->type_id }}">
+                            </td>
+                            <td>
+                                <a href="{{ route('masters.account-cash-outs.edit', $item->id) }}" class="btn btn-primary btn-sm btn-action">編集</a>
+                                <!-- <form action="{{ route('masters.account-cash-outs.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('本当に削除しますか？');">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm btn-action">削除</button>
+                                </form> -->
+                            </td>
+                        </tr>
+                    @endforeach
+                    {{-- 小计行 --}}
+                    <tr class="bs-subtotal">
+                        <td class="text-end">小計</td>
+                        <td><span class="sum-current">0</span></td>
+                        <td></td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
-    @endif
+
+    <div class="text-end mt-4 mb-5">
+        <button id="saveAllBtn" class="btn btn-primary">保存</button>
+    </div>
 </div>
 
-<!-- JavaScript 处理行数选择 -->
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const perPageSelect = document.getElementById('per_page_select');
-        if (perPageSelect) {
-            perPageSelect.addEventListener('change', function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- 1. 下拉框监听逻辑 ---
+        const periodSelect = document.getElementById('periodSelect');
+        if (periodSelect) {
+            periodSelect.addEventListener('change', function() {
+                const selectedPeriodId = this.value;
+                if (!selectedPeriodId) return;
                 const url = new URL(window.location.href);
-                url.searchParams.set('per_page', this.value);
-                url.searchParams.set('page', '1');
+                url.searchParams.set('period_id', selectedPeriodId);
+                url.hash = '';
                 window.location.href = url.toString();
             });
         }
+
+        // --- 2. 输入监听逻辑 (仅保留B/S表逻辑) ---
+        const bsInputs = document.querySelectorAll('.bs-table .form-input');
+        bsInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                formatNumber(this);
+                const row = this.closest('tr');
+                updateSectionSubtotal(row);
+            });
+        });
+
+        // --- 公共函数 ---
+        // 1. 数字格式化 (千分位)
+        function formatNumber(input) {
+            let val = input.value.replace(/,/g, '');
+            if (val === '' || val === '-') {
+                return; // 直接返回，不进行后面的格式化，也不清空
+            }
+            const isNegative = val.startsWith('-');
+            val = val.replace('-', '');
+            const formatted = parseInt(val).toLocaleString('ja-JP');
+            const finalVal = isNegative ? '-' + formatted : formatted;
+            if (input.value !== finalVal) {
+                input.value = finalVal;
+            }
+        }
+
+        // 3. 更新分组小计 (简化版，仅计算当前金额)
+        function updateSectionSubtotal(row) {
+            let currentRow = row;
+            let sectionTitle = null;
+            while ((currentRow = currentRow.previousElementSibling)) {
+                if (currentRow.classList.contains('section-title')) {
+                    sectionTitle = currentRow;
+                    break;
+                }
+            }
+
+            let sumCurrent = 0;
+            let scanRow = sectionTitle ? sectionTitle : row.closest('tbody').firstElementChild;
+            while ((scanRow = scanRow.nextElementSibling)) {
+                if (scanRow.classList.contains('section-title')) break;
+                if (scanRow.classList.contains('bs-subtotal')) continue;
+                
+                const cInput = scanRow.querySelector('.input-current');
+                if (cInput) {
+                    const cVal = parseInt(cInput.value.replace(/,/g, '') || 0);
+                    sumCurrent += cVal;
+                }
+            }
+
+            // 更新UI
+            let subtotalRow = null;
+            let tempRow = row;
+            while ((tempRow = tempRow.nextElementSibling)) {
+                if (tempRow.classList.contains('bs-subtotal')) {
+                    subtotalRow = tempRow;
+                    break;
+                }
+                if (tempRow.classList.contains('section-title')) break;
+            }
+            if (subtotalRow) {
+                subtotalRow.querySelector('.sum-current').textContent = sumCurrent.toLocaleString('ja-JP');
+            }
+        }
+
+        // --- 3. 保存按钮逻辑 ---
+        document.getElementById('saveAllBtn')?.addEventListener('click', function() {
+            const allData = [];
+            const periodId = document.getElementById('periodSelect').value;
+
+            // 仅收集 B/S 表数据
+            document.querySelectorAll('.bs-table tbody tr').forEach(row => {
+                const input = row.querySelector('.input-current');
+                if (input) {
+                    allData.push({
+                        id: input.dataset.pk,
+                        type_id: input.dataset.typeid,
+                        current_amount: parseInt(input.value.replace(/,/g, '') || 0)
+                    });
+                }
+            });
+
+            const requestData = {
+                period_id: periodId,
+                data: allData
+            };
+
+            fetch('{{ route("masters.account-cash-outs.save-all") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('保存失败');
+            });
+        });
+
+        // --- 页面加载完成时初始化 ---
+        window.addEventListener('load', function() {
+            // 初始化所有分组小计
+            document.querySelectorAll('.bs-table .bs-subtotal').forEach(subtotalRow => {
+                let dataRow = subtotalRow.previousElementSibling;
+                while (dataRow && !dataRow.classList.contains('section-title')) {
+                    if (dataRow.querySelector('.input-current')) {
+                        updateSectionSubtotal(dataRow);
+                        break;
+                    }
+                    dataRow = dataRow.previousElementSibling;
+                }
+            });
+        });
     });
+
+    const currentParams = new URLSearchParams(window.location.search);
+
+    const baseUrl = "{{ route('masters.account-cash-outs.pdf') }}";
+
+    // 构建最终 URL
+    let finalUrl = baseUrl;
+    if (currentParams.toString()) {
+        // 判断 baseUrl 是否已包含参数
+        finalUrl += baseUrl.includes('?') ? '&' : '?';
+        finalUrl += currentParams.toString();
+    }
+
+    // 赋值给按钮
+    document.getElementById('downloadPdf').href = finalUrl;
 </script>
 @endsection

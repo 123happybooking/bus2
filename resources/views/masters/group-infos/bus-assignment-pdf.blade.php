@@ -24,9 +24,7 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
 <div class="header">
     <div class="c1">運行指示書</div>
     <div class="c2">
-      @if(isset($companyLogo) && $companyLogo)
-          <img src="{{ $companyLogo }}" height="30pt" max-width="80%">
-      @endif
+        <img src="{{ $companyLogo ? $companyLogo : '/images/blank.png' }}" height="30pt" max-width="80%">
     </div>
     <div class="c3">
         {{ $companyInfo['name'] ?? '会社名' }}<br>
@@ -97,7 +95,7 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
   <td style="width:25%;" colspan="2">{{ $row['end_location'] }}</td>
  </tr>
  <tr>
-  <td style="width:90%;" colspan="9">{{ $row['description'] }}</td>
+  <td style="width:90%;" colspan="9"><pre>{{ $row['description'] }}</pre></td>
  </tr>
  @endforeach
 

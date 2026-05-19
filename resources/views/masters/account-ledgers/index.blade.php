@@ -69,7 +69,7 @@
                                 
                                 <div class="flex-shrink-0">
                                     <!-- 标题 -->
-                                    <label class="form-label mb-1 text-muted d-block" style="font-size: 0.75rem;">周期/月份</label>
+                                    <label class="form-label mb-1 text-muted d-block" style="font-size: 0.75rem;">決算期</label>
                                     
                                     <div class="d-flex align-items-center">
                                         <!-- 1. 周期下拉框 -->
@@ -154,6 +154,7 @@
                                             data-account-name="{{ $account->name }}"
                                             data-account-id="{{ $account->id }}"
                                             data-sub-account-id="0"
+                                            data-sub-account-name=""
                                             title="元帳作成"
                                         >
                                             <i class="bi bi-journal-plus"></i> 元帳作成
@@ -189,6 +190,7 @@
                                             data-account-name="{{ $account->name }}"
                                             data-account-id="{{ $account->id }}"
                                             data-sub-account-id="{{ $subAccount->id }}"
+                                            data-sub-account-name="{{ $subAccount->name }}"
                                             title="元帳作成"
                                         >
                                             <i class="bi bi-journal-plus"></i> 元帳作成
@@ -356,9 +358,10 @@
             const url = this.getAttribute('data-url');
             const subAccountId = this.getAttribute('data-sub-account-id');
             const accountName = this.getAttribute('data-account-name');
+            const subAccountName = this.getAttribute('data-sub-account-name');
 
             // 设置模态框标题
-            document.getElementById('ledgerModalLabel').textContent = `総勘定元帳 - ${accountName}`;
+            document.getElementById('ledgerModalLabel').textContent = `総勘定元帳 - ${accountName} ${subAccountName}`;
 
             // 显示模态框
             const modal = new bootstrap.Modal(document.getElementById('ledgerModal'));

@@ -28,6 +28,18 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             @endif
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
             
             <!-- 卡片主体 -->
             <div class="card shadow-sm">
@@ -170,9 +182,25 @@
                             </div>
                         </div>
 
-                        <!-- 第三部分：核销明细列表 (只读) -->
+                        <!-- 按钮区域 -->
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> 更新する
+                                </button>
+                                <a href="{{ route('masters.payments.show', $payment) }}" class="btn btn-secondary">
+                                    <i class="bi bi-eye"></i> 詳細を見る
+                                </a>
+                                <a href="{{ route('masters.payments.index') }}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> キャンセル
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                    
+                            <!-- 第三部分：核销明细列表 (只读) -->
                         <h6 class="text-primary border-bottom pb-2 mb-3">
-                            <i class="bi bi-list-check"></i> 消し込み明細 (変更不可)
+                            <i class="bi bi-list-check"></i> 消し込み明細
                         </h6>
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover align-middle bg-light opacity-75">
@@ -186,6 +214,7 @@
                                         <th class="text-end" style="width: 120px;">消込金額</th>
                                         <th class="text-end" style="width: 120px;">残高</th>
                                         <th class="text-center" style="width: 100px;">状態</th>
+                                        <th class="text-center" style="width: 100px;">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -206,30 +235,59 @@
                                                 $statusText = '未済';
                                             }
                                         @endphp
-                                        <tr>
-                                            <td class="text-center text-muted">{{ $index + 1 }}</td>
-                                            <td class="text-center font-monospace fw-bold text-primary">
-                                                {{ $invoice->invoice_number ?? '' }}
-                                            </td>
-                                            <td class="text-center">
-                                                {{ $invoice->agency->agency_name ?? '' }}
-                                            </td>
-                                            <td class="text-center small">
-                                                {{ $invoice->invoice_date ? \Carbon\Carbon::parse($invoice->invoice_date)->format('Y/m/d') : '-' }}
-                                            </td>
-                                            <td class="text-end font-monospace">
-                                                {{ number_format($invoice->total_amount ?? 0, 0) }}
-                                            </td>
-                                            <td class="text-end font-monospace fw-bold text-success">
-                                                {{ number_format($detail->write_off_amount, 0) }}
-                                            </td>
-                                            <td class="text-end font-monospace text-muted">
-                                                {{ number_format($remaining, 0) }}
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="badge {{ $statusClass }}">{{ $statusText }}</span>
-                                            </td>
-                                        </tr>
+                                        
+                                            <tr>
+                                                <td class="text-center text-muted">{{ $index + 1 }}</td>
+                                                <td class="text-center font-monospace fw-bold text-primary">
+                                                    {{ $invoice->invoice_number ?? '' }}
+                                                </td>
+                                                <td class="text-center">
+                                                    {{ $invoice->agency->agency_name ?? '' }}
+                                                </td>
+                                                <td class="text-center small">
+                                                    {{ $invoice->invoice_date ?? '' }}
+                                                </td>
+                                                <td class="text-end font-monospace">
+                                                    {{ number_format($invoice->total_amount ?? 0, 0) }}
+                                                </td>
+                                                <td class="text-center">
+                                                    <input 
+                                                        type="number" 
+                                                        id="write_off_{{ $detail->id }}" 
+                                                        data-id="{{ $detail->id }}" 
+                                                        name="write_off_amount" 
+                                                        value="{{ number_format($detail->write_off_amount, 0) }}"
+                                                        class="form-control form-control-sm text-end"
+                                                        min="0"
+                                                        max=""
+                                                    >
+                                                </td>
+                                                <td class="text-end font-monospace text-muted">
+                                                    {{ number_format($remaining, 0) }}
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge {{ $statusClass }}">{{ $statusText }}</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    
+                                                    <button 
+                                                        type="button" 
+                                                        class="btn btn-primary btn-sm"
+                                                        onclick="submitUpdate({{ $detail->id }}, {{ $remaining }})">
+                                                        更新
+                                                    </button>
+
+                                                    <!-- 2. 删除按钮 (使用独立的 Form，但必须放在 TD 之外，或者用 JS 弹窗) -->
+                                                    <!-- 这里我们用 JS 确认框代替独立表单 -->
+                                                    <button 
+                                                        type="button" 
+                                                        class="btn btn-danger btn-sm ms-1"
+                                                        onclick="confirmAndDelete({{ $detail->id }})">
+                                                        削除
+                                                    </button>
+                                                </td>
+                                            </tr>
+
                                     @empty
                                         <tr>
                                             <td colspan="8" class="text-center py-4 text-muted">
@@ -241,24 +299,88 @@
                             </table>
                         </div>
 
-                        <!-- 按钮区域 -->
-                        <div class="d-flex justify-content-between mb-4">
-                            <div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-check-circle"></i> 更新する
-                                </button>
-                                <a href="{{ route('masters.payments.show', $payment) }}" class="btn btn-secondary">
-                                    <i class="bi bi-eye"></i> 詳細を見る
-                                </a>
-                                <a href="{{ route('masters.payments.index') }}" class="btn btn-secondary">
-                                    <i class="bi bi-x-circle"></i> キャンセル
-                                </a>
-                            </div>
-                        </div>
-                    </form>
                 </div>
+                
             </div>
         </div>
+
+
+
+        
     </div>
+
+
+
+
 </div>
+<script>
+// 1. 处理更新逻辑
+function submitUpdate(detailId, maxAllowed) {
+    const inputElement = document.getElementById('write_off_' + detailId);
+    if (!inputElement) return;
+
+    const newAmount = parseFloat(inputElement.value) || 0;
+
+    // 前端验证
+    if (newAmount < 0) {
+        alert('金額はマイナスにできません');
+        return;
+    }
+    // 确认后发送请求
+    if (!confirm('この金額で更新しますか？')) return;
+
+    // 创建临时表单并提交 (或者用 fetch)
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/masters/payments/detail_update/${detailId}`; // 这里填你的实际路由 URL
+
+    // 创建隐藏域
+    const inputAmount = document.createElement('input');
+    inputAmount.type = 'hidden';
+    inputAmount.name = 'write_off_amount';
+    inputAmount.value = newAmount;
+
+    const inputToken = document.createElement('input');
+    inputToken.type = 'hidden';
+    inputToken.name = '_token';
+    inputToken.value = '{{ csrf_token() }}'; // Laravel CSRF Token
+
+    const inputMethod = document.createElement('input');
+    inputMethod.type = 'hidden';
+    inputMethod.name = '_method';
+    inputMethod.value = 'PUT';
+
+    // 组装并提交
+    form.appendChild(inputAmount);
+    form.appendChild(inputToken);
+    form.appendChild(inputMethod);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// 2. 处理删除逻辑
+function confirmAndDelete(detailId) {
+    if (!confirm('本当に削除しますか？')) return;
+
+    // 创建临时表单删除
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/masters/payments/detail/${detailId}/delete`; // 填入你的删除路由
+
+    const inputToken = document.createElement('input');
+    inputToken.type = 'hidden';
+    inputToken.name = '_token';
+    inputToken.value = '{{ csrf_token() }}';
+
+    const inputMethod = document.createElement('input');
+    inputMethod.type = 'hidden';
+    inputMethod.name = '_method';
+    inputMethod.value = 'DELETE';
+
+    form.appendChild(inputToken);
+    form.appendChild(inputMethod);
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
 @endsection

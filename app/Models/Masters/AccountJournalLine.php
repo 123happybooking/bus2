@@ -12,10 +12,12 @@ class AccountJournalLine extends Model
     // 允许批量赋值的字段
     protected $fillable = [
         'journal_entry_id',
+        'invoice_id',
         'side',
         'account_id',
         'sub_account_id',
         'partner_id',
+        'deal_date',
         'amount',
         'tax_type_id',
         'remark',
@@ -28,6 +30,7 @@ class AccountJournalLine extends Model
      */
     protected $casts = [
         'journal_entry_id' => 'integer',
+        'invoice_id' => 'integer',
         'account_id' => 'integer',
         'sub_account_id' => 'integer',
         'partner_id' => 'integer',

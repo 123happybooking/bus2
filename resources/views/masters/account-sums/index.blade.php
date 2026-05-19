@@ -7,6 +7,9 @@
     <!-- 1. 标题 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3><i class="bi bi-cash-coin text-success me-2"></i>試算表</h3>
+        <a id="downloadPdf" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-download fa-sm text-white-50"></i> PDFダウンロード
+        </a>
     </div>
 
     <!-- 2. 搜索区域 -->
@@ -22,7 +25,7 @@
                         <div class="d-flex flex-column">
                             <!-- 标签 -->
                             <label class="form-label mb-1 text-muted small">
-                                <i class="bi bi-calendar-event"></i> 周期/月份
+                                <i class="bi bi-calendar-event"></i> 決算期
                             </label>
                             
                             <!-- 控件容器 -->
@@ -199,5 +202,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+const currentParams = new URLSearchParams(window.location.search);
+
+const baseUrl = "{{ route('masters.account-sums.pdf') }}";
+
+// 构建最终 URL
+let finalUrl = baseUrl;
+if (currentParams.toString()) {
+    // 判断 baseUrl 是否已包含参数
+    finalUrl += baseUrl.includes('?') ? '&' : '?';
+    finalUrl += currentParams.toString();
+}
+
+// 赋值给按钮
+document.getElementById('downloadPdf').href = finalUrl;
 </script>
 @endsection

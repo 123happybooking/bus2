@@ -85,7 +85,6 @@
     /* --- 【关键】打印专用样式 --- */
     @page {
         size: A4;          /* 强制设置为A4尺寸 */
-        margin: 15mm;      /* 上下左右边距设为15mm (可根据打印机能力调整为10mm) */
     }
 
     @media print {
@@ -104,6 +103,23 @@
         tr {
             page-break-inside: avoid;
         }
+
+        @page {
+            @top-right {
+                /* content 是必须属性，用于定义显示的内容 */
+                /* counter(page) 会自动显示当前页码 */
+                content: counter(page) "頁";
+                
+                /* 样式调整 */
+                text-align: right;
+                font-size: 12pt;
+                color: #000;
+            }
+        }
+
+        thead { 
+            display: table-header-group; 
+        }
         
     }
 </style>
@@ -121,17 +137,31 @@
         </div>
     </div> -->
 
-    <div class="header-group">
-        <div class="title">総勘定元帳</div>
+    <!-- <div class="header-group">
+        <div class="title">現金出納帳</div>
         <div class="period">{{ $start_date }}<br>{{ $end_date }}</div>
         <div class="company-unit">
             <span>{{$company->company_name}}</span>
-            <span> {{ $account_name }} {{ $subAccountName }}  (税込)</span>
+            <span> {{ $account_name }}(税込)</span>
         </div>
-    </div>
+    </div> -->
 
     <table>
         <thead>
+            <tr>
+            <!-- 使用 colspan="6" 让这个单元格占满整行宽度 -->
+                <th colspan="6" style="background: #fff; border: none; padding: 0;">
+                    <!-- 这里是你的 header-group 代码 -->
+                    <div class="header-group">
+                        <div class="title">現金出納帳</div>
+                        <div class="period" style="font-weight: normal;">{{ $start_date }}<br>{{ $end_date }}</div>
+                        <div class="company-unit" style="font-weight: normal;">
+                            <span>{{$company->company_name}}</span>
+                            <span> {{ $account_name }}(税込)</span>
+                        </div>
+                    </div>
+                </th>
+            </tr>
             <tr>
                 <th class="col-date">
                     <div>日付</div>
@@ -144,13 +174,10 @@
                 </th>
                 <th class="col-remark">摘要</th>
                 <th class="col-debit">
-                    <div>補助科目</div>
-                    <div>税区分</div>
-                    <div>借方金額</div>
+                    <div>収入金額</div>
                 </th>
                 <th class="col-credit">
-                    <div>相手税区分</div>
-                    <div>貸方金額</div>
+                    <div>支出金額</div>
                 </th>
                 <th class="col-balance">残高</th>
             </tr>

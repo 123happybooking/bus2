@@ -34,7 +34,7 @@ class PaymentDetail extends Model
         'id' => 'integer',
         'payment_header_id' => 'integer',
         'invoice_id' => 'integer',
-        'write_off_amount' => 'decimal:2',
+        'write_off_amount' => 'integer',
         'is_deleted' => 'boolean',
         'deleted_at' => 'datetime',
         'created_at' => 'datetime',

@@ -5,19 +5,10 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-cash-coin me-2"></i>入金操作選択</h5>
+                <h6 class="modal-title"><i class="bi bi-cash-coin me-2"></i>入金業務</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <p class="mb-3 fs-5 fw-bold">以下の操作を選んでください。</p>
-                <div class="alert alert-light border mb-4 p-3">
-                    <dl class="row mb-0 small">
-                        <dt class="col-sm-3 text-primary fw-bold">「詳細入金」</dt>
-                        <dd class="col-sm-9 mb-2">入金画面に切り替える。<br>入金額・銀行・備考などを個別設定可能。</dd>
-                        <dt class="col-sm-3 text-primary fw-bold">「取消」</dt>
-                        <dd class="col-sm-9">操作を中止する。</dd>
-                    </dl>
-                </div>
                 <div class="d-flex justify-content-center gap-3 flex-wrap">
                     <button type="button" class="btn btn-primary btn-lg px-5 flex-grow-1" style="min-width: 180px;" id="btn-action-detail">
                         <i class="bi bi-pencil-square me-2"></i>入金
@@ -38,7 +29,7 @@
     <div class="modal-dialog modal-xl"> 
         <div class="modal-content">
             <div class="modal-header bg-primary text-white py-2">
-                <h5 class="modal-title fs-6"><i class="bi bi-list-check me-2"></i>個別消し込み処理 (詳細)</h5>
+                <h5 class="modal-title fs-6"><i class="bi bi-list-check me-2"></i>個別消し込み処理</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
@@ -447,43 +438,37 @@
 
         // --- 4. 提交校验 ---
         const btnSubmit = document.getElementById('btn-submit-reconcile');
+
         const detailForm = document.getElementById('detail-form');
-        if (btnSubmit && detailForm) {
-            btnSubmit.addEventListener('click', function(e) {
-                e.preventDefault();
+        if (detailForm) {
+            detailForm.addEventListener('submit', function(e) {
+                // 1. 强制同步公共字段 (防止因为没点按钮导致字段为空)
+                const commonDateInput = document.getElementById('common-payment-date');
+                const commonRemarkInput = document.getElementById('common-remark');
                 if(commonDateInput) document.getElementById('form-payment-date').value = commonDateInput.value;
                 if(commonRemarkInput) document.getElementById('form-remark').value = commonRemarkInput.value || '';
-                
-                const paymentInputs = detailContainer.querySelectorAll('.item-payment-amount');
-                let hasError = false, firstErrorInput = null, errorMsg = '';
-                
-                paymentInputs.forEach(input => {
-                    if(input.disabled) return;
-                    const max = parseFloat(input.getAttribute('data-max-amount')) || 0;
+
+                // 2. 获取所有金额输入框
+                const paymentInputs = this.querySelectorAll('.item-payment-amount');
+                let hasZero = false;
+
+                // 3. 遍历检查
+                for (let input of paymentInputs) {
+                    // 跳过禁用的（余额为0的行）
+                    if (input.disabled) continue;
+                    
                     const val = parseFloat(input.value) || 0;
-                    
-                    if (max <= 0.005) { hasError = true; firstErrorInput = input; errorMsg = '残高 0 の項目が含まれています。'; } 
-                    else if (val > max + 0.001) { hasError = true; if(!firstErrorInput) firstErrorInput = input; errorMsg = '入金額が残高を超えています。'; } 
-                    else if (val < 0.005) { hasError = true; if(!firstErrorInput) firstErrorInput = input; errorMsg = '残高があるのに入力が 0 です。'; }
-                    
-                    if(hasError && firstErrorInput) { 
-                        firstErrorInput.classList.add('is-invalid', 'border-danger'); 
-                        firstErrorInput.style.borderColor = 'red'; 
-                    } else { 
-                        input.classList.remove('is-invalid', 'border-danger'); 
-                        input.style.borderColor = ''; 
+                    // 只要发现有一个大于0，就说明有数据，不需要报错
+                    // 如果循环完都没有大于0的，那就是全0
+                    if (val > 0) {
+                        return; // 有有效数据，直接放行提交
                     }
-                });
-                
-                if (hasError) {
-                    if(firstErrorInput) { 
-                        firstErrorInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
-                        firstErrorInput.focus(); 
-                    }
-                    alert('⚠️ エラー：\n' + errorMsg); 
-                    return;
                 }
-                detailForm.submit();
+                
+                // 4. 如果代码执行到这里，说明上面的循环里没有 return，即所有金额都是 0 或 空
+                e.preventDefault(); // 阻止提交
+                alert('❌ エラー：入金金額が 0 のままです。金額を入力してください。');
+                return false;
             });
         }
 

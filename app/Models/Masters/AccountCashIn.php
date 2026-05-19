@@ -3,6 +3,7 @@
 namespace App\Models\Masters;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Masters\AccountCashinData;
 
 class AccountCashIn extends Model
 {
@@ -38,5 +39,11 @@ class AccountCashIn extends Model
         '5' => '固定負債',
         '6' => '資本の部',
     ];
+
+    public function cashInData()
+    {
+        // 第二个参数 'cashin_id' 是 AccountCashinData 表中的外键
+        return $this->hasOne(AccountCashinData::class, 'cashin_id');
+    }
 
 }

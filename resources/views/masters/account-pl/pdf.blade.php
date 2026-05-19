@@ -7,7 +7,7 @@
         body {
             font-family: "MS PGothic", "Yu Gothic", "Hiragino Kaku Gothic ProN", "游ゴシック", "ＭＳ ゴシック", sans-serif;
             font-size: 18px;
-            margin: 40px,0;
+            margin: 0;
             color: #000;
         }
 
@@ -20,10 +20,9 @@
         /* --- 表头部分（在框外） --- */
         .header-group {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 2px;
         }
         .title {
-            font-weight: bold;
             font-size: 24px;
             margin-bottom: 5px;
         }
@@ -74,7 +73,7 @@
         .indent-1 { 
             margin-left: 20px; 
             font-size: 14px;
-            font-weight: bold;
+            font-weight:;
         }
         .indent-2 { 
             margin-left: 40px;
@@ -85,13 +84,18 @@
             font-size: 14px; 
         }
 
+        .accsum .value {
+            text-decoration: underline;    /* 文字下划线 */
+            display: inline-block;         /* 让线宽跟随文字宽度 */
+        }
+
         /* --- 线条样式 --- */
         .border-top { border-top: 1px solid #000; }
         .border-bottom { border-bottom: 1px solid #000; }
         .double-border-bottom { border-bottom: 3px double #000; }
 
         /* 辅助类：加粗 */
-        .bold { font-weight: bold; }
+        .bold { font-weight:; }
     </style>
 </head>
 <body>
@@ -103,7 +107,7 @@
             <div class="title">損益計算書</div>
             <div class="period">自 {{ $startDate }}<br>至 {{ $endDate }}</div>
             <div class="company-unit">
-                <span>Travel Investment {{$company->company_name}}</span>
+                <span>{{$company->company_name}}</span>
                 <span>(単位:円)</span>
             </div>
         </div>
@@ -124,10 +128,10 @@
                     </div>
                     @endif
                 @endforeach
-            <div class="row accsum">
-                <div class="label indent-1">売上高 合計</div>
+            <!-- <div class="row accsum">
+                <div class="label">売上高 合計</div>
                 <div class="value">{{ number_format($totalRevenue) }}</div>
-            </div>
+            </div> -->
 
             <div class="row">
                 <div class="label indent-1">売上原価</div>
@@ -142,9 +146,13 @@
                     @endif
                 @endforeach
 
-            <div class="row accsum">
+            <!-- <div class="row accsum">
                 <div class="label indent-1">売上原価 合計</div>
                 <div class="value">{{ number_format($totalCogs) }}</div>
+            </div> -->
+
+            <div class="row accsum">売上総利益</div>
+                <div class="value">{{ number_format($totalRevenue-$totalCogs) }}</div>
             </div>
 
             <!-- 3. 販管費明细 -->
@@ -162,13 +170,13 @@
                 @endforeach
             <!-- 4. 販管費合計 -->
             <div class="row accsum">
-                <div class="label indent-1">販売管理費 合計</div>
+                <div class="label indent-1">販売費及び一般管理費 合計</div>
                 <div class="value">{{ number_format($totalExpenses) }}</div>
             </div>
 
             <div class="row accsum">
-                <div class="label indent-1 bold">営業利益</div>
-                <div class="value bold">{{ number_format($operatingIncome) }}</div>
+                <div class="label indent-1">営業利益</div>
+                <div class="value">{{ number_format($operatingIncome) }}</div>
             </div>
 
             <!-- 6. 営業外収益 -->
@@ -184,10 +192,10 @@
                     </div>
                     @endif
                 @endforeach
-            <div class="row accsum">
+            <!-- <div class="row accsum">
                 <div class="label indent-1">営業外収益 合計</div>
                 <div class="value">{{ number_format($totalOIncome) }}</div>
-            </div>
+            </div> -->
 
 
             <!-- 7. 営業外費用 -->
@@ -203,16 +211,16 @@
                     </div>
                     @endif
                 @endforeach
-            <div class="row accsum">
+            <!-- <div class="row accsum">
                 <div class="label indent-1">営業外費用 合計</div>
                 <div class="value">{{ number_format($totalOExpenses) }}</div>
-            </div>
+            </div> -->
 
 
             <!-- 8. 経常利益 -->
             <div class="row accsum">
-                <div class="label indent-1 bold">経常利益</div>
-                <div class="value bold">{{ number_format($ordinaryIncome) }}</div>
+                <div class="label indent-1">経常利益</div>
+                <div class="value">{{ number_format($ordinaryIncome) }}</div>
             </div>
 
             <!-- 9. 特別利益 -->
@@ -228,10 +236,10 @@
                     </div>
                     @endif
                 @endforeach
-            <div class="row accsum">
-                <div class="label indent-1">営業外特別利益費用 合計</div>
+            <!-- <div class="row accsum">
+                <div class="label indent-1">特別利益 合計</div>
                 <div class="value">{{ number_format($totalSOIncome) }}</div>
-            </div>
+            </div> -->
 
 
             <!-- 10. 特別損失 -->
@@ -247,19 +255,19 @@
                     </div>
                     @endif
                 @endforeach
-            <div class="row accsum">
+            <!-- <div class="row accsum">
                 <div class="label indent-1">特別損失 合計</div>
                 <div class="value">{{ number_format($totalSOExpenses) }}</div>
-            </div>
+            </div> -->
 
             <!-- 11. 税引前当期純利益 -->
             <div class="row accsum">
-                <div class="label indent-1 bold">税引前当期純利益</div>
-                <div class="value bold">{{ number_format($profitBeforeTax) }}</div>
+                <div class="label indent-1">税引前当期純利益</div>
+                <div class="value">{{ number_format($profitBeforeTax) }}</div>
             </div>
 
             <!-- 12. 法人税等 -->
-            <div class="row">
+            <!-- <div class="row">
                 <div class="label indent-1">税等</div>
                 <div class="value"></div>
             </div>
@@ -270,16 +278,16 @@
                         <div class="value">{{ number_format($row['debit']) }}</div>
                     </div>
                     @endif
-                @endforeach
+                @endforeach -->
             <div class="row accsum">
-                <div class="label indent-1">税等 合計</div>
+                <div class="label indent-1">法人税·住民税及び事業税</div>
                 <div class="value">{{ number_format($totalTaxes) }}</div>
             </div>
 
             <!-- 13. 当期純利益 (最终结果) -->
             <div class="row accsum">
-                <div class="label indent-1 bold">当期純利益</div>
-                <div class="value bold">{{ number_format($netIncome) }}</div>
+                <div class="label indent-1">当期純利益</div>
+                <div class="value">{{ number_format($netIncome) }}</div>
             </div>
 
         </div>

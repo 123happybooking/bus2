@@ -152,13 +152,13 @@
                                     <tr>
                                         <td class="text-center text-muted">{{ $index + 1 }}</td>
                                         <td class="text-center font-monospace fw-bold text-primary">
-                                            {{ $invoice->invoice_number ?? 'N/A' }}
+                                            {{ $invoice->invoice_number ?? '' }}
                                         </td>
                                         <td class="small">
                                             {{ $invoice->agency->agency_name ?? '' }}
                                         </td>
                                         <td class="text-center small">
-                                            {{ $invoice->invoice_date ? \Carbon\Carbon::parse($invoice->invoice_date)->format('Y/m/d') : '-' }}
+                                            {{ $invoice->invoice_date ?? '' }}
                                         </td>
                                         <td class="text-end font-monospace">
                                             {{ number_format($invoice->total_amount ?? 0, 0) }}

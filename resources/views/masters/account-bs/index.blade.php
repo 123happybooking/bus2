@@ -8,7 +8,7 @@
             貸借対照表 (Balance Sheet)
         </h1>
         <a id="downloadPdf" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-            <i class="fas fa-download fa-sm text-white-50"></i> 导出PDF
+            <i class="fas fa-download fa-sm text-white-50"></i> PDFダウンロード
         </a>
     </div>
 
@@ -23,7 +23,7 @@
                         <div class="d-flex flex-column">
                             <!-- 标签 -->
                             <label class="form-label mb-1 text-muted small">
-                                <i class="bi bi-calendar-event"></i> 周期/月份
+                                <i class="bi bi-calendar-event"></i> 決算期
                             </label>
                             
                             <!-- 控件容器 -->
@@ -85,8 +85,8 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width: 60%">科目名称</th>
-                                    <th style="width: 40%" class="text-end">金额 (¥)</th>
+                                    <th style="width: 60%">科目</th>
+                                    <th style="width: 40%" class="text-end">金額</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -141,8 +141,8 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width: 60%">科目名称</th>
-                                    <th style="width: 40%" class="text-end">金额 (¥)</th>
+                                    <th style="width: 60%">科目</th>
+                                    <th style="width: 40%" class="text-end">金額</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -169,7 +169,7 @@
                                         @if($categoryName == '純資産')
                                             <tr>
                                                 <td style="padding-left: 2.5rem;">
-                                                    綠越利益剰余金
+                                                    繰越利益剰余金
                                                 </td>
                                                 <td class="text-end">
                                                     {{ number_format($netIncome) }}
@@ -209,7 +209,7 @@
     </div>
 
     <!-- 4. 贷借平衡检查 -->
-    <div class="row justify-content-center mb-4">
+    <!-- <div class="row justify-content-center mb-4">
         <div class="col-lg-8">
             <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
@@ -240,7 +240,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
 </div>
 

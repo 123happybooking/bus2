@@ -264,7 +264,7 @@ class AccountPlController extends Controller
             // D:\Google\Chrome\Application
             $browsershot = Browsershot::html($html)
                 ->paperSize(210, 297, 'mm')
-                ->margins(15, 15, 15, 15) // 使用推荐的 margins 方法
+                ->margins(5, 15, 15, 15) // 使用推荐的 margins 方法
                 ->setOption('printBackground', true)
                 ->waitUntilNetworkIdle()
                 ->timeout(30000);
@@ -303,7 +303,7 @@ class AccountPlController extends Controller
             }
 
             // 4. 生成文件名
-            $filename = time(). '.pdf';
+            $filename = "損益計算書". '.pdf';
 
             // 5. 返回响应 (现在 strlen 接收的肯定是字符串了)
             return response($pdfContent, 200, [

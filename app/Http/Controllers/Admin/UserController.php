@@ -322,7 +322,6 @@ class UserController extends Controller
     {
         $rules = [
             'name' => 'required|string|max:255',
-            'login_id' => 'required|string|max:255|unique:users,login_id,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
             'user_company_name' => 'required|string|max:255',
             'user_plan' => 'required|string|in:basic,premium,enterprise',
@@ -333,9 +332,6 @@ class UserController extends Controller
         $messages = [
             'name.required' => '名前は必須です。',
             'name.max' => '名前は255文字以内で入力してください。',
-            'login_id.required' => 'ログインIDは必須です。',
-            'login_id.max' => 'ログインIDは255文字以内で入力してください。',
-            'login_id.unique' => 'このログインIDは既に使用されています。',
             'password.min' => 'パスワードは8文字以上で入力してください。',
             'password.confirmed' => 'パスワードと確認用パスワードが一致しません。',
             'user_company_name.max' => '会社名は255文字以内で入力してください。',
@@ -347,11 +343,12 @@ class UserController extends Controller
         ];
 
         $validated = $request->validate($rules, $messages);
+        
+        $oldLoginId = $user->login_id;
 
         try {
             $data = [
                 'name' => $validated['name'],
-                'login_id' => $validated['login_id'],
                 'user_company_name' => $validated['user_company_name'] ?? null,
                 'user_plan' => $validated['user_plan'] ?? null,
                 'user_start_day' => $validated['user_start_day'] ?? null,
@@ -364,30 +361,32 @@ class UserController extends Controller
 
             $user->update($data);
             
-            if (!empty($validated['password'])) {
-                try {
-                    $this->updateStaffPassword($user, $validated['password']);
-                } catch (\Exception $e) {
-                }
-            }
+            $this->updateStaffInfo($user, $validated);
+            
+            $this->updateUserCompanyInfo($user, $validated);
             
             return redirect('/admin/users')
                 ->with([
                     'success' => 'ユーザーを更新しました。',
                     'alert-type' => 'success'
                 ]);
-                
         } catch (\Exception $e) {
+            $errorMessage = $e->getMessage();
+            
+            if (strpos($errorMessage, 'ログインIDが既に使用されています') !== false) {
+                $errorMessage = 'ログインIDが既に使用されています。';
+            }
+            
             return redirect()->back()
                 ->withInput()
                 ->with([
-                    'error' => '更新に失敗しました。システムエラーが発生しました。',
+                    'error' => $errorMessage,
                     'alert-type' => 'danger'
                 ]);
         }
     }
 
-    private function updateStaffPassword($user, $password)
+    private function updateStaffInfo($user, $validated)
     {
         $databaseName = 'bus_user_' . $user->id;
         
@@ -417,13 +416,74 @@ class UserController extends Controller
             'engine' => null,
         ];
         
-        config(["database.connections.{$databaseName}" => $userDbConfig]);
+        $connectionName = 'temp_' . $databaseName;
+        config(["database.connections.{$connectionName}" => $userDbConfig]);
         
-        $userConnection = DB::connection($databaseName);
+        $userConnection = DB::connection($connectionName);
         
-        $userConnection->table('staffs')
-            ->where('login_id', $user->login_id)
-            ->update(['password' => Hash::make($password)]);
+        $staffData = [
+            'name' => $validated['name'],
+        ];
+        
+        if (!empty($validated['password'])) {
+            $staffData['password'] = Hash::make($validated['password']);
+        }
+        
+        $staffRecord = $userConnection->table('staffs')
+            ->where('user_company_id', $user->id)
+            ->orderBy('id', 'asc')
+            ->first();
+        
+        if ($staffRecord) {
+            $userConnection->table('staffs')
+                ->where('id', $staffRecord->id)
+                ->update($staffData);
+        }
+    }
+    
+    
+    private function updateUserCompanyInfo($user, $validated)
+    {
+        $databaseName = 'bus_user_' . $user->id;
+        
+        $dbExists = DB::select("
+            SELECT COUNT(*) as count 
+            FROM information_schema.schemata 
+            WHERE schema_name = ?
+        ", [$databaseName]);
+        
+        if ($dbExists[0]->count == 0) {
+            return;
+        }
+        
+        $currentConfig = DB::connection()->getConfig();
+        
+        $userDbConfig = [
+            'driver' => $currentConfig['driver'],
+            'host' => $currentConfig['host'],
+            'port' => $currentConfig['port'],
+            'database' => $databaseName,
+            'username' => $currentConfig['username'],
+            'password' => $currentConfig['password'],
+            'charset' => $currentConfig['charset'],
+            'collation' => $currentConfig['collation'],
+            'prefix' => $currentConfig['prefix'],
+            'strict' => false,
+            'engine' => null,
+        ];
+        
+        $connectionName = 'temp_' . $databaseName;
+        config(["database.connections.{$connectionName}" => $userDbConfig]);
+        
+        $userConnection = DB::connection($connectionName);
+        
+        $userConnection->table('user_company_info')
+            ->where('user_company_id', $user->id)
+            ->update([
+                'user_company_name' => $validated['user_company_name'],
+                'user_plan' => $validated['user_plan'],
+                'user_start_day' => $validated['user_start_day'],
+            ]);
     }
 
     public function destroy(User $user)

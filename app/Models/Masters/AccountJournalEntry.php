@@ -3,6 +3,7 @@
 namespace App\Models\Masters;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class AccountJournalEntry extends Model
 {
@@ -80,6 +81,24 @@ class AccountJournalEntry extends Model
         return $this->formatLinesHtml(2);
     }
 
+    public function generateAccountNumber()
+    {
+        $dateStr = now()->format('Ymd');
+        $lastaccount = DB::table('account_journal_entries')
+            ->where('source_id', 'like', "ACC-{$dateStr}-%")
+            ->orderBy('source_id', 'desc')
+            ->first();
+
+        if ($lastaccount) {
+            $lastNum = (int)substr($lastaccount->source_id, -3);
+            $newNum = str_pad($lastNum + 1, 3, '0', STR_PAD_LEFT);
+        } else {
+            $newNum = '001';
+        }
+
+        return "ACC-{$dateStr}-{$newNum}";
+    }
+
     private function formatLinesHtml(string $side)
     {
         $lines = $this->lines->where('side', $side);
@@ -114,7 +133,7 @@ class AccountJournalEntry extends Model
 
             $formattedAmount = number_format($line->amount);
 
-            $html .= "<div style='display: grid; grid-template-columns: 1fr auto auto; gap: 10px; justify-items: center; align-items: start; font-size: 0.75rem; line-height: 1.4; padding: 4px 0; border-bottom: 1px solid #eee;'>";
+            $html .= "<div style='display: grid; grid-template-columns: 1fr auto auto; gap: 10px; justify-items: center; align-items: start; font-size: 0.75rem; line-height: 1.4; padding: 4px 0; '>";
 
             $html .= "<div class='fw-bold' style='width: 100%; text-align: left;'>{$accName}</div>";
             
@@ -139,6 +158,20 @@ class AccountJournalEntry extends Model
         }
 
         return $html;
+    }
+
+    
+    public function debit()
+    {
+        return $this->hasOne(AccountJournalLine::class, 'journal_entry_id')->where('side', 1);
+    }
+
+    /**
+     * 获取该分录的【贷方】记录集合 (一对多)
+     */
+    public function creditLines()
+    {
+        return $this->hasMany(AccountJournalLine::class, 'journal_entry_id')->where('side', 2);
     }
 }
 

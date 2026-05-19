@@ -41,14 +41,13 @@ class AccountBsController extends Controller
         $months["全期"] = "13";
 
         if ($yearmonth == "13" ){
-            $startDate = $period->start;
             $endDate = $period->end;
         }else{
-            $startDate = date('Y-m-d', strtotime("first day of $yearmonth"));
+            
             $endDate = date('Y-m-d', strtotime("last day of $yearmonth"));
         }
 
-
+        $startDate = "2000-01-01";
         // 2. 定义页面布局所需的分类顺序和名称
         $assetOrder = [1 => '流動資産', 3 => '固定資産', 5 => '繰延資産'];
         $liabilityOrder = [2 => '流動負債', 4 => '固定負債', 6 => '純資産'];
@@ -227,13 +226,11 @@ class AccountBsController extends Controller
 
 
         if ($yearmonth == "13" ){
-            $startDate = $period->start;
             $endDate = $period->end;
         }else{
-            $startDate = date('Y-m-d', strtotime("first day of $yearmonth"));
             $endDate = date('Y-m-d', strtotime("last day of $yearmonth"));
         }
-
+        $startDate = "2000-01-01";      
         // 2. 定义页面布局所需的分类顺序和名称
         $assetOrder = [1 => '流動資産', 3 => '固定資産', 5 => '繰延資産'];
         $liabilityOrder = [2 => '流動負債', 4 => '固定負債', 6 => '純資産'];
@@ -387,7 +384,7 @@ class AccountBsController extends Controller
 
 
         $totalLiabilities+=$netIncome;
-
+        $company = UserCompanyInfo::first();
         // 6. 传递数据到视图
         // 注意：这里传递的是 'date'，而不是 'current'
         // return view('masters.account-bs.pdf', compact(
@@ -398,9 +395,9 @@ class AccountBsController extends Controller
         //     'assetOrder',
         //     'liabilityOrder',
         //     'netIncome',
-        //    'period_id','yearmonth'
+        //    'period_id','yearmonth','startDate','endDate','company'
         // ));
-        $company = UserCompanyInfo::first();
+
         $datas = [
             'assets' => $assets,
             'liabilities' => $liabilities,
@@ -426,7 +423,7 @@ class AccountBsController extends Controller
             // D:\Google\Chrome\Application
             $browsershot = Browsershot::html($html)
                 ->paperSize(210, 297, 'mm')
-                ->margins(15, 15, 15, 15) // 使用推荐的 margins 方法
+                ->margins(5, 15, 15, 15) // 使用推荐的 margins 方法
                 ->setOption('printBackground', true)
                 ->waitUntilNetworkIdle()
                 ->timeout(30000);
@@ -465,7 +462,7 @@ class AccountBsController extends Controller
             }
 
             // 4. 生成文件名
-            $filename = time(). '.pdf';
+            $filename = "貸借対照表". '.pdf';
 
             // 5. 返回响应 (现在 strlen 接收的肯定是字符串了)
             return response($pdfContent, 200, [

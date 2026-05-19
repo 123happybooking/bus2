@@ -236,7 +236,7 @@
                 <input type="hidden" id="js-yearmonth" name="yearmonth" value="">
                 <!-- 周期与月份组 -->
                 <div class="col-md-auto">
-                    <label class="form-label mb-1 text-muted" style="font-size: 0.75rem;">周期/月份</label>
+                    <label class="form-label mb-1 text-muted" style="font-size: 0.75rem;">決算期</label>
                     
                     <div class="d-flex align-items-end">
                         <!-- 1. 周期下拉框 (样式已统一) -->
@@ -332,7 +332,7 @@
                             <th width="10%">作成日/仕訳ID</th>
                             <th width="10%" class="position-relative" style="cursor: pointer;" onclick="sortTable('posting_date')">
                                 <!-- 文字部分：设置 padding-right 给箭头留出空间 -->
-                                <span class="pe-4">取引日</span>
+                                <span class="pe-4">仕訳日</span>
 
                                 <!-- 箭头容器：使用绝对定位，强制固定在右侧居中 -->
                                 <div class="sort-arrows" style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; line-height: 0.5;">
@@ -365,7 +365,7 @@
                             </td>
                             <td>{{ $entry->created_by}}</td>
                             <td>
-                                <div>{{ $entry->posting_date->format('Y-m-d') }}</div>
+                                <div>{{ $entry->created_at->format('Y-m-d') }}</div>
                                 <div>{{ $entry->source_id}}</div>
                             </td>
                             <td>{{ $entry->posting_date->format('Y-m-d') }}</td>
@@ -639,7 +639,7 @@ function autoSelectMonth() {
         }
         
         const accountDataListId = `account-list-${rowId}`;
-        const accountOptions = currentAccountData.map(a => `<option value="${a.code} - ${a.name}">`).join('');
+        const accountOptions = currentAccountData.map(a => `<option value="${a.code} - ${a.name}" data-tax-id="${a.tax_id || ''}">`).join('');
 
         // 2. 補助科目
         const subDataListId = `sub-list-${rowId}`;
@@ -729,7 +729,12 @@ function autoSelectMonth() {
                         </div>
                     </div>
                     <!-- 空列占位 -->
-                    <div style="width: 150px;"></div>
+                    <div style="width: 150px;">
+                        <input type="date" 
+                            class="form-control form-control-sm deal-date-input" 
+                            value="${data.deal_date}" 
+                            onchange="this.classList.remove('is-invalid')">
+                    </div>
                 </div>
             </td>
         `;
@@ -754,6 +759,8 @@ function autoSelectMonth() {
 
         const hiddenInput = row.querySelector('.account-id-hidden'); // 找到隐藏域
         let foundId = '';
+        const listId = input.getAttribute('list');
+        const dataList = document.getElementById(listId);
         // 遍历全局数据 accountsData (这是页面加载时传进来的所有科目)
         for (let account of accountsData) {
             if (`${account.code} - ${account.name}` === accountText) {
@@ -762,6 +769,43 @@ function autoSelectMonth() {
             }
         }
         hiddenInput.value = foundId; // 将找到的 ID 赋值给隐藏域
+
+
+        let foundTaxId = '';
+        let selectedOption = null;
+        if (dataList) {
+            // 注意：这里需要遍历 options，因为 datalist.options 可能不是标准数组
+            for (let option of dataList.options || dataList.children) {
+                if (option.value === accountText) {
+                    selectedOption = option;
+                    break;
+                }
+            }
+        }
+        
+        // 如果找到了匹配的选项
+        if (selectedOption) {
+            // 1. 获取科目 ID (假设你的数据里有 data-id，或者你需要通过 text 反查 accountsData)
+            // 注意：如果你的 currentAccountData 没传到全局，你可能还需要保留原来的遍历查找 ID 的逻辑
+            // 这里假设你保留原来的遍历逻辑来找 ID
+            const matchedAccount = accountsData.find(acc => 
+                `${acc.code} - ${acc.name}` === accountText
+            );
+            if (matchedAccount) {
+                foundId = matchedAccount.id;
+                // 2. 直接从 option 标签上拿 tax_id
+                foundTaxId = selectedOption.getAttribute('data-tax-id');
+            }
+        }
+
+        const taxSelect = row.querySelector('.tax-select');
+        if (foundTaxId && taxSelect) {
+            // 检查税率下拉框里是否有这个值
+            if (taxSelect.querySelector(`option[value="${foundTaxId}"]`)) {
+                taxSelect.value = foundTaxId;
+            }
+            // 如果没有这个税率值，可以选择清空或者保留原样
+        }
         
         const subInput = document.getElementById(`sub-input-${rowId}`);
         const subHidden = row.nextElementSibling ? row.nextElementSibling.querySelector('.sub-id-hidden') : null;
@@ -944,12 +988,17 @@ function autoSelectMonth() {
                 const amount = amountInput?.value;
                 const taxValue = taxSelect?.value;
 
+
                 // 获取辅助信息 (用于提交)
                 const tr2 = tr1.nextElementSibling; 
                 const subText = tr2.querySelector('.sub-input')?.value.trim() || '';
                 const partText = tr2.querySelector('.partner-input')?.value.trim() || '';
                 const subId = tr2.querySelector('.sub-id-hidden')?.value || null;
                 const partId = tr2.querySelector('.partner-id-hidden')?.value || null;
+
+                
+                const dealDateInput = tr2.querySelector('.deal-date-input');
+                const dealDate = dealDateInput?.value;
 
 
 
@@ -982,6 +1031,7 @@ function autoSelectMonth() {
                         partner_name: partText,
                         tax_type_id: taxValue,
                         amount: amount,
+                        deal_date: dealDate,
                         remark: ''
                     });
                 }
@@ -1112,6 +1162,7 @@ function autoSelectMonth() {
                     partner_id: line.partner_id,
                     tax_type_id: line.tax_type_id,
                     amount: line.amount,
+                    deal_date: line.deal_date,
                     side: line.side, // 直接使用数字 1 或 2
                     account_full_text: line.account_full_text || '',
                     account_sub_name: line.account_sub ? (line.account_sub.display_name || `${line.account_sub.code||''} - ${line.account_sub.name}`) : '',

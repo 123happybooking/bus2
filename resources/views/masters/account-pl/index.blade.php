@@ -8,7 +8,7 @@
         <h3><i class="bi bi-cash-coin text-success me-2"></i>損益計算書 (Profit and Loss)</h3>
         <span class="text-muted">期間で絞り込みを行ってください</span>
         <a id="downloadPdf" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-            <i class="fas fa-download fa-sm text-white-50"></i> 导出PDF
+            <i class="fas fa-download fa-sm text-white-50"></i> PDFダウンロード
         </a>
     </div>
 
@@ -25,7 +25,7 @@
                         <div class="d-flex flex-column">
                             <!-- 标签 -->
                             <label class="form-label mb-1 text-muted small">
-                                <i class="bi bi-calendar-event"></i> 周期/月份
+                                <i class="bi bi-calendar-event"></i> 決算期
                             </label>
                             
                             <!-- 控件容器 -->
@@ -82,9 +82,9 @@
             <table class="table table-borderless mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 60%">項目 (勘定科目)</th>
+                        <th style="width: 60%">科目</th>
                         <th style="width: 20%" class="text-end">借方 (¥)</th>
-                        <th style="width: 20%" class="text-end">贷方 (¥)</th>
+                        <th style="width: 20%" class="text-end">貸方 (¥)</th>
                         <th style="width: 20%" class="text-end">金額</th>
                     </tr>
                 </thead>
@@ -295,7 +295,7 @@
                         @endif
                     @endforeach
                     <tr class="fw-bold border-top border-bottom">
-                        <td class="ps-4">税等 合计</td>
+                        <td class="ps-4">税等 合計</td>
                         <td class="text-end">{{ number_format($totalTaxes) }}</td>
                         <td></td>
                         <td class="text-end">{{ number_format($totalTaxes) }}</td>
@@ -303,7 +303,7 @@
 
                     <!-- 当期純利益 (最终净利润) -->
                     <tr class="table-success">
-                        <td class="ps-4 fw-bold fs-5">当期純利益 (净利润)</td>
+                        <td class="ps-4 fw-bold fs-5">当期純利益</td>
                         <td colspan="2"></td>
                         <td class="text-end h4 fw-bold">
                             {{ number_format($netIncome) }}

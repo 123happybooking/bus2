@@ -25,8 +25,17 @@ use Illuminate\Filesystem\FilesystemAdapter;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Auth;
 use ZipArchive;
+use App\Models\Masters\Account;
+use App\Models\Masters\AccountPartner;
+use App\Models\Masters\AccountTax;
+use App\Models\Masters\AccountDepartment;
+use App\Models\Masters\AccountJournalEntry;
+use App\Models\Masters\AccountJournalLine;
+use App\Models\Masters\AccountConfig;
+use App\Models\Masters\UserCompanyInfo;
+use App\Exports\InvoicesExport; // 引入导出类
+use Maatwebsite\Excel\Facades\Excel; // 引入 Excel 门面
 
-use function Symfony\Component\Clock\now;
 
 class InvoiceController extends Controller
 {
@@ -93,11 +102,228 @@ class InvoiceController extends Controller
         // appends 确保分页链接中携带当前搜索条件和 per_page 设置
         $invoices->appends($request->only(['group_id', 'per_page','agency_id','staff_id']));
 
+        $departments = AccountDepartment::get();
         $banks = Bank::where("is_active",1)->get();
         $agencies = Agency::where("is_active",1)->get();
         $staffs = Staff::where("is_active",1)->get();
 
-        return view('masters.invoices.index', compact('invoices', 'groupId','banks','agencies','staffs','totalAmount','paidAmount'));
+        $accounts = Account::where('is_active', 1)->get();
+        $partners = AccountPartner::get(); // 取引先
+        $taxes = AccountTax::get();       // 税区分
+
+        $accountConfig = AccountConfig::first();
+        $receiveAccount = Account::where('id', $accountConfig->account_mgj_id)->where('is_active', 1)->first();
+        $depositAccount = Account::where('id', $accountConfig->account_deposit_id)->where('is_active', 1)->first();
+        $spmsgAccount = Account::where('id', $accountConfig->account_spmsg_id)->where('is_active', 1)->first();
+
+        return view('masters.invoices.index', compact('invoices', 'groupId','banks','agencies','staffs','totalAmount','paidAmount','accounts','partners','taxes','departments','receiveAccount','depositAccount','spmsgAccount'));
+    }
+
+    public function sumInvoice(Request $request)
+    {
+        $groupId = $request->query('group_id');
+
+        if (! $groupId) {
+            return redirect()->back()->with([
+                'error' => 'グループIDが指定されていません。',
+                'alert-type' => 'danger'
+            ]);
+        }
+
+        // if (! auth()->user()->canAccessGroup($groupId)) {
+        //     abort(403, 'アクセス権限がありません。');
+        // }
+
+        $query = Invoice::where('group_id', $groupId);
+        if ($request->filled('agency_id') && $request->agency_id) {
+            $query->where('agency_id', $request->agency_id);
+        }
+
+        if ($request->filled('staff_id') && $request->staff_id) {
+            $query->where('staff_id', $request->staff_id);
+        }
+
+        if ($request->filled('payment_status') && count($request->payment_status)>0) {
+            $query->wherein('payment_status', $request->payment_status);
+        }
+
+        if ($request->filled('target_date') && $request->target_date) {
+            $end_date = date('Y-m-d',time());
+            if($request->days > 0){
+                $end_date = date('Y-m-d', strtotime($request->target_date . ' +'.$request->days.' day'));
+            }
+            
+            if($request->date_type== "operation"){
+                $query->where('operation_date','>=', $request->target_date)->where('operation_date','<=', $end_date);
+            }elseif($request->date_type== "billing"){
+                $query->where('invoice_date','>=', $request->target_date)->where('invoice_date','<=', $end_date);
+            }else{
+                $headers = PaymentHeader::where('group_id', $groupId)->where('payment_date','>=', $request->target_date)->where('payment_date','<=', $end_date)->pluck('id')->toArray();
+                $ids = PaymentDetail::whereIn('payment_header_id', $headers)->pluck('invoice_id')->toArray();
+                $query->wherein('id', $ids);
+
+            }
+
+        }
+
+        $totalAmount = (clone $query)->where('type', 1)->sum('total_amount');
+        $paidAmount  = (clone $query)->where('type', 1)->sum('paid_amount');
+
+
+        $invoices = $query->orderBy('agency_id', 'desc')->orderBy('invoice_date', 'desc')->get();
+    
+
+        $departments = AccountDepartment::get();
+        $banks = Bank::where("is_active",1)->get();
+        $agencies = Agency::where("is_active",1)->get();
+        $staffs = Staff::where("is_active",1)->get();
+
+        $accounts = Account::where('is_active', 1)->get();
+        $partners = AccountPartner::get(); // 取引先
+        $taxes = AccountTax::get();       // 税区分
+
+        return view('masters.invoices.sum', compact('invoices', 'groupId','banks','agencies','staffs','totalAmount','paidAmount','accounts','partners','taxes','departments'));
+    }
+
+    public function excel(Request $request)
+    {
+        $groupId = $request->query('group_id');
+
+        if (! $groupId) {
+            return redirect()->back()->with([
+                'error' => 'グループIDが指定されていません。',
+                'alert-type' => 'danger'
+            ]);
+        }
+
+        $query = Invoice::where('group_id', $groupId);
+        if ($request->filled('agency_id') && $request->agency_id) {
+            $query->where('agency_id', $request->agency_id);
+        }
+
+        if ($request->filled('staff_id') && $request->staff_id) {
+            $query->where('staff_id', $request->staff_id);
+        }
+
+        if ($request->filled('payment_status') && count($request->payment_status)>0) {
+            $query->wherein('payment_status', $request->payment_status);
+        }
+
+        if ($request->filled('target_date') && $request->target_date) {
+            $end_date = date('Y-m-d',time());
+            if($request->days > 0){
+                $end_date = date('Y-m-d', strtotime($request->target_date . ' +'.$request->days.' day'));
+            }
+            
+            if($request->date_type== "operation"){
+                $query->where('operation_date','>=', $request->target_date)->where('operation_date','<=', $end_date);
+            }elseif($request->date_type== "billing"){
+                $query->where('invoice_date','>=', $request->target_date)->where('invoice_date','<=', $end_date);
+            }else{
+                $headers = PaymentHeader::where('group_id', $groupId)->where('payment_date','>=', $request->target_date)->where('payment_date','<=', $end_date)->pluck('id')->toArray();
+                $ids = PaymentDetail::whereIn('payment_header_id', $headers)->pluck('invoice_id')->toArray();
+                $query->wherein('id', $ids);
+
+            }
+
+        }
+
+        $totalAmount = (clone $query)->where('type', 1)->sum('total_amount');
+        $paidAmount  = (clone $query)->where('type', 1)->sum('paid_amount');
+        $company = UserCompanyInfo::first();
+
+
+        $invoices = $query->orderBy('agency_id', 'desc')->orderBy('invoice_date', 'desc')->get();
+        $datas = [
+            'invoices' => $invoices,
+            'totalAmount' => $totalAmount,
+            'paidAmount' => $paidAmount,
+            'company' => $company,
+            'group_id' => $groupId,
+        ];
+    
+        $filename = "請求書マスター_" . date('YmdHis') . ".xlsx";
+        if($request->sum==1){
+            $view = 'masters.invoices.excel-sum';
+            
+        }else{
+            $view = 'masters.invoices.excel';
+        }
+        return Excel::download(new InvoicesExport($datas,$view), $filename);
+
+
+
+        try {
+            // 1. 渲染 HTML
+            $html = View::make($view, $datas)->render();
+            
+
+            // 2. 初始化 Browsershot
+            // D:\Google\Chrome\Application
+            $browsershot = Browsershot::html($html)
+                ->paperSize(210, 297, 'mm')
+                ->margins(10, 15, 15, 15) // 使用推荐的 margins 方法
+                ->setOption('printBackground', true)
+                ->waitUntilNetworkIdle()
+                ->timeout(30000);
+
+            // 2. 根据操作系统设置 Chrome 路径（仅在 Windows 下需要指定）
+            if (PHP_OS_FAMILY === 'Windows') {
+                // Windows 环境：指定 chrome.exe 路径
+                $browsershot->setChromePath('D:\Google\Chrome\Application\chrome.exe');
+            } else {
+                $browsershot->setNodePath('/usr/local/nodejs/bin/node');
+                
+                // 如果上面只指定 node 还不行，可以尝试加上 npm 路径
+                $browsershot->setNpmPath('/usr/local/nodejs/bin/npm');
+                $browsershot->setChromePath('/usr/local/chrome/chrome');
+                // [Linux/生产环境] 取消下面这行的注释
+                $browsershot->addChromiumArguments(['--no-sandbox', '--disable-setuid-sandbox']);
+            }
+
+
+            // 3. 【关键修改】获取 PDF 内容
+            // 方法 A (推荐): 直接获取二进制字符串 (适用于大多数新版本)
+            $pdfContent = $browsershot->getPdf();
+
+            // 防御性检查：如果 getPdf() 返回的不是字符串（比如返回了对象或路径）
+            if (!is_string($pdfContent)) {
+                // 如果返回的是对象，尝试保存为临时文件再读取
+                $tempFile = tempnam(sys_get_temp_dir(), 'invoice_') . '.pdf';
+                $browsershot->savePdf($tempFile);
+                $pdfContent = file_get_contents($tempFile);
+                unlink($tempFile); // 立即删除临时文件
+                
+                // 如果还是不对，抛出异常以便调试
+                if (!is_string($pdfContent)) {
+                    throw new \Exception('Failed to get PDF content as string. Got: ' . gettype($pdfContent));
+                }
+            }
+
+            // 4. 生成文件名
+            $filename = "貸借対照表". '.pdf';
+
+            // 5. 返回响应 (现在 strlen 接收的肯定是字符串了)
+            return response($pdfContent, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Content-Length' => strlen($pdfContent), 
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('PDF Generation Failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            
+            if (app()->environment('local')) {
+                return response()->json([
+                    'message' => 'PDF 生成失败',
+                    'error' => $e->getMessage(),
+                    'type' => gettype($e), // 显示错误类型
+                ], 500);
+            }
+            return response()->view('errors.500', [], 500);
+        }
+
+       
     }
 
     public function create(Request $request)
@@ -406,7 +632,10 @@ public function store(Request $request)
         $summary_10 = InvoiceTaxSummary::where('invoice_id', $invoice->id)->where('tax_rate', 10)->first();
         $summary_8 = InvoiceTaxSummary::where('invoice_id', $invoice->id)->where('tax_rate', 8)->first();
         $non_taxable = InvoiceItem::where('invoice_id', $invoice->id)->where('tax_rate','<', 0)->sum('amount');
-        return view('masters.invoices.edit', compact('invoice', 'groupId','items','currencies','products','banks','agencies','staffs','summary_10','summary_8','non_taxable'));
+
+        $details = PaymentDetail::where('invoice_id', $invoice->id)->orderBy("created_at","desc")->get();
+
+        return view('masters.invoices.edit', compact('invoice', 'groupId','items','currencies','products','banks','agencies','staffs','summary_10','summary_8','non_taxable','details'));
     }
 
     public function update(Request $request, int $id)
@@ -448,6 +677,14 @@ public function store(Request $request)
         ]);
 
         $validated['items'] = array_values($validated['items']); // 重置索引
+
+        if($validated['type'] == 2){
+            if($invoice->paid_amount>0){
+                return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => '入金済みデータは仮請求書に変更できません']);
+            }
+        }
 
         //查询$validated['invoice_date']在currencies表中rate_valid_from之后，在rate_valid_to之前的数据
         $currency = Currency::where('currency_code', $validated['currency_code']) // 通常还需要匹配币种代码
@@ -633,7 +870,11 @@ public function store(Request $request)
         //     abort(403);
         // }
 
-        
+        if($invoice->paid_amount>0){
+            return redirect()->back()
+            ->withInput()
+            ->withErrors(['error' => '入金済みデータは削除できません']);
+        }
 
         $invoice->delete();
 
@@ -1042,5 +1283,108 @@ public function store(Request $request)
            
     }
 
+
+    public function storeJournal(Request $request){ 
+
+        DB::beginTransaction();
+        try {
+
+            $journal = new AccountJournalEntry();
+            // A. 创建主表
+            $entry = AccountJournalEntry::create([
+                'posting_date'  => $request->date,
+                'department_id' => $request->department,
+                'source_type'   => $request->source_type,
+                'remark'   => $request->summary,
+                'source_id'     => $journal->generateAccountNumber(),
+                'created_by'    => Auth::id(),
+                'updated_by'    => Auth::id(),
+            ]);
+
+
+            $debit = $request->debit;
+            $linesData[] = [
+                'journal_entry_id' => $entry->id,
+                'side'             => 1, // 动态决定方向
+                'account_id'       => $debit['account_id'],
+                'sub_account_id'   => $debit['sub_subject_id'] ?? 0,
+                'partner_id'       => $debit['partner_id'] ?? 0,
+                'amount'           => $debit['amount'],
+                'deal_date'           => $debit['deal_date'],
+                'tax_type_id'      => $debit['tax_id'] ?? 0,
+                'invoice_id'      => 0,
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ];
+
+            $credit = $request->credit_lines;
+           
+            foreach ($credit as $creditLine) {
+                $linesData[] = [
+                    'journal_entry_id' => $entry->id,
+                    'side'             => 2, // 动态决定方向
+                    'account_id'       => $creditLine['account_id'],
+                    'sub_account_id'   => $creditLine['sub_subject_id'] ?? 0,
+                    'partner_id'       => $creditLine['partner_id'] ?? 0,
+                    'amount'           => $creditLine['amount'],
+                    'deal_date'           => $creditLine['deal_date'],
+                    'tax_type_id'      => $creditLine['tax_id'] ?? 0,
+                    'invoice_id'      => $creditLine['invoice_id'] ?? 0,
+                    'created_at'       => now(),
+                    'updated_at'       => now(),
+                ];
+            }
+
+
+            AccountJournalLine::insert($linesData);
+
+            DB::commit();
+
+
+            return response()->json(['success' => 1]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('仕訳伝票作成エラー: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            
+
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'システムエラーが発生しました。管理者にお問い合わせください。']);
+        }
+    }
+
+    public function getJournal(Request $request){ 
+        $journal = AccountJournalEntry::find($request->invoice_id);
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $journal->id,
+                'date' =>$journal->posting_date?->format('Y/m/d'),
+                'source_type' => $journal->source_type,
+                'summary' => $journal->remark,
+                'department_id' => $journal->department_id,
+                'department_name' => $journal->department->name ?? '-',
+                'debit' => [
+                    'account_name' => $journal->debit->account->name ?? '-',
+                    'tax_name' => $journal->debit->taxType->name ?? '-',
+                    'amount' => $journal->debit->amount,
+                    'sub_subject_name' => $journal->debit->subAccount->name ?? '-',
+                    'partner_name' => $journal->debit->partner->name ?? '-',
+                    'deal_date' => $journal->debit->deal_date,
+                ],
+                'credit_lines' => $journal->creditLines->map(function ($line) {
+                    return [
+                        'account_name' => $line->account->name,
+                        'tax_name' => $line->taxType->name,
+                        'amount' => $line->amount,
+                        'sub_subject_name' => $line->subAccount->name ?? '-',
+                        'partner_name' => $line->partner->name ?? '-',
+                        'deal_date' => $line->deal_date,
+                    ];
+                })
+            ]
+        ]);
+    }
 }
 

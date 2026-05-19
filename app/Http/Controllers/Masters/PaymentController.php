@@ -49,13 +49,13 @@ public function store(Request $request)
     // ==========================================
     $rules = [
         'group_id' => 'required|integer', 
-        'return_url' => 'required|string',
+        'return_url' => 'nullable|string',
         'mode'     => 'required',
         'bank_id'  => 'nullable|integer', 
         'staff_id'  => 'nullable|integer', 
         
         // Detail 模式特有字段
-        'payment_date' => 'required_if:mode,detail|date',
+        'payment_date' => 'date',
         'remark'       => 'nullable|string|max:255',
         
         // 明细列表验证
@@ -91,30 +91,28 @@ public function store(Request $request)
         'items.*.payment_amount.numeric'  => '入金額は数値で入力してください。',
         'items.*.payment_amount.min'      => '入金額は0.01以上で入力してください。',
     ];
-    // ==========================================
-    // 3. 执行验证
-    // ==========================================
 
-    //$validated = $request->validate($rules, $messages);
-    $validated = $request->all();
 
-    $groupId    = $validated['group_id'];
-    $bank_id       = $validated['bank_id'];
-    $items      = $validated['items'];
-    $batchToken = 'BATCH-' . date('YmdHis') . '-' . rand(1000, 9999);
-    $return_url = $validated['return_url'];
-
-    // 计算总金额 (使用 bcmath 防止浮点误差)
-    $totalAmount = '0';
-    foreach ($items as $item) {
-        $totalAmount = bcadd($totalAmount, (string)$item['payment_amount'], 2);
-    }
-
-    $paymentDate = $validated['payment_date'] ?? now()->toDateString();
-    $remark      = $validated['remark'] ?? '';
-    $notesValue  = "{$batchToken}|" . count($items) . "|{$totalAmount}";
     DB::beginTransaction();
     try {
+        $validated = $request->validate($rules, $messages);
+        $validated = $request->all();
+
+        $groupId    = $validated['group_id'];
+        $bank_id       = $validated['bank_id'];
+        $items      = $validated['items'];
+        $batchToken = 'BATCH-' . date('YmdHis') . '-' . rand(1000, 9999);
+        $return_url = $validated['return_url'];
+
+        // 计算总金额 (使用 bcmath 防止浮点误差)
+        $totalAmount = '0';
+        foreach ($items as $item) {
+            $totalAmount = bcadd($totalAmount, (string)$item['payment_amount'], 2);
+        }
+
+        $paymentDate = $validated['payment_date'] ?? now()->toDateString();
+        $remark      = $validated['remark'] ?? '';
+        $notesValue  = "{$batchToken}|" . count($items) . "|{$totalAmount}";
         // ==========================================
         // 4. 业务逻辑预检查 (Pre-checks)
         // ==========================================
@@ -220,6 +218,8 @@ public function store(Request $request)
 
         if(!$return_url){
             $return_url = "masters/invoices?group_id=".$groupId;
+        }else{
+            $return_url = $return_url."?group_id=".$groupId;
         }
         return redirect($return_url)->with('success', '登録完了：' . $batchToken);
 
@@ -360,6 +360,67 @@ public function store(Request $request)
             Log::error('入金取消エラー: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', '取消処理に失敗しました。');
+        }
+    }
+
+    public function detailUpdate(Request $request, $id)
+    {
+        $detail = PaymentDetail::findOrFail($id);
+        $invoice = Invoice::where('id',$detail->invoice_id)->first();
+        if ($request->write_off_amount > ($invoice->total_amount - $invoice->paid_amount + $detail->write_off_amount)) {
+            return redirect()->back()
+                ->with('error', '入金金額は残高を超えないでください');
+        }
+        $temp = $request->write_off_amount - $detail->write_off_amount;
+
+        DB::beginTransaction();
+        try {
+            
+            $newPaidAmount = $invoice->paid_amount + $temp; // 先算出最新的已付金额
+            $invoice->paid_amount = $newPaidAmount;
+            $invoice->payment_status =  ($newPaidAmount >= $invoice->total_amount) ? 3 : 2;
+            $invoice->save();
+
+            $detail->update([
+                'write_off_amount' => $request->write_off_amount,
+            ]);
+
+            DB::commit();
+
+            return redirect()->back()
+                ->with('success', '成功');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', '処理に失敗しました。');
+        }
+    }
+
+    public function detailDestroy(Request $request, $id)
+    {
+        $detail = PaymentDetail::findOrFail($id);
+        $invoice = Invoice::where('id',$detail->invoice_id)->first();
+
+        DB::beginTransaction();
+        try {
+            
+            $newPaidAmount = $invoice->paid_amount - $detail->write_off_amount; // 先算出最新的已付金额
+            $invoice->paid_amount = $newPaidAmount;
+            $invoice->payment_status =  ($newPaidAmount == 0) ? 1 : 2;
+            $invoice->save();
+
+            $detail->delete();
+
+            DB::commit();
+
+            return redirect()->back()
+                ->with('success', '成功');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', '処理に失敗しました。');
         }
     }
 }

@@ -19,6 +19,7 @@ use App\Models\Masters\Option;
 use App\Models\Masters\GroupInfoFile;
 use App\Models\Masters\DriverCompensation;
 use App\Models\Masters\DriverCompensationType;
+use App\Models\Masters\Staff;
 use App\Models\Driver\DriverExpense;
 use App\Models\Driver\DriverExpenseType;
 use App\Models\Driver\DriverPaymentMethod;
@@ -899,6 +900,11 @@ class GroupInfoController extends Controller
         $branches = Branch::orderBy('display_order', 'asc')
                          ->orderBy('branch_code', 'asc')
                          ->get();
+                         
+        $staffs = Staff::where('is_active', 1)
+                        ->where('is_active', true)
+                        ->orderBy('name')
+                        ->get();
         
         $reservationCategories = ReservationCategory::where('is_active', true)
                                                    ->orderBy('display_order', 'asc')
@@ -1078,7 +1084,8 @@ class GroupInfoController extends Controller
             'defaultBranchId',
             'expensesByBus',
             'expenseTypes',
-            'paymentMethods'
+            'paymentMethods',
+            'staffs'
         ));
     }
 
@@ -3791,9 +3798,13 @@ class GroupInfoController extends Controller
         $route = $groupInfo->itinerary_name ?? '';
         
         $office = '';
-        if ($vehicle && $vehicle->branch_id) {
-            $branch = DB::table('branches')->find($vehicle->branch_id);
-            $office = $branch->branch_name ?? '';
+        $userId = session('user_id');
+        if ($userId) {
+            $staff = DB::table('staffs')->where('id', $userId)->first();
+            if ($staff && $staff->branch_id) {
+                $branch = DB::table('branches')->find($staff->branch_id);
+                $office = $branch->branch_name ?? '';
+            }
         }
         
         $vehicleName = $vehicle->vehicle_code ?? '';

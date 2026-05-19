@@ -84,9 +84,7 @@
 <div class="header">
     <div class="c1">運転日報</div>
     <div class="c2">
-        @if(isset($companyLogo) && $companyLogo)
-            <img src="{{ $companyLogo }}" height="30pt" max-width="80%">
-        @endif
+        <img src="{{ $companyLogo ? $companyLogo : '/images/blank.png' }}" height="30pt" max-width="80%">
     </div>
     <div class="c3">
         {{ $companyInfo['name'] ?? '会社名' }}<br>

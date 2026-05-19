@@ -15,6 +15,7 @@ class AccountCashOut extends Model
      */
     protected $fillable = [
         'type_id',
+        'cashin_id',
         'title',
         'sort',
     ];
@@ -24,6 +25,7 @@ class AccountCashOut extends Model
      */
     protected $casts = [
         'type_id' => 'integer',
+        'cashin_id' => 'integer',
         'sort' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -37,5 +39,10 @@ class AccountCashOut extends Model
         '5' => '期首現預金残高',
         '6' => '期末現預金残高',
     ];
+
+    public function cashOutData()
+    {
+        return $this->hasOne(AccountCashoutData::class, 'cashout_id');
+    }
 
 }
