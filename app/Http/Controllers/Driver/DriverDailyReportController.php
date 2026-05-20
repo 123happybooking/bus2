@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Driver\DriverDailyReport;
 use App\Models\Driver\DriverOperationStatus;
 use App\Models\Driver\DriverExpense;
+use App\Models\Driver\DriverVehicleCheckItems;
+use App\Models\Driver\DriverVehicleCheck;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Masters\Vehicle;
 use Illuminate\Http\Request;
@@ -43,7 +45,13 @@ class DriverDailyReportController extends Controller
                 $totalReports = $allReports->count();
                 $completedItineraries = collect();
                 
-                return view('driver.daily-report', compact('date', 'dateTitle', 'report', 'completedItineraries', 'vehicles', 'defaultVehicleId', 'allowEdit', 'vehicleId', 'totalReports'));
+                $checkItems = DriverVehicleCheckItems::where('is_active', true)
+                    ->orderBy('display_order')
+                    ->get()
+                    ->groupBy('category');
+                $savedChecks = collect();
+                
+                return view('driver.daily-report', compact('date', 'dateTitle', 'report', 'completedItineraries', 'vehicles', 'defaultVehicleId', 'allowEdit', 'vehicleId', 'totalReports', 'checkItems', 'savedChecks'));
             }
         }
         
@@ -131,7 +139,22 @@ class DriverDailyReportController extends Controller
             $expensesByItinerary[$itinerary->id] = $expenses;
         }
         
-        return view('driver.daily-report', compact('date', 'dateTitle', 'report', 'completedItineraries', 'expensesByItinerary', 'vehicles', 'defaultVehicleId', 'allowEdit', 'vehicleId', 'totalReports'));
+        
+        $checkItems = DriverVehicleCheckItems::where('is_active', true)
+            ->orderBy('display_order')
+            ->get()
+            ->groupBy('category');
+        
+        $savedChecks = [];
+        if ($report) {
+            $savedChecks = DriverVehicleCheck::where('driver_id', $driverId)
+                ->where('vehicle_id', $defaultVehicleId)
+                ->where('date', $date)
+                ->get()
+                ->keyBy('driver_vehicle_check_items_id');
+        }
+        
+        return view('driver.daily-report', compact('date', 'dateTitle', 'report', 'completedItineraries', 'expensesByItinerary', 'vehicles', 'defaultVehicleId', 'allowEdit', 'vehicleId', 'totalReports','checkItems', 'savedChecks'));
     }
     
     public function create(Request $request)
@@ -224,7 +247,10 @@ class DriverDailyReportController extends Controller
             'end_work_time' => 'nullable|date_format:H:i',
             'actual_distance' => 'nullable|integer|min:0',
             'empty_distance' => 'nullable|integer|min:0',
-            'remark' => 'nullable|string|max:500', 
+            'remark' => 'nullable|string|max:500',
+            'checks' => 'nullable|array',
+            'checks.*.driver_vehicle_check_items_id' => 'required_with:checks|integer',
+            'checks.*.is_ok' => 'required_with:checks|boolean',
         ]);
         
         $report->update([
@@ -241,6 +267,26 @@ class DriverDailyReportController extends Controller
             'remark' => $request->remark,
             'updated_by' => $userId,
         ]);
+        
+        if ($request->has('checks') && !empty($request->checks)) {
+            $vehicleId = $request->vehicle_id ?? $report->vehicle_id;
+            $date = $report->date;
+            
+            foreach ($request->checks as $check) {
+                DriverVehicleCheck::updateOrCreate(
+                    [
+                        'driver_id' => $driverId,
+                        'vehicle_id' => $vehicleId,
+                        'driver_vehicle_check_items_id' => $check['driver_vehicle_check_items_id'],
+                        'date' => $date,
+                    ],
+                    [
+                        'is_ok' => $check['is_ok'],
+                        'updated_by' => $userId,
+                    ]
+                );
+            }
+        }
         
         $distance = $report->distance;
         

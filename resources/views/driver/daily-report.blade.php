@@ -15,90 +15,140 @@
     </div>
 
     <div class="report-form">
-        <div class="form-group">
-            <label class="form-label">車両</label>
-            <input type="text" class="form-input" value="{{ $vehicles->first()->registration_number ?? '' }}" readonly disabled>
-            <input type="hidden" id="vehicle_id" value="{{ $defaultVehicleId }}">
-        </div>
-
-        @if($report)
-        <div class="form-group">
-            <label class="form-label">天気</label>
-            <select name="weather" id="weather" class="form-input" {{ $allowEdit ? '' : 'disabled' }}>
-                <option value="">選択してください</option>
-                <option value="晴れ" {{ ($report->weather ?? '') == '晴れ' ? 'selected' : '' }}>晴れ</option>
-                <option value="曇り" {{ ($report->weather ?? '') == '曇り' ? 'selected' : '' }}>曇り</option>
-                <option value="雨" {{ ($report->weather ?? '') == '雨' ? 'selected' : '' }}>雨</option>
-                <option value="雪" {{ ($report->weather ?? '') == '雪' ? 'selected' : '' }}>雪</option>
-                <option value="霧" {{ ($report->weather ?? '') == '霧' ? 'selected' : '' }}>霧</option>
-            </select>
+        <div class="tab-buttons">
+            <button class="tab-btn active" data-tab="report">日报</button>
+            <button class="tab-btn" data-tab="check">点検</button>
         </div>
         
-        <div class="form-group">
-            <label class="form-label">始業時刻</label>
-            <input type="time" id="start_work_time" class="form-input" value="{{ $report->start_work_time ? \Carbon\Carbon::parse($report->start_work_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">出庫時間</label>
-            <input type="time" id="start_time" class="form-input" value="{{ $report->start_time ? \Carbon\Carbon::parse($report->start_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">出庫時メーター</label>
-            <div class="input-with-unit">
-                <input type="number" id="start_mileage" class="form-input" value="{{ $report->start_mileage }}" min="0" {{ $allowEdit ? '' : 'readonly disabled' }}>
-                <span class="unit">km</span>
+        <div class="report-form-1 tab-content active" id="tab-report">
+            <div class="form-group form-group-100">
+                <label class="form-label">車両</label>
+                <input type="text" class="form-input" value="{{ $vehicles->first()->registration_number ?? '' }}" readonly disabled>
+                <input type="hidden" id="vehicle_id" value="{{ $defaultVehicleId }}">
             </div>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">帰庫時間</label>
-            <input type="time" id="end_time" class="form-input" value="{{ $report->end_time ? \Carbon\Carbon::parse($report->end_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">帰庫時メーター</label>
-            <div class="input-with-unit">
-                <input type="number" id="end_mileage" class="form-input" value="{{ $report->end_mileage }}" min="0" {{ $allowEdit ? '' : 'readonly disabled' }}>
-                <span class="unit">km</span>
+    
+            @if($report)
+            <div class="form-group">
+                <label class="form-label">天気</label>
+                <select name="weather" id="weather" class="form-input" {{ $allowEdit ? '' : 'disabled' }}>
+                    <option value="">選択してください</option>
+                    <option value="晴れ" {{ ($report->weather ?? '') == '晴れ' ? 'selected' : '' }}>晴れ</option>
+                    <option value="曇り" {{ ($report->weather ?? '') == '曇り' ? 'selected' : '' }}>曇り</option>
+                    <option value="雨" {{ ($report->weather ?? '') == '雨' ? 'selected' : '' }}>雨</option>
+                    <option value="雪" {{ ($report->weather ?? '') == '雪' ? 'selected' : '' }}>雪</option>
+                    <option value="霧" {{ ($report->weather ?? '') == '霧' ? 'selected' : '' }}>霧</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">始業時刻</label>
+                <input type="time" id="start_work_time" class="form-input" value="{{ $report->start_work_time ? \Carbon\Carbon::parse($report->start_work_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
+            </div>
+    
+            <div class="form-group">
+                <label class="form-label">出庫時間</label>
+                <input type="time" id="start_time" class="form-input" value="{{ $report->start_time ? \Carbon\Carbon::parse($report->start_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
+            </div>
+    
+            <div class="form-group">
+                <label class="form-label">出庫時メーター</label>
+                <div class="input-with-unit">
+                    <input type="number" id="start_mileage" class="form-input" value="{{ $report->start_mileage }}" min="0" {{ $allowEdit ? '' : 'readonly disabled' }}>
+                    <span class="unit">km</span>
+                </div>
+            </div>
+    
+            <div class="form-group">
+                <label class="form-label">帰庫時間</label>
+                <input type="time" id="end_time" class="form-input" value="{{ $report->end_time ? \Carbon\Carbon::parse($report->end_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
+            </div>
+    
+            <div class="form-group">
+                <label class="form-label">帰庫時メーター</label>
+                <div class="input-with-unit">
+                    <input type="number" id="end_mileage" class="form-input" value="{{ $report->end_mileage }}" min="0" {{ $allowEdit ? '' : 'readonly disabled' }}>
+                    <span class="unit">km</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">終業時刻</label>
+                <input type="time" id="end_work_time" class="form-input" value="{{ $report->end_work_time ? \Carbon\Carbon::parse($report->end_work_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
+            </div>
+    
+            <div class="form-group">
+                <label class="form-label">走行距離</label>
+                <div class="distance-value">
+                    <span id="distance">{{ $report->distance ?? '0' }}</span>
+                    <span class="unit">km</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">実車距離</label>
+                <div class="input-with-unit">
+                    <input type="number" name="actual_distance" id="actual_distance" class="form-input" 
+                           value="{{ old('actual_distance', $report->actual_distance) }}" min="0" step="1" {{ $allowEdit ? '' : 'readonly disabled' }}>
+                    <span class="unit">km</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">空車距離</label>
+                <div class="input-with-unit">
+                    <input type="number" name="empty_distance" id="empty_distance" class="form-input" 
+                           value="{{ old('empty_distance', $report->empty_distance) }}" min="0" step="1" {{ $allowEdit ? '' : 'readonly disabled' }}>
+                    <span class="unit">km</span>
+                </div>
+            </div>
+    
+            <div class="form-group form-group-100">
+                <label class="form-label">備考</label>
+                <textarea name="remark" id="remark" class="form-input" rows="3" {{ $allowEdit ? '' : 'readonly disabled' }}>{{ $report->remark ?? '' }}</textarea>
             </div>
         </div>
         
-        <div class="form-group">
-            <label class="form-label">終業時刻</label>
-            <input type="time" id="end_work_time" class="form-input" value="{{ $report->end_work_time ? \Carbon\Carbon::parse($report->end_work_time)->format('H:i') : '' }}" {{ $allowEdit ? '' : 'readonly disabled' }}>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">走行距離</label>
-            <div class="distance-value">
-                <span id="distance">{{ $report->distance ?? '0' }}</span>
-                <span class="unit">km</span>
-            </div>
-        </div>
+        <div class="tab-content" id="tab-check">
+            <div class="check-form">
+                <div class="form-group form-group-100">
+                    <label class="form-label">車両</label>
+                    <input type="text" class="form-input" value="{{ $vehicles->first()->registration_number ?? '' }}" readonly disabled>
+                    <input type="hidden" id="check_vehicle_id" value="{{ $defaultVehicleId }}">
+                </div>
         
-        <div class="form-group">
-            <label class="form-label">実車距離</label>
-            <div class="input-with-unit">
-                <input type="number" name="actual_distance" id="actual_distance" class="form-input" 
-                       value="{{ old('actual_distance', $report->actual_distance) }}" min="0" step="1" {{ $allowEdit ? '' : 'readonly disabled' }}>
-                <span class="unit">km</span>
+                <div class="check-items-container">
+                    @foreach($checkItems as $category => $items)
+                    <div class="check-category">
+                        <div class="category-title">{{ $category }}</div>
+                        <div class="category-items">
+                            @foreach($items as $item)
+                            <div class="check-item" data-item-id="{{ $item->id }}">
+                                <div class="item-name">{{ $item->item_name }}</div>
+                                <div class="item-options">
+                                    <label class="radio-label">
+                                        <input type="radio" name="check_{{ $item->id }}" value="1" 
+                                            class="radio-input check-radio" 
+                                            data-item-id="{{ $item->id }}"
+                                            {{ ($savedChecks[$item->id]->is_ok ?? '') == 1 ? 'checked' : '' }}
+                                            {{ $allowEdit ? '' : 'disabled' }}>
+                                        <span class="radio-text">正常</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="check_{{ $item->id }}" value="0" 
+                                            class="radio-input check-radio" 
+                                            data-item-id="{{ $item->id }}"
+                                            {{ ($savedChecks[$item->id]->is_ok ?? '') == 0 ? 'checked' : '' }}
+                                            {{ $allowEdit ? '' : 'disabled' }}>
+                                        <span class="radio-text">異常</span>
+                                    </label>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
             </div>
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">空車距離</label>
-            <div class="input-with-unit">
-                <input type="number" name="empty_distance" id="empty_distance" class="form-input" 
-                       value="{{ old('empty_distance', $report->empty_distance) }}" min="0" step="1" {{ $allowEdit ? '' : 'readonly disabled' }}>
-                <span class="unit">km</span>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">備考</label>
-            <textarea name="remark" id="remark" class="form-input" rows="3" {{ $allowEdit ? '' : 'readonly disabled' }}>{{ $report->remark ?? '' }}</textarea>
         </div>
 
         @if($completedItineraries->count() > 0)
@@ -184,8 +234,150 @@
     padding: 20px;
 }
 
-.form-group {
+.tab-buttons {
+    display: flex;
+    gap: 10px;
     margin-bottom: 20px;
+    background-color: var(--card-bg);
+    border-radius: 30px;
+    padding: 4px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-radius: 26px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    background-color: var(--accent-color);
+    color: var(--accent-text);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.report-form-1 input {
+    width: 100% !important;
+    -webkit-appearance: none !important;
+}
+
+.check-form {
+    margin-bottom: 20px;
+}
+
+.check-items-container {
+    margin: 20px 0;
+}
+
+.check-category {
+    float: left;
+    width: 96%;
+    margin: 12px 2%;
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.category-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: 14px 16px;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.category-items {
+    padding: 8px 0;
+}
+
+.check-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.check-item:last-child {
+    border-bottom: none;
+}
+
+.item-name {
+    font-size: 14px;
+    color: var(--text-primary);
+    flex: 1;
+    padding-right: 12px;
+}
+
+.item-options {
+    display: flex;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.radio-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--accent-color);
+}
+
+.radio-text {
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.save-check-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--accent-color);
+    color: var(--accent-text);
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.radio-input:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.radio-label:has(.radio-input:disabled) {
+    cursor: not-allowed;
+}
+
+.form-group {
+    float: left;
+    width: 46%;
+    margin: 10px 2%;
+}
+
+.form-group-100 {
+    width: 96%;
 }
 
 .form-label {
@@ -197,6 +389,7 @@
 }
 
 .form-input {
+    height: 48px;
     width: 100%;
     padding: 12px 16px;
     border: 0;
@@ -240,8 +433,8 @@
     font-weight: 600;
     color: var(--accent-color);
     background-color: var(--card-bg);
-    border-radius: 16px;
-    padding: 16px;
+    border-radius: 12px;
+    padding: 8px 16px;
     margin-bottom: 20px;
 }
 
@@ -459,6 +652,23 @@
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            
+            tabBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        });
+    });
+});
+
 const reportId = {{ $report ? $report->id : 'null' }};
 const currentDate = '{{ $date }}';
 const allowEdit = {{ $allowEdit ? 'true' : 'false' }};
@@ -538,7 +748,7 @@ if (document.getElementById('saveBtn')) {
     endMileageInput.addEventListener('input', updateDistance);
     
     document.getElementById('saveBtn').addEventListener('click', function() {
-        const data = {
+        const reportData = {
             start_time: startTimeInput.value,
             start_mileage: startMileageInput.value,
             end_time: endTimeInput.value,
@@ -550,6 +760,22 @@ if (document.getElementById('saveBtn')) {
             remark: remarkTextarea ? remarkTextarea.value : null,
             actual_distance: actualDistance ? actualDistance.value : null,
             empty_distance: emptyDistance ? emptyDistance.value : null,
+        };
+        
+        const checkRadios = document.querySelectorAll('.check-radio:checked');
+        const checks = [];
+        
+        checkRadios.forEach(radio => {
+            const itemId = radio.getAttribute('data-item-id');
+            checks.push({
+                driver_vehicle_check_items_id: itemId,
+                is_ok: radio.value === '1' ? 1 : 0
+            });
+        });
+        
+        const data = {
+            ...reportData,
+            checks: checks
         };
         
         fetch(`/driver/daily-reports/${reportId}`, {

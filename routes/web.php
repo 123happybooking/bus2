@@ -40,6 +40,7 @@ use App\Http\Controllers\Masters\DriverPaymentMethodController;
 use App\Http\Controllers\Masters\DriverExpenseTypeController;
 use App\Http\Controllers\Masters\DriverCompensationTypeController;
 use App\Http\Controllers\Masters\DriverCompensationController;
+use App\Http\Controllers\Masters\DriverVehicleCheckItemsController;
 
 use App\Http\Controllers\Driver\DriverDashboardController;
 use App\Http\Controllers\Driver\DriverItineraryController;
@@ -204,6 +205,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::resource('driver-expense-types', DriverExpenseTypeController::class)->names('driver-expense-types');
         Route::resource('driver-compensation-types', DriverCompensationTypeController::class)->names('driver-compensation-types');
         Route::resource('driver-compensations', DriverCompensationController::class)->names('driver-compensations');
+        Route::resource('driver-vehicle-check-items', DriverVehicleCheckItemsController::class)->names('driver-vehicle-check-items');
         
 
         Route::resource('currencies', CurrencyController::class)->names('currencies');
@@ -275,15 +277,6 @@ Route::prefix('masters')->name('masters.')->group(function () {
 
 
 Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\Middleware\SetUserDatabase::class])->group(function () {
-    // Route::get('dashboard', [DriverDashboardController::class, 'index'])->name('dashboard');
-    // Route::get('calendar-data', [DriverDashboardController::class, 'getCalendarData'])->name('calendar-data');
-    // Route::get('itineraries/{date}', [DriverDashboardController::class, 'getItineraries'])->name('itineraries');
-    // Route::get('search', [DriverDashboardController::class, 'search'])->name('search');
-    // Route::get('itinerary/{id}', [DriverDashboardController::class, 'showItinerary'])->name('itinerary.show');
-    // Route::get('daily-itineraries/{date}', [DriverDashboardController::class, 'dailyItineraries'])->name('daily-itineraries');
-    // Route::get('tab-itineraries', [DriverDashboardController::class, 'getTabItineraries'])->name('tab-itineraries');
-    // Route::get('files/{id}/download', [DriverDashboardController::class, 'downloadFile'])->name('files.download');
-    
     Route::get('dashboard', [DriverDashboardController::class, 'index'])->name('dashboard');
     Route::get('calendar-data', [DriverDashboardController::class, 'getCalendarData'])->name('calendar-data');
     Route::get('tab-itineraries', [DriverDashboardController::class, 'getTabItineraries'])->name('tab-itineraries');

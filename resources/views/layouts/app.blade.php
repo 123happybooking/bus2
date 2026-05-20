@@ -1088,6 +1088,7 @@
                     <li><a href="{{ route('masters.driver-compensation-types.index') }}" data-route="driver-compensation-types">報酬種別</a></li>
                     <li><a href="{{ route('masters.driver-compensations.index') }}" data-route="driver-compensations">運転手精算</a></li>
                     <li><a href="{{ route('masters.attendance-categories.index') }}" data-route="attendance-categories-operations">運転手勤怠</a></li>
+                    <li><a href="{{ route('masters.driver-vehicle-check-items.index') }}" data-route="driver-vehicle-check-items">点検項目</a></li>
                     <li><a href="{{ route('masters.driver-operation-status.index') }}" data-route="driver-operation-status">操作ステータス</a></li>
                 </ul>
             </div>

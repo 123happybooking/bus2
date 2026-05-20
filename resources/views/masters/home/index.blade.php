@@ -41,6 +41,7 @@
                     <a href="{{ route('masters.driver-compensation-types.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">報酬種別</a>
                     <a href="{{ route('masters.driver-compensations.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運転手精算</a>
                     <a href="{{ route('masters.attendance-categories.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運転手勤怠</a>
+                    <a href="{{ route('masters.driver-vehicle-check-items.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">点検項目</a>
                     <a href="{{ route('masters.driver-operation-status.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">操作ステータス</a>
                     @endif
                 </div>
