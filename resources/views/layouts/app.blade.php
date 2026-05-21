@@ -844,6 +844,7 @@
             background-color: #F3F4F6;
             color: #374151;
             white-space: nowrap;
+            font-weight: bold;
         }
         
         .table-list tr th,

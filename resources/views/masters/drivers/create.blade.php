@@ -50,7 +50,7 @@
                 </div>
                 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('masters.drivers.store') }}" id="driverForm">
+                    <form method="POST" action="{{ route('masters.drivers.store') }}" enctype="multipart/form-data" id="driverForm">
                         @csrf
                         
                         <div class="row">
@@ -155,9 +155,6 @@
                                        id="password_confirmation" name="password_confirmation" 
                                        maxlength="255" required placeholder="パスワードを再入力">
                             </div>
-                        </div>
-                        
-                        <div class="row">
                             <div class="col-md-6">
                                 <label for="birth_date" class="form-label">生年月日</label>
                                 <input type="date" class="form-control @error('birth_date') is-invalid @enderror" 
@@ -167,6 +164,9 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                        </div>
+                        
+                        <div class="row">
                             <div class="col-md-6">
                                 <label for="hire_date" class="form-label required">入社日</label>
                                 <input type="date" class="form-control @error('hire_date') is-invalid @enderror" 
@@ -176,19 +176,32 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-                        
-                        <div class="row">
                             <div class="col-md-6">
-                                <label for="license_type" class="form-label required">免許種類</label>
-                                <input type="text" class="form-control @error('license_type') is-invalid @enderror" 
-                                       id="license_type" name="license_type" 
-                                       value="{{ old('license_type') }}" 
-                                       maxlength="50" required placeholder="例: 普通自動車第一種">
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="license_type" class="form-label" style="margin-bottom: 0;">免許種類</label>
+                                    <button type="button" class="btn btn-sm p-0 border-0" style="color: #2563eb; background: transparent;" data-bs-toggle="modal" data-bs-target="#licenseTypeModal">
+                                        <i class="bi bi-gear"></i> 管理
+                                    </button>
+                                </div>
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control @error('license_type') is-invalid @enderror" 
+                                           id="license_type" name="license_type" 
+                                           value="{{ old('license_type') }}" 
+                                           maxlength="50" required
+                                           autocomplete="off">
+                                    <div id="licenseTypeDropdown" class="dropdown-menu" style="width: 100%; max-height: 200px; overflow-y: auto; top: 100%; left: 0; font-size: 14px;">
+                                        @foreach($licenseTypes as $type)
+                                            <a href="#" class="dropdown-item license-type-option" style="font-size: 14px;" data-value="{{ $type }}">{{ $type }}</a>
+                                        @endforeach
+                                    </div>
+                                </div>
                                 @error('license_type')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                        </div>
+                        
+                        <div class="row">
                             <div class="col-md-6">
                                 <label for="license_expiration_date" class="form-label required">免許有効期限</label>
                                 <input type="date" class="form-control @error('license_expiration_date') is-invalid @enderror" 
@@ -198,9 +211,6 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-                        
-                        <div class="row">
                             <div class="col-md-6">
                                 <label for="display_order" class="form-label">表示順序</label>
                                 <input type="number" class="form-control @error('display_order') is-invalid @enderror" 
@@ -210,19 +220,6 @@
                                 @error('display_order')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-check mt-2">
-                                    <input type="checkbox" class="form-check-input @error('is_active') is-invalid @enderror" 
-                                           id="is_active" name="is_active" value="1" 
-                                           {{ old('is_active', true) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="is_active">
-                                        有効状態で登録
-                                    </label>
-                                    @error('is_active')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
                             </div>
                         </div>
                         
@@ -236,6 +233,60 @@
                                 @error('remarks')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="license_image" class="form-label">免許証</label>
+                                <div class="mb-2">
+                                    <div class="image-preview-container mb-2" id="licensePreview">
+                                        <div class="text-center d-flex align-items-center justify-content-center" style="height: 120px; width: 160px; border: 1px solid #ddd; background-color: #f8f9fa;">
+                                            <i class="bi bi-card-image" style="font-size: 32px; color: #999;"></i>
+                                        </div>
+                                    </div>
+                                    <input type="file" class="form-control @error('license_image') is-invalid @enderror" 
+                                           id="license_image" name="license_image" accept="image/*"
+                                           onchange="previewImage(this, 'licensePreview')">
+                                    <small class="text-muted">対応形式: JPEG, PNG, JPG, GIF (最大2MB)</small>
+                                    @error('license_image')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="seal_image" class="form-label">印鑑</label>
+                                <div class="mb-2">
+                                    <div class="image-preview-container mb-2" id="sealPreview">
+                                        <div class="text-center d-flex align-items-center justify-content-center" style="height: 120px; width: 160px; border: 1px solid #ddd; background-color: #f8f9fa;">
+                                            <i class="bi bi-card-image" style="font-size: 32px; color: #999;"></i>
+                                        </div>
+                                    </div>
+                                    <input type="file" class="form-control @error('seal_image') is-invalid @enderror" 
+                                           id="seal_image" name="seal_image" accept="image/*"
+                                           onchange="previewImage(this, 'sealPreview')">
+                                    <small class="text-muted">対応形式: JPEG, PNG, JPG, GIF (最大2MB)</small>
+                                    @error('seal_image')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input @error('is_active') is-invalid @enderror" 
+                                           id="is_active" name="is_active" value="1" 
+                                           {{ old('is_active', true) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="is_active">
+                                        有効状態で登録
+                                    </label>
+                                    @error('is_active')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
                         </div>
                         
@@ -255,6 +306,28 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="licenseTypeModal" tabindex="-1" aria-labelledby="licenseTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="licenseTypeModalLabel">
+                    <i class="bi bi-gear"></i> 免許種類管理
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="閉じる"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small" style="font-size: 14px;">1行に1つの種類を入力してください。</p>
+                <textarea id="licenseTypesTextarea" class="form-control" rows="15" style="font-size: 14px;">@foreach($licenseTypes as $type){{ $type }}
+@endforeach</textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="saveLicenseTypesBtn">保存する</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('styles')
@@ -263,5 +336,96 @@
     content: " *";
     color: #dc3545;
 }
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    z-index: 1000;
+}
+.dropdown-menu.show {
+    display: block;
+}
 </style>
+@endpush
+
+@push('scripts')
+<script>
+function previewImage(input, previewId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        const previewContainer = document.getElementById(previewId);
+        
+        reader.onload = function(e) {
+            previewContainer.innerHTML = `<img src="${e.target.result}" style="height: 120px; border: 1px solid #ddd; padding: 5px;">`;
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+var licenseInput = document.getElementById('license_type');
+var licenseDropdown = document.getElementById('licenseTypeDropdown');
+
+licenseInput.addEventListener('click', function() {
+    licenseDropdown.classList.add('show');
+});
+
+licenseInput.addEventListener('blur', function() {
+    setTimeout(function() {
+        licenseDropdown.classList.remove('show');
+    }, 200);
+});
+
+licenseInput.addEventListener('input', function() {
+    var filter = this.value.toLowerCase();
+    var options = licenseDropdown.querySelectorAll('.license-type-option');
+    var hasVisible = false;
+    options.forEach(function(option) {
+        var text = option.textContent.toLowerCase();
+        if (text.indexOf(filter) > -1) {
+            option.style.display = 'block';
+            hasVisible = true;
+        } else {
+            option.style.display = 'none';
+        }
+    });
+    if (hasVisible) {
+        licenseDropdown.classList.add('show');
+    }
+});
+
+document.querySelectorAll('.license-type-option').forEach(function(option) {
+    option.addEventListener('click', function(e) {
+        e.preventDefault();
+        licenseInput.value = this.getAttribute('data-value');
+        licenseDropdown.classList.remove('show');
+        licenseInput.focus();
+    });
+});
+
+document.getElementById('saveLicenseTypesBtn').addEventListener('click', function() {
+    var types = document.getElementById('licenseTypesTextarea').value;
+    
+    fetch('{{ route("masters.driver-license-types.save") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ types: types })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.success) {
+            alert('免許種類を保存しました。');
+            location.reload();
+        } else {
+            alert('保存に失敗しました。');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error:', error);
+        alert('エラーが発生しました。');
+    });
+});
+</script>
 @endpush

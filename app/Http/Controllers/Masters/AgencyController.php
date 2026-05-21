@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Masters;
 
 use App\Http\Controllers\Controller;
 use App\Models\Masters\Agency;
+use App\Models\Masters\Country;
+use App\Models\Masters\AgencyType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +36,9 @@ class AgencyController extends Controller
 
     public function create()
     {
-        return view('masters.agencies.create');
+        $countries = Country::where('is_active', true)->orderBy('display_order')->pluck('country_name');
+        $agencyTypes = AgencyType::where('is_active', true)->orderBy('display_order')->pluck('type_name');
+        return view('masters.agencies.create', compact('countries', 'agencyTypes'));
     }
 
     public function store(Request $request)
@@ -109,7 +113,9 @@ class AgencyController extends Controller
     public function edit($id)
     {
         $agency = Agency::findOrFail($id);
-        return view('masters.agencies.edit', compact('agency'));
+        $countries = Country::where('is_active', true)->orderBy('display_order')->pluck('country_name');
+        $agencyTypes = AgencyType::where('is_active', true)->orderBy('display_order')->pluck('type_name');
+        return view('masters.agencies.edit', compact('agency', 'countries', 'agencyTypes'));
     }
 
     public function update(Request $request, $id)

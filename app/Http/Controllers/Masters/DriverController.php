@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Masters\Driver;
 use App\Models\Masters\Staff;
 use App\Models\Masters\Branch;
+use App\Models\Masters\DriverLicenseType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class DriverController extends Controller
 {
@@ -60,7 +62,8 @@ class DriverController extends Controller
     public function create()
     {
         $branches = Branch::orderBy('branch_code')->get(['id', 'branch_code', 'branch_name']);
-        return view('masters.drivers.create', compact('branches'));
+        $licenseTypes = DriverLicenseType::where('is_active', true)->orderBy('display_order')->pluck('type_name', 'type_name');
+        return view('masters.drivers.create', compact('branches', 'licenseTypes'));
     }
 
     public function store(Request $request)
@@ -81,6 +84,8 @@ class DriverController extends Controller
             'is_active' => 'boolean',
             'login_id' => 'required|string|max:255|unique:drivers,login_id|unique:staffs,login_id',
             'password' => 'required|string|min:8|max:255|confirmed',
+            'license_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'seal_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
 
         $messages = [
@@ -111,6 +116,12 @@ class DriverController extends Controller
             'password.required' => 'パスワードは必須です。',
             'password.min' => 'パスワードは6文字以上で入力してください。',
             'password.confirmed' => 'パスワードと確認用パスワードが一致しません。',
+            'license_image.image' => '免許証は画像ファイルをアップロードしてください。',
+            'license_image.mimes' => '免許証はjpeg、png、jpg、gif形式のファイルをアップロードしてください。',
+            'license_image.max' => '免許証のファイルサイズは2MB以内でアップロードしてください。',
+            'seal_image.image' => '印鑑は画像ファイルをアップロードしてください。',
+            'seal_image.mimes' => '印鑑はjpeg、png、jpg、gif形式のファイルをアップロードしてください。',
+            'seal_image.max' => '印鑑のファイルサイズは2MB以内でアップロードしてください。',
         ];
 
         $validated = $request->validate($rules, $messages);
@@ -122,7 +133,7 @@ class DriverController extends Controller
             $validated['display_order'] = ($maxOrder !== null) ? $maxOrder + 1 : 1;
         }
         
-        $driver = Driver::create([
+        $driverData = [
             'login_id' => $validated['login_id'],
             'branch_id' => $validated['branch_id'],
             'driver_code' => $validated['driver_code'],
@@ -137,7 +148,29 @@ class DriverController extends Controller
             'display_order' => $validated['display_order'],
             'remarks' => $validated['remarks'],
             'is_active' => $validated['is_active'],
-        ]);
+        ];
+        
+        if ($request->hasFile('license_image') && $request->file('license_image')->isValid()) {
+            $file = $request->file('license_image');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = time() . '_' . uniqid() . '_license.' . $extension;
+            $path = $file->storeAs('driver_licenses', $fileName, 'public');
+            if ($path) {
+                $driverData['license_image'] = $path;
+            }
+        }
+        
+        if ($request->hasFile('seal_image') && $request->file('seal_image')->isValid()) {
+            $file = $request->file('seal_image');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = time() . '_' . uniqid() . '_seal.' . $extension;
+            $path = $file->storeAs('driver_seals', $fileName, 'public');
+            if ($path) {
+                $driverData['seal_image'] = $path;
+            }
+        }
+        
+        $driver = Driver::create($driverData);
         
         Staff::create([
             'user_company_id' => 0,
@@ -170,7 +203,8 @@ class DriverController extends Controller
     {
         $driver = Driver::findOrFail($id);
         $branches = Branch::orderBy('branch_code')->get(['id', 'branch_code', 'branch_name']);
-        return view('masters.drivers.edit', compact('driver', 'branches'));
+        $licenseTypes = DriverLicenseType::where('is_active', true)->orderBy('display_order')->pluck('type_name', 'type_name');
+        return view('masters.drivers.edit', compact('driver', 'branches', 'licenseTypes'));
     }
 
     public function update(Request $request, $id)
@@ -190,6 +224,8 @@ class DriverController extends Controller
             'remarks' => 'nullable|string|max:500',
             'is_active' => 'boolean',
             'password' => 'nullable|string|min:8|max:255|confirmed',
+            'license_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'seal_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
 
         $messages = [
@@ -216,6 +252,12 @@ class DriverController extends Controller
             'remarks.max' => '備考は500文字以内で入力してください。',
             'password.min' => 'パスワードは6文字以上で入力してください。',
             'password.confirmed' => 'パスワードと確認用パスワードが一致しません。',
+            'license_image.image' => '免許証は画像ファイルをアップロードしてください。',
+            'license_image.mimes' => '免許証はjpeg、png、jpg、gif形式のファイルをアップロードしてください。',
+            'license_image.max' => '免許証のファイルサイズは2MB以内でアップロードしてください。',
+            'seal_image.image' => '印鑑は画像ファイルをアップロードしてください。',
+            'seal_image.mimes' => '印鑑はjpeg、png、jpg、gif形式のファイルをアップロードしてください。',
+            'seal_image.max' => '印鑑のファイルサイズは2MB以内でアップロードしてください。',
         ];
 
         $validated = $request->validate($rules, $messages);
@@ -224,7 +266,7 @@ class DriverController extends Controller
 
         $driver = Driver::findOrFail($id);
         
-        $driver->update([
+        $driverData = [
             'branch_id' => $validated['branch_id'],
             'driver_code' => $validated['driver_code'],
             'name' => $validated['name'],
@@ -238,7 +280,35 @@ class DriverController extends Controller
             'display_order' => $validated['display_order'],
             'remarks' => $validated['remarks'],
             'is_active' => $validated['is_active'],
-        ]);
+        ];
+        
+        if ($request->hasFile('license_image') && $request->file('license_image')->isValid()) {
+            if ($driver->license_image) {
+                Storage::disk('public')->delete($driver->license_image);
+            }
+            $file = $request->file('license_image');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = time() . '_' . uniqid() . '_license.' . $extension;
+            $path = $file->storeAs('driver_licenses', $fileName, 'public');
+            if ($path) {
+                $driverData['license_image'] = $path;
+            }
+        }
+        
+        if ($request->hasFile('seal_image') && $request->file('seal_image')->isValid()) {
+            if ($driver->seal_image) {
+                Storage::disk('public')->delete($driver->seal_image);
+            }
+            $file = $request->file('seal_image');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = time() . '_' . uniqid() . '_seal.' . $extension;
+            $path = $file->storeAs('driver_seals', $fileName, 'public');
+            if ($path) {
+                $driverData['seal_image'] = $path;
+            }
+        }
+        
+        $driver->update($driverData);
         
         $staffData = [
             'branch_id' => $validated['branch_id'],
@@ -267,6 +337,12 @@ class DriverController extends Controller
     public function destroy($id)
     {
         $driver = Driver::findOrFail($id);
+        if ($driver->license_image) {
+            Storage::disk('public')->delete($driver->license_image);
+        }
+        if ($driver->seal_image) {
+            Storage::disk('public')->delete($driver->seal_image);
+        }
         $driver->delete();
         
         return redirect()->route('masters.drivers.index')

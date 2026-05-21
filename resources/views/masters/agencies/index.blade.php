@@ -68,9 +68,9 @@
                         <td>{{ $agencies->firstItem() + $index }}</td>
                         <td>{{ $agency->agency_code }}</td>
                         <td>
-                            <div class="fw-semibold">{{ $agency->agency_name }}</div>
+                            {{ $agency->agency_name }}
                             @if($agency->branch_name)
-                                <small class="text-muted">{{ $agency->branch_name }}</small>
+                                / {{ $agency->branch_name }}
                             @endif
                             @if($agency->email)
                                 <div class="small">
@@ -82,23 +82,23 @@
                         </td>
                         <td>
                             @if($agency->country)
-                                <span class="badge bg-light text-dark">{{ $agency->country }}</span>
+                                {{ $agency->country }}
                             @else
-                                <span class="text-muted small">未設定</span>
+                                未設定
                             @endif
                         </td>
                         <td>
                             @if($agency->type)
-                                <span class="badge bg-info">{{ $agency->type }}</span>
+                                {{ $agency->type }}
                             @else
-                                <span class="text-muted small">未設定</span>
+                                未設定
                             @endif
                         </td>
                         <td>
                             @if($agency->commission_rate)
-                                <span class="badge bg-info">{{ $agency->commission_rate }}%</span>
+                                {{ $agency->commission_rate }}%
                             @else
-                                <span class="text-muted small">未設定</span>
+                                未設定
                             @endif
                         </td>
                         <td>

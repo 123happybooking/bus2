@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '新規代理店登録')
+@section('title', '代理店新規登録')
 
 @section('content')
 <div class="container-fluid">
@@ -14,20 +14,6 @@
                 </ol>
             </nav>
             
-            @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle"></i> {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="閉じる"></button>
-            </div>
-            @endif
-
-            @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle"></i> {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="閉じる"></button>
-            </div>
-            @endif
-
             @if($errors->any())
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <h5 class="alert-heading">
@@ -45,7 +31,7 @@
             <div class="card shadow-sm card-edit">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-building-add"></i> 新規代理店登録
+                        <i class="bi bi-building-gear"></i> 代理店新規登録
                     </h5>
                 </div>
                 
@@ -90,11 +76,24 @@
                             </div>
                             
                             <div class="col-md-6">
-                                <label for="type" class="form-label">種類</label>
-                                <input type="text" class="form-control @error('type') is-invalid @enderror" 
-                                       id="type" name="type" 
-                                       value="{{ old('type') }}"
-                                       maxlength="50" placeholder="例: 一般代理店">
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="type" class="form-label" style="margin-bottom: 2px;">種類</label>
+                                    <button type="button" class="btn btn-sm p-0 border-0" style="color: #2563eb; background: transparent; line-height: 100%;" data-bs-toggle="modal" data-bs-target="#agencyTypeModal">
+                                        <i class="bi bi-gear"></i> 管理
+                                    </button>
+                                </div>
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control @error('type') is-invalid @enderror" 
+                                           id="type" name="type" 
+                                           value="{{ old('type') }}"
+                                           maxlength="50" placeholder="例: 一般代理店"
+                                           autocomplete="off">
+                                    <div id="agencyTypeDropdown" class="dropdown-menu" style="width: 100%; max-height: 200px; overflow-y: auto; top: 100%; left: 0; font-size: 14px;">
+                                        @foreach($agencyTypes as $agencyType)
+                                            <a href="#" class="dropdown-item agency-type-option" style="font-size: 14px;" data-value="{{ $agencyType }}">{{ $agencyType }}</a>
+                                        @endforeach
+                                    </div>
+                                </div>
                                 @error('type')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -103,11 +102,24 @@
                         
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="country" class="form-label">国</label>
-                                <input type="text" class="form-control @error('country') is-invalid @enderror" 
-                                       id="country" name="country" 
-                                       value="{{ old('country') }}"
-                                       maxlength="50" placeholder="例: 日本">
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="country" class="form-label" style="margin-bottom: 0;">国</label>
+                                    <button type="button" class="btn btn-sm p-0 border-0" style="color: #2563eb; background: transparent;" data-bs-toggle="modal" data-bs-target="#countryModal">
+                                        <i class="bi bi-gear"></i> 管理
+                                    </button>
+                                </div>
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control @error('country') is-invalid @enderror" 
+                                           id="country" name="country" 
+                                           value="{{ old('country') }}"
+                                           maxlength="50" placeholder="例: 日本"
+                                           autocomplete="off">
+                                    <div id="countryDropdown" class="dropdown-menu" style="width: 100%; max-height: 200px; overflow-y: auto; top: 100%; left: 0; font-size: 14px;">
+                                        @foreach($countries as $country)
+                                            <a href="#" class="dropdown-item country-option" style="font-size: 14px;" data-value="{{ $country }}">{{ $country }}</a>
+                                        @endforeach
+                                    </div>
+                                </div>
                                 @error('country')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -117,7 +129,7 @@
                                 <label for="display_order" class="form-label">表示順</label>
                                 <input type="number" class="form-control @error('display_order') is-invalid @enderror" 
                                        id="display_order" name="display_order" 
-                                       value="{{ old('display_order', 0) }}"
+                                       value="{{ old('display_order') }}"
                                        min="0" max="999" step="1">
                                 @error('display_order')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -189,9 +201,9 @@
                                 <div class="form-check mt-4 pt-2">
                                     <input class="form-check-input @error('is_active') is-invalid @enderror" 
                                            type="checkbox" id="is_active" name="is_active" value="1" 
-                                           {{ old('is_active', 1) ? 'checked' : '' }}>
+                                           {{ old('is_active', true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="is_active">
-                                        取引状態（チェックで取引中）
+                                        取引状態で登録
                                     </label>
                                     @error('is_active')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -271,6 +283,50 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="countryModal" tabindex="-1" aria-labelledby="countryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="countryModalLabel">
+                    <i class="bi bi-gear"></i> 国管理
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="閉じる"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small" style="font-size: 14px;">1行に1つの国名を入力してください。</p>
+                <textarea id="countryTextarea" class="form-control" rows="15" style="font-size: 14px;">@foreach($countries as $country){{ $country }}
+@endforeach</textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="saveCountriesBtn">保存する</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="agencyTypeModal" tabindex="-1" aria-labelledby="agencyTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="agencyTypeModalLabel">
+                    <i class="bi bi-gear"></i> 代理店種類管理
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="閉じる"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small" style="font-size: 14px;">1行に1つの種類を入力してください。</p>
+                <textarea id="agencyTypeTextarea" class="form-control" rows="15" style="font-size: 14px;">@foreach($agencyTypes as $agencyType){{ $agencyType }}
+@endforeach</textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="saveAgencyTypesBtn">保存する</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('styles')
@@ -279,5 +335,153 @@
     content: " *";
     color: #dc3545;
 }
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    z-index: 1000;
+}
+.dropdown-menu.show {
+    display: block;
+}
 </style>
+@endpush
+
+@push('scripts')
+<script>
+var countryInput = document.getElementById('country');
+var countryDropdown = document.getElementById('countryDropdown');
+
+if (countryInput) {
+    countryInput.addEventListener('click', function() {
+        countryDropdown.classList.add('show');
+    });
+
+    countryInput.addEventListener('blur', function() {
+        setTimeout(function() {
+            countryDropdown.classList.remove('show');
+        }, 200);
+    });
+
+    countryInput.addEventListener('input', function() {
+        var filter = this.value.toLowerCase();
+        var options = countryDropdown.querySelectorAll('.country-option');
+        var hasVisible = false;
+        options.forEach(function(option) {
+            var text = option.textContent.toLowerCase();
+            if (text.indexOf(filter) > -1) {
+                option.style.display = 'block';
+                hasVisible = true;
+            } else {
+                option.style.display = 'none';
+            }
+        });
+        if (hasVisible) {
+            countryDropdown.classList.add('show');
+        }
+    });
+
+    document.querySelectorAll('.country-option').forEach(function(option) {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            countryInput.value = this.getAttribute('data-value');
+            countryDropdown.classList.remove('show');
+            countryInput.focus();
+        });
+    });
+}
+
+var agencyTypeInput = document.getElementById('type');
+var agencyTypeDropdown = document.getElementById('agencyTypeDropdown');
+
+if (agencyTypeInput) {
+    agencyTypeInput.addEventListener('click', function() {
+        agencyTypeDropdown.classList.add('show');
+    });
+
+    agencyTypeInput.addEventListener('blur', function() {
+        setTimeout(function() {
+            agencyTypeDropdown.classList.remove('show');
+        }, 200);
+    });
+
+    agencyTypeInput.addEventListener('input', function() {
+        var filter = this.value.toLowerCase();
+        var options = agencyTypeDropdown.querySelectorAll('.agency-type-option');
+        var hasVisible = false;
+        options.forEach(function(option) {
+            var text = option.textContent.toLowerCase();
+            if (text.indexOf(filter) > -1) {
+                option.style.display = 'block';
+                hasVisible = true;
+            } else {
+                option.style.display = 'none';
+            }
+        });
+        if (hasVisible) {
+            agencyTypeDropdown.classList.add('show');
+        }
+    });
+
+    document.querySelectorAll('.agency-type-option').forEach(function(option) {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            agencyTypeInput.value = this.getAttribute('data-value');
+            agencyTypeDropdown.classList.remove('show');
+            agencyTypeInput.focus();
+        });
+    });
+}
+
+document.getElementById('saveCountriesBtn').addEventListener('click', function() {
+    var types = document.getElementById('countryTextarea').value;
+    
+    fetch('{{ route("masters.countries.save") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ countries: types })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.success) {
+            alert('国を保存しました。');
+            location.reload();
+        } else {
+            alert('保存に失敗しました。');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error:', error);
+        alert('エラーが発生しました。');
+    });
+});
+
+document.getElementById('saveAgencyTypesBtn').addEventListener('click', function() {
+    var types = document.getElementById('agencyTypeTextarea').value;
+    
+    fetch('{{ route("masters.agency-types.save") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ types: types })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.success) {
+            alert('代理店種類を保存しました。');
+            location.reload();
+        } else {
+            alert('保存に失敗しました。');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error:', error);
+        alert('エラーが発生しました。');
+    });
+});
+</script>
 @endpush

@@ -20,6 +20,7 @@ use App\Models\Masters\GroupInfoFile;
 use App\Models\Masters\DriverCompensation;
 use App\Models\Masters\DriverCompensationType;
 use App\Models\Masters\Staff;
+use App\Models\Masters\Country;
 use App\Models\Driver\DriverExpense;
 use App\Models\Driver\DriverExpenseType;
 use App\Models\Driver\DriverPaymentMethod;
@@ -905,6 +906,8 @@ class GroupInfoController extends Controller
                         ->where('is_active', true)
                         ->orderBy('name')
                         ->get();
+                        
+        $countries = Country::where('is_active', true)->orderBy('display_order')->get();
         
         $reservationCategories = ReservationCategory::where('is_active', true)
                                                    ->orderBy('display_order', 'asc')
@@ -1085,7 +1088,8 @@ class GroupInfoController extends Controller
             'expensesByBus',
             'expenseTypes',
             'paymentMethods',
-            'staffs'
+            'staffs',
+            'countries'
         ));
     }
 
