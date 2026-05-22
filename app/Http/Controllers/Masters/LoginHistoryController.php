@@ -50,4 +50,30 @@ class LoginHistoryController extends Controller
         
         return view('masters.login-histories.index', compact('loginHistories', 'staffList'));
     }
+
+    public function batchDelete(Request $request)
+    {
+        try {
+            $ids = $request->input('ids', []);
+            
+            if (empty($ids)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '削除する項目が選択されていません。'
+                ]);
+            }
+            
+            $deletedCount = LoginHistory::whereIn('id', $ids)->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => $deletedCount . '件のログイン履歴を削除しました。'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => '削除中にエラーが発生しました: ' . $e->getMessage()
+            ]);
+        }
+    }
 }

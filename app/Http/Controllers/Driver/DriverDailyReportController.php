@@ -8,6 +8,7 @@ use App\Models\Driver\DriverOperationStatus;
 use App\Models\Driver\DriverExpense;
 use App\Models\Driver\DriverVehicleCheckItems;
 use App\Models\Driver\DriverVehicleCheck;
+use App\Models\Driver\DriverVehicleCheckRemark;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Masters\Vehicle;
 use Illuminate\Http\Request;
@@ -154,7 +155,12 @@ class DriverDailyReportController extends Controller
                 ->keyBy('driver_vehicle_check_items_id');
         }
         
-        return view('driver.daily-report', compact('date', 'dateTitle', 'report', 'completedItineraries', 'expensesByItinerary', 'vehicles', 'defaultVehicleId', 'allowEdit', 'vehicleId', 'totalReports','checkItems', 'savedChecks'));
+        $checkRemark = DriverVehicleCheckRemark::where('driver_id', $driverId)
+            ->where('vehicle_id', $defaultVehicleId)
+            ->where('date', $date)
+            ->first();
+        
+        return view('driver.daily-report', compact('date', 'dateTitle', 'report', 'completedItineraries', 'expensesByItinerary', 'vehicles', 'defaultVehicleId', 'allowEdit', 'vehicleId', 'totalReports','checkItems', 'savedChecks','checkRemark'));
     }
     
     public function create(Request $request)
@@ -286,6 +292,20 @@ class DriverDailyReportController extends Controller
                     ]
                 );
             }
+        }
+        
+        if ($request->has('check_remark')) {
+            DriverVehicleCheckRemark::updateOrCreate(
+                [
+                    'driver_id' => $report->driver_id,
+                    'vehicle_id' => $report->vehicle_id,
+                    'date' => $report->date,
+                ],
+                [
+                    'remark' => $request->check_remark,
+                    'updated_by' => $userId,
+                ]
+            );
         }
         
         $distance = $report->distance;

@@ -147,6 +147,11 @@
                         </div>
                     </div>
                     @endforeach
+                    
+                    <div class="form-group form-group-100" style="margin-top: 10px;">
+                        <label class="form-label">点検備考</label>
+                        <textarea name="check_remark" id="check_remark" class="form-input" rows="3" {{ $allowEdit ? '' : 'readonly disabled' }}>{{ $checkRemark->remark ?? '' }}</textarea>
+                    </div>
                 </div>
             </div>
         </div>
@@ -773,9 +778,12 @@ if (document.getElementById('saveBtn')) {
             });
         });
         
+        const checkRemark = document.getElementById('check_remark') ? document.getElementById('check_remark').value : null;
+        
         const data = {
             ...reportData,
-            checks: checks
+            checks: checks,
+            check_remark: checkRemark
         };
         
         fetch(`/driver/daily-reports/${reportId}`, {

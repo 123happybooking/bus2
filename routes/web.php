@@ -132,6 +132,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::resource('vehicle-grades', VehicleGradeController::class)->names('vehicle-grades');
         Route::resource('user-company-info', UserCompanyInfoController::class)->names('user-company-info');
         Route::get('login-histories', [LoginHistoryController::class, 'index'])->name('login-histories.index');
+        Route::delete('login-histories/batch-delete', [LoginHistoryController::class, 'batchDelete'])->name('login-histories.batch-delete');
         
         
         

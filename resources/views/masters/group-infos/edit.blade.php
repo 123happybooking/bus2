@@ -650,10 +650,10 @@
                                                 <thead>
                                                     <tr>
                                                         <th style="width: 15%; background-color: #f8f9fa; text-align: center;">日付</th>
-                                                        <th style="width: 20%; background-color: #f8f9fa; text-align: center;">種別</th>
-                                                        <th style="width: 12%; background-color: #f8f9fa; text-align: center;">金額</th>
-                                                        <th style="width: 15%; background-color: #f8f9fa; text-align: center;">支払方法</th>
-                                                        <th style="width: 8%; background-color: #f8f9fa; text-align: center;">代理店</th>
+                                                        <th style="width: 25%; background-color: #f8f9fa; text-align: center;">種別</th>
+                                                        <th style="width: 18%; background-color: #f8f9fa; text-align: center;">金額</th>
+                                                        <th style="width: 20%; background-color: #f8f9fa; text-align: center;">支払方法</th>
+                                                        <th style="width: 12%; background-color: #f8f9fa; text-align: center;">代理店</th>
                                                         <th style="width: 10%; background-color: #f8f9fa; text-align: center;">操作</th>
                                                     </tr>
                                                 </thead>
@@ -849,10 +849,15 @@
                                     <span class="span-label" style="min-width: 30px;">備考</span>
                                     <textarea name="bus_assignments[{{ $vehicleIndex }}][operation_remarks]" rows="1" class="form-control form-control-sm border" placeholder="指示書に表示">{{ $busAssignment->operation_remarks ?? '' }}</textarea>
                                 </div>
+                                    
+                                <div class="d-flex w-100 mt-1">
+                                    <span class="span-label" style="min-width: 30px;">集金</span>
+                                    <textarea name="bus_assignments[{{ $vehicleIndex }}][collection_amount]" rows="1" class="form-control form-control-sm border" placeholder="集金情報">{{ $busAssignment->collection_amount ?? '' }}</textarea>
+                                </div>
                             </div>
                             
                             <div class="col-md-6" style="width:40%; padding-right: 5px; padding-left: 5px;">
-                                <textarea name="bus_assignments[{{ $vehicleIndex }}][operation_memo]" rows="2" class="form-control form-control-sm border" style="height: 62px;" placeholder="手配メモ一">{{ $busAssignment->operation_memo ?? '' }}</textarea>
+                                <textarea name="bus_assignments[{{ $vehicleIndex }}][operation_memo]" rows="2" class="form-control form-control-sm border" style="height: 94px;" placeholder="手配メモ一">{{ $busAssignment->operation_memo ?? '' }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -3865,9 +3870,13 @@ function updateBusDetailClickHandler(e) {
                             <span class="span-label" style="min-width: 30px;">備考</span>
                             <textarea name="bus_assignments[${newIndex}][operation_remarks]" rows="1" class="form-control form-control-sm border" placeholder="指示書に表示"></textarea>
                         </div>
+                        <div class="d-flex w-100 mt-1">
+                            <span class="span-label" style="min-width: 30px;">集金</span>
+                            <textarea name="bus_assignments[${newIndex}][collection_amount]" rows="1" class="form-control form-control-sm border" placeholder="集金情報"></textarea>
+                        </div>
                     </div>
                     <div class="col-md-6" style="width:40%; padding-right: 5px; padding-left: 5px;">
-                        <textarea name="bus_assignments[${newIndex}][operation_memo]" rows="2" class="form-control form-control-sm border" style="height: 62px;" placeholder="手配メモ一"></textarea>
+                        <textarea name="bus_assignments[${newIndex}][operation_memo]" rows="2" class="form-control form-control-sm border" style="height: 94px;" placeholder="手配メモ一"></textarea>
                     </div>
                 </div>
             </div>
@@ -3891,10 +3900,10 @@ function updateBusDetailClickHandler(e) {
                         <thead>
                             <tr>
                                 <th style="width: 15%; background-color: #f8f9fa; text-align: center;">日付</th>
-                                <th style="width: 20%; background-color: #f8f9fa; text-align: center;">種別</th>
-                                <th style="width: 12%; background-color: #f8f9fa; text-align: center;">金額</th>
-                                <th style="width: 15%; background-color: #f8f9fa; text-align: center;">支払方法</th>
-                                <th style="width: 8%; background-color: #f8f9fa; text-align: center;">代理店</th>
+                                <th style="width: 25%; background-color: #f8f9fa; text-align: center;">種別</th>
+                                <th style="width: 18%; background-color: #f8f9fa; text-align: center;">金額</th>
+                                <th style="width: 20%; background-color: #f8f9fa; text-align: center;">支払方法</th>
+                                <th style="width: 12%; background-color: #f8f9fa; text-align: center;">代理店</th>
                                 <th style="width: 10%; background-color: #f8f9fa; text-align: center;">操作</th>
                             </tr>
                         </thead>
@@ -5615,10 +5624,10 @@ document.querySelectorAll('.add-first-expense-row').forEach(btn => {
                 <thead>
                     <tr>
                         <th style="width: 15%; background-color: #f8f9fa; text-align: center;">日付</th>
-                        <th style="width: 20%; background-color: #f8f9fa; text-align: center;">種別</th>
-                        <th style="width: 12%; background-color: #f8f9fa; text-align: center;">金額</th>
-                        <th style="width: 15%; background-color: #f8f9fa; text-align: center;">支払方法</th>
-                        <th style="width: 8%; background-color: #f8f9fa; text-align: center;">代理店</th>
+                        <th style="width: 25%; background-color: #f8f9fa; text-align: center;">種別</th>
+                        <th style="width: 18%; background-color: #f8f9fa; text-align: center;">金額</th>
+                        <th style="width: 20%; background-color: #f8f9fa; text-align: center;">支払方法</th>
+                        <th style="width: 12%; background-color: #f8f9fa; text-align: center;">代理店</th>
                         <th style="width: 10%; background-color: #f8f9fa; text-align: center;">操作</th>
                     </tr>
                 </thead>

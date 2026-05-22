@@ -52,6 +52,7 @@ class BusAssignment extends Model
         'representative_phone',
         'attention',
         'operation_remarks',
+        'collection_amount',
         'operation_memo',
         'operation_basic_remarks',
         'doc_remarks',

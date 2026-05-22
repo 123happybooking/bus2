@@ -5,32 +5,53 @@
 <title>運行指示書</title>
 <style>
 table { width: 100%; border: 0; border-collapse: collapse;}
-td { text-align: center; vertical-align: middle; background-color: #fff; padding: 3px; border: 1px solid #000; font-size: 10pt; line-height: 150%; height: 20pt; word-break: break-all; word-wrap: break-word;}
+td { text-align: left; vertical-align: middle; background-color: #fff; padding: 3px; border: 1px solid #000; font-size: 10pt; line-height: 150%; height: 20pt; word-break: break-all; word-wrap: break-word;}
 .remark { text-align: left; vertical-align: top; height: 60pt;}
 .bg-gray { text-align: left; background-color: #F2F2F2; }
 
-.header { width: 100%; margin: 0 0 4pt 0;}
-.header .c1 { float: left; width: 50%; font-size: 24pt; display: block; }
-.header .c2 { text-align: right; float: left; width: 20%; display: block;}
-.header .c3 { text-align: right; float: left; width: 30%; display: block; }
+/*.header { width: 100%; margin: 0 0 4pt 0;}*/
+/*.header .c1 { float: left; width: 50%; font-size: 24pt; display: block; }*/
+/*.header .c2 { text-align: right; float: right; width: auto; min-width: 10%; display: block;}*/
+/*.header .c3 { text-align: right; float: right; width: auto; min-width: 10%; display: block; white-space: nowrap; }*/
 
 .footer { width: 100%; font-size: 9pt; margin: 4pt 0;}
 .footer .c1 { float: left; width: 50%; display: block; }
 .footer .c2 { text-align: right; float: left; width: 50%; display: block;}
+
+
+.header { width: 100%; margin: 0 0 2pt 0; }
+.header td { border: 0; padding: 0; height: auto; }
+.header .c1 { width: 50%; font-size: 24pt; }
+.header .c2 { text-align: right; }
+.header .c2 td { text-align: right; padding: 0 0 0 8pt; }
 </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="c1">運行指示書</div>
-    <div class="c2">
-        <img src="{{ $companyLogo ? $companyLogo : '/images/blank.png' }}" height="30pt" max-width="80%">
-    </div>
-    <div class="c3">
-        {{ $companyInfo['name'] ?? '会社名' }}<br>
-        {{ $companyInfo['tel'] ?? '電話' }}
-    </div>
-</div>
+<table class="header">
+    <tr>
+        <td class="c1">
+            運行指示書
+            @if(!empty($busAssignment->collection_amount))
+                <span style="font-size: 10pt; line-height: 100%; padding: 0; margin: 0;">（集金有り）</span>
+            @endif
+        </td>
+        <td class="c2">
+            <table style="width: auto;">
+                <tr>
+                    <td>
+                        <img src="{{ $companyLogo ? $companyLogo : '/images/blank.png' }}" height="30pt" max-width="80%">
+                    </td>
+                    <td>
+                        {{ $companyInfo['name'] ?? '会社名' }}<br>
+                        {{ $companyInfo['tel'] ?? '電話' }}
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
 
 <table>
  <tr>
@@ -106,7 +127,7 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
  </tr>
 
  <tr>
-  <td style="width:100%;" colspan="10" class="remark">
+  <td style="width:100%;" colspan="10">
       注意<br>
       <span style="font-size: 12pt;">{{ $optionsNames ?? '--' }}</span>
   </td>
@@ -120,12 +141,10 @@ td { text-align: center; vertical-align: middle; background-color: #fff; padding
  </tr>
 
  <tr>
-  <td style="width:60%;" colspan="6" class="remark">立替</td>
-  <td style="width:40%;" colspan="4" class="remark">会社精算</td>
- </tr>
-
- <tr>
-  <td style="width:65%;" colspan="7" class="remark">集金</td>
+  <td style="width:65%;" colspan="7" class="remark">
+      集金<br>
+      <span style="font-size: 12pt;">{{ $busAssignment->collection_amount ?? '--' }}</span>
+  </td>
   <td style="width:10%;" class="remark">責任者</td>
   <td style="width:10%;" class="remark">確認</td>
   <td style="width:15%;" class="remark">担当</td>

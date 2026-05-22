@@ -9,6 +9,8 @@ use App\Models\Driver\DriverOperationStatus;
 use App\Models\Driver\DriverExpense;
 use App\Models\Driver\DriverExpenseType;
 use App\Models\Driver\DriverPaymentMethod;
+use App\Models\Driver\DriverVehicleCheck;
+use App\Models\Driver\DriverVehicleCheckRemark;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Masters\Driver;
 use App\Models\Masters\Vehicle;
@@ -303,6 +305,45 @@ class DailyReportController extends Controller
         
         if ($request->has('deleted_expense_ids')) {
             DriverExpense::whereIn('id', $request->deleted_expense_ids)->delete();
+        }
+        
+        
+        if ($request->has('checks')) {
+            $vehicleId = $report->vehicle_id;
+            $driverId = $report->driver_id;
+            $date = $report->date;
+            
+            foreach ($request->checks as $itineraryIndex => $checks) {
+                foreach ($checks as $itemId => $isOk) {
+                    DriverVehicleCheck::updateOrCreate(
+                        [
+                            'driver_id' => $driverId,
+                            'vehicle_id' => $vehicleId,
+                            'driver_vehicle_check_items_id' => $itemId,
+                            'date' => $date,
+                        ],
+                        [
+                            'is_ok' => $isOk,
+                            'updated_by' => $userId,
+                        ]
+                    );
+                }
+            }
+        }
+        
+        
+        if ($request->has('check_remark')) {
+            DriverVehicleCheckRemark::updateOrCreate(
+                [
+                    'driver_id' => $report->driver_id,
+                    'vehicle_id' => $report->vehicle_id,
+                    'date' => $report->date,
+                ],
+                [
+                    'remark' => $request->check_remark,
+                    'updated_by' => $userId,
+                ]
+            );
         }
         
         return redirect()->route('masters.daily-reports.edit', $report->id)

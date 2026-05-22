@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Masters\Driver as MasterDriver;
 use App\Models\Masters\Vehicle;
 use App\Models\Masters\Staff;
+use App\Models\Driver\DriverVehicleCheckRemark;
 
 class DriverDailyReport extends Model
 {
@@ -67,5 +68,12 @@ class DriverDailyReport extends Model
     public function updater()
     {
         return $this->belongsTo(Staff::class, 'updated_by');
+    }
+    
+    public function checkRemark()
+    {
+        return $this->hasOne(DriverVehicleCheckRemark::class, 'driver_id', 'driver_id')
+            ->where('vehicle_id', $this->vehicle_id)
+            ->where('date', $this->date);
     }
 }

@@ -70,10 +70,22 @@
             @endif
             
             <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <button type="button" id="batchDeleteBtn" class="btn btn-danger btn-sm" disabled>
+                            <i class="bi bi-trash"></i> 選択した履歴を削除
+                        </button>
+                        <span class="text-muted ms-2" id="selectedCount" style="font-size: 0.8rem;">0件選択</span>
+                    </div>
+                </div>
+                
                 <div class="table-responsive">
                     <table class="table table-sm table-bordered mb-0 table-list">
                         <thead>
                             <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" id="selectAll">
+                                </th>
                                 <th>No.</th>
                                 <th>スタッフ</th>
                                 <th>ログインID</th>
@@ -85,7 +97,10 @@
                         </thead>
                         <tbody>
                             @forelse($loginHistories as $index => $history)
-                            <tr>
+                            <tr data-id="{{ $history->id }}">
+                                <td class="text-center">
+                                    <input type="checkbox" class="history-checkbox" value="{{ $history->id }}">
+                                </td>
                                 <td>{{ $loginHistories->firstItem() + $index }}</td>
                                 <td>
                                     @if($history->staff)
@@ -110,7 +125,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4">
+                                <td colspan="8" class="text-center py-4">
                                     @if(request()->anyFilled(['search', 'staff_id', 'status', 'start_date', 'end_date']))
                                         <div class="text-muted">
                                             <i class="bi bi-search display-6 mb-2"></i>
@@ -204,9 +219,69 @@
 </div>
 @endsection
 
-
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.history-checkbox');
+    const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    
+    function updateSelectedCount() {
+        const checked = document.querySelectorAll('.history-checkbox:checked');
+        const count = checked.length;
+        if (selectedCountSpan) {
+            selectedCountSpan.textContent = count + '件選択';
+        }
+        if (batchDeleteBtn) {
+            batchDeleteBtn.disabled = count === 0;
+        }
+    }
+    
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+            updateSelectedCount();
+        });
+    }
+    
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateSelectedCount);
+    });
+    
+    if (batchDeleteBtn) {
+        batchDeleteBtn.addEventListener('click', function() {
+            const checked = document.querySelectorAll('.history-checkbox:checked');
+            if (checked.length === 0) return;
+            
+            const ids = Array.from(checked).map(cb => cb.value);
+            
+            if (confirm('選択した ' + ids.length + ' 件のログイン履歴を削除してもよろしいですか？\nこの操作は元に戻せません。')) {
+                fetch('{{ route("masters.login-histories.batch-delete") }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ ids: ids })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('削除に失敗しました: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('エラーが発生しました: ' + error.message);
+                });
+            }
+        });
+    }
+});
+
 document.getElementById('per_page_select').addEventListener('change', function() {
     const url = new URL(window.location.href);
     const search = document.querySelector('input[name="search"]')?.value;

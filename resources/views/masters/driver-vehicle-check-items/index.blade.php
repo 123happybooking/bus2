@@ -64,8 +64,8 @@
             <thead>
                 <tr>
                     <th style="width: 60px;">ID</th>
-                    <th style="width: 150px;">カテゴリー</th>
-                    <th>点検項目名</th>
+                    <th style="text-align: left !important;">カテゴリー</th>
+                    <th style="text-align: left !important;">点検項目名</th>
                     <th style="width: 80px;">表示順</th>
                     <th style="width: 80px;">状態</th>
                     <th style="width: 100px;">操作</th>
@@ -75,8 +75,8 @@
                 @forelse($checkItems as $item)
                 <tr>
                     <td class="text-center">{{ $item->id }}</td>
-                    <td>{{ $item->category }}</td>
-                    <td>{{ $item->item_name }}</td>
+                    <td style="text-align: left !important;">{{ $item->category }}</td>
+                    <td style="text-align: left !important;">{{ $item->item_name }}</td>
                     <td class="text-center">{{ $item->display_order }}</td>
                     <td class="text-center">
                         @if($item->is_active)
