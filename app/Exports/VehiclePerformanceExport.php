@@ -160,8 +160,9 @@ class VehiclePerformanceExport implements FromArray, WithEvents
                     }
                 }
                 
-                foreach (range('A', $lastColumn) as $col) {
-                    $sheet->getColumnDimension($col)->setAutoSize(true);
+                for ($i = 1; $i <= $dateCount + 1; $i++) {
+                    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+                    $sheet->getColumnDimension($colLetter)->setAutoSize(true);
                 }
             },
         ];
