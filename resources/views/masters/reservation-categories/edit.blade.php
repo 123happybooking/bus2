@@ -108,6 +108,30 @@
                         
                         <div class="row">
                             <div class="col-md-6">
+                                <label for="vehicle_workload" class="form-label">車両工数</label>
+                                <input type="number" step="0.01" class="form-control @error('vehicle_workload') is-invalid @enderror" 
+                                       id="vehicle_workload" name="vehicle_workload" 
+                                       value="{{ old('vehicle_workload', $reservationCategory->vehicle_workload) }}" 
+                                       min="0" max="99.99" placeholder="1.00">
+                                @error('vehicle_workload')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="driver_workload" class="form-label">運転手工数</label>
+                                <input type="number" step="0.01" class="form-control @error('driver_workload') is-invalid @enderror" 
+                                       id="driver_workload" name="driver_workload" 
+                                       value="{{ old('driver_workload', $reservationCategory->driver_workload) }}" 
+                                       min="0" max="99.99" placeholder="1.00">
+                                @error('driver_workload')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
                                 <div class="form-check">
                                     <input class="form-check-input @error('is_active') is-invalid @enderror" 
                                            type="checkbox" id="is_active" name="is_active" value="1" 

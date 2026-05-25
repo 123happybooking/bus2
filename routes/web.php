@@ -45,6 +45,9 @@ use App\Http\Controllers\Masters\DriverCompensationTypeController;
 use App\Http\Controllers\Masters\DriverCompensationController;
 use App\Http\Controllers\Masters\DriverVehicleCheckItemsController;
 
+use App\Http\Controllers\Masters\VehiclePerformanceController;
+use App\Http\Controllers\Masters\DriverPerformanceController;
+
 use App\Http\Controllers\Driver\DriverDashboardController;
 use App\Http\Controllers\Driver\DriverItineraryController;
 use App\Http\Controllers\Driver\DriverProfileController;
@@ -216,6 +219,18 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::resource('driver-compensation-types', DriverCompensationTypeController::class)->names('driver-compensation-types');
         Route::resource('driver-compensations', DriverCompensationController::class)->names('driver-compensations');
         Route::resource('driver-vehicle-check-items', DriverVehicleCheckItemsController::class)->names('driver-vehicle-check-items');
+        
+        
+        Route::prefix('vehicle-performance')->name('vehicle-performance.')->group(function () {
+            Route::get('/', [VehiclePerformanceController::class, 'index'])->name('index');
+            Route::post('/export', [VehiclePerformanceController::class, 'export'])->name('export');
+        });
+        
+        
+        Route::prefix('driver-performance')->name('driver-performance.')->group(function () {
+            Route::get('/', [DriverPerformanceController::class, 'index'])->name('index');
+            Route::post('/export', [DriverPerformanceController::class, 'export'])->name('export');
+        });
         
 
         Route::resource('currencies', CurrencyController::class)->names('currencies');

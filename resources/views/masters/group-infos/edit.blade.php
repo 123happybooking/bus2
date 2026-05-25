@@ -749,8 +749,10 @@
                                             <th style="width: 10%; text-align: center; background-color: #f3f4f6;">開始時刻/場所</th>
                                             <th style="width: 10%; text-align: center; background-color: #f3f4f6;">終了時刻/場所</th>
                                             <th style="text-align: center; background-color: #f3f4f6;">行程</th>
+                                            <th style="width: 8%; text-align: center; background-color: #f3f4f6;">車両工数</th>
+                                            <th style="width: 8%; text-align: center; background-color: #f3f4f6;">運転手工数</th>
                                             <th style="width: 5%; text-align: center; background-color: #f3f4f6;">選択</th>
-                                            <th style="width: 180px; text-align: center; background-color: #f3f4f6;">操作</th>
+                                            <th style="width: 15%; text-align: center; background-color: #f3f4f6;">操作</th>
                                          </thead>
                                     <tbody>
                                         @foreach($group['itineraries'] as $index => $itinerary)
@@ -799,6 +801,18 @@
                                                           class="form-control form-control-sm border" 
                                                           style="width: 100%; height: 100%; min-height: 60px;">{{ $itinerary->itinerary ?? '' }}</textarea>
                                              </td>
+                                            <td style="vertical-align: middle; padding: 2px; text-align: center;">
+                                                <input type="number" step="any" min="0" 
+                                                       class="form-control form-control-sm border text-center input-num-no-arrow" 
+                                                       name="daily_itineraries[{{ $globalIndex }}][vehicle_workload]" 
+                                                       value="{{ $itinerary->vehicle_workload ?? '' }}">
+                                            </td>
+                                            <td style="vertical-align: middle; padding: 2px; text-align: center;">
+                                                <input type="number" step="any" min="0" 
+                                                       class="form-control form-control-sm border text-center input-num-no-arrow" 
+                                                       name="daily_itineraries[{{ $globalIndex }}][driver_workload]" 
+                                                       value="{{ $itinerary->driver_workload ?? '' }}">
+                                            </td>
                                             <td style="padding: 2px; text-align: center; vertical-align: middle;">
                                                 <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
                                                     <input type="checkbox" class="form-check-input itinerary-select" 
@@ -1502,6 +1516,16 @@ span.flatpickr-weekday {
     min-height: 102px;
 }
 
+.input-num-no-arrow {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+.input-num-no-arrow::-webkit-inner-spin-button,
+.input-num-no-arrow::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 
 
 
@@ -1685,14 +1709,15 @@ span.flatpickr-weekday {
     
     .vehicle-itinerary-table td:last-child,
     .vehicle-itinerary-table th:last-child {
-        width: auto !important;
-        min-width: 90px !important;
-        white-space: nowrap !important;
+        /*width: auto !important;*/
+        /*min-width: 90px !important;*/
+        white-space: wrap !important;
     }
     
     .vehicle-itinerary-table td:last-child .d-flex {
         gap: 2px !important;
         justify-content: center !important;
+        flex-wrap: wrap !important;
     }
     
     .vehicle-itinerary-table td:last-child .btn-sm {
@@ -2638,6 +2663,8 @@ function updateBusDetailClickHandler(e) {
         const startLocationInput = row.querySelector('input[name*="[start_location]"]');
         const endLocationInput = row.querySelector('input[name*="[end_location]"]');
         const itineraryTextarea = row.querySelector('textarea[name*="[itinerary]"]');
+        const vehicle_workload = row.querySelector('textarea[name*="[vehicle_workload]"]');
+        const driver_workload = row.querySelector('textarea[name*="[driver_workload]"]');
         
         const itineraryId = row.getAttribute('data-itinerary-id') || '';
         
@@ -2649,6 +2676,8 @@ function updateBusDetailClickHandler(e) {
             start_location: startLocationInput ? startLocationInput.value : '',
             end_location: endLocationInput ? endLocationInput.value : '',
             itinerary: itineraryTextarea ? itineraryTextarea.value : '',
+            vehicle_workload: vehicleWorkloadInput ? vehicleWorkloadInput.value : '',
+            driver_workload: driverWorkloadInput ? driverWorkloadInput.value : '',
             vehicle_id: rowVehicleId,
             driver_id: driverId,
             guide_id: guideId,
@@ -3496,6 +3525,16 @@ function updateBusDetailClickHandler(e) {
                           class="form-control form-control-sm border" 
                           style="width: 100%; height: 100%; min-height: 60px;"></textarea>
             </td>
+            <td style="vertical-align: middle; padding: 2px; text-align: center;">
+                <input type="number" step="any" min="0" 
+                       class="form-control form-control-sm border text-center input-num-no-arrow" 
+                       name="daily_itineraries[${uniqueIndex}][vehicle_workload]">
+            </td>
+            <td style="vertical-align: middle; padding: 2px; text-align: center;">
+                <input type="number" step="any" min="0" 
+                       class="form-control form-control-sm border text-center input-num-no-arrow" 
+                       name="daily_itineraries[${uniqueIndex}][driver_workload]">
+            </td>
             <td style="padding: 2px; text-align: center; vertical-align: middle;">
                 <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
                     <input type="checkbox" class="form-check-input itinerary-select" 
@@ -3844,8 +3883,10 @@ function updateBusDetailClickHandler(e) {
                                     <th style="width: 10%; text-align: center; background-color: #f3f4f6;">開始時刻/場所</th>
                                     <th style="width: 10%; text-align: center; background-color: #f3f4f6;">終了時刻/場所</th>
                                     <th style="text-align: center; background-color: #f3f4f6;">行程</th>
+                                    <th style="width: 8%; text-align: center; background-color: #f3f4f6;">車両工数</th>
+                                    <th style="width: 8%; text-align: center; background-color: #f3f4f6;">運転手工数</th>
                                     <th style="width: 5%; text-align: center; background-color: #f3f4f6;">選択</th>
-                                    <th style="width: 180px; text-align: center; background-color: #f3f4f6;">操作</th>
+                                    <th style="width: 15%; text-align: center; background-color: #f3f4f6;">操作</th>
                                  </thead>
                             <tbody>
                                 ${tableRows}
@@ -4082,6 +4123,21 @@ function updateBusDetailClickHandler(e) {
             const startLocationInput = row.querySelector('input[name*="[start_location]"]');
             const endLocationInput = row.querySelector('input[name*="[end_location]"]');
             const itineraryTextarea = row.querySelector('textarea[name*="[itinerary]"]');
+            const vehicleWorkloadInput = row.querySelector('input[name*="[vehicle_workload]"]');
+            const driverWorkloadInput = row.querySelector('input[name*="[driver_workload]"]');
+            
+            // let vehicleWorkload = '';
+            // let driverWorkload = '';
+            
+            // if (vehicleWorkloadInput) {
+            //     const val = vehicleWorkloadInput.value;
+            //     vehicleWorkload = (val !== null && val !== undefined && val !== '') ? val : '';
+            // }
+            
+            // if (driverWorkloadInput) {
+            //     const val = driverWorkloadInput.value;
+            //     driverWorkload = (val !== null && val !== undefined && val !== '') ? val : '';
+            // }
             
             let date = dateInput ? dateInput.value : '';
             if (date && date.includes(' ')) {
@@ -4093,6 +4149,8 @@ function updateBusDetailClickHandler(e) {
             const startLocation = startLocationInput ? startLocationInput.value : '';
             const endLocation = endLocationInput ? endLocationInput.value : '';
             const itinerary = itineraryTextarea ? itineraryTextarea.value : '';
+            const vehicleWorkload = vehicleWorkloadInput ? vehicleWorkloadInput.value : '';
+            const driverWorkload = driverWorkloadInput ? driverWorkloadInput.value : '';
             const vehicleId = row.querySelector('.itinerary-vehicle-id')?.value || '';
             const driverId = row.querySelector('.itinerary-driver-id')?.value || '';
             const guideId = row.querySelector('.itinerary-guide-id')?.value || '';
@@ -4137,6 +4195,18 @@ function updateBusDetailClickHandler(e) {
                         <textarea name="daily_itineraries[${globalIndex}][itinerary]" rows="2" 
                                   class="form-control form-control-sm border" 
                                   style="width: 100%; height: 100%; min-height: 60px;">${itinerary}</textarea>
+                    </td>
+                    <td style="vertical-align: middle; padding: 2px; text-align: center;">
+                        <input type="number" step="any" min="0" 
+                           class="form-control form-control-sm border text-center input-num-no-arrow" 
+                           name="daily_itineraries[${globalIndex}][vehicle_workload]" 
+                           value="${vehicleWorkload}">
+                    </td>
+                    <td style="vertical-align: middle; padding: 2px; text-align: center;">
+                        <input type="number" step="any" min="0" 
+                           class="form-control form-control-sm border text-center input-num-no-arrow" 
+                           name="daily_itineraries[${globalIndex}][driver_workload]" 
+                           value="${driverWorkload}">
                     </td>
                     <td style="padding: 2px; text-align: center; vertical-align: middle;">
                         <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
@@ -4565,6 +4635,8 @@ function updateBusDetailClickHandler(e) {
                     card.querySelectorAll('input[name*="[end_time]"]'),
                     card.querySelectorAll('input[name*="[start_location]"]'),
                     card.querySelectorAll('input[name*="[end_location]"]'),
+                    card.querySelectorAll('input[name*="[vehicle_workload]"]'),
+                    card.querySelectorAll('input[name*="[driver_workload]"]'),
                     card.querySelectorAll('.datepicker-3months'),
                     card.querySelectorAll('input[type="time"]'),
                 ];

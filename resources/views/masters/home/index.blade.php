@@ -168,12 +168,12 @@
         <div class="col-md-3 mb-3">
             <div class="card shadow-sm">
                 <div class="card-header bg-secondary text-white py-2">
-                    <h6 class="mb-0"><i class="bi bi-graph-up-arrow me-1"></i>実績集計</h6>
+                    <h6 class="mb-0"><i class="bi bi-graph-up-arrow me-1"></i>集計</h6>
                 </div>
                 <div class="card-body p-2">
                     @if($isAdmin || $isOperationsManager || $isManager)
-                    <a href="{{ route('masters.basicinfo.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">輸送実績一覧</a>
-                    <a href="{{ route('masters.drivers.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">乗務実績一覧</a>
+                    <a href="{{ route('masters.vehicle-performance.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">車両実績</a>
+                    <a href="{{ route('masters.driver-performance.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運転手実績</a>
                     <a href="{{ route('masters.fees.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">売上集計</a>
                     @endif
                 </div>

@@ -68,6 +68,8 @@
                                 <th>コード</th>
                                 <th>分類名</th>
                                 <th>表示ラベル</th>
+                                <th>車両工数</th>
+                                <th>運転手工数</th>
                                 <th width="80">状態</th>
                                 <th width="150">操作</th>
                             </tr>
@@ -83,6 +85,8 @@
                                         {{ $category->category_name }}
                                     </span>
                                 </td>
+                                <td>{{ number_format($category->vehicle_workload, 2) }}</td>
+                                <td>{{ number_format($category->driver_workload, 2) }}</td>
                                 <td class="text-center">
                                     @if($category->is_active)
                                         <span class="badge bg-success">有効</span>
@@ -120,7 +124,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="8" class="text-center py-4">
                                     @if(request('search'))
                                         <div class="text-muted">
                                             <i class="bi bi-search display-6 mb-2"></i>

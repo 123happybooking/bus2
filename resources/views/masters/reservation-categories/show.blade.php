@@ -97,6 +97,19 @@
                         </div>
                     </div>
                     
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <h6 class="border-bottom pb-2 mb-3">工数設定</h6>
+                            <dl class="row">
+                                <dt class="col-sm-2">車両工数</dt>
+                                <dd class="col-sm-4">{{ number_format($reservationCategory->vehicle_workload, 2) }}</dd>
+                                
+                                <dt class="col-sm-2">運転手工数</dt>
+                                <dd class="col-sm-4">{{ number_format($reservationCategory->driver_workload, 2) }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    
                     <div class="row mt-4">
                         <div class="col-md-12">
                             <h6 class="border-bottom pb-2 mb-3">システム情報</h6>

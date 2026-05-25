@@ -15,6 +15,8 @@ class DailyItinerary extends Model
         'time_start',
         'time_end',
         'itinerary',
+        'vehicle_workload',
+        'driver_workload',
         'start_location',
         'end_location',
         'accommodation',
@@ -72,5 +74,15 @@ class DailyItinerary extends Model
     public function operationLogs()
     {
         return $this->hasMany(\App\Models\Driver\DriverOperationLog::class, 'itinerary_id');
+    }
+    
+    public function getVehicleWorkloadFormattedAttribute()
+    {
+        return $this->vehicle_workload !== null ? (float)$this->vehicle_workload : '';
+    }
+    
+    public function getDriverWorkloadFormattedAttribute()
+    {
+        return $this->driver_workload !== null ? (float)$this->driver_workload : '';
     }
 }

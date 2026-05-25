@@ -198,7 +198,7 @@
         <table class="table table-bordered table-sm ledger-table" style="font-size: 0.75rem; min-width: 800px;">
             <thead>
                 <tr>
-                    <th class="text-center" style="position: sticky; left: 0; background-color: #f8f9fa; z-index: 10; min-width: 180px;">車両名 / 代理店</th>
+                    <th class="text-center" style="position: sticky; left: 0; background-color: #f8f9fa; z-index: 10; min-width: 180px;">車両名</th>
                     @foreach($dates as $date)
                         @php
                             $dateStr = $date['date']->format('Y-m-d');
@@ -309,6 +309,11 @@
                                 </span>
                                 <br>
                             @endif
+                            
+                            @if($vehicle->image_path)
+                                <img src="{{ asset('storage/' . $vehicle->image_path) }}" class="vehicle-img">
+                            @endif
+        
                             <strong>{{ $vehicle->registration_number }}</strong>
                             @if($vehicle->vehicleModel)
                                 <small class="text-muted">{{ $vehicle->vehicleModel->model_name }}</small>
@@ -739,6 +744,13 @@
 .table hr {
     margin: 2px 0;
     opacity: 0.3;
+}
+
+.vehicle-img {
+    float: right;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 4px;
 }
 
 @media (max-width: 768px) {

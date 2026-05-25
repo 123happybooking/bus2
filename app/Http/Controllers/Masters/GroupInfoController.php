@@ -752,6 +752,17 @@ class GroupInfoController extends Controller
             $busAssignment = BusAssignment::create($busAssignmentData);
 
             $createdItineraries = [];
+            
+            $vehicleWorkloadDefault = 1;
+            $driverWorkloadDefault = 1;
+            
+            if (!empty($validated['reservation_categories_id'])) {
+                $reservationCategory = ReservationCategory::find($validated['reservation_categories_id']);
+                if ($reservationCategory) {
+                    $vehicleWorkloadDefault = $reservationCategory->vehicle_workload ?? 1;
+                    $driverWorkloadDefault = $reservationCategory->driver_workload ?? 1;
+                }
+            }
 
             for ($i = 0; $i < $daysDiff; $i++) {
                 $currentDate = $startDate->copy()->addDays($i);
@@ -793,6 +804,8 @@ class GroupInfoController extends Controller
                     'time_start' => $startTime,
                     'time_end' => $endTime,
                     'itinerary' => $itineraryText,
+                    'vehicle_workload' => $vehicleWorkloadDefault,
+                    'driver_workload' => $driverWorkloadDefault,
                     'start_location' => $startLocation,
                     'end_location' => $endLocation,
                     'accommodation' => ($i < $daysDiff - 1) ? true : false,
@@ -1461,6 +1474,8 @@ class GroupInfoController extends Controller
                         'time_start' => ($itineraryData['time_start'] ?? '08:00') . ':00',
                         'time_end' => ($itineraryData['time_end'] ?? '18:00') . ':00',
                         'itinerary' => $itineraryData['itinerary'] ?? '',
+                        'vehicle_workload' => isset($itineraryData['vehicle_workload']) && $itineraryData['vehicle_workload'] !== '' ? (float)$itineraryData['vehicle_workload'] : 1,
+                        'driver_workload' => isset($itineraryData['driver_workload']) && $itineraryData['driver_workload'] !== '' ? (float)$itineraryData['driver_workload'] : 1,
                         'start_location' => $itineraryData['start_location'] ?? null,
                         'end_location' => $itineraryData['end_location'] ?? null,
                         'accommodation' => isset($itineraryData['accommodation']) ? (bool)$itineraryData['accommodation'] : false,
@@ -1841,6 +1856,8 @@ class GroupInfoController extends Controller
                             'time_start' => $timeStart,
                             'time_end' => $timeEnd,
                             'itinerary' => $itineraryData['itinerary'] ?? $existingItinerary->itinerary,
+                            'vehicle_workload' => isset($itineraryData['vehicle_workload']) && $itineraryData['vehicle_workload'] !== '' ? (float)$itineraryData['vehicle_workload'] : 1,
+                            'driver_workload' => isset($itineraryData['driver_workload']) && $itineraryData['driver_workload'] !== '' ? (float)$itineraryData['driver_workload'] : 1,
                             'start_location' => $itineraryData['start_location'] ?? $existingItinerary->start_location,
                             'end_location' => $itineraryData['end_location'] ?? $existingItinerary->end_location,
                             'accommodation' => isset($itineraryData['accommodation']) ? (bool)$itineraryData['accommodation'] : $existingItinerary->accommodation,
@@ -1985,6 +2002,8 @@ class GroupInfoController extends Controller
                         'time_start' => $timeStartRaw,
                         'time_end' => $timeEndRaw,
                         'itinerary' => $itineraryData['itinerary'] ?? null,
+                        'vehicle_workload' => isset($itineraryData['vehicle_workload']) && $itineraryData['vehicle_workload'] !== '' ? (float)$itineraryData['vehicle_workload'] : 1,
+                        'driver_workload' => isset($itineraryData['driver_workload']) && $itineraryData['driver_workload'] !== '' ? (float)$itineraryData['driver_workload'] : 1,
                         'start_location' => $itineraryData['start_location'] ?? null,
                         'end_location' => $itineraryData['end_location'] ?? null,
                         'accommodation' => isset($itineraryData['accommodation']) ? (bool)$itineraryData['accommodation'] : false,
@@ -3012,6 +3031,8 @@ class GroupInfoController extends Controller
                                 'start_location' => $itineraryData['start_location'] ?? null,
                                 'end_location' => $itineraryData['end_location'] ?? null,
                                 'itinerary' => $itineraryData['itinerary'] ?? null,
+                                'vehicle_workload' => isset($itineraryData['vehicle_workload']) && $itineraryData['vehicle_workload'] !== '' ? (float)$itineraryData['vehicle_workload'] : 1,
+                                'driver_workload' => isset($itineraryData['driver_workload']) && $itineraryData['driver_workload'] !== '' ? (float)$itineraryData['driver_workload'] : 1,
                                 'bus_assignment_id' => $busAssignment->id,
                                 'updated_by' => $userId,
                                 'updated_at' => now(),
@@ -3046,6 +3067,8 @@ class GroupInfoController extends Controller
                             'start_location' => $itineraryData['start_location'] ?? null,
                             'end_location' => $itineraryData['end_location'] ?? null,
                             'itinerary' => $itineraryData['itinerary'] ?? null,
+                            'vehicle_workload' => isset($itineraryData['vehicle_workload']) && $itineraryData['vehicle_workload'] !== '' ? (float)$itineraryData['vehicle_workload'] : 1,
+                            'driver_workload' => isset($itineraryData['driver_workload']) && $itineraryData['driver_workload'] !== '' ? (float)$itineraryData['driver_workload'] : 1,
                             'vehicle_id' => $request->vehicle_id ?? 0,
                             'vehicle' => $vehicleName,
                             'driver_id' => $request->driver_id ?? 0,

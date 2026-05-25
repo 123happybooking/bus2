@@ -1113,14 +1113,14 @@
 
             @if($canViewResults)
             <div class="nav-item" data-menu="results">
-                <div class="nav-header" data-title="実績管理">
+                <div class="nav-header" data-title="集計">
                     <i class="bi bi-graph-up-arrow menu-icon"></i>
-                    <span class="menu-title">実績管理</span>
+                    <span class="menu-title">集計</span>
                     <i class="bi bi-chevron-down menu-arrow"></i>
                 </div>
                 <ul class="submenu submenu-s">
-                    <li><a href="{{ route('masters.basicinfo.index') }}" data-route="basicinfo-performance">運行実績</a></li>
-                    <li><a href="{{ route('masters.drivers.index') }}" data-route="drivers-performance">乗務実績</a></li>
+                    <li><a href="{{ route('masters.vehicle-performance.index') }}" data-route="vehicle-performance">車両実績</a></li>
+                    <li><a href="{{ route('masters.driver-performance.index') }}" data-route="driver-performance">運転手実績</a></li>
                     <li><a href="{{ route('masters.fees.index') }}" data-route="fees">売上集計</a></li>
                 </ul>
             </div>

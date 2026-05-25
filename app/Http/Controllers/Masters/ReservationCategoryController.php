@@ -43,6 +43,8 @@ class ReservationCategoryController extends Controller
             'color_code' => 'required|string|max:7',
             'display_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
+            'vehicle_workload' => 'nullable|numeric|min:0|max:99.99',
+            'driver_workload' => 'nullable|numeric|min:0|max:99.99',
         ];
 
         $messages = [
@@ -55,11 +57,19 @@ class ReservationCategoryController extends Controller
             'color_code.max' => 'カラーコードは7文字以内で入力してください。',
             'display_order.integer' => '表示順は数値で入力してください。',
             'display_order.min' => '表示順は0以上の数値で入力してください。',
+            'vehicle_workload.numeric' => '車両工数は数値で入力してください。',
+            'vehicle_workload.min' => '車両工数は0以上の数値で入力してください。',
+            'vehicle_workload.max' => '車両工数は99.99以下の数値で入力してください。',
+            'driver_workload.numeric' => '運転手工数は数値で入力してください。',
+            'driver_workload.min' => '運転手工数は0以上の数値で入力してください。',
+            'driver_workload.max' => '運転手工数は99.99以下の数値で入力してください。',
         ];
 
         $validated = $request->validate($rules, $messages);
 
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
+        $validated['vehicle_workload'] = $request->vehicle_workload !== null ? $request->vehicle_workload : 1.00;
+        $validated['driver_workload'] = $request->driver_workload !== null ? $request->driver_workload : 1.00;
 
         if (!isset($validated['display_order']) || $validated['display_order'] === null) {
             $maxOrder = ReservationCategory::max('display_order');
@@ -100,6 +110,8 @@ class ReservationCategoryController extends Controller
             'color_code' => 'required|string|max:7',
             'display_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
+            'vehicle_workload' => 'nullable|numeric|min:0|max:99.99',
+            'driver_workload' => 'nullable|numeric|min:0|max:99.99',
         ];
 
         $messages = [
@@ -112,11 +124,19 @@ class ReservationCategoryController extends Controller
             'color_code.max' => 'カラーコードは7文字以内で入力してください。',
             'display_order.integer' => '表示順は数値で入力してください。',
             'display_order.min' => '表示順は0以上の数値で入力してください。',
+            'vehicle_workload.numeric' => '車両工数は数値で入力してください。',
+            'vehicle_workload.min' => '車両工数は0以上の数値で入力してください。',
+            'vehicle_workload.max' => '車両工数は99.99以下の数値で入力してください。',
+            'driver_workload.numeric' => '運転手工数は数値で入力してください。',
+            'driver_workload.min' => '運転手工数は0以上の数値で入力してください。',
+            'driver_workload.max' => '運転手工数は99.99以下の数値で入力してください。',
         ];
 
         $validated = $request->validate($rules, $messages);
 
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
+        $validated['vehicle_workload'] = $request->vehicle_workload !== null ? $request->vehicle_workload : 1.00;
+        $validated['driver_workload'] = $request->driver_workload !== null ? $request->driver_workload : 1.00;
 
         $reservationCategory = ReservationCategory::findOrFail($id);
         $reservationCategory->update($validated);
