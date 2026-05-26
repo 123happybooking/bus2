@@ -76,7 +76,36 @@
     .clearfix {
         clear: both;
     }
-    .remark { text-align: left; vertical-align: top; height: 60pt;}
+    .remark {
+        text-align: left;
+        vertical-align: top;
+        height: 60pt;
+    }
+    .check-item {
+        display: inline-block;
+        width: 45%;
+        margin: 2px 0;
+    }
+    .check-category {
+        margin-bottom: 8px;
+    }
+    .check-category-title {
+        font-weight: bold;
+        background-color: #f0f0f0;
+        padding: 2px 4px;
+        margin-bottom: 4px;
+    }
+    .check-items-grid {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .normal-text {
+        color: #000;
+    }
+    .abnormal-text {
+        color: #ff0000;
+        font-weight: bold;
+    }
 </style>
 </head>
 <body>
@@ -167,34 +196,69 @@
     <tr>
         <td colspan="6" class="remark">
             立替
-            <table class="table-no-border table-list">
-                @foreach($completedItineraries as $itinerary)
-                    <tr>
-                        <td colspan="6">
-                            <b>{{ $itinerary['reservation_id'] ?? '' }}</b>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width: 15%;">日付</th>
-                        <td>内容</th>
-                        <td style="width: 15%;" class="text-right">金額</td>
-                        <td style="width: 15%;">支払方法</td>
-                        <td style="width: 15%;">請求対象</td>
-                        <td>備考</th>
-                    </tr>
-                    
-                    @foreach($itinerary['expenses'] as $expense)
-                    <tr>
-                        <td>{{ $expense['expense_date'] ?? '' }}</td>
-                        <td>{{ $expense['type_name'] ?? '' }}</td>
-                        <td class="text-right">{{ number_format($expense['amount'] ?? 0) }} 円</td>
-                        <td>{{ $expense['payment_method_name'] ?? '' }}</td>
-                        <td>{{ $expense['agency_flag'] ? '有り' : '' }}</td>
-                        <td>{{ $expense['remark'] ?? '' }}</td>
-                    </tr>
+            @foreach($completedItineraries as $itinerary)
+                @php
+                    if($itinerary['expenses']){
+                @endphp
+                    <table class="table-no-border table-list">
+                        <tr>
+                            <td colspan="6">
+                                <b>{{ $itinerary['reservation_id'] ?? '' }}</b>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 15%;">日付</th>
+                            <td>内容</th>
+                            <td style="width: 15%;" class="text-right">金額</td>
+                            <td style="width: 15%;">支払方法</td>
+                            <td style="width: 15%;">請求対象</td>
+                            <td>備考</th>
+                        </tr>
+                        
+                        @foreach($itinerary['expenses'] as $expense)
+                        <tr>
+                            <td>{{ $expense['expense_date'] ?? '' }}</td>
+                            <td>{{ $expense['type_name'] ?? '' }}</td>
+                            <td class="text-right">{{ number_format($expense['amount'] ?? 0) }} 円</td>
+                            <td>{{ $expense['payment_method_name'] ?? '' }}</td>
+                            <td>{{ $expense['agency_flag'] ? '有り' : '' }}</td>
+                            <td>{{ $expense['remark'] ?? '' }}</td>
+                        </tr>
+                        @endforeach
+                    </table>
+                @php
+                    }
+                @endphp
+            @endforeach
+        </td>
+    </tr>
+    <tr>
+        <td colspan="6" class="remark">
+            点検
+            @if(isset($checkItems) && count($checkItems) > 0)
+                <div style="font-size:9pt;">
+                    @foreach($checkItems as $category => $items)
+                    <div><span style="background-color: #ccc;">{{ $category }}：</span>
+                        @foreach($items as $item)
+                            {{ $item['item_name'] }}:
+                            @if($item['is_ok'] === true)
+                                正常
+                            @elseif($item['is_ok'] === false)
+                                異常
+                            @else
+                                未確認
+                            @endif
+                        ； 
+                        @endforeach
                     @endforeach
-                @endforeach
-            </table>
+                    </div>
+                    @if(isset($checkRemark) && $checkRemark)
+                        <span style="background-color: #ccc;">備考：</span>{{ $checkRemark }}
+                    @endif
+                </div>
+            @else
+                点検データはありません
+            @endif
         </td>
     </tr>
     <tr>

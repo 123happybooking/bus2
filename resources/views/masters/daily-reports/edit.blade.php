@@ -187,165 +187,246 @@
                     </div>
                 </div>
                 
-                @foreach($itineraries as $itineraryIndex => $itinerary)
-                <div class="card mb-3" style="background-color: #f8f9fa;">
-                    <div class="card-header" style="background-color: #e9ecef;">
-                        <strong>行程 {{ $itineraryIndex + 1 }}</strong>
-                        <span class="ms-3 text-muted">
-                            {{ $itinerary->start_location ?? '?' }} → {{ $itinerary->end_location ?? '?' }}
-                        </span>
-                        <span class="ms-3 text-muted">
-                            {{ \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') }} - {{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }}
-                        </span>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="expense-section">
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered mb-0 logs-table" style="font-size: 0.8rem;" data-itinerary-index="{{ $itineraryIndex }}">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th style="width: 15%;">時間</th>
-                                            <th style="width: 10%;">走行距離</th>
-                                            <th style="width: 40%;">住所</th>
-                                            <th style="width: 15%;">操作</th>
-                                            <th style="width: 10%; text-align: center;">行操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="logs-tbody">
-                                        @php
-                                            $logIndex = 0;
-                                        @endphp
-                                        @foreach($itinerary->operationLogs as $log)
-                                        <tr class="log-row" data-log-id="{{ $log->id }}" data-index="{{ $logIndex }}">
-                                            <td>
-                                                <input type="time" class="form-control form-control-sm log-time-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][logged_at]" value="{{ \Carbon\Carbon::parse($log->logged_at)->format('H:i') }}" style="font-size: 0.75rem;">
-                                                <input type="hidden" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][id]" value="{{ $log->id }}">
-                                                <input type="hidden" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][display_order]" value="{{ $logIndex }}">
-                                            </td>
-                                            <td>
-                                                <input type="number" class="form-control form-control-sm log-mileage-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][mileage]" value="{{ $log->mileage }}" min="0" style="font-size: 0.75rem;">
-                                            </td>
-                                            <td>
-                                                <input type="text" class="form-control form-control-sm log-address-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][address]" value="{{ $log->address ?? '' }}" style="font-size: 0.75rem;">
-                                            </td>
-                                            <td>
-                                                <select class="form-select form-select-sm log-action-select" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][action]" style="font-size: 0.75rem;">
-                                                    @foreach($operationTypes as $type)
-                                                    <option value="{{ $type->name }}" {{ $log->action == $type->name ? 'selected' : '' }}>
-                                                        {{ $type->name }}
-                                                    </option>
-                                                    @endforeach
-                                                </select>
-                                            </td>
-                                            <td class="text-center">
-                                                <div class="d-flex justify-content-center gap-1">
-                                                    <button type="button" class="btn btn-outline-success btn-sm add-log-btn" title="行を追加">
-                                                        <i class="bi bi-plus-lg"></i>
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm delete-log-btn" title="行を削除">
-                                                        <i class="bi bi-dash-lg"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        @php $logIndex++; @endphp
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                
+                <ul class="nav nav-tabs mb-3" id="reportTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="operation-tab" data-bs-toggle="tab" data-bs-target="#operation" type="button" role="tab" aria-controls="operation" aria-selected="true">
+                            運行
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="inspection-tab" data-bs-toggle="tab" data-bs-target="#inspection" type="button" role="tab" aria-controls="inspection" aria-selected="false">
+                            点検
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="reportTabContent">
+                    <div class="tab-pane fade show active" id="operation" role="tabpanel">
+                        @foreach($itineraries as $itineraryIndex => $itinerary)
+                        <div class="card mb-3" style="background-color: #f8f9fa;">
+                            <div class="card-header" style="background-color: #e9ecef;">
+                                <strong>行程 {{ $itineraryIndex + 1 }}</strong>
+                                <span class="ms-3 text-muted">
+                                    {{ \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') }} {{ $itinerary->start_location ?? '?' }} - {{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }} {{ $itinerary->end_location ?? '?' }}
+                                </span>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="expense-section">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered mb-0 logs-table" style="font-size: 0.8rem;" data-itinerary-index="{{ $itineraryIndex }}">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th style="width: 15%;">時間</th>
+                                                    <th style="width: 10%;">走行距離</th>
+                                                    <th style="width: 40%;">住所</th>
+                                                    <th style="width: 15%;">操作</th>
+                                                    <th style="width: 10%; text-align: center;">行操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="logs-tbody">
+                                                @php
+                                                    $logIndex = 0;
+                                                @endphp
+                                                @foreach($itinerary->operationLogs as $log)
+                                                <tr class="log-row" data-log-id="{{ $log->id }}" data-index="{{ $logIndex }}">
+                                                    <td>
+                                                        <input type="time" class="form-control form-control-sm log-time-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][logged_at]" value="{{ \Carbon\Carbon::parse($log->logged_at)->format('H:i') }}" style="font-size: 0.75rem;">
+                                                        <input type="hidden" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][id]" value="{{ $log->id }}">
+                                                        <input type="hidden" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][display_order]" value="{{ $logIndex }}">
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" class="form-control form-control-sm log-mileage-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][mileage]" value="{{ $log->mileage }}" min="0" style="font-size: 0.75rem;">
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" class="form-control form-control-sm log-address-input" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][address]" value="{{ $log->address ?? '' }}" style="font-size: 0.75rem;">
+                                                    </td>
+                                                    <td>
+                                                        <select class="form-select form-select-sm log-action-select" name="logs[{{ $itineraryIndex }}][{{ $logIndex }}][action]" style="font-size: 0.75rem;">
+                                                            @foreach($operationTypes as $type)
+                                                            <option value="{{ $type->name }}" {{ $log->action == $type->name ? 'selected' : '' }}>
+                                                                {{ $type->name }}
+                                                            </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="d-flex justify-content-center gap-1">
+                                                            <button type="button" class="btn btn-outline-success btn-sm add-log-btn" title="行を追加">
+                                                                <i class="bi bi-plus-lg"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm delete-log-btn" title="行を削除">
+                                                                <i class="bi bi-dash-lg"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                @php $logIndex++; @endphp
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                @php
+                                    $itineraryExpenses = $expensesByItinerary[$itinerary->id] ?? [];
+                                    if($itineraryExpenses) {
+                                @endphp
+                                <div class="expense-section pt-0">
+                                    <div class="table-responsive">
+                                        <b>立替</b>
+                                        <table class="table table-sm table-bordered expense-table" style="font-size: 0.75rem; background-color: #fff; margin-bottom: 0;">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th style="width: 12%;">日付</th>
+                                                    <th style="width: 15%;">種別</th>
+                                                    <th style="width: 10%;">金額</th>
+                                                    <th style="width: 12%;">支払方法</th>
+                                                    <th style="width: 8%;">代理店</th>
+                                                    <th style="width: 33%;">備考</th>
+                                                    <th style="width: 10%; text-align: center;">行操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="expense-tbody" data-itinerary-id="{{ $itinerary->id }}" data-itinerary-index="{{ $itineraryIndex }}" data-expense-date="{{ \Carbon\Carbon::parse($report->date)->format('Y-m-d') }}">
+                                                @forelse($itineraryExpenses as $expenseIndex => $expense)
+                                                <tr class="expense-row" data-expense-id="{{ $expense->id }}" data-expense-index="{{ $expenseIndex }}">
+                                                    <td>
+                                                        <input type="date" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][expense_date]" 
+                                                               value="{{ \Carbon\Carbon::parse($expense->expense_date)->format('Y-m-d') }}" 
+                                                               class="form-control form-control-sm expense-date-input" style="font-size: 0.7rem;">
+                                                    </td>
+                                                    <td>
+                                                        <select name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][type_id]" class="form-select form-select-sm expense-type-select" style="font-size: 0.7rem;">
+                                                            <option value="">-- 選択 --</option>
+                                                            @foreach($expenseTypes ?? [] as $type)
+                                                            <option value="{{ $type->id }}" {{ $expense->type_id == $type->id ? 'selected' : '' }}>
+                                                                {{ $type->type_name }}
+                                                            </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][amount]" 
+                                                               value="{{ $expense->amount }}" step="1" min="0"
+                                                               class="form-control form-control-sm expense-amount-input" style="font-size: 0.7rem; text-align: right;">
+                                                    </td>
+                                                    <td>
+                                                        <select name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][payment_method_id]" class="form-select form-select-sm expense-payment-select" style="font-size: 0.7rem;">
+                                                            <option value="">-- 選択 --</option>
+                                                            @foreach($paymentMethods ?? [] as $method)
+                                                            <option value="{{ $method->id }}" {{ $expense->payment_method_id == $method->id ? 'selected' : '' }}>
+                                                                {{ $method->method_name }}
+                                                            </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="form-check d-flex justify-content-center" style="margin: 0;">
+                                                            <input type="checkbox" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][agency_flag]" value="1" 
+                                                                   class="form-check-input expense-agency-checkbox" id="agency_flag_{{ $expense->id }}"
+                                                                   {{ $expense->agency_flag ? 'checked' : '' }}
+                                                                   style="cursor: pointer;">
+                                                            <label class="form-check-label ms-1 expense-agency-label" for="agency_flag_{{ $expense->id }}" style="font-size: 0.7rem; cursor: pointer;">代理店</label>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][remark]" 
+                                                               value="{{ $expense->remark }}" placeholder="備考"
+                                                               class="form-control form-control-sm expense-remark-input" style="font-size: 0.7rem;">
+                                                    </td>
+                                                    <input type="hidden" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][id]" value="{{ $expense->id }}">
+                                                    <td class="text-center">
+                                                        <div class="d-flex justify-content-center gap-1">
+                                                            <button type="button" class="btn btn-outline-success btn-sm add-expense-row-btn" title="行を追加" style="padding: 2px 6px;">
+                                                                <i class="bi bi-plus-lg"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm delete-expense-row-btn" title="行を削除" style="padding: 2px 6px;">
+                                                                <i class="bi bi-dash-lg"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                @empty
+                                                <tr class="expense-row expense-empty-row">
+                                                    <td colspan="7" class="text-center text-muted" style="padding: 20px;">
+                                                        立替金データがありません。「+」ボタンをクリックして追加してください。
+                                                     </td>
+                                                 </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                @php
+                                    }
+                                @endphp
                             </div>
                         </div>
-                        
-                        @php
-                            $itineraryExpenses = $expensesByItinerary[$itinerary->id] ?? [];
-                        @endphp
-                        <div class="expense-section pt-0">
-                            <div class="table-responsive">
-                                <b>立替</b>
-                                <table class="table table-sm table-bordered expense-table" style="font-size: 0.75rem; background-color: #fff; margin-bottom: 0;">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th style="width: 12%;">日付</th>
-                                            <th style="width: 15%;">種別</th>
-                                            <th style="width: 10%;">金額</th>
-                                            <th style="width: 12%;">支払方法</th>
-                                            <th style="width: 8%;">代理店</th>
-                                            <th style="width: 33%;">備考</th>
-                                            <th style="width: 10%; text-align: center;">行操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="expense-tbody" data-itinerary-id="{{ $itinerary->id }}" data-itinerary-index="{{ $itineraryIndex }}" data-expense-date="{{ \Carbon\Carbon::parse($report->date)->format('Y-m-d') }}">
-                                        @forelse($itineraryExpenses as $expenseIndex => $expense)
-                                        <tr class="expense-row" data-expense-id="{{ $expense->id }}" data-expense-index="{{ $expenseIndex }}">
-                                            <td>
-                                                <input type="date" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][expense_date]" 
-                                                       value="{{ \Carbon\Carbon::parse($expense->expense_date)->format('Y-m-d') }}" 
-                                                       class="form-control form-control-sm expense-date-input" style="font-size: 0.7rem;">
-                                            </td>
-                                            <td>
-                                                <select name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][type_id]" class="form-select form-select-sm expense-type-select" style="font-size: 0.7rem;">
-                                                    <option value="">-- 選択 --</option>
-                                                    @foreach($expenseTypes ?? [] as $type)
-                                                    <option value="{{ $type->id }}" {{ $expense->type_id == $type->id ? 'selected' : '' }}>
-                                                        {{ $type->type_name }}
-                                                    </option>
-                                                    @endforeach
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <input type="number" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][amount]" 
-                                                       value="{{ $expense->amount }}" step="1" min="0"
-                                                       class="form-control form-control-sm expense-amount-input" style="font-size: 0.7rem; text-align: right;">
-                                            </td>
-                                            <td>
-                                                <select name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][payment_method_id]" class="form-select form-select-sm expense-payment-select" style="font-size: 0.7rem;">
-                                                    <option value="">-- 選択 --</option>
-                                                    @foreach($paymentMethods ?? [] as $method)
-                                                    <option value="{{ $method->id }}" {{ $expense->payment_method_id == $method->id ? 'selected' : '' }}>
-                                                        {{ $method->method_name }}
-                                                    </option>
-                                                    @endforeach
-                                                </select>
-                                            </td>
-                                            <td class="text-center">
-                                                <div class="form-check d-flex justify-content-center" style="margin: 0;">
-                                                    <input type="checkbox" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][agency_flag]" value="1" 
-                                                           class="form-check-input expense-agency-checkbox" id="agency_flag_{{ $expense->id }}"
-                                                           {{ $expense->agency_flag ? 'checked' : '' }}
-                                                           style="cursor: pointer;">
-                                                    <label class="form-check-label ms-1 expense-agency-label" for="agency_flag_{{ $expense->id }}" style="font-size: 0.7rem; cursor: pointer;">代理店</label>
+                        @endforeach
+                    </div>
+                    
+                    <div class="tab-pane fade" id="inspection" role="tabpanel">
+                        <div class="card mb-3" style="background-color: #fff;">
+                            <div class="card-header" style="background-color: #e9ecef;">
+                                <strong>車両点検</strong>
+                                <span class="ms-3 text-muted">
+                                    {{ \Carbon\Carbon::parse($report->date)->format('Y年m月d日') }}
+                                </span>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="check-items-container">
+                                    @php
+                                        $vehicleId = $report->vehicle_id;
+                                        $date = $report->date;
+                                        $checkItems = \App\Models\Driver\DriverVehicleCheckItems::where('is_active', true)
+                                            ->orderBy('display_order')
+                                            ->get()
+                                            ->groupBy('category');
+                                        $savedChecks = \App\Models\Driver\DriverVehicleCheck::where('driver_id', $report->driver_id)
+                                            ->where('vehicle_id', $vehicleId)
+                                            ->where('date', $date)
+                                            ->get()
+                                            ->keyBy('driver_vehicle_check_items_id');
+                                    @endphp
+                                    @foreach($checkItems as $category => $items)
+                                    <div class="check-category">
+                                        <div class="category-title">{{ $category }}</div>
+                                        <div class="category-items">
+                                            @foreach($items as $item)
+                                            <div class="check-item" data-item-id="{{ $item->id }}">
+                                                <div class="item-name">{{ $item->item_name }}</div>
+                                                <div class="item-options">
+                                                    <label class="radio-label">
+                                                        <input type="radio" name="checks[{{ $item->id }}]" value="1" 
+                                                            class="radio-input check-radio" 
+                                                            data-item-id="{{ $item->id }}"
+                                                            {{ ($savedChecks[$item->id]->is_ok ?? '') == 1 ? 'checked' : '' }}>
+                                                        <span class="radio-text">正常</span>
+                                                    </label>
+                                                    <label class="radio-label">
+                                                        <input type="radio" name="checks[{{ $item->id }}]" value="0" 
+                                                            class="radio-input check-radio" 
+                                                            data-item-id="{{ $item->id }}"
+                                                            {{ ($savedChecks[$item->id]->is_ok ?? '') == 0 ? 'checked' : '' }}>
+                                                        <span class="radio-text">異常</span>
+                                                    </label>
                                                 </div>
-                                            </td>
-                                            <td>
-                                                <input type="text" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][remark]" 
-                                                       value="{{ $expense->remark }}" placeholder="備考"
-                                                       class="form-control form-control-sm expense-remark-input" style="font-size: 0.7rem;">
-                                            </td>
-                                            <input type="hidden" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][id]" value="{{ $expense->id }}">
-                                            <td class="text-center">
-                                                <div class="d-flex justify-content-center gap-1">
-                                                    <button type="button" class="btn btn-outline-success btn-sm add-expense-row-btn" title="行を追加" style="padding: 2px 6px;">
-                                                        <i class="bi bi-plus-lg"></i>
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm delete-expense-row-btn" title="行を削除" style="padding: 2px 6px;">
-                                                        <i class="bi bi-dash-lg"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        @empty
-                                        <tr class="expense-row expense-empty-row">
-                                            <td colspan="7" class="text-center text-muted" style="padding: 20px;">
-                                                立替金データがありません。「+」ボタンをクリックして追加してください。
-                                             </td>
-                                         </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                    
+                                    <div class="check-category">
+                                        <div class="category-title">備考</div>
+                                        <textarea name="check_remark" class="form-control mt-3" rows="4" style="font-size: 12px;">{{ $report->checkRemark->remark ?? '' }}</textarea>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                @endforeach
+                
                 
                 <div class="row mt-3">
                     <div class="col-md-12">
@@ -875,14 +956,17 @@ document.querySelectorAll('.expense-tbody').forEach(tbody => {
     color: #374151;
     font-size: 1rem;
 }
+
 .form-label {
     font-size: 0.875rem;
     font-weight: 500;
     margin-bottom: 0.25rem;
 }
+
 .error-alert {
     font-size: 0.875rem;
 }
+
 .bg-light {
     background-color: #f8f9fa !important;
 }
@@ -917,12 +1001,6 @@ document.querySelectorAll('.expense-tbody').forEach(tbody => {
     color: #2c3e50;
 }
 
-@media (max-width: 768px) {
-    .info-item {
-        margin-bottom: 12px;
-    }
-}
-
 .table td, .table th {
     vertical-align: middle;
 }
@@ -930,6 +1008,155 @@ document.querySelectorAll('.expense-tbody').forEach(tbody => {
 .expense-section {
     padding: 12px 16px;
     background-color: #fff;
+}
+
+.card.mb-3 {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #e9ecef;
+    padding: 10px 16px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.card-header strong {
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.card-header .text-muted {
+    font-size: 12px;
+}
+
+.card-header .nav-tabs {
+    margin-bottom: -1px;
+    border-bottom: none;
+}
+
+.card-header .nav-link {
+    padding: 0.25rem 0.75rem;
+    color: #6c757d;
+    border: none;
+}
+
+.card-header .nav-link.active {
+    color: #2563eb;
+    background-color: transparent;
+    border-bottom: 2px solid #2563eb;
+}
+
+.nav-item {
+    margin-bottom: 0;
+}
+
+.check-items-container {
+    padding: 8px 12px;
+}
+
+.check-category {
+    margin-bottom: 12px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.category-title {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    background-color: #e9ecef;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.category-items {
+    padding: 4px 0;
+}
+
+.check-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.check-item:last-child {
+    border-bottom: none;
+}
+
+.item-name {
+    font-size: 12px;
+    color: #2c3e50;
+}
+
+.item-options {
+    display: flex;
+    gap: 12px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.radio-input {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.radio-text {
+    font-size: 11px;
+    color: #495057;
+}
+
+.logs-table .log-row td {
+    padding: 4px;
+}
+
+.logs-table input,
+.logs-table select {
+    font-size: 0.75rem;
+    padding: 4px 6px;
+}
+
+@media (max-width: 768px) {
+    .info-item {
+        margin-bottom: 12px;
+    }
+    
+    .check-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .item-options {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .logs-table {
+        font-size: 0.7rem;
+    }
+    
+    .logs-table input,
+    .logs-table select {
+        font-size: 0.65rem;
+        padding: 2px 4px;
+    }
 }
 </style>
 @endpush

@@ -10,6 +10,7 @@ use App\Models\Driver\DriverExpense;
 use App\Models\Driver\DriverExpenseType;
 use App\Models\Driver\DriverPaymentMethod;
 use App\Models\Driver\DriverVehicleCheck;
+use App\Models\Driver\DriverVehicleCheckItems;
 use App\Models\Driver\DriverVehicleCheckRemark;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Masters\Driver;
@@ -148,7 +149,17 @@ class DailyReportController extends Controller
         
         $operationTypes = DriverOperationStatus::orderBy('display_order', 'asc')->get();
         
-        return view('masters.daily-reports.edit', compact('report', 'itineraries', 'operationTypes', 'expensesByItinerary', 'expenseTypes', 'paymentMethods'));
+        $remarkText = '';
+        if ($report->checkRemark && $report->checkRemark->remark) {
+            $decoded = json_decode($report->checkRemark->remark, true);
+            if (is_array($decoded)) {
+                $remarkText = implode("\n", $decoded);
+            } else {
+                $remarkText = $report->checkRemark->remark;
+            }
+        }
+        
+        return view('masters.daily-reports.edit', compact('report', 'itineraries', 'operationTypes', 'expensesByItinerary', 'expenseTypes', 'paymentMethods', 'remarkText'));
     }
     
     public function update(Request $request, $id)
@@ -231,7 +242,6 @@ class DailyReportController extends Controller
                             'mileage' => $logData['mileage'] ?? null,
                             'address' => $logData['address'] ?? null,
                             'action' => $logData['action'] ?? '',
-                            // 'display_order' => $displayOrder,
                         ]);
                         $submittedLogIds[] = $newLog->id;
                     }
@@ -239,10 +249,11 @@ class DailyReportController extends Controller
             }
         }
         
-        DriverOperationLog::where('driver_id', $report->driver_id)
-            ->whereDate('logged_at', $report->date)
-            ->whereNotIn('id', $submittedLogIds)
-            ->delete();
+        foreach ($itineraries as $itinerary) {
+            DriverOperationLog::where('itinerary_id', $itinerary->id)
+                ->whereNotIn('id', $submittedLogIds)
+                ->delete();
+        }
         
         foreach ($itineraries as $itinerary) {
             $latestLog = DriverOperationLog::where('itinerary_id', $itinerary->id)
@@ -255,7 +266,6 @@ class DailyReportController extends Controller
             }
         }
         
-                
         if ($request->has('expenses')) {
             foreach ($request->expenses as $itineraryId => $expenses) {
                 foreach ($expenses as $expenseData) {
@@ -307,30 +317,26 @@ class DailyReportController extends Controller
             DriverExpense::whereIn('id', $request->deleted_expense_ids)->delete();
         }
         
-        
         if ($request->has('checks')) {
             $vehicleId = $report->vehicle_id;
             $driverId = $report->driver_id;
             $date = $report->date;
             
-            foreach ($request->checks as $itineraryIndex => $checks) {
-                foreach ($checks as $itemId => $isOk) {
-                    DriverVehicleCheck::updateOrCreate(
-                        [
-                            'driver_id' => $driverId,
-                            'vehicle_id' => $vehicleId,
-                            'driver_vehicle_check_items_id' => $itemId,
-                            'date' => $date,
-                        ],
-                        [
-                            'is_ok' => $isOk,
-                            'updated_by' => $userId,
-                        ]
-                    );
-                }
+            foreach ($request->checks as $itemId => $isOk) {
+                DriverVehicleCheck::updateOrCreate(
+                    [
+                        'driver_id' => $driverId,
+                        'vehicle_id' => $vehicleId,
+                        'driver_vehicle_check_items_id' => $itemId,
+                        'date' => $date,
+                    ],
+                    [
+                        'is_ok' => $isOk,
+                        'updated_by' => $userId,
+                    ]
+                );
             }
         }
-        
         
         if ($request->has('check_remark')) {
             DriverVehicleCheckRemark::updateOrCreate(
@@ -350,11 +356,6 @@ class DailyReportController extends Controller
             ->with('success', '運行日報を更新しました。');
     }
     
-    
-    
-    
-    
-        
     public function exportPdf($id)
     {
         $report = DriverDailyReport::with(['driver', 'vehicle'])->findOrFail($id);
@@ -509,6 +510,42 @@ class DailyReportController extends Controller
             ];
         }
         
+        
+        $checkItems = [];
+        $checkRemark = '';
+        
+        try {
+            $vehicleCheckItems = DriverVehicleCheckItems::where('is_active', true)
+                ->orderBy('display_order')
+                ->get()
+                ->groupBy('category');
+            
+            $savedChecks = DriverVehicleCheck::where('driver_id', $report->driver_id)
+                ->where('vehicle_id', $report->vehicle_id)
+                ->where('date', $report->date)
+                ->get()
+                ->keyBy('driver_vehicle_check_items_id');
+            
+            foreach ($vehicleCheckItems as $category => $items) {
+                foreach ($items as $item) {
+                    $checkItems[$category][] = [
+                        'item_name' => $item->item_name,
+                        'is_ok' => $savedChecks[$item->id]->is_ok ?? null,
+                    ];
+                }
+            }
+            
+            if ($report->checkRemark && $report->checkRemark->remark) {
+                $decoded = json_decode($report->checkRemark->remark, true);
+                if (is_array($decoded)) {
+                    $checkRemark = implode("\n", $decoded);
+                } else {
+                    $checkRemark = $report->checkRemark->remark;
+                }
+            }
+        } catch (\Exception $e) {
+        }
+        
         $data = [
             'companyInfo' => $companyInfo,
             'companyLogo' => $companyLogo,
@@ -519,6 +556,8 @@ class DailyReportController extends Controller
             'actualDistance' => $actualDistance,
             'emptyDistance' => $emptyDistance,
             'completedItineraries' => $completedItineraries,
+            'checkItems' => $checkItems,
+            'checkRemark' => $checkRemark,
         ];
         
         return $data;

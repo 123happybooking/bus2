@@ -2,97 +2,265 @@
 namespace App\Http\Controllers\Masters;
 
 use App\Http\Controllers\Controller;
-use App\Models\Masters\DriverPaymentMethod;
+use App\Models\Masters\DailyItinerary;
+use App\Models\Masters\Driver;
+use App\Models\Masters\Branch;
+use App\Exports\DriverPerformanceExport;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
-class DriverPaymentMethodController extends Controller
+class DriverPerformanceController extends Controller
 {
     public function index(Request $request)
     {
-        $query = DriverPaymentMethod::query();
+        $sessionKey = 'driver_performance_search';
         
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('method_name', 'like', "%{$search}%")
-                  ->orWhere('remark', 'like', "%{$search}%");
-            });
+        $searchFields = ['start_date', 'period', 'branch_ids', 'driver_id'];
+        
+        $isNewSearch = false;
+        foreach ($searchFields as $field) {
+            if ($request->filled($field)) {
+                $isNewSearch = true;
+                break;
+            }
         }
         
-        $perPage = $request->input('per_page', 20);
-        $paymentMethods = $query->orderBy('id')->paginate($perPage);
-        
-        if ($request->has('search')) {
-            $paymentMethods->appends(['search' => $request->search]);
+        if ($request->has('reset_search')) {
+            session()->forget($sessionKey);
+            $isNewSearch = false;
         }
         
-        return view('masters.driver-payment-methods.index', compact('paymentMethods'));
+        if ($isNewSearch) {
+            $searchParams = $request->only($searchFields);
+            session([$sessionKey => $searchParams]);
+        } else {
+            $searchParams = session($sessionKey, []);
+            $request->merge($searchParams);
+        }
+        
+        $defaultStartDate = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $startDate = $request->input('start_date', $defaultStartDate);
+        $period = $request->input('period', 4);
+        $branchIds = $request->input('branch_ids', []);
+        $driverId = $request->input('driver_id');
+        
+        $start = Carbon::parse($startDate);
+        
+        if ($period == 1) {
+            $end = $start->copy()->addDays(6);
+        } elseif ($period == 2) {
+            $end = $start->copy()->addDays(13);
+        } elseif ($period == 3) {
+            $end = $start->copy()->addDays(20);
+        } elseif ($period == 4) {
+            $end = $start->copy()->addMonth()->subDay();
+        } else {
+            $end = $start->copy()->addDays(6);
+        }
+        
+        $endDate = $end->format('Y-m-d');
+        
+        $dates = [];
+        $current = $start->copy();
+        while ($current <= $end) {
+            $dates[] = [
+                'date' => $current->copy(),
+                'display' => $current->format('n/j'),
+                'date_str' => $current->format('Y-m-d'),
+            ];
+            $current->addDay();
+        }
+        
+        $drivers = Driver::with('branch')
+            ->where('is_active', true)
+            ->when($branchIds, function($query) use ($branchIds) {
+                if (is_array($branchIds) && !empty($branchIds)) {
+                    $query->whereIn('branch_id', $branchIds);
+                }
+            })
+            ->when($driverId, function($query) use ($driverId) {
+                $query->where('id', $driverId);
+            })
+            ->orderBy('display_order', 'asc')
+            ->orderBy('driver_code', 'asc')
+            ->get();
+        
+        $driverIds = $drivers->pluck('id')->toArray();
+        
+        $itineraries = DailyItinerary::whereIn('driver_id', $driverIds)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->get();
+        
+        $statistics = [];
+        foreach ($driverIds as $did) {
+            $statistics[$did] = [];
+        }
+        
+        foreach ($itineraries as $itinerary) {
+            $did = $itinerary->driver_id;
+            if ($itinerary->date instanceof \Carbon\Carbon) {
+                $dateStr = $itinerary->date->format('Y-m-d');
+            } else {
+                $dateStr = (string)$itinerary->date;
+            }
+            
+            if (!isset($statistics[$did][$dateStr])) {
+                $statistics[$did][$dateStr] = [
+                    'count' => 0,
+                    'workload' => 0,
+                ];
+            }
+            
+            $statistics[$did][$dateStr]['count']++;
+            $statistics[$did][$dateStr]['workload'] += (float)($itinerary->driver_workload ?? 0);
+        }
+        
+        $totalStatistics = [];
+        foreach ($dates as $date) {
+            $dateStr = $date['date_str'];
+            $totalStatistics[$dateStr] = [
+                'count' => 0,
+                'workload' => 0,
+            ];
+        }
+        
+        foreach ($itineraries as $itinerary) {
+            if ($itinerary->date instanceof \Carbon\Carbon) {
+                $dateStr = $itinerary->date->format('Y-m-d');
+            } else {
+                $dateStr = (string)$itinerary->date;
+            }
+            
+            $totalStatistics[$dateStr]['count']++;
+            $totalStatistics[$dateStr]['workload'] += (float)($itinerary->driver_workload ?? 0);
+        }
+        
+        foreach ($totalStatistics as $dateStr => $stat) {
+            $workload = $stat['workload'];
+            $totalStatistics[$dateStr]['formatted_workload'] = is_numeric($workload) && floor($workload) == $workload ? (int)$workload : $workload;
+        }
+        
+        $branches = Branch::orderBy('display_order', 'asc')
+            ->orderBy('branch_code', 'asc')
+            ->get();
+        
+        $allDrivers = Driver::where('is_active', true)
+            ->orderBy('display_order', 'asc')
+            ->orderBy('driver_code', 'asc')
+            ->get();
+        
+        $companyInfo = ['name' => ''];
+        try {
+            $userCompany = \DB::table('user_company_info')->first();
+            if ($userCompany) {
+                $companyInfo['name'] = $userCompany->company_name ?? ($userCompany->user_company_name ?? '');
+            }
+        } catch (\Exception $e) {}
+        
+        return view('masters.driver-performance.index', compact(
+            'dates',
+            'drivers',
+            'statistics',
+            'totalStatistics',
+            'startDate',
+            'endDate',
+            'branches',
+            'allDrivers',
+            'period',
+            'branchIds',
+            'driverId',
+            'companyInfo'
+        ));
     }
-
-    public function create()
+    
+    public function export(Request $request)
     {
-        return view('masters.driver-payment-methods.create');
-    }
-
-    public function store(Request $request)
-    {
-        $rules = [
-            'method_name' => 'required|string|max:100',
-            'is_reimbursable' => 'nullable|boolean',
-            'remark' => 'nullable|string|max:500',
-        ];
-
-        $messages = [
-            'method_name.required' => '支払方法名は必須です。',
-            'method_name.max' => '支払方法名は100文字以内で入力してください。',
-            'remark.max' => '備考は500文字以内で入力してください。',
-        ];
-
-        $validated = $request->validate($rules, $messages);
-        $validated['is_reimbursable'] = $request->has('is_reimbursable') ? 1 : 0;
-
-        DriverPaymentMethod::create($validated);
-
-        return redirect()->route('masters.driver-payment-methods.index')
-            ->with('success', '支払方法を登録しました。');
-    }
-
-    public function edit($id)
-    {
-        $paymentMethod = DriverPaymentMethod::findOrFail($id);
-        return view('masters.driver-payment-methods.edit', compact('paymentMethod'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $rules = [
-            'method_name' => 'required|string|max:100',
-            'is_reimbursable' => 'nullable|boolean',
-            'remark' => 'nullable|string|max:500',
-        ];
-
-        $messages = [
-            'method_name.required' => '支払方法名は必須です。',
-            'method_name.max' => '支払方法名は100文字以内で入力してください。',
-            'remark.max' => '備考は500文字以内で入力してください。',
-        ];
-
-        $validated = $request->validate($rules, $messages);
-        $validated['is_reimbursable'] = $request->has('is_reimbursable') ? 1 : 0;
-
-        $paymentMethod = DriverPaymentMethod::findOrFail($id);
-        $paymentMethod->update($validated);
-
-        return redirect()->route('masters.driver-payment-methods.index')
-            ->with('success', '支払方法を更新しました。');
-    }
-
-    public function destroy($id)
-    {
-        $paymentMethod = DriverPaymentMethod::findOrFail($id);
-        $paymentMethod->delete();
-
-        return redirect()->route('masters.driver-payment-methods.index')
-            ->with('success', '支払方法を削除しました。');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $branchIds = $request->input('branch_ids', []);
+        $driverId = $request->input('driver_id');
+        $exportOptions = $request->input('export_options', ['count', 'workload']);
+        
+        if (is_string($exportOptions)) {
+            $exportOptions = json_decode($exportOptions, true);
+        }
+        
+        if (!$startDate || !$endDate) {
+            return redirect()->back()->with('error', '日付範囲を指定してください。');
+        }
+        
+        $start = Carbon::parse($startDate);
+        $end = Carbon::parse($endDate);
+        
+        $dates = [];
+        $current = $start->copy();
+        while ($current <= $end) {
+            $dates[] = [
+                'date' => $current->copy(),
+                'display' => $current->format('n/j'),
+                'date_str' => $current->format('Y-m-d'),
+            ];
+            $current->addDay();
+        }
+        
+        $drivers = Driver::with('branch')
+            ->where('is_active', true)
+            ->when($branchIds, function($query) use ($branchIds) {
+                if (is_array($branchIds) && !empty($branchIds)) {
+                    $query->whereIn('branch_id', $branchIds);
+                }
+            })
+            ->when($driverId, function($query) use ($driverId) {
+                $query->where('id', $driverId);
+            })
+            ->orderBy('display_order', 'asc')
+            ->orderBy('driver_code', 'asc')
+            ->get();
+        
+        $driverIds = $drivers->pluck('id')->toArray();
+        
+        $itineraries = DailyItinerary::whereIn('driver_id', $driverIds)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->get();
+        
+        $statistics = [];
+        foreach ($driverIds as $did) {
+            $statistics[$did] = [];
+        }
+        
+        foreach ($itineraries as $itinerary) {
+            $did = $itinerary->driver_id;
+            if ($itinerary->date instanceof \Carbon\Carbon) {
+                $dateStr = $itinerary->date->format('Y-m-d');
+            } else {
+                $dateStr = (string)$itinerary->date;
+            }
+            
+            if (!isset($statistics[$did][$dateStr])) {
+                $statistics[$did][$dateStr] = [
+                    'count' => 0,
+                    'workload' => 0,
+                ];
+            }
+            
+            $statistics[$did][$dateStr]['count']++;
+            $statistics[$did][$dateStr]['workload'] += (float)($itinerary->driver_workload ?? 0);
+        }
+        
+        $companyInfo = ['name' => ''];
+        try {
+            $userCompany = \DB::table('user_company_info')->first();
+            if ($userCompany) {
+                $companyInfo['name'] = $userCompany->company_name ?? ($userCompany->user_company_name ?? '');
+            }
+        } catch (\Exception $e) {}
+        
+        $username = session('username', auth()->user()->name ?? '');
+        
+        return Excel::download(
+            new DriverPerformanceExport($dates, $drivers, $statistics, $companyInfo, $username, $exportOptions),
+            '運転手実績_' . $startDate . '_' . $endDate . '.xlsx'
+        );
     }
 }

@@ -8,19 +8,19 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
-class VehiclePerformanceExport implements FromArray, WithEvents
+class DriverPerformanceExport implements FromArray, WithEvents
 {
     protected $dates;
-    protected $vehicles;
+    protected $drivers;
     protected $statistics;
     protected $companyInfo;
     protected $username;
     protected $exportOptions;
     
-    public function __construct($dates, $vehicles, $statistics, $companyInfo, $username, $exportOptions)
+    public function __construct($dates, $drivers, $statistics, $companyInfo, $username, $exportOptions)
     {
         $this->dates = $dates;
-        $this->vehicles = $vehicles;
+        $this->drivers = $drivers;
         $this->statistics = $statistics;
         $this->companyInfo = $companyInfo;
         $this->username = $username;
@@ -47,7 +47,7 @@ class VehiclePerformanceExport implements FromArray, WithEvents
         for ($i = 0; $i <= $dateCount; $i++) {
             $row1[$i] = '';
         }
-        $row1[0] = '車両実績';
+        $row1[0] = '運転手実績';
         $row1[1] = $exportTypeText;
         $row1[$lastColumnIndex - 1] = $this->companyInfo['name'] ?? '';
         $data[] = $row1;
@@ -64,17 +64,17 @@ class VehiclePerformanceExport implements FromArray, WithEvents
         $row2[$lastColumnIndex - 1] = $today . '    ' . $this->username;
         $data[] = $row2;
         
-        $headerRow = ['車両名'];
+        $headerRow = ['運転手名'];
         foreach ($this->dates as $date) {
             $headerRow[] = $date['display'];
         }
         $data[] = $headerRow;
         
-        foreach ($this->vehicles as $vehicle) {
-            $row = [$vehicle->registration_number];
+        foreach ($this->drivers as $driver) {
+            $row = [$driver->name];
             foreach ($this->dates as $date) {
                 $dateStr = $date['date_str'];
-                $stat = $this->statistics[$vehicle->id][$dateStr] ?? ['count' => 0, 'workload' => 0];
+                $stat = $this->statistics[$driver->id][$dateStr] ?? ['count' => 0, 'workload' => 0];
                 
                 $exportCount = in_array('count', $this->exportOptions);
                 $exportWorkload = in_array('workload', $this->exportOptions);
@@ -97,8 +97,8 @@ class VehiclePerformanceExport implements FromArray, WithEvents
             $dateStr = $date['date_str'];
             $totalCount = 0;
             $totalWorkload = 0;
-            foreach ($this->vehicles as $vehicle) {
-                $stat = $this->statistics[$vehicle->id][$dateStr] ?? ['count' => 0, 'workload' => 0];
+            foreach ($this->drivers as $driver) {
+                $stat = $this->statistics[$driver->id][$dateStr] ?? ['count' => 0, 'workload' => 0];
                 $totalCount += $stat['count'];
                 $totalWorkload += $stat['workload'];
             }
@@ -130,7 +130,7 @@ class VehiclePerformanceExport implements FromArray, WithEvents
                 $dateCount = count($this->dates);
                 $lastColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dateCount + 1);
                 
-                $dataRowCount = count($this->vehicles) + 1;
+                $dataRowCount = count($this->drivers) + 1;
                 $lastRow = 3 + $dataRowCount;
                 
                 $sheet->getStyle('A1')->applyFromArray([
@@ -172,7 +172,7 @@ class VehiclePerformanceExport implements FromArray, WithEvents
                 ]);
                 
                 $dataStartRow = 4;
-                $dataEndRow = 3 + count($this->vehicles);
+                $dataEndRow = 3 + count($this->drivers);
                 
                 $sheet->getStyle('A' . $dataStartRow . ':' . $lastColumn . $dataEndRow)->applyFromArray([
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],

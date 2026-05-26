@@ -117,6 +117,31 @@ class VehiclePerformanceController extends Controller
             $statistics[$vid][$dateStr]['workload'] += (float)($itinerary->vehicle_workload ?? 0);
         }
         
+        $totalStatistics = [];
+        foreach ($dates as $date) {
+            $dateStr = $date['date_str'];
+            $totalStatistics[$dateStr] = [
+                'count' => 0,
+                'workload' => 0,
+            ];
+        }
+        
+        foreach ($itineraries as $itinerary) {
+            if ($itinerary->date instanceof \Carbon\Carbon) {
+                $dateStr = $itinerary->date->format('Y-m-d');
+            } else {
+                $dateStr = (string)$itinerary->date;
+            }
+            
+            $totalStatistics[$dateStr]['count']++;
+            $totalStatistics[$dateStr]['workload'] += (float)($itinerary->vehicle_workload ?? 0);
+        }
+        
+        foreach ($totalStatistics as $dateStr => $stat) {
+            $workload = $stat['workload'];
+            $totalStatistics[$dateStr]['formatted_workload'] = is_numeric($workload) && floor($workload) == $workload ? (int)$workload : $workload;
+        }
+        
         $branches = Branch::orderBy('display_order', 'asc')
             ->orderBy('branch_code', 'asc')
             ->get();
@@ -135,6 +160,7 @@ class VehiclePerformanceController extends Controller
             'dates',
             'vehicles',
             'statistics',
+            'totalStatistics',
             'startDate',
             'endDate',
             'branches',

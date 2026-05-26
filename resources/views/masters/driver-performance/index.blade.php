@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
-@section('title', '車両実績')
+@section('title', '運転手実績')
 
 @section('content')
 <div class="container-fluid px-4 py-0">
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0" style="color: #374151; font-size: 1.25rem;">車両実績</h5>
+        <h5 class="mb-0" style="color: #374151; font-size: 1.25rem;">運転手実績</h5>
     </div>
     
     <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">
-        <form method="GET" action="{{ route('masters.vehicle-performance.index') }}" class="row g-1" id="searchForm">
+        <form method="GET" action="{{ route('masters.driver-performance.index') }}" class="row g-1" id="searchForm">
             <div class="col-12">
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     <div class="d-flex align-items-center">
@@ -57,12 +57,12 @@
                     </div>
                     
                     <div class="d-flex align-items-center">
-                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">車種</span>
-                        <select name="vehicle_type_id" class="form-select form-select-sm" style="width: 120px; border-color: #E5E7EB;">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">運転手</span>
+                        <select name="driver_id" class="form-select form-select-sm" style="width: 140px; border-color: #E5E7EB;">
                             <option value="">選択</option>
-                            @foreach($vehicleTypes ?? [] as $type)
-                                <option value="{{ $type->id }}" {{ $vehicleTypeId == $type->id ? 'selected' : '' }}>
-                                    {{ $type->type_name }}
+                            @foreach($allDrivers ?? [] as $driver)
+                                <option value="{{ $driver->id }}" {{ $driverId == $driver->id ? 'selected' : '' }}>
+                                    {{ $driver->name }} @if($driver->driver_code)({{ $driver->driver_code }})@endif
                                 </option>
                             @endforeach
                         </select>
@@ -73,7 +73,7 @@
                                 style="background-color: #2563eb; color: white; border-color: #2563eb; font-size: 0.875rem;">
                             検索
                         </button>
-                        <a href="{{ route('masters.vehicle-performance.index', ['reset_search' => 1]) }}" class="btn btn-sm btn-outline-secondary px-3"
+                        <a href="{{ route('masters.driver-performance.index', ['reset_search' => 1]) }}" class="btn btn-sm btn-outline-secondary px-3"
                            style="border-color: #E5E7EB; color: #374151; font-size: 0.875rem;">
                             リセット
                         </a>
@@ -91,7 +91,7 @@
         <table class="table table-bordered table-sm performance-table" style="font-size: 0.75rem;">
             <thead>
                 <tr>
-                    <th class="text-center" style="position: sticky; left: 0; background-color: #f8f9fa; z-index: 11; min-width: 100px; vertical-align: middle;">車両名</th>
+                    <th class="text-center" style="position: sticky; left: 0; background-color: #f8f9fa; z-index: 11; min-width: 100px; vertical-align: middle;">運転手名</th>
                     @foreach($dates as $date)
                         <th class="text-center date-header" style="background-color: #e9ecef; min-width: 80px;">
                             {{ $date['display'] }}
@@ -100,18 +100,18 @@
                  </thead>
             </thead>
             <tbody>
-                @foreach($vehicles as $vehicle)
+                @foreach($drivers as $driver)
                     @php
                         $rowBgColor = $loop->index % 2 == 0 ? '#f8f9fa' : '#ffffff';
                     @endphp
                     <tr style="background-color: {{ $rowBgColor }};">
                         <td style="position: sticky; left: 0; background-color: {{ $rowBgColor }}; z-index: 11;">
-                            <strong>{{ $vehicle->registration_number }}</strong>
+                            <strong>{{ $driver->name }}</strong>
                         </td>
                         @foreach($dates as $date)
                             @php
                                 $dateStr = $date['date_str'];
-                                $stat = $statistics[$vehicle->id][$dateStr] ?? ['count' => 0, 'workload' => 0];
+                                $stat = $statistics[$driver->id][$dateStr] ?? ['count' => 0, 'workload' => 0];
                                 $workload = $stat['workload'];
                                 $formattedWorkload = is_numeric($workload) && floor($workload) == $workload ? (int)$workload : $workload;
                             @endphp
@@ -177,12 +177,12 @@
     </div>
 </div>
 
-<form id="exportForm" method="POST" action="{{ route('masters.vehicle-performance.export') }}" style="display: none;">
+<form id="exportForm" method="POST" action="{{ route('masters.driver-performance.export') }}" style="display: none;">
     @csrf
     <input type="hidden" name="start_date" id="export_start_date">
     <input type="hidden" name="end_date" id="export_end_date">
     <input type="hidden" name="branch_ids" id="export_branch_ids">
-    <input type="hidden" name="vehicle_type_id" id="export_vehicle_type_id">
+    <input type="hidden" name="driver_id" id="export_driver_id">
     <input type="hidden" name="export_options" id="export_options">
 </form>
 @endsection
@@ -409,12 +409,12 @@ function exportExcel() {
     const branchCheckboxes = document.querySelectorAll('.branch-checkbox:checked');
     const branchIds = Array.from(branchCheckboxes).map(cb => cb.value);
     
-    const vehicleTypeId = document.querySelector('select[name="vehicle_type_id"]').value;
+    const driverId = document.querySelector('select[name="driver_id"]').value;
     
     document.getElementById('export_start_date').value = startDate;
     document.getElementById('export_end_date').value = endDate;
     document.getElementById('export_branch_ids').value = JSON.stringify(branchIds);
-    document.getElementById('export_vehicle_type_id').value = vehicleTypeId;
+    document.getElementById('export_driver_id').value = driverId;
     document.getElementById('export_options').value = JSON.stringify(exportOptions);
     
     document.getElementById('exportForm').submit();
