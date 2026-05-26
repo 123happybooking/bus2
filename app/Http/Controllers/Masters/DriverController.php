@@ -312,7 +312,7 @@ class DriverController extends Controller
         
         $staffData = [
             'branch_id' => $validated['branch_id'],
-            'staff_code' => $validated['driver_code'],
+            // 'staff_code' => $validated['driver_code'],
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone_number' => $validated['phone_number'],
