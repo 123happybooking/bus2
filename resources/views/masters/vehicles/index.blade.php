@@ -73,6 +73,7 @@
                                 <th>乗車定員</th>
                                 <th>所有形態</th>
                                 <th>車検満了日</th>
+                                <th>共有設定</th>
                                 <th>状態</th>
                                 <th width="150">操作</th>
                             </tr>
@@ -145,6 +146,21 @@
                                     @endif
                                 </td>
                                 <td>
+                                    @php
+                                        $isShare = $vehicle->is_share ?? false;
+                                    @endphp
+                                    
+                                    @if($isShare)
+                                        <span class="badge bg-success" style="font-size: 0.7rem;">
+                                            <i class="bi bi-check-circle"></i> 共有済み
+                                        </span>
+                                    @else
+                                        <span class="badge bg-secondary" style="font-size: 0.7rem;">
+                                            <i class="bi bi-x-circle"></i> 未共有
+                                        </span>
+                                    @endif
+                                </td>
+                                <td>
                                     @if($vehicle->is_active)
                                         <span class="badge bg-success">有効</span>
                                     @else
@@ -181,7 +197,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="11" class="text-center py-4">
+                                <td colspan="12" class="text-center py-4">
                                     @if(request('search'))
                                         <div class="text-muted">
                                             <i class="bi bi-search display-6 mb-2"></i>
@@ -276,7 +292,6 @@
     </div>
 </div>
 @endsection
-
 
 @push('scripts')
 <script>

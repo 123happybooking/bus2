@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Masters;
 
 use App\Http\Controllers\Controller;
+use App\Services\DatabaseConnectionService;
 use App\Models\Masters\Vehicle;
 use App\Models\Masters\VehicleType;
 use App\Models\Masters\Branch;
 use App\Models\Masters\VehicleModel;
 use App\Models\Masters\VehicleGrade;
+use App\Models\Masters\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
@@ -49,7 +52,27 @@ class VehicleController extends Controller
         $branches = Branch::orderBy('branch_name')->get();
         $vehicleTypes = VehicleType::with('models')->get();
         $vehicleGrades = VehicleGrade::orderBy('id')->get();
-        return view('masters.vehicles.create', compact('branches', 'vehicleTypes','vehicleGrades'));
+        
+        $friendCompanyIds = DB::table('friends')
+            ->where('status', 'accepted')
+            ->pluck('friend_company_id')
+            ->toArray();
+            
+        $friendCompanies = [];
+        if (!empty($friendCompanyIds)) {
+            $friendCompanies = User::on('mysql')
+                ->whereIn('id', $friendCompanyIds)
+                ->select('id', 'user_company_name', 'name')
+                ->get()
+                ->map(function($company) {
+                    return (object)[
+                        'id' => $company->id,
+                        'user_company_name' => $company->user_company_name ?: $company->name,
+                    ];
+                });
+        }
+        
+        return view('masters.vehicles.create', compact('branches', 'vehicleTypes', 'vehicleGrades', 'friendCompanies'));
     }
     
     public function store(Request $request): RedirectResponse
@@ -61,6 +84,7 @@ class VehicleController extends Controller
             'registration_number' => 'required|unique:vehicles|max:20',
             'vehicle_type_id' => 'required|exists:vehicle_types,id',
             'vehicle_model_id' => 'required|exists:vehicle_models,id',
+            'vehicle_grade_id' => 'required|exists:vehicle_grades,id',
             'seating_capacity' => 'required|integer|min:1|max:100',
             'ownership_type' => 'required|in:own,reservable,rental',
             'inspection_expiration_date' => 'required|date',
@@ -68,6 +92,8 @@ class VehicleController extends Controller
             'remarks' => 'nullable|string|max:500',
             'display_order' => 'nullable|integer|min:0',
             'vehicle_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'is_share' => 'nullable|boolean',
+            'share_to' => 'nullable|array',
         ], [
             'branch_id.required' => '所属営業所を選択してください',
             'vehicle_code.required' => '車両コードを入力してください',
@@ -101,6 +127,24 @@ class VehicleController extends Controller
         }
 
         unset($validated['vehicle_image']);
+        
+        $validated['is_share'] = $request->has('is_share') ? 1 : 0;
+        
+        if ($validated['is_share']) {
+            $shareMode = $request->input('share_mode', 'selected');
+            
+            if ($shareMode == 'all') {
+                $validated['share_to'] = 'all';
+            } else {
+                if ($request->has('share_to') && is_array($request->share_to)) {
+                    $validated['share_to'] = json_encode($request->share_to);
+                } else {
+                    $validated['share_to'] = null;
+                }
+            }
+        } else {
+            $validated['share_to'] = null;
+        }
 
         Vehicle::create($validated);
 
@@ -135,7 +179,27 @@ class VehicleController extends Controller
         $branches = Branch::orderBy('branch_name')->get();
         $vehicleTypes = VehicleType::with('models')->get();
         $vehicleGrades = VehicleGrade::orderBy('id')->get();
-        return view('masters.vehicles.edit', compact('vehicle', 'branches', 'vehicleTypes','vehicleGrades'));
+        
+        $friendCompanyIds = DB::table('friends')
+            ->where('status', 'accepted')
+            ->pluck('friend_company_id')
+            ->toArray();
+            
+        $friendCompanies = [];
+        if (!empty($friendCompanyIds)) {
+            $friendCompanies = User::on('mysql')
+                ->whereIn('id', $friendCompanyIds)
+                ->select('id', 'user_company_name', 'name')
+                ->get()
+                ->map(function($company) {
+                    return (object)[
+                        'id' => $company->id,
+                        'user_company_name' => $company->user_company_name ?: $company->name,
+                    ];
+                });
+        }
+            
+        return view('masters.vehicles.edit', compact('vehicle', 'branches', 'vehicleTypes','vehicleGrades', 'friendCompanies'));
     }
     
     public function update(Request $request, $id): RedirectResponse
@@ -156,6 +220,8 @@ class VehicleController extends Controller
             'display_order' => 'nullable|integer|min:0',
             'vehicle_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'remove_image' => 'nullable|boolean',
+            'is_share' => 'nullable|boolean',
+            'share_to' => 'nullable|array',
         ], [
             'branch_id.required' => '所属営業所を選択してください',
             'vehicle_code.required' => '車両コードを入力してください',
@@ -179,9 +245,9 @@ class VehicleController extends Controller
             'vehicle_image.mimes' => '画像形式はJPEG、PNG、JPG、GIFのみ対応しています',
             'vehicle_image.max' => '画像サイズは5MB以下にしてください',
         ]);
-
+    
         $vehicle = Vehicle::findOrFail($id);
-
+    
         if ($request->hasFile('vehicle_image')) {
             if ($vehicle->image_path && Storage::disk('public')->exists($vehicle->image_path)) {
                 Storage::disk('public')->delete($vehicle->image_path);
@@ -189,18 +255,48 @@ class VehicleController extends Controller
             $path = $request->file('vehicle_image')->store('vehicles', 'public');
             $validated['image_path'] = $path;
         }
-
+    
         if ($request->input('remove_image') == 1) {
             if ($vehicle->image_path && Storage::disk('public')->exists($vehicle->image_path)) {
                 Storage::disk('public')->delete($vehicle->image_path);
             }
             $validated['image_path'] = null;
         }
-
+    
         unset($validated['vehicle_image'], $validated['remove_image']);
-
+        
+        $validated['is_share'] = $request->has('is_share') ? 1 : 0;
+    
+        if ($validated['is_share']) {
+            $shareMode = $request->input('share_mode', 'selected');
+            
+            if ($shareMode == 'all') {
+                $validated['share_to'] = 'all';
+            } else {
+                if ($request->has('share_to') && is_array($request->share_to)) {
+                    $validCompanyIds = User::on('mysql')
+                        ->whereIn('id', $request->share_to)
+                        ->pluck('id')
+                        ->toArray();
+                    
+                    $invalidIds = array_diff($request->share_to, $validCompanyIds);
+                    if (!empty($invalidIds)) {
+                        return redirect()->back()
+                            ->withInput()
+                            ->withErrors(['share_to' => '無効な会社IDが含まれています。']);
+                    }
+                    
+                    $validated['share_to'] = json_encode($request->share_to);
+                } else {
+                    $validated['share_to'] = null;
+                }
+            }
+        } else {
+            $validated['share_to'] = null;
+        }
+    
         $vehicle->update($validated);
-
+    
         return redirect()->route('masters.vehicles.index')
             ->with('success', '車両情報が更新されました。');
     }

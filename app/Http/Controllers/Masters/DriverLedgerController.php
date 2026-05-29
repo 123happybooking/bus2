@@ -66,7 +66,10 @@ class DriverLedgerController extends Controller
                 
         $start = Carbon::parse($startDate);
                 
-        if ($period == 1) {
+        if ($period == 10) {
+            $end = $start;
+            $displayDays = 1;
+        } elseif ($period == 1) {
             $end = $start->copy()->addDays(6);
             $displayDays = 7;
         } elseif ($period == 2) {

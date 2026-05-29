@@ -86,6 +86,36 @@
                                     @endif
                                 </dd>
                                 
+                                <dt class="col-sm-4">共有設定</dt>
+                                <dd class="col-sm-8">
+                                    @if($vehicle->is_share)
+                                        @if($vehicle->share_to == 'all')
+                                            <span class="badge bg-success">共有中</span>
+                                            <span class="text-muted ms-2">すべての友達会社と共有</span>
+                                        @elseif($vehicle->share_to)
+                                            @php
+                                                $sharedCompanyIds = json_decode($vehicle->share_to, true);
+                                                $sharedCompanyNames = [];
+                                                if (is_array($sharedCompanyIds) && !empty($sharedCompanyIds)) {
+                                                    $sharedCompanies = App\Models\Masters\User::on('mysql')
+                                                        ->whereIn('id', $sharedCompanyIds)
+                                                        ->select('user_company_name', 'name')
+                                                        ->get();
+                                                    foreach ($sharedCompanies as $company) {
+                                                        $sharedCompanyNames[] = $company->user_company_name ?: $company->name;
+                                                    }
+                                                }
+                                            @endphp
+                                            <span class="badge bg-success">共有中</span>
+                                            <span class="text-muted ms-2">特定の会社と共有: {{ implode('、', $sharedCompanyNames) }}</span>
+                                        @else
+                                            <span class="badge bg-secondary">共有なし</span>
+                                        @endif
+                                    @else
+                                        <span class="badge bg-secondary">共有なし</span>
+                                    @endif
+                                </dd>
+                                
                                 <!--<dt class="col-sm-4">車両色</dt>-->
                                 <!--<dd class="col-sm-8">-->
                                 <!--    @if($vehicle->vehicle_color)-->

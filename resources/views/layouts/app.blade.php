@@ -937,6 +937,43 @@
             padding: 0 10px;
             font-size: 0.85rem;
         }
+        
+        
+        .menu-badge-number {
+            display: inline-block;
+            background-color: #ef4444;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: bold;
+            border-radius: 10px;
+            padding: 0 4px;
+            min-width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            margin-left: 6px;
+        }
+        
+        .sidebar.collapsed .nav-header {
+            position: relative;
+        }
+        
+        .sidebar.collapsed .nav-header .menu-badge-number {
+            position: absolute;
+            right: 0;
+            top: 30%;
+            transform: translateY(-50%);
+            margin-left: 0;
+            display: inline-block;
+        }
+        
+        .sidebar.collapsed .nav-header .menu-title {
+            display: none;
+        }
+        
+        .sidebar.collapsed .nav-header .menu-badge-number {
+            display: inline-block !important;
+        }
 
 
 @media (max-width: 768px) {
@@ -1127,10 +1164,19 @@
             @endif
 
             @if($canViewMaster)
+            @php
+                $pendingFriendsCount = DB::table('friends')
+                    ->where('status', 'pending')
+                    ->where('is_sender', 0)
+                    ->count();
+            @endphp
             <div class="nav-item" data-menu="master">
                 <div class="nav-header" data-title="マスタ管理">
                     <i class="bi bi-database-gear menu-icon"></i>
                     <span class="menu-title">マスタ管理</span>
+                    @if($pendingFriendsCount > 0)
+                        <span class="menu-badge-number">{{ $pendingFriendsCount }}</span>
+                    @endif
                     <i class="bi bi-chevron-down menu-arrow"></i>
                 </div>
                 <ul class="submenu submenu-s">
@@ -1139,6 +1185,12 @@
                     <li><a href="{{ route('masters.staffs.index') }}" data-route="staffs">スタッフ</a></li>
                     <li><a href="{{ route('masters.vehicles.index') }}" data-route="vehicles">車両</a></li>
                     <li><a href="{{ route('masters.drivers.index') }}" data-route="drivers-master">運転手</a></li>
+                    <li><a href="{{ route('masters.friends.index') }}" data-route="friends">
+                        友達
+                        @if($pendingFriendsCount > 0)
+                            <span class="menu-badge-number">{{ $pendingFriendsCount }}</span>
+                        @endif
+                    </a></li>
                     <li><a href="{{ route('masters.guides.index') }}" data-route="guides">ガイド</a></li>
                     <li><a href="{{ route('masters.agencies.index') }}" data-route="agencies">代理店</a></li>
                     <li><a href="{{ route('masters.partners.index') }}" data-route="partners">取引先</a></li>

@@ -24,7 +24,8 @@
                     
                     <div class="d-flex align-items-center">
                         <select name="period" class="form-select form-select-sm" id="period_select">
-                            <option value="1" {{ request('period') == 1 ? 'selected' : '' }}>1週間</option>
+                            <option value="10" {{ request('period') == 10 ? 'selected' : '' }}>1日</option>
+                            <option value="1" {{ (request('period') == 1 || !request()->has('period')) ? 'selected' : '' }}>1週間</option>
                             <option value="2" {{ request('period') == 2 ? 'selected' : '' }}>2週間</option>
                             <option value="3" {{ request('period') == 3 ? 'selected' : '' }}>3週間</option>
                             <option value="4" {{ request('period') == 4 ? 'selected' : '' }}>1ヶ月</option>
@@ -214,7 +215,7 @@
     <div class="table-responsive" style="overflow-x: auto; overflow-y: visible;">
         <table class="table table-bordered table-sm ledger-table" style="font-size: 0.75rem; min-width: 800px;">
             <thead>
-                    <th class="text-center" style="position: sticky; left: 0; background-color: #f8f9fa; z-index: 10; min-width: 180px;">運転手名 / 所属</th>
+                    <th style="position: sticky; left: 0; background-color: #f8f9fa; z-index: 10; width: 200px; vertical-align: middle;">運転手名 / 所属</th>
                     @foreach($dates as $date)
                         @php
                             $dateStr = $date['date']->format('Y-m-d');

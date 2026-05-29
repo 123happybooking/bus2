@@ -264,6 +264,94 @@
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
+                            
+                            
+                            
+
+                            
+                            <div class="col-md-12 mt-3">
+                                <hr>
+                                <h6 class="mb-3"><i class="bi bi-share"></i> 共有設定</h6>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" name="is_share" id="is_share" value="1" 
+                                           style="width: 40px; height: 20px; cursor: pointer;"
+                                           {{ old('is_share', $vehicle->is_share) ? 'checked' : '' }}>
+                                    <label class="form-check-label ms-2" for="is_share" style="font-weight: 500;">
+                                        この車両を友達会社と共有する
+                                    </label>
+                                </div>
+                                <small class="text-muted">※ 共有すると、友達会社がこの車両を予約できるようになります</small>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3" id="shareToContainer" style="{{ old('is_share', $vehicle->is_share) ? '' : 'display: none;' }}">
+                                @php
+                                    $shareMode = 'selected';
+                                    $selectedFriendIds = [];
+                                    
+                                    if (old('share_mode')) {
+                                        $shareMode = old('share_mode');
+                                    } elseif ($vehicle->share_to == 'all') {
+                                        $shareMode = 'all';
+                                    } elseif ($vehicle->share_to) {
+                                        $decoded = json_decode($vehicle->share_to, true);
+                                        if (is_array($decoded)) {
+                                            $selectedFriendIds = $decoded;
+                                        }
+                                    }
+                                    
+                                    if (old('share_to')) {
+                                        $selectedFriendIds = old('share_to');
+                                    }
+                                @endphp
+                                
+                                <label class="form-label">共有先を選択</label>
+                                
+                                <div class="mb-2">
+                                    <div class="form-check">
+                                        <input type="radio" class="form-check-input" name="share_mode" id="share_mode_all" value="all"
+                                               {{ $shareMode == 'all' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="share_mode_all">
+                                            すべての友達会社と共有
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="radio" class="form-check-input" name="share_mode" id="share_mode_selected" value="selected"
+                                               {{ $shareMode == 'selected' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="share_mode_selected">
+                                            特定の友達会社と共有（以下の会社を選択）
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div id="companySelectList" style="{{ $shareMode == 'selected' ? '' : 'display: none;' }}">
+                                    <div class="friend-companies-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 10px;">
+                                        @if(isset($friendCompanies) && count($friendCompanies) > 0)
+                                            @foreach($friendCompanies as $friend)
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input friend-checkbox" 
+                                                       name="share_to[]" value="{{ $friend->id }}" 
+                                                       id="friend_{{ $friend->id }}"
+                                                       {{ in_array($friend->id, $selectedFriendIds) ? 'checked' : '' }}
+                                                       {{ $shareMode == 'all' ? 'disabled' : '' }}>
+                                                <label class="form-check-label" for="friend_{{ $friend->id }}">
+                                                    {{ $friend->user_company_name }}
+                                                </label>
+                                            </div>
+                                            @endforeach
+                                        @else
+                                            <div class="text-muted text-center py-3">
+                                                <i class="bi bi-info-circle"></i> 友達会社がありません。<br>
+                                                <a href="{{ route('masters.friends.index') }}">友達追加</a> から友達を追加してください。
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                                <small class="text-muted">※ チェックを入れた会社にのみ車両が共有されます</small>
+                            </div>
+                            
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
@@ -299,6 +387,9 @@
 .form-check-input:checked {
     background-color: #0d6efd;
     border-color: #0d6efd;
+}
+#companySelectList {
+    margin-top: 10px;
 }
 </style>
 @endpush
@@ -461,6 +552,53 @@ if (removeImageBtn) {
             if (container) {
                 container.style.display = 'none';
             }
+        }
+    });
+}
+
+
+
+const isShareCheckbox = document.getElementById('is_share');
+const shareToContainer = document.getElementById('shareToContainer');
+
+if (isShareCheckbox) {
+    isShareCheckbox.addEventListener('change', function() {
+        if (shareToContainer) {
+            shareToContainer.style.display = this.checked ? 'block' : 'none';
+        }
+        if (!this.checked && shareModeAll) {
+            shareModeAll.checked = false;
+            shareModeSelected.checked = false;
+            if (companySelectList) {
+                companySelectList.style.display = 'none';
+            }
+        }
+    });
+}
+
+
+const shareModeAll = document.getElementById('share_mode_all');
+const shareModeSelected = document.getElementById('share_mode_selected');
+const companySelectList = document.getElementById('companySelectList');
+const friendCheckboxes = document.querySelectorAll('.friend-checkbox');
+
+if (shareModeAll && shareModeSelected) {
+    shareModeAll.addEventListener('change', function() {
+        if (this.checked) {
+            companySelectList.style.display = 'none';
+            friendCheckboxes.forEach(cb => {
+                cb.disabled = true;
+                cb.checked = false;
+            });
+        }
+    });
+    
+    shareModeSelected.addEventListener('change', function() {
+        if (this.checked) {
+            companySelectList.style.display = 'block';
+            friendCheckboxes.forEach(cb => {
+                cb.disabled = false;
+            });
         }
     });
 }

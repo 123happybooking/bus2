@@ -189,68 +189,24 @@
                 </div>
                 <div class="card-body p-2">
                     @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.user-company-info.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">基本情報</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.branches.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">営業所</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.staffs.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">スタッフ</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.vehicles.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">車両</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.drivers.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運転手</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.guides.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">ガイド</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.agencies.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">代理店</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.partners.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">取引先</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.itineraries.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">行程</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.reservation-categories.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">予約分類</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.attendance-categories.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">勤怠分類</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.remarks.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">備考</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.banks.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">Bank</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.vehicle-types.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">車両種類</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <a href="{{ route('masters.vehicle-grades.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">車両グレード</a>
-                    @endif
-                    
-                    @if($isAdmin || $isOperationsManager)
-                    <div class="dropdown-divider my-1"></div>
-                    <a href="{{ route('masters.login-histories.index') }}" class="btn btn-outline-secondary btn-sm w-100">ログイン履歴</a>
+                        <a href="{{ route('masters.user-company-info.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">基本情報</a>
+                        <a href="{{ route('masters.branches.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">営業所</a>
+                        <a href="{{ route('masters.staffs.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">スタッフ</a>
+                        <a href="{{ route('masters.vehicles.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">車両</a>
+                        <a href="{{ route('masters.drivers.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運転手</a>
+                        <a href="{{ route('masters.friends.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">友達</a>
+                        <a href="{{ route('masters.guides.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">ガイド</a>
+                        <a href="{{ route('masters.agencies.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">代理店</a>
+                        <a href="{{ route('masters.partners.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">取引先</a>
+                        <a href="{{ route('masters.itineraries.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">行程</a>
+                        <a href="{{ route('masters.reservation-categories.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">予約分類</a>
+                        <a href="{{ route('masters.attendance-categories.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">勤怠分類</a>
+                        <a href="{{ route('masters.remarks.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">備考</a>
+                        <a href="{{ route('masters.banks.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">Bank</a>
+                        <a href="{{ route('masters.vehicle-types.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">車両種類</a>
+                        <a href="{{ route('masters.vehicle-grades.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">車両グレード</a>
+                        <div class="dropdown-divider my-1"></div>
+                        <a href="{{ route('masters.login-histories.index') }}" class="btn btn-outline-secondary btn-sm w-100">ログイン履歴</a>
                     @endif
                 </div>
             </div>

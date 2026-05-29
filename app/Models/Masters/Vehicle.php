@@ -11,7 +11,7 @@ class Vehicle extends Model
         'branch_id', 'vehicle_code', 'vehicle_color', 'registration_number', 
         'vehicle_type_id', 'vehicle_model_id', 'seating_capacity', 'ownership_type', 
         'inspection_expiration_date', 'is_active', 
-        'display_order', 'remarks','vehicle_grade_id','image_path'
+        'display_order', 'remarks','vehicle_grade_id','image_path','is_share','share_to',
     ];
 
     protected $dates = ['inspection_expiration_date'];

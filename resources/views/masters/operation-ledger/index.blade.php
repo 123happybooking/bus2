@@ -22,7 +22,8 @@
                     
                     <div class="d-flex align-items-center">
                         <select name="period" class="form-select form-select-sm" id="period_select">
-                            <option value="1" {{ request('period') == 1 ? 'selected' : '' }}>1週間</option>
+                            <option value="10" {{ request('period') == 10 ? 'selected' : '' }}>1日</option>
+                            <option value="1" {{ (request('period') == 1 || !request()->has('period')) ? 'selected' : '' }}>1週間</option>
                             <option value="2" {{ request('period') == 2 ? 'selected' : '' }}>2週間</option>
                             <option value="3" {{ request('period') == 3 ? 'selected' : '' }}>3週間</option>
                             <option value="4" {{ request('period') == 4 ? 'selected' : '' }}>1ヶ月</option>
@@ -198,7 +199,7 @@
         <table class="table table-bordered table-sm ledger-table" style="font-size: 0.75rem; min-width: 800px;">
             <thead>
                 <tr>
-                    <th class="text-center" style="position: sticky; left: 0; background-color: #f8f9fa; z-index: 10; min-width: 180px;">車両名</th>
+                    <th style="position: sticky; left: 0; background-color: #f8f9fa; z-index: 10; width: 200px; vertical-align: middle;">車両名</th>
                     @foreach($dates as $date)
                         @php
                             $dateStr = $date['date']->format('Y-m-d');
@@ -428,6 +429,69 @@
                     @endforeach
                     </tr>
                 @endforeach
+                
+                
+                
+                @if(isset($sharedVehiclesData['vehicles']) && $sharedVehiclesData['vehicles']->count() > 0)
+                    <tr style="background-color: #f0f0f0;">
+                        <td colspan="{{ count($dates) + 1 }}" style="background-color: #e9ecef; font-weight: bold; padding: 8px;">
+                            ━━━ 共有車両 ━━━
+                        </td>
+                    </tr>
+                    @foreach($sharedVehiclesData['vehicles'] as $sharedIndex => $sharedVehicle)
+                        @php
+                            $sharedSchedule = $sharedVehiclesData['schedules'][$sharedVehicle->id]['schedule'] ?? [];
+                            $rowBgColor = $sharedIndex % 2 == 0 ? '#f8f9fa' : '#ffffff';
+                        @endphp
+                        <tr style="background-color: {{ $rowBgColor }};">
+                            <td class="align-top" style="position: sticky; left: 0; background-color: {{ $rowBgColor }}; z-index: 5;">
+                                <strong>{{ $sharedVehicle->registration_number ?? $sharedVehicle->vehicle_code ?? '不明' }}</strong>
+                                <br><small>{{ $sharedVehicle->owner_company_name }}</small>
+                            </td>
+                            @foreach($dates as $dateInfo)
+                                @php
+                                    $dateStr = $dateInfo['date']->format('Y-m-d');
+                                    $hasSchedule = isset($sharedSchedule[$dateStr]) && !empty($sharedSchedule[$dateStr]);
+                                @endphp
+                                <td class="position-relative p-0" style="background-color: {{ $rowBgColor }}; cursor: default;">
+                                    <div class="timeline-cell" style="background-color: {{ $rowBgColor }}; position: relative;">
+                                        @if($hasSchedule)
+                                            @php
+                                                $backgroundColor = '#e5d8d4';
+                                                
+                                                $sharedDayItineraries = $sharedSchedule[$dateStr] ?? [];
+                                                if (!is_array($sharedDayItineraries)) {
+                                                    $sharedDayItineraries = [];
+                                                }
+                                            @endphp
+                                            
+                                            @foreach($sharedDayItineraries as $sharedIdx => $sharedItinerary)
+                                                @php
+                                                    $startPercent = ($sharedItinerary['start_minutes'] / 1440) * 100;
+                                                    $endPercent = ($sharedItinerary['end_minutes'] / 1440) * 100;
+                                                    $spanWidth = $endPercent - $startPercent;
+                                                    $zIndex = 100 + $sharedIdx;
+                                                @endphp
+                                                <div class="timeline-event shared-event" 
+                                                     style="left: {{ $startPercent }}%; width: {{ $spanWidth }}%; z-index: {{ $zIndex }}; background-color: {{ $backgroundColor }};" 
+                                                     onclick="event.stopPropagation();">
+                                                    <div class="event-content" style="display: flex; align-items: center; justify-content: center; text-align: center;">
+                                                        <div style="width: 100%;">
+                                                            <div style="font-size: 0.65rem; font-weight: bold; color: #666;">他社車両</div>
+                                                            <div style="font-size: 0.55rem; color: #888;">稼働中</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                </td>
+                            @endforeach
+                        </tr>
+                    @endforeach
+                @endif
+                
+
             </tbody>
             <thead>
                 <tr>

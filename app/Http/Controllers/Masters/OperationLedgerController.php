@@ -14,6 +14,7 @@ use App\Models\Masters\Driver;
 use App\Helpers\HolidayHelper;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OperationLedgerController extends Controller
 {
@@ -66,7 +67,10 @@ class OperationLedgerController extends Controller
         
         $start = Carbon::parse($startDate);
         
-        if ($period == 1) {
+        if ($period == 10) {
+            $end = $start;
+            $displayDays = 1;
+        } elseif ($period == 1) {
             $end = $start->copy()->addDays(6);
             $displayDays = 7;
         } elseif ($period == 2) {
@@ -308,6 +312,10 @@ class OperationLedgerController extends Controller
         $drivers = Driver::where('is_active', true)->orderBy('display_order', 'asc')->orderBy('driver_code', 'asc')->get();
         $agencies = Agency::where('is_active', true)->orderBy('display_order', 'asc')->orderBy('agency_code', 'asc')->get();
         
+        
+        $currentCompanyId = session('company_id');
+        $sharedVehiclesData = $this->getSharedVehicles($currentCompanyId, $vehicleTypeId, $branchIds, $startDate, $endDate, $dates);
+        
         return view('masters.operation-ledger.index', compact(
             'dates',
             'groupedVehicles',
@@ -323,7 +331,8 @@ class OperationLedgerController extends Controller
             'groupName',
             'branchIds',
             'reservationCategories',
-            'drivers'
+            'drivers',
+            'sharedVehiclesData'
         ));
     }
     
@@ -411,5 +420,171 @@ class OperationLedgerController extends Controller
             '稼働不可' => '#2c2c2c',
         ];
         return $colors[$status] ?? '#ffffff';
+    }
+    
+    
+    private function getSharedVehicles($currentCompanyId, $vehicleTypeId, $branchIds, $startDate, $endDate, $dates)
+    {
+        if (!$currentCompanyId) {
+            return ['vehicles' => collect(), 'schedules' => []];
+        }
+        
+        $friendCompanyIds = DB::table('friends')
+            ->where('status', 'accepted')
+            ->pluck('friend_company_id')
+            ->toArray();
+        
+        if (empty($friendCompanyIds)) {
+            return ['vehicles' => collect(), 'schedules' => []];
+        }
+        
+        $sharedVehicles = [];
+        $sharedSchedules = [];
+        
+        foreach ($friendCompanyIds as $friendCompanyId) {
+            $friendDb = 'bus_user_' . $friendCompanyId;
+            
+            try {
+                $dbExists = DB::connection('mysql')->select("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?", [$friendDb]);
+                if (empty($dbExists)) {
+                    continue;
+                }
+                
+                config(['database.connections.friend_db' => [
+                    'driver' => 'mysql',
+                    'host' => env('DB_HOST', '127.0.0.1'),
+                    'port' => env('DB_PORT', '3306'),
+                    'database' => $friendDb,
+                    'username' => env('DB_USERNAME', 'root'),
+                    'password' => env('DB_PASSWORD', ''),
+                    'charset' => 'utf8mb4',
+                    'collation' => 'utf8mb4_unicode_ci',
+                    'prefix' => '',
+                    'strict' => true,
+                    'engine' => null,
+                ]]);
+                
+                $query = DB::connection('friend_db')->table('vehicles')
+                    ->where('is_active', true)
+                    ->where('is_share', 1)
+                    ->where(function($q) use ($currentCompanyId) {
+                        $q->where('share_to', 'all')
+                          ->orWhereRaw('JSON_CONTAINS(share_to, ?)', ['"' . $currentCompanyId . '"']);
+                    });
+                
+                if ($vehicleTypeId) {
+                    $query->where('vehicle_type_id', $vehicleTypeId);
+                }
+                
+                if (!empty($branchIds)) {
+                    $query->whereIn('branch_id', $branchIds);
+                }
+                
+                $friendCompany = DB::connection('friend_db')->table('user_company_info')->first();
+                $companyName = $friendCompany ? $friendCompany->company_name : '他社';
+                
+                $vehicles = $query->get()->map(function($vehicle) use ($friendCompanyId,$companyName) {
+                    $vehicle->owner_company_id = $friendCompanyId;
+                    $vehicle->owner_company_name = $companyName;
+                    $vehicle->is_shared_vehicle = true;
+                    $vehicle->vehicleModel = null;
+                    $vehicle->branch = null;
+                    return $vehicle;
+                });
+                
+                if ($vehicles->isEmpty()) {
+                    DB::purge('friend_db');
+                    continue;
+                }
+                
+                $vehicleIds = $vehicles->pluck('id')->toArray();
+                
+                $itineraries = DB::connection('friend_db')->table('daily_itinerary')
+                    ->whereIn('vehicle_id', $vehicleIds)
+                    ->whereBetween('date', [$startDate, $endDate])
+                    ->select('vehicle_id', 'date', 'time_start', 'time_end', 'remarks')
+                    ->get()
+                    ->groupBy('vehicle_id');
+                
+                foreach ($vehicles as $vehicle) {
+                    $sharedVehicles[] = $vehicle;
+                    
+                    $vehicleId = $vehicle->id;
+                    $vehicleSchedule = [];
+                    
+                    foreach ($dates as $dateInfo) {
+                        $dateStr = $dateInfo['date']->format('Y-m-d');
+                        $vehicleSchedule[$dateStr] = [];
+                    }
+                    
+                    if (isset($itineraries[$vehicleId])) {
+                        foreach ($itineraries[$vehicleId] as $itinerary) {
+                            $dateStr = $itinerary->date;
+                            
+                            $startTime = \Carbon\Carbon::parse($itinerary->time_start);
+                            $endTime = \Carbon\Carbon::parse($itinerary->time_end);
+                            $startMinutes = $startTime->hour * 60 + $startTime->minute;
+                            $endMinutes = $endTime->hour * 60 + $endTime->minute;
+                            $duration = $endMinutes - $startMinutes;
+                            
+                            if ($duration > 0) {
+                                $vehicleSchedule[$dateStr][] = [
+                                    'has_schedule' => true,
+                                    'start_minutes' => $startMinutes,
+                                    'end_minutes' => $endMinutes,
+                                    'duration' => $duration,
+                                    'bus_assignment_id' => null,
+                                    'group_info_id' => null,
+                                    'driver_name' => null,
+                                    'driver_name_kana' => null,
+                                    'driver_phone' => null,
+                                    'is_temporary_driver' => false,
+                                    'vehicle_type_spec_check' => false,
+                                    'status_finalized' => false,
+                                    'guide_name' => null,
+                                    'agency_code' => null,
+                                    'group_name' => null,
+                                    'remarks' => null,
+                                    'reservation_status' => null,
+                                    'status_color' => '#e0e0e0',
+                                    'category_color' => 'transparent',
+                                    'category_id' => null,
+                                ];
+                            }
+                        }
+                    }
+                    
+                    foreach ($vehicleSchedule as $dateStr => $dayItineraries) {
+                        if (!empty($dayItineraries)) {
+                            usort($dayItineraries, function($a, $b) {
+                                return $a['start_minutes'] - $b['start_minutes'];
+                            });
+                            $vehicleSchedule[$dateStr] = $dayItineraries;
+                        } else {
+                            $vehicleSchedule[$dateStr] = null;
+                        }
+                    }
+                    
+                    $sharedSchedules[$vehicleId] = [
+                        'vehicle' => $vehicle,
+                        'schedule' => $vehicleSchedule,
+                        'is_shared' => true,
+                    ];
+                }
+                
+                DB::purge('friend_db');
+                
+            } catch (\Exception $e) {
+                \Log::error('Failed to get shared vehicles from company: ' . $friendCompanyId, [
+                    'error' => $e->getMessage()
+                ]);
+                continue;
+            }
+        }
+        
+        return [
+            'vehicles' => collect($sharedVehicles),
+            'schedules' => $sharedSchedules,
+        ];
     }
 }

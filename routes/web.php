@@ -44,6 +44,7 @@ use App\Http\Controllers\Masters\DriverExpenseTypeController;
 use App\Http\Controllers\Masters\DriverCompensationTypeController;
 use App\Http\Controllers\Masters\DriverCompensationController;
 use App\Http\Controllers\Masters\DriverVehicleCheckItemsController;
+use App\Http\Controllers\Masters\FriendController;
 
 use App\Http\Controllers\Masters\VehiclePerformanceController;
 use App\Http\Controllers\Masters\DriverPerformanceController;
@@ -219,6 +220,16 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::resource('driver-compensation-types', DriverCompensationTypeController::class)->names('driver-compensation-types');
         Route::resource('driver-compensations', DriverCompensationController::class)->names('driver-compensations');
         Route::resource('driver-vehicle-check-items', DriverVehicleCheckItemsController::class)->names('driver-vehicle-check-items');
+        
+        
+        Route::prefix('friends')->name('friends.')->group(function () {
+            Route::get('/', [FriendController::class, 'index'])->name('index');
+            Route::get('/search', [FriendController::class, 'search'])->name('search');
+            Route::post('/', [FriendController::class, 'store'])->name('store');
+            Route::put('/{id}', [FriendController::class, 'update'])->name('update');
+            Route::delete('/{id}/cancel', [FriendController::class, 'cancel'])->name('cancel');
+            Route::delete('/{id}', [FriendController::class, 'destroy'])->name('destroy');
+        });
         
         
         Route::prefix('vehicle-performance')->name('vehicle-performance.')->group(function () {
