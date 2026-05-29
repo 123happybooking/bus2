@@ -42,6 +42,9 @@
                     @endif
                 </div>
                 <div class="right-group">
+                    @if($itinerary->busAssignment?->collection_amount)
+                    <span class="collection-badge">集金</span>
+                    @endif
                     <span class="category-name">{{ $categoryName }}</span>
                     <span class="guide-name">{{ $agencyContactName  }}</span>
                 </div>
@@ -329,6 +332,16 @@
     padding: 40px;
     color: var(--text-secondary);
     font-size: 13px;
+}
+
+.collection-badge {
+    display: inline-block;
+    background-color: #ffc107;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 1px 16px;
+    border-radius: 12px;
 }
 </style>
 @endpush

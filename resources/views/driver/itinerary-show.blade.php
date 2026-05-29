@@ -43,6 +43,9 @@
                     @endif
                 </div>
                 <div class="right-group">
+                    @if($itinerary->busAssignment?->collection_amount)
+                    <span class="collection-badge">集金</span>
+                    @endif
                     <span class="category-name">{{ $categoryName }}</span>
                     <span class="guide-name">{{ $agencyContactName }}</span>
                 </div>
@@ -71,7 +74,7 @@
 
         <div class="detail-list">
             <div class="detail-item">
-                <div class="detail-value-full" style="text-align: center;">{{ $itinerary->itinerary ?? '未設定' }}</div>
+                <div class="detail-value-full">{{ $itinerary->itinerary ?? '未設定' }}</div>
             </div>
             <div class="detail-item">
                 <div class="detail-value-full" style="text-align: center;">
@@ -88,7 +91,11 @@
             </div>
             <div class="detail-item">
                 <div class="detail-label">備考</div>
-                <div class="detail-value-full">{{ $busAssignment->operation_remarks ?? '未設定' }}</div>
+                <div class="detail-value-full">{{ $selectedOptionsText }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">集金</div>
+                <div class="detail-value-full">{{ $itinerary->busAssignment?->collection_amount?? '' }}</div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">ステッカー</div>
@@ -98,6 +105,9 @@
                 <div class="detail-label">お客様氏名・連絡先</div>
                 <div class="detail-value-full">
                     {{ $busAssignment->representative ?? '' }} {{ $busAssignment->representative_phone ?? '' }}
+                    @if($groupInfo && $groupInfo->agency_country)
+                    <br>[{{ $groupInfo->agency_country }}]
+                    @endif
                 </div>
             </div>
         </div>
@@ -363,6 +373,16 @@
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+}
+
+.collection-badge {
+    display: inline-block;
+    background-color: #ffc107;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 1px 16px;
+    border-radius: 12px;
 }
 </style>
 @endpush

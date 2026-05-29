@@ -134,6 +134,7 @@ class DriverDashboardController extends Controller
         foreach ($itineraries as $itinerary) {
             $groupInfo = $itinerary->busAssignment->groupInfo ?? null;
             $reservationCategory = $groupInfo ? $groupInfo->reservationCategory : null;
+            $busAssignment = $itinerary->busAssignment;
             
             $formattedItineraries[] = [
                 'id' => $itinerary->id,
@@ -151,6 +152,7 @@ class DriverDashboardController extends Controller
                 'operation_status' => $itinerary->operation_status,
                 'is_completed' => $finalStatusName && $itinerary->operation_status === $finalStatusName,
                 'agency_contact_name' => $itinerary->busAssignment->groupInfo->agency_contact_name ?? '',
+                'collection_amount' => $busAssignment ? $busAssignment->collection_amount : null,
             ];
         }
         

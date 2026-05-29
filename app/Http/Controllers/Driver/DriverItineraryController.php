@@ -93,6 +93,8 @@ class DriverItineraryController extends Controller
         
         $busAssignment = $itinerary->busAssignment;
         
+        $groupInfo = $busAssignment ? $busAssignment->groupInfo : null;
+        
         $options = Option::where('is_active', true)
             ->orderBy('display_order')
             ->orderBy('id')
@@ -113,7 +115,7 @@ class DriverItineraryController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
-        return view('driver.itinerary-show', compact('itinerary', 'busAssignment', 'selectedOptionsText', 'files'));
+        return view('driver.itinerary-show', compact('itinerary', 'busAssignment', 'selectedOptionsText', 'files', 'groupInfo'));
     }
     
     public function downloadFile($id)

@@ -103,7 +103,7 @@ class DriverOperationController extends Controller
         
         $request->validate([
             'action' => 'required|string',
-            'mileage' => 'required|integer|min:0',
+            'mileage' => 'nullable|integer|min:0',
             'vehicle_id' => 'nullable|integer|exists:vehicles,id',
             'address' => 'required|string',
         ]);
@@ -184,7 +184,7 @@ class DriverOperationController extends Controller
         
         $request->validate([
             'action' => 'required|string',
-            'mileage' => 'required|integer|min:0',
+            'mileage' => 'nullable|integer|min:0',
             'address' => 'required|string',
             'time' => 'nullable|string',
             'vehicle_id' => 'nullable|integer|exists:vehicles,id',

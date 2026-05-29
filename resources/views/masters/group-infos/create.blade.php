@@ -147,9 +147,9 @@
                             <div class="suggestions-container" id="agency_suggestions" style="display: none;"></div>
                         </div>
                         
-                        <div class="label-width text-gray text-center">团体名</div>
+                        <div class="label-width text-gray text-center">団体名</div>
                         <div class="flex-1">
-                            <input type="text" name="group_name" value="{{ old('group_name') }}" class="form-input" placeholder="团体名を入力">
+                            <input type="text" name="group_name" value="{{ old('group_name') }}" class="form-input" placeholder="団体名を入力">
                         </div>
                     </div>
 

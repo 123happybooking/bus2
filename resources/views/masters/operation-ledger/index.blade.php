@@ -398,7 +398,7 @@
                                             </div>
                                             <div>
                                                 @if($itinerary['is_temporary_driver'])
-                                                    <span style="color: #f59e0b; cursor: help;" title="仮運転手">(仮)</span>
+                                                    <span style="color: #e100ff; cursor: help;" title="仮運転手">(仮)</span>
                                                 @endif
                                                 @if($itinerary['driver_name'] && $itinerary['driver_name'] != '未割当')
                                                     <span title="運転手名: {{ $itinerary['driver_name'] }}{{ $itinerary['driver_name_kana'] ? ' (' . $itinerary['driver_name_kana'] . ')' : '' }}{{ $itinerary['driver_phone'] ? ' / 電話: ' . $itinerary['driver_phone'] : '' }}">
@@ -407,9 +407,6 @@
                                                             <span style="font-size: 0.6rem; color: #666;">({{ $itinerary['driver_name_kana'] }})</span>
                                                         @endif
                                                     </span>
-                                                    @if($itinerary['driver_phone'])
-                                                        <span style="cursor: help;" title="電話番号: {{ $itinerary['driver_phone'] }}">📞</span>
-                                                    @endif
                                                 @endif
                                             </div>
                                             @if($itinerary['remarks'])

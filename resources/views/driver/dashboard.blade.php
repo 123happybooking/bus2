@@ -626,6 +626,15 @@
     border-radius: 20px;
     color: var(--text-primary);
 }
+.collection-badge {
+    display: inline-block;
+    background-color: #ffc107;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 1px 16px;
+    border-radius: 12px;
+}
 </style>
 @endpush
 
@@ -762,6 +771,7 @@ function loadTabData() {
                                         ${completedBadgeHtml}
                                     </div>
                                     <div class="right-group">
+                                        ${item.collection_amount ? '<span class="collection-badge">集金</span>' : ''}
                                         <span class="category-name">${escapeHtml(item.category_name || '')}</span>
                                         <span class="guide-name">${escapeHtml(item.agency_contact_name || '')}</span>
                                     </div>

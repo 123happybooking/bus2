@@ -651,10 +651,10 @@ document.getElementById('actionConfirmBtn').addEventListener('click', function()
     const mileage = document.getElementById('actionMileageInput').value;
     const address = document.getElementById('actionAddressInput').value;
     
-    if (!mileage) {
-        alert('走行距離を入力してください。');
-        return;
-    }
+    // if (!mileage) {
+    //     alert('走行距離を入力してください。');
+    //     return;
+    // }
     
     if (!address) {
         alert('住所を入力してください。');
@@ -690,10 +690,10 @@ document.getElementById('editConfirmBtn').addEventListener('click', function() {
     const newAddress = document.getElementById('editAddressInput').value;
     const newTime = document.getElementById('editTimeInput').value;
     
-    if (!newMileage) {
-        alert('走行距離を入力してください。');
-        return;
-    }
+    // if (!newMileage) {
+    //     alert('走行距離を入力してください。');
+    //     return;
+    // }
     
     if (!newAddress) {
         alert('住所を入力してください。');

@@ -57,40 +57,42 @@
 <div class="expense-modal" id="expenseModal">
     <div class="modal-content">
         <h4 id="modalTitle">立替登録</h4>
-        <div class="edit-field">
-            <label>経費日付</label>
-            <input type="date" id="expenseDateInput" class="modal-input">
-        </div>
-        <div class="edit-field">
-            <label>経費種別</label>
-            <select id="expenseTypeSelect" class="modal-select">
-                <option value="">選択してください</option>
-                @foreach($expenseTypes as $type)
-                <option value="{{ $type->id }}">{{ $type->type_name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="edit-field">
-            <label>支払方法</label>
-            <select id="paymentMethodSelect" class="modal-select">
-                <option value="">選択してください</option>
-                @foreach($paymentMethods as $method)
-                <option value="{{ $method->id }}">{{ $method->method_name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="edit-field">
-            <label>金額 (円)</label>
-            <input type="number" id="amountInput" class="modal-input" min="0" step="1" placeholder="0">
-        </div>
-        <div class="edit-field">
-            <label class="checkbox-label">
-                <input type="checkbox" id="agencyFlagCheckbox"> 代理店負担
-            </label>
-        </div>
-        <div class="edit-field">
-            <label>備考</label>
-            <textarea id="remarkInput" class="modal-textarea" rows="3" placeholder="備考を入力..."></textarea>
+        <div class="form-grid">
+            <div class="edit-field">
+                <label>経費日付</label>
+                <input type="date" id="expenseDateInput" class="modal-input">
+            </div>
+            <div class="edit-field">
+                <label>経費種別</label>
+                <select id="expenseTypeSelect" class="modal-select">
+                    <option value="">選択してください</option>
+                    @foreach($expenseTypes as $type)
+                    <option value="{{ $type->id }}">{{ $type->type_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="edit-field">
+                <label>支払方法</label>
+                <select id="paymentMethodSelect" class="modal-select">
+                    <option value="">選択してください</option>
+                    @foreach($paymentMethods as $method)
+                    <option value="{{ $method->id }}">{{ $method->method_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="edit-field">
+                <label>金額 (円)</label>
+                <input type="number" id="amountInput" class="modal-input" min="0" step="1" placeholder="0">
+            </div>
+            <div class="edit-field">
+                <label>備考</label>
+                <textarea id="remarkInput" class="modal-textarea" rows="3" placeholder="備考を入力..."></textarea>
+            </div>
+            <div class="edit-field">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="agencyFlagCheckbox"> 代理店負担
+                </label>
+            </div>
         </div>
         <div class="modal-buttons" style="display: flex; gap: 12px; justify-content: space-between;">
             <button class="modal-delete" id="deleteExpenseBtn" style="display: none;">削除</button>
@@ -103,6 +105,21 @@
 
 @push('styles')
 <style>
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-grid .edit-field:last-child,
+.form-grid .edit-field:nth-last-child(2) {
+    grid-column: span 2;
+}
+
+.form-grid .edit-field:has(textarea) {
+    grid-column: span 2;
+}
+
 .expense-container {
     padding: 12px;
 }
@@ -252,7 +269,6 @@
 }
 
 .edit-field {
-    margin-bottom: 16px;
     text-align: left;
 }
 
@@ -260,7 +276,7 @@
     display: block;
     font-size: 12px;
     color: var(--text-secondary);
-    margin-bottom: 8px;
+    margin-bottom: 2px;
 }
 
 .modal-input, .modal-select, .modal-textarea {

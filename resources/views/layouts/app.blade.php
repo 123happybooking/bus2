@@ -1270,13 +1270,13 @@
                     運転手台帳
                 </a>
                 <a href="{{ route('masters.bus-assignments.index') }}" class="btn btn-outline-primary btn-sm px-2">
-                    運転一覧
+                    運行一覧
                 </a>
                 <a href="{{ route('masters.group-infos.index') }}" class="btn btn-outline-primary btn-sm px-2">
                     予約一覧
                 </a>
-                <a href="#" class="btn btn-outline-primary btn-sm px-2">
-                    乘務指示書
+                <a href="{{ route('masters.daily-reports.index') }}" class="btn btn-outline-primary btn-sm px-2">
+                    日報一覧
                 </a>
             </div>
             
