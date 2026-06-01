@@ -116,6 +116,28 @@ class DriverPerformanceController extends Controller
             $statistics[$did][$dateStr]['workload'] += (float)($itinerary->driver_workload ?? 0);
         }
         
+        $totalStatistics = [];
+        foreach ($dates as $date) {
+            $dateStr = $date['date_str'];
+            $totalCount = 0;
+            $totalWorkload = 0;
+            
+            foreach ($drivers as $driver) {
+                $did = $driver->id;
+                if (isset($statistics[$did][$dateStr])) {
+                    $totalCount += $statistics[$did][$dateStr]['count'];
+                    $totalWorkload += $statistics[$did][$dateStr]['workload'];
+                }
+            }
+            
+            $totalStatistics[$dateStr] = [
+                'count' => $totalCount,
+                'formatted_workload' => is_numeric($totalWorkload) && floor($totalWorkload) == $totalWorkload 
+                    ? (int)$totalWorkload 
+                    : $totalWorkload
+            ];
+        }
+        
         $branches = Branch::orderBy('display_order', 'asc')
             ->orderBy('branch_code', 'asc')
             ->get();
@@ -144,7 +166,8 @@ class DriverPerformanceController extends Controller
             'period',
             'branchIds',
             'driverId',
-            'companyInfo'
+            'companyInfo',
+            'totalStatistics'
         ));
     }
     

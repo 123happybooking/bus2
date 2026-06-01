@@ -97,12 +97,24 @@
                             {{ $date['display'] }}
                         </th>
                     @endforeach
+                    <th class="text-center" style="background-color: #e9ecef; min-width: 80px;">合計</th>
                  </thead>
             </thead>
             <tbody>
                 @foreach($drivers as $driver)
                     @php
                         $rowBgColor = $loop->index % 2 == 0 ? '#f8f9fa' : '#ffffff';
+                        $driverTotalCount = 0;
+                        $driverTotalWorkload = 0;
+                        foreach($dates as $date) {
+                            $dateStr = $date['date_str'];
+                            $stat = $statistics[$driver->id][$dateStr] ?? ['count' => 0, 'workload' => 0];
+                            $driverTotalCount += $stat['count'];
+                            $driverTotalWorkload += $stat['workload'];
+                        }
+                        $formattedDriverTotalWorkload = is_numeric($driverTotalWorkload) && floor($driverTotalWorkload) == $driverTotalWorkload 
+                            ? (int)$driverTotalWorkload 
+                            : $driverTotalWorkload;
                     @endphp
                     <tr style="background-color: {{ $rowBgColor }};">
                         <td style="position: sticky; left: 0; background-color: {{ $rowBgColor }}; z-index: 11;">
@@ -116,16 +128,39 @@
                                 $formattedWorkload = is_numeric($workload) && floor($workload) == $workload ? (int)$workload : $workload;
                             @endphp
                             <td class="text-center" style="background-color: {{ $rowBgColor }};">
-                                {{ $stat['count'] }}<br>
-                                {{ $formattedWorkload }}
+                                @if($stat['count'] != 0)
+                                    {{ $stat['count'] }}
+                                @endif
+                                <br>
+                                @if($formattedWorkload != 0)
+                                    {{ $formattedWorkload }}
+                                @endif
                             </td>
                         @endforeach
+                        <td class="text-center" style="background-color: {{ $rowBgColor }};">
+                            @if($driverTotalCount != 0)
+                                {{ $driverTotalCount }}
+                            @endif
+                            <br>
+                            @if($formattedDriverTotalWorkload != 0)
+                                {{ $formattedDriverTotalWorkload }}
+                            @endif
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 @php
                     $footBgColor = '#e9ecef';
+                    $grandTotalCount = 0;
+                    $grandTotalWorkload = 0;
+                    foreach($totalStatistics as $stat) {
+                        $grandTotalCount += $stat['count'];
+                        $grandTotalWorkload += $stat['formatted_workload'];
+                    }
+                    $formattedGrandTotalWorkload = is_numeric($grandTotalWorkload) && floor($grandTotalWorkload) == $grandTotalWorkload 
+                        ? (int)$grandTotalWorkload 
+                        : $grandTotalWorkload;
                 @endphp
                 <tr style="background-color: {{ $footBgColor }}; font-weight: bold;">
                     <td style="position: sticky; left: 0; background-color: {{ $footBgColor }}; z-index: 11; text-align: center;">
@@ -137,10 +172,24 @@
                             $totalStat = $totalStatistics[$dateStr] ?? ['count' => 0, 'formatted_workload' => 0];
                         @endphp
                         <td class="text-center" style="background-color: {{ $footBgColor }};">
-                            {{ $totalStat['count'] }}<br>
-                            {{ $totalStat['formatted_workload'] }}
+                            @if($totalStat['count'] != 0)
+                                {{ $totalStat['count'] }}
+                            @endif
+                            <br>
+                            @if($totalStat['formatted_workload'] != 0)
+                                {{ $totalStat['formatted_workload'] }}
+                            @endif
                         </td>
                     @endforeach
+                    <td class="text-center" style="background-color: {{ $footBgColor }};">
+                        @if($grandTotalCount != 0)
+                            {{ $grandTotalCount }}
+                        @endif
+                        <br>
+                        @if($formattedGrandTotalWorkload != 0)
+                            {{ $formattedGrandTotalWorkload }}
+                        @endif
+                    </td>
                 </tr>
             </tfoot>
         </table>

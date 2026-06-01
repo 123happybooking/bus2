@@ -32,7 +32,7 @@ class DriverPerformanceExport implements FromArray, WithEvents
         $data = [];
         
         $dateCount = count($this->dates);
-        $lastColumnIndex = $dateCount + 1;
+        $lastColumnIndex = $dateCount + 2; // +2 因为增加了合计列
         
         $exportTypeText = '';
         if (in_array('count', $this->exportOptions) && in_array('workload', $this->exportOptions)) {
@@ -44,7 +44,7 @@ class DriverPerformanceExport implements FromArray, WithEvents
         }
         
         $row1 = [];
-        for ($i = 0; $i <= $dateCount; $i++) {
+        for ($i = 0; $i <= $dateCount + 1; $i++) {
             $row1[$i] = '';
         }
         $row1[0] = '運転手実績';
@@ -57,66 +57,159 @@ class DriverPerformanceExport implements FromArray, WithEvents
         $today = now()->format('Y/m/d');
         
         $row2 = [];
-        for ($i = 0; $i <= $dateCount; $i++) {
+        for ($i = 0; $i <= $dateCount + 1; $i++) {
             $row2[$i] = '';
         }
         $row2[0] = '期間：' . $startDate . ' - ' . $endDate;
         $row2[$lastColumnIndex - 1] = $today . '    ' . $this->username;
         $data[] = $row2;
         
+        // 表头 - 添加合计列
         $headerRow = ['運転手名'];
         foreach ($this->dates as $date) {
             $headerRow[] = $date['display'];
         }
+        $headerRow[] = '合計';  // 添加合计列表头
         $data[] = $headerRow;
         
+        // 数据行 - 计算每行合计
         foreach ($this->drivers as $driver) {
             $row = [$driver->name];
+            $rowTotalCount = 0;
+            $rowTotalWorkload = 0;
+            
             foreach ($this->dates as $date) {
                 $dateStr = $date['date_str'];
                 $stat = $this->statistics[$driver->id][$dateStr] ?? ['count' => 0, 'workload' => 0];
                 
+                $rowTotalCount += $stat['count'];
+                $rowTotalWorkload += $stat['workload'];
+                
                 $exportCount = in_array('count', $this->exportOptions);
                 $exportWorkload = in_array('workload', $this->exportOptions);
                 
+                // 0值显示为空
+                $displayCount = ($stat['count'] != 0) ? $stat['count'] : '';
+                $displayWorkload = ($stat['workload'] != 0) ? $stat['workload'] : '';
+                
                 if ($exportCount && $exportWorkload) {
-                    $row[] = $stat['count'] . "\n" . $stat['workload'];
+                    if ($stat['count'] == 0 && $stat['workload'] == 0) {
+                        $row[] = '';
+                    } else {
+                        $row[] = $displayCount . "\n" . $displayWorkload;
+                    }
                 } elseif ($exportCount) {
-                    $row[] = $stat['count'];
+                    $row[] = $displayCount;
                 } elseif ($exportWorkload) {
-                    $row[] = $stat['workload'];
+                    $row[] = $displayWorkload;
                 } else {
                     $row[] = "";
                 }
             }
-            $data[] = $row;
-        }
-        
-        $totalRow = ['合計'];
-        foreach ($this->dates as $date) {
-            $dateStr = $date['date_str'];
-            $totalCount = 0;
-            $totalWorkload = 0;
-            foreach ($this->drivers as $driver) {
-                $stat = $this->statistics[$driver->id][$dateStr] ?? ['count' => 0, 'workload' => 0];
-                $totalCount += $stat['count'];
-                $totalWorkload += $stat['workload'];
-            }
-            $formattedWorkload = is_numeric($totalWorkload) && floor($totalWorkload) == $totalWorkload ? (int)$totalWorkload : $totalWorkload;
+            
+            // 添加该行的合计
+            $formattedRowTotalWorkload = is_numeric($rowTotalWorkload) && floor($rowTotalWorkload) == $rowTotalWorkload 
+                ? (int)$rowTotalWorkload 
+                : $rowTotalWorkload;
+            
+            $displayTotalCount = ($rowTotalCount != 0) ? $rowTotalCount : '';
+            $displayTotalWorkload = ($formattedRowTotalWorkload != 0) ? $formattedRowTotalWorkload : '';
             
             $exportCount = in_array('count', $this->exportOptions);
             $exportWorkload = in_array('workload', $this->exportOptions);
             
             if ($exportCount && $exportWorkload) {
-                $totalRow[] = $totalCount . "\n" . $formattedWorkload;
+                if ($rowTotalCount == 0 && $rowTotalWorkload == 0) {
+                    $row[] = '';
+                } else {
+                    $row[] = $displayTotalCount . "\n" . $displayTotalWorkload;
+                }
             } elseif ($exportCount) {
-                $totalRow[] = $totalCount;
+                $row[] = $displayTotalCount;
             } elseif ($exportWorkload) {
-                $totalRow[] = $formattedWorkload;
+                $row[] = $displayTotalWorkload;
+            } else {
+                $row[] = "";
+            }
+            
+            $data[] = $row;
+        }
+        
+        // 合计行 - 计算每天的总计和总结算
+        $totalRow = ['合計'];
+        $dailyTotals = [];
+        $grandTotalCount = 0;
+        $grandTotalWorkload = 0;
+        
+        foreach ($this->dates as $date) {
+            $dateStr = $date['date_str'];
+            $dailyTotals[$dateStr] = ['count' => 0, 'workload' => 0];
+        }
+        
+        foreach ($this->drivers as $driver) {
+            foreach ($this->dates as $date) {
+                $dateStr = $date['date_str'];
+                $stat = $this->statistics[$driver->id][$dateStr] ?? ['count' => 0, 'workload' => 0];
+                $dailyTotals[$dateStr]['count'] += $stat['count'];
+                $dailyTotals[$dateStr]['workload'] += $stat['workload'];
+            }
+        }
+        
+        foreach ($this->dates as $date) {
+            $dateStr = $date['date_str'];
+            $totalCount = $dailyTotals[$dateStr]['count'];
+            $totalWorkload = $dailyTotals[$dateStr]['workload'];
+            $formattedWorkload = is_numeric($totalWorkload) && floor($totalWorkload) == $totalWorkload ? (int)$totalWorkload : $totalWorkload;
+            
+            $grandTotalCount += $totalCount;
+            $grandTotalWorkload += $totalWorkload;
+            
+            $displayCount = ($totalCount != 0) ? $totalCount : '';
+            $displayWorkload = ($formattedWorkload != 0) ? $formattedWorkload : '';
+            
+            $exportCount = in_array('count', $this->exportOptions);
+            $exportWorkload = in_array('workload', $this->exportOptions);
+            
+            if ($exportCount && $exportWorkload) {
+                if ($totalCount == 0 && $totalWorkload == 0) {
+                    $totalRow[] = '';
+                } else {
+                    $totalRow[] = $displayCount . "\n" . $displayWorkload;
+                }
+            } elseif ($exportCount) {
+                $totalRow[] = $displayCount;
+            } elseif ($exportWorkload) {
+                $totalRow[] = $displayWorkload;
             } else {
                 $totalRow[] = "";
             }
         }
+        
+        // 添加总结算到合计行
+        $formattedGrandTotalWorkload = is_numeric($grandTotalWorkload) && floor($grandTotalWorkload) == $grandTotalWorkload 
+            ? (int)$grandTotalWorkload 
+            : $grandTotalWorkload;
+        
+        $displayGrandCount = ($grandTotalCount != 0) ? $grandTotalCount : '';
+        $displayGrandWorkload = ($formattedGrandTotalWorkload != 0) ? $formattedGrandTotalWorkload : '';
+        
+        $exportCount = in_array('count', $this->exportOptions);
+        $exportWorkload = in_array('workload', $this->exportOptions);
+        
+        if ($exportCount && $exportWorkload) {
+            if ($grandTotalCount == 0 && $grandTotalWorkload == 0) {
+                $totalRow[] = '';
+            } else {
+                $totalRow[] = $displayGrandCount . "\n" . $displayGrandWorkload;
+            }
+        } elseif ($exportCount) {
+            $totalRow[] = $displayGrandCount;
+        } elseif ($exportWorkload) {
+            $totalRow[] = $displayGrandWorkload;
+        } else {
+            $totalRow[] = "";
+        }
+        
         $data[] = $totalRow;
         
         return $data;
@@ -128,7 +221,7 @@ class DriverPerformanceExport implements FromArray, WithEvents
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
                 $dateCount = count($this->dates);
-                $lastColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dateCount + 1);
+                $lastColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dateCount + 2); // +2 因为有合计列
                 
                 $dataRowCount = count($this->drivers) + 1;
                 $lastRow = 3 + $dataRowCount;
@@ -206,7 +299,7 @@ class DriverPerformanceExport implements FromArray, WithEvents
                 ]);
                 
                 for ($row = $dataStartRow; $row <= $lastRow; $row++) {
-                    for ($col = 2; $col <= $dateCount + 1; $col++) {
+                    for ($col = 2; $col <= $dateCount + 2; $col++) {
                         $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
                         $cell = $sheet->getCell($colLetter . $row);
                         $value = $cell->getValue();
@@ -216,7 +309,7 @@ class DriverPerformanceExport implements FromArray, WithEvents
                     }
                 }
                 
-                for ($i = 1; $i <= $dateCount + 1; $i++) {
+                for ($i = 1; $i <= $dateCount + 2; $i++) {
                     $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
                     $sheet->getColumnDimension($colLetter)->setAutoSize(true);
                 }

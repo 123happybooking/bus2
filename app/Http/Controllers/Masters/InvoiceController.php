@@ -987,6 +987,7 @@ public function store(Request $request)
                 $browsershot->setChromePath('D:\Google\Chrome\Application\chrome.exe');
             } else {
                 // [Linux/生产环境] 取消下面这行的注释
+                $browsershot->setChromePath('/usr/bin/chromium-browser');
                 $browsershot->addChromiumArguments(['--no-sandbox', '--disable-setuid-sandbox']);
             }
 
