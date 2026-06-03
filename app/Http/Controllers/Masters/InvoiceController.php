@@ -986,8 +986,9 @@ public function store(Request $request)
                 // Windows 环境：指定 chrome.exe 路径
                 $browsershot->setChromePath('D:\Google\Chrome\Application\chrome.exe');
             } else {
+                 $browsershot->noSandbox();
                 // [Linux/生产环境] 取消下面这行的注释
-                $browsershot->addChromiumArguments(['--no-sandbox', '--disable-setuid-sandbox']);
+                // $browsershot->addChromiumArguments(['--no-sandbox', '--disable-setuid-sandbox']);
             }
 
 
