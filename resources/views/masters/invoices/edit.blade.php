@@ -468,15 +468,22 @@
                             $hasPdf = !empty($invoice->pdf_file_path);
                             $pdfUrl = $hasPdf ? '/storage/' . $invoice->pdf_file_path : '';
                         @endphp
-                        <a href="javascript:void(0)" 
-                        id="pdfBtn" 
-                        data-invoice-id="{{ $invoice->id }}" 
-                        data-has-pdf="{{ $hasPdf ? '1' : '0' }}" 
-                        data-pdf-url="{{ $pdfUrl }}" 
-                        class="btn btn-secondary btn-pdf-action btn-sm" 
-                        style="font-size: 0.875rem;">
-                        <i class="bi bi-file-earmark-pdf"></i> 
-                        <span class="btn-text">PDF 表示</span> 
+                        <!--<a href="javascript:void(0)" -->
+                        <!--id="pdfBtn" -->
+                        <!--data-invoice-id="{{ $invoice->id }}" -->
+                        <!--data-has-pdf="{{ $hasPdf ? '1' : '0' }}" -->
+                        <!--data-pdf-url="{{ $pdfUrl }}" -->
+                        <!--class="btn btn-secondary btn-pdf-action btn-sm" -->
+                        <!--style="font-size: 0.875rem;">-->
+                        <!--<i class="bi bi-file-earmark-pdf"></i> -->
+                        <!--<span class="btn-text">PDF 表示</span> -->
+                        <!--</a>-->
+                        <a href="{{ route('masters.invoices.pdf-mpdf', ['id' => $invoice->id, 'group_id' => $groupId]) }}" 
+                           target="_blank"
+                           class="btn btn-success btn-sm" 
+                           style="font-size: 0.875rem;">
+                            <i class="bi bi-file-earmark-pdf"></i> 
+                            PDF 表示
                         </a>
                         
                         <a href="{{ route('masters.invoices.index', ['group_id' => $groupId]) }}" class="btn btn-secondary btn-sm" style="font-size: 0.875rem;">

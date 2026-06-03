@@ -4,113 +4,71 @@
     <meta charset="UTF-8">
     <title>INVOICE</title>
     <style>
-        @page { size: A4; margin: 15mm 15mm; }
         body { 
             font-family: "Helvetica", "Arial", "MS Mincho", sans-serif; 
             font-size: 10pt; 
-            margin: 0; 
             line-height: 1.3; 
             color: #000; 
+            margin: 0;
+            padding: 0;
         }
-        .no-break { page-break-inside: avoid; }
         
-        /* 头部与公司 */
-        .header-section { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-bottom: 0px; 
-            align-items: flex-start; 
+        .layout-table {
+            width: 100%;
+            border: 0;
+            margin: 0 0 10px 0;
+            padding: 0;
+            border-spacing: 0;
         }
-        .main-title { 
-            font-size: 24pt; 
-            font-weight: bold; 
-            color: #3b5998; 
-            margin: 0; 
-            letter-spacing: 1px; 
-            text-transform: uppercase; 
-        }
-        .meta-info { text-align: right; font-size: 9pt; line-height: 1.4; }
-        .top-section { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .client-name { 
-            width: 45%; 
-            font-size: 11pt; 
-            font-weight: bold; 
-            color: #333; 
-            line-height: 1.4; 
-            min-height: 80px;       
-            padding: 10px 0;        
-            box-sizing: border-box; 
-        }
-        .company-info { 
-            width: 50%; 
-            text-align: right; 
-            font-size: 8.5pt; 
-            line-height: 1.4; 
-            margin-top: 15px; 
-        }
-        .company-name { font-size: 10.5pt; font-weight: bold; margin-bottom: 2px; }
-        .greeting { margin: 8px 0; font-size: 10pt; font-style: italic; color: #555; }
         
-        .total-hint {
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 9pt;
+            margin-bottom: 0;
+            border: 1px solid #333;
+        }
+        
+        .main-table td, .main-table th {
+            border: 1px solid #333;
+            padding: 4px 2px;
             text-align: right;
-            margin-top: 15px;
-            font-size: 14pt; 
-            line-height: 1; 
-            border-bottom: 2px solid #333;
-            padding-bottom: 0; 
-            margin-bottom: 10px; 
-            display: inline-block; 
-            vertical-align: bottom; 
-        }
-        .total-hint strong { font-size: 15pt; }
-
-        /* ================= 核心表格样式 (已应用日文版修复逻辑) ================= */
-        .main-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            table-layout: fixed; 
-            font-size: 9pt; 
-            margin-bottom: 0; 
-        }
-        .main-table th, .main-table td { 
-            border: 1px solid #333333; 
-            padding: 4px 2px; 
-            text-align: center; 
             vertical-align: middle;
             overflow: hidden;
             word-wrap: break-word;
         }
         
-        /* 【关键修复】强制最后一列显示双线边框，完全复刻日文版逻辑 */
-        .main-table tr > th:last-child,
-        .main-table tr > td:last-child {
-            border-right: 2px double #333333 !important;
+        .main-table thead th {
+            background-color: #3b5998;
+            color: #fff;
+            font-weight: bold;
+            padding: 3px 2px;
         }
-
-        .main-table thead th { 
-            background-color: #3b5998; 
-            color: #fff; 
-            -webkit-print-color-adjust: exact; 
-            print-color-adjust: exact; 
-            font-size: 9pt;
-            padding: 5px 2px;
-            text-transform: uppercase;
-        }
-
+        
         .text-left { text-align: left !important; }
         .text-right { text-align: right !important; }
         .font-bold { font-weight: bold; }
         
+        .desc-cell {
+            padding-left: 5px;
+        }
+        
+        .bank-row {
+            margin-bottom: 2px;
+        }
+        
+        .no-break {
+            page-break-inside: avoid;
+        }
+        
         .summary-row td {
             background-color: #f9f9f9;
-            font-weight: bold;
+            font-size: 9pt;
         }
-        .total-final-row td {
-            background-color: #eef2f7;
-            font-size: 10pt;
-        }
-
-        /* 底部信息 */
+        
+        
+        
         .footer-section { margin-top: 10px; font-size: 9pt; line-height: 1.4; }
         .payment-deadline { margin-bottom: 8px; font-size: 10pt; font-weight: bold; color: #3b5998; text-transform: uppercase; }
         .bank-info { width: 100%; line-height: 1.4; }
@@ -121,80 +79,97 @@
 </head>
 <body>
 
-    <!-- 1. Header -->
-    <div class="header-section no-break">
-        <h1 class="main-title">INVOICE</h1>
-        <div class="meta-info">
-            <div><strong>Date:</strong> {{ $invoice->invoice_date }}</div>
-            <div><strong>Invoice #:</strong> {{ $invoice->invoice_number }}</div>
-        </div>
-    </div>
+    <table class="layout-table no-break">
+        <tr>
+            <td style="width: 50%;">
+                <h1 style="font-size: 26pt; color: #3b5998; margin: 0; line-height: 1.2;"><strong>INVOICE</strong></h1>
+            </td>
+            <td style="width: 50%; text-align: right; font-size: 9pt;">
+                <div><strong>Date:</strong> {{ $invoice->invoice_date }}</div>
+                <div><strong>Invoice #:</strong> {{ $invoice->invoice_number }}</div>
+            </td>
+        </tr>
+    </table>
 
-    <!-- 2. Client & Company -->
-    <div class="top-section no-break">
-        <div class="client-name">
-            @foreach($customer as $customerLine)
-                <div class="bank-line">{{ $customerLine }}</div>
-            @endforeach
-        </div>
-        <div class="company-info">
-            <div class="company-name">{{ $company->name }}</div>
-            <div>{{ $company->address }}</div>
-            @if($company->postal_code)
-                <div>{{ $company->postal_code }}</div>
-            @endif
-            <div>Tel: {{ $company->phone }} | Fax: {{ $company->fax }}</div>
-            @if($company->contact)
-                <div>Attn: {{ $company->contact }}</div>
-            @endif
-        </div>
-    </div>
+    <table class="layout-table no-break">
+        <tr>
+            <td style="width: 50%; vertical-align: top; font-size: 11pt;">
+                {!! nl2br(e($company->bill_to)) !!}
+            </td>
+            <td style="width: 50%; text-align: right; vertical-align: top; font-size: 9pt; line-height: 1.4;">
+                <div style="float: left; width: 100%; display: block;">
+                    <div><strong style="font-size: 11pt; font-weight: bold;">{{ $company->name }}</strong></div>
+                    @if($company->invoice_code)
+                        <div>{{ $company->invoice_code }}</div>
+                    @endif
+                    <div>{{ $company->address }}</div>
+                    @if($company->postal_code)
+                        <div>{{ $company->postal_code }}</div>
+                    @endif
+                    <div>Tel: {{ $company->phone }} | Fax: {{ $company->fax }}</div>
+                    @if($company->contact)
+                        <div>Attn: {{ $company->contact }}</div>
+                    @endif
+                </div>
+                @if($company->setup_company_seal)
+                    <img src="{{ $company->setup_company_seal }}" style="height: 80pt; width: auto; margin: -80pt 0 0 -80pt;">
+                @endif
+            </td>
+        </tr>
+    </table>
+
+    @if($invoice->billing_title)
+        <div>{{ $invoice->billing_title }}</div>
+    @endif
+    @if($invoice->operation_date)
+        <div>Operation Date: {{ $invoice->operation_date }}</div>
+    @endif
     
-    <div class="total-hint">
-        Total Amount ({{ $invoice->currency_code }}): <strong>{{ number_format($invoice->total_amount) }}</strong> 
-        @if($invoice->tax_mode == 1)(Inc. Tax)@else(Excl. Tax)@endif
-    </div>
+    <table class="no-break" style="width: 100%; margin: 5pt 0;">
+        <tr>
+            <td style="width: 70%;">
+                <table class="no-break">
+                    <tr>
+                        <td style="white-space: nowrap; font-size: 14pt; border-bottom: 2px solid #333;">
+                            Total Amount ({{ $invoice->currency_code }}): <strong>{{ number_format($invoice->total_amount) }}</strong> 
+                            @if($invoice->tax_mode == 1)(Inc. Tax)@else(Excl. Tax)@endif
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="width: 30%; font-size: 10pt; text-align: right;">
+                @if($invoice->reservation_id)
+                    Reservation ID: {{ $invoice->reservation_id }}
+                @endif
+            </td>
+        </tr>
+    </table>
 
-    <!-- ================= Main Table ================= -->
     <table class="main-table">
-        <!-- 列宽定义 (保持总和 100%) -->
-        <colgroup>
-            <col style="width: 5%;">   <!-- No. -->
-            <col style="width: 11%;">  <!-- Desc Part 1 -->
-            <col style="width: 17%;">  <!-- Desc Part 2 -->
-            <col style="width: 15%;">  <!-- Desc Part 3 -->
-            <col style="width: 15%;">  <!-- Desc Part 4 -->
-            <col style="width: 6%;">   <!-- Qty -->
-            <col style="width: 10%;">  <!-- Unit Price -->
-            <col style="width: 12%;">  <!-- Amount -->
-            <col style="width: 9%;">   <!-- Tax Rate -->
-        </colgroup>
-
         <thead>
             <tr>
-                <th>No.</th>
-                <th class="text-left" colspan="4" style="padding-left: 5px;">Description</th>
-                <th>Qty</th>
-                <th>Unit Price</th>
-                <th>Amount</th>
-                <th>Tax Rate</th>
+                <th style="width: 6%; text-align: center;">No.</th>
+                <th style="width: 58%; text-align: left; padding-left: 5px;" colspan="4">Description</th>
+                <th style="width: 6%; text-align: center;">Qty</th>
+                <th style="width: 10%; text-align: center;">Unit Price</th>
+                <th style="width: 10%; text-align: center;">Amount</th>
+                <th style="width: 10%; text-align: center;">Tax Rate</th>
             </tr>
         </thead>
         <tbody>
-            {{-- A. Items --}}
             @foreach($items as $index => $item)
             <tr>
-                <td>{{ $index + 1 }}</td>
-                <td class="text-left" colspan="4" style="padding-left: 5px;">
+                <td style="text-align: center;">{{ $index + 1 }}</td>
+                <td style="text-align: left; padding-left: 5px;" colspan="4">
                     {{ $item->description }}
                     @if(isset($item->period) && $item->period)
                         <br><span style="font-size:8pt;color:#666;">{{ $item->period }}</span>
                     @endif
                 </td>
-                <td>{{ $item->quantity }}</td>
-                <td class="text-center">{{ number_format($item->unit_price) }}</td>
-                <td class="text-center">{{ number_format($item->amount) }}</td>
-                <td>
+                <td style="text-align: center;">{{ $item->quantity }}</td>
+                <td style="text-align: center;">{{ number_format($item->unit_price) }}</td>
+                <td style="text-align: center;">{{ number_format($item->amount) }}</td>
+                <td style="text-align: center;">
                     @if ($item->tax_rate == -1)
                         Tax Exempt
                     @elseif ($item->tax_rate == -2)
@@ -206,7 +181,6 @@
             </tr>
             @endforeach
             
-            {{-- B. Empty Rows --}}
             @php 
                 $detailCount = count($items);
                 $summaryRows = 3; 
@@ -225,47 +199,40 @@
             </tr>
             @endfor
 
-            {{-- C. Summary Rows --}}
-            
-            {{-- Row 1: 10% Taxable --}}
             <tr class="summary-row">
-                <td class="text-left" colspan="2" style="padding-left: 5px; font-weight: normal;">10% Taxable</td>
-                <td class="text-right">{{ number_format($summary_10->total_with_tax ?? 0) }}</td>
-                <td class="text-right" style="font-weight: normal; font-size: 8.5pt;">Tax</td>
-                <td class="text-right">{{ number_format($summary_10->tax_amount ?? 0) }}</td>
-                <td class="text-right" colspan="2" style="text-align: right;">Subtotal</td>
-                <td class="text-right font-bold" colspan="2">
+                <td colspan="2" style="text-align: left;">10% Taxable</td>
+                <td style="font-weight: bold;">{{ number_format($summary_10->total_with_tax ?? 0) }}</td>
+                <td>Tax</td>
+                <td style="font-weight: bold;">{{ number_format($summary_10->tax_amount ?? 0) }}</td>
+                <td colspan="2" style="font-weight: bold;">Subtotal</td>
+                <td colspan="2" style="font-weight: bold;">
                     @if($invoice->tax_mode == 1){{ number_format($invoice->total_amount) }}@else{{ number_format($invoice->subtotal_amount) }}@endif
                 </td>
             </tr>
-
-            {{-- Row 2: 8% Taxable --}}
             <tr class="summary-row">
-                <td class="text-left" colspan="2" style="padding-left: 5px; font-weight: normal;">8% Taxable</td>
-                <td class="text-right">{{ number_format($summary_8->total_with_tax ?? 0) }}</td>
-                <td class="text-right" style="font-weight: normal; font-size: 8.5pt;">Tax</td>
-                <td class="text-right">{{ number_format($summary_8->tax_amount ?? 0) }}</td>
-                <td class="text-right" colspan="2" style="text-align: right;">Total Tax</td>
-                @if($invoice->tax_mode==1)
-                <td class="text-right font-bold" colspan="2">({{ number_format($invoice->tax_amount) }})</td>
-                @else
-                <td class="text-right font-bold" colspan="2">{{ number_format($invoice->tax_amount) }}</td>
-                @endif
+                <td colspan="2" style="text-align: left;">8% Taxable</td>
+                <td style="font-weight: bold;">{{ number_format($summary_8->total_with_tax ?? 0) }}</td>
+                <td>Tax</td>
+                <td style="font-weight: bold;">{{ number_format($summary_8->tax_amount ?? 0) }}</td>
+                <td colspan="2" style="font-weight: bold;">Total Tax</td>
+                <td colspan="2" style="font-weight: bold;">
+                    @if($invoice->tax_mode==1)
+                        ({{number_format($invoice->tax_amount)}})
+                    @else
+                        {{number_format($invoice->tax_amount)}}
+                    @endif
+                </td>
             </tr>
-
-            {{-- Row 3: Non-Taxable & Total Tax --}}
             <tr class="summary-row">
-                <td class="text-left" colspan="2" style="padding-left: 5px; font-weight: normal;">Non-Taxable</td>
-                <td class="text-right">{{ number_format($invoice->non_taxable) }}</td>
+                <td colspan="2" style="text-align: left;">Non-Taxable</td>
+                <td style="font-weight: bold;">{{ number_format($invoice->non_taxable) }}</td>
                 <td colspan="2"></td>
-                <td class="text-right" colspan="2" style="text-align: right;">GRAND TOTAL</td>
-                <td class="text-right font-bold" colspan="2">{{ number_format($invoice->total_amount) }}</td>
+                <td colspan="2" style="font-weight: bold;">GRAND TOTAL</td>
+                <td colspan="2" style="font-weight: bold;">{{ number_format($invoice->total_amount) }}</td>
             </tr>
-
         </tbody>
     </table>
 
-    <!-- 5. Payment Info -->
     <div class="footer-section no-break">
         <div class="payment-deadline">
             Payment Due By: {{ $invoice->due_date }}
@@ -277,7 +244,6 @@
         @endif
 
         <div class="bank-info">
-            <!-- 已修复拼写错误: Bank Details/div> -> Bank Details</div> -->
             <div class="bank-title">Bank Details</div>
             <div class="bank-content">
                 @foreach($bank as $line)

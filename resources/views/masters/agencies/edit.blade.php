@@ -273,6 +273,16 @@
                         </div>
                         
                         <div class="mb-3">
+                            <label for="bill_to" class="form-label">請求先</label>
+                            <textarea class="form-control @error('bill_to') is-invalid @enderror" 
+                                      id="bill_to" name="bill_to" rows="3"
+                                      maxlength="500" placeholder="〒000-0000&#10;東京都○○区○○町0-0-0&#10;○○株式会社 御中">{{ old('bill_to', $agency->bill_to ?? '') }}</textarea>
+                            @error('bill_to')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="mb-3">
                             <label for="remarks" class="form-label">備考</label>
                             <textarea class="form-control @error('remarks') is-invalid @enderror" 
                                       id="remarks" name="remarks" rows="3"

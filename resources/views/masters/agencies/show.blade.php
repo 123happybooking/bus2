@@ -202,6 +202,15 @@
                                         <span class="text-muted">未設定</span>
                                     @endif
                                 </dd>
+                                
+                                <dt class="col-sm-4">請求先</dt>
+                                <dd class="col-sm-8">
+                                    @if($agency->bill_to)
+                                        <div class="border rounded p-2 bg-light" style="white-space: pre-line;">{{ trim($agency->bill_to) }}</div>
+                                    @else
+                                        <span class="text-muted">未設定</span>
+                                    @endif
+                                </dd>
                             </dl>
                         </div>
                         

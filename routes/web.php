@@ -257,6 +257,8 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::get('/invoices/{invoice}/pdf-status', [InvoiceController::class, 'checkPdfStatus']);
         Route::post('reconcile/batch', [PaymentController::class, 'storeBatch'])->name('invoices.reconcile.batch.store');
         Route::get('invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
+        Route::post('invoices/batch-pdf-mpdf', [InvoiceController::class, 'batchExportPdf'])->name('invoices.batch-pdf-mpdf');
+        Route::get('invoices/{id}/pdf-mpdf', [InvoiceController::class, 'generatePdfMpdf'])->name('invoices.pdf-mpdf');
 
 
         Route::resource('payments', PaymentController::class)->names('payments');

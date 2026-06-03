@@ -35,6 +35,7 @@ use App\Models\Masters\AccountConfig;
 use App\Models\Masters\UserCompanyInfo;
 use App\Exports\InvoicesExport; // 引入导出类
 use Maatwebsite\Excel\Facades\Excel; // 引入 Excel 门面
+use Mpdf\Mpdf;
 
 
 class InvoiceController extends Controller
@@ -767,7 +768,6 @@ public function store(Request $request)
         }
 
 
-
             // === 6. 更新 invoices 主表 ===
             DB::table('invoices')->where('id', $id)->update([
                 'group_id' => $validated['group_id'],
@@ -844,7 +844,7 @@ public function store(Request $request)
 
             DB::commit();
             DB::setDefaultConnection('mysql'); 
-            GenerateRequestPdfJob::dispatch($id,auth()->user()->id);
+            // GenerateRequestPdfJob::dispatch($id,auth()->user()->id);
             return redirect()->route('masters.invoices.edit', [
                 'invoice' => $invoice->id, // 假设你的路由参数名是 {invoice} 或 {id}
                 'group_id' => $validated['group_id'] // 保留 group_id 参数，防止筛选条件丢失
@@ -1386,5 +1386,209 @@ public function store(Request $request)
             ]
         ]);
     }
+    
+    
+    
+    
+    
+    
+        
+        
+        
+        
+    public function batchExportPdf(Request $request)
+    {
+        $invoiceIds = $request->input('invoice_ids', []);
+        
+        if (empty($invoiceIds)) {
+            return response()->json(['success' => false, 'message' => '請求書を選択してください。'], 400);
+        }
+        
+        $invoices = Invoice::with(['items', 'bank', 'agency', 'staff'])
+            ->whereIn('id', $invoiceIds)
+            ->get();
+        
+        if ($invoices->isEmpty()) {
+            return response()->json(['success' => false, 'message' => '請求書が見つかりません。'], 400);
+        }
+        
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_footer' => 10,
+            'tempDir' => sys_get_temp_dir(),
+            'fontDir' => [
+                base_path('vendor/mpdf/mpdf/ttfonts'),
+                storage_path('fonts'),
+            ],
+            'fontdata' => [
+                'ipaexgothic' => ['R' => 'ipaexgothic.ttf', 'useOTL' => 0x80],
+                'ipaexmincho' => ['R' => 'ipaexmincho.ttf', 'useOTL' => 0x80],
+            ],
+            'default_font' => 'ipaexgothic',
+        ]);
+        
+        $mpdf->shrink_tables_to_fit = 0;
+        $mpdf->keep_table_proportions = true;
+        $mpdf->autoScriptToLang = true;
+        $mpdf->autoLangToFont = true;
+        
+        $firstPage = true;
+        
+        foreach ($invoices as $invoice) {
+            $data = $this->preparePdfData($invoice);
+            
+            if ($invoice->language == 1) {
+                $html = view('masters.invoices.template_ja', $data)->render();
+            } else {
+                $html = view('masters.invoices.template_en', $data)->render();
+            }
+            
+            if ($firstPage) {
+                $mpdf->WriteHTML($html);
+                $firstPage = false;
+            } else {
+                $mpdf->AddPage();
+                $mpdf->WriteHTML($html);
+            }
+        }
+        
+        $filename = 'invoices_' . date('Ymd_His') . '.pdf';
+        return $mpdf->Output($filename, 'D');
+    }
+    
+    public function generatePdfMpdf($id)
+    {
+        $invoice = Invoice::with(['items', 'bank', 'agency', 'staff'])->findOrFail($id);
+        
+        $data = $this->preparePdfData($invoice);
+        
+        // $mpdf = new Mpdf([
+        //     'mode' => 'utf-8',
+        //     'format' => 'A4',
+        //     'margin_footer' => 10,
+        //     'tempDir' => sys_get_temp_dir(),
+        //     'fontDir' => [
+        //         base_path('vendor/mpdf/mpdf/ttfonts'),
+        //         storage_path('fonts'),
+        //     ],
+        //     'fontdata' => [
+        //         'ipaexgothic' => [
+        //             'R' => 'ipaexgothic.ttf',
+        //             'B' => 'ipaexgothic.ttf',
+        //             'useOTL' => 0x80,
+        //         ],
+        //         'ipaexmincho' => [
+        //             'R' => 'ipaexmincho.ttf',
+        //             'B' => 'ipaexmincho.ttf',
+        //             'useOTL' => 0x80,
+        //         ],
+        //     ],
+        //     'default_font' => 'ipaexgothic',
+        // ]);
+        
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_footer' => 10,
+            'tempDir' => sys_get_temp_dir(),
+            'fontDir' => [
+                base_path('vendor/mpdf/mpdf/ttfonts'),
+                storage_path('fonts'),
+            ],
+            'fontdata' => [
+                'genshin' => [
+                    'R' => 'GenShinGothic-Normal.ttf',
+                    'B' => 'GenShinGothic-Bold.ttf',
+                    'useOTL' => 0x80,
+                ],
+            ],
+            'default_font' => 'genshin',
+        ]);
+        
+        $mpdf->shrink_tables_to_fit = 0;
+        $mpdf->keep_table_proportions = true;
+        $mpdf->autoScriptToLang = true;
+        $mpdf->autoLangToFont = true;
+        
+        if ($invoice->language == 1) {
+            $html = view('masters.invoices.template_ja', $data)->render();
+        } else {
+            $html = view('masters.invoices.template_en', $data)->render();
+        }
+        
+        $mpdf->WriteHTML($html);
+        
+        $filename = 'invoice_' . $invoice->invoice_number . '.pdf';
+        return $mpdf->Output($filename, 'D');
+    }
+    
+    private function preparePdfData($invoice)
+    {
+        $items = $invoice->items;
+        $summary_10 = InvoiceTaxSummary::where('invoice_id', $invoice->id)->where('tax_rate', 10)->first();
+        $summary_8 = InvoiceTaxSummary::where('invoice_id', $invoice->id)->where('tax_rate', 8)->first();
+        $non_taxable = InvoiceItem::where('invoice_id', $invoice->id)->where('tax_rate', '<', 0)->sum('amount');
+        
+        $bankLines = [];
+        if ($invoice->bank) {
+            $bankLines = preg_split('/\r\n|\r|\n/', $invoice->bank->bank_info ?? '');
+        }
+        
+        $customerLines = preg_split('/\r\n|\r|\n/', $invoice->agency_detail ?? '');
+        
+        $companyInfo = UserCompanyInfo::first();
+        
+        $setup_company_seal = '';
+        if (!empty($companyInfo->setup_company_seal)) {
+            $setup_company_seal = url('/storage/' . $companyInfo->setup_company_seal);
+        }
+        
+        $staffName = '';
+        if ($invoice->staff_id) {
+            $staff = DB::table('staffs')->where('id', $invoice->staff_id)->first();
+            $staffName = $staff->name ?? '';
+        }
+        
+        $billTo = '';
+        if ($invoice->agency && $invoice->agency->bill_to) {
+            $billTo = $invoice->agency->bill_to;
+        }
+        
+        return [
+            'invoice' => (object)[
+                'billing_title' => $invoice->billing_title,
+                'operation_date' => $invoice->operation_date ? date('Y-m-d', strtotime($invoice->operation_date)) : '',
+                'reservation_id' => $invoice->reservation_id,
+                'invoice_date' => $invoice->invoice_date,
+                'due_date' => $invoice->due_date,
+                'invoice_number' => $invoice->invoice_number,
+                'notes' => $invoice->notes,
+                'subtotal_amount' => $invoice->subtotal_amount,
+                'tax_amount' => $invoice->tax_amount,
+                'total_amount' => $invoice->total_amount,
+                'tax_mode' => $invoice->tax_mode,
+                'currency_code' => $invoice->currency_code,
+                'non_taxable' => $non_taxable,
+            ],
+            'summary_10' => $summary_10,
+            'summary_8' => $summary_8,
+            'items' => $items,
+            'bank' => $bankLines,
+            'customer' => $customerLines,
+            'company' => (object)[
+                'name' => $companyInfo->company_name ?? '',
+                'postal_code' => $companyInfo->postal_code ?? '',
+                'address' => $companyInfo->address ?? '',
+                'phone' => $companyInfo->phone_number ?? '',
+                'fax' => $companyInfo->fax_number ?? '',
+                'invoice_code' => $companyInfo->invoice_code ?? '',
+                'bill_to' => $billTo,
+                'setup_company_seal' => $setup_company_seal ?? '',
+                'contact' => $staffName,
+            ],
+        ];
+    }
+    
 }
 

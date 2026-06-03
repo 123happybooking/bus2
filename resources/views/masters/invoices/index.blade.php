@@ -317,7 +317,16 @@
 
                 <div class="vr mx-1"></div>
                 <!-- 批量下载 PDF -->
-                <form action="{{ route('masters.invoices.bulk-pdf') }}" method="POST" target="_blank" id="form-bulk-pdf" class="d-inline">
+                <!--<form action="{{ route('masters.invoices.bulk-pdf') }}" method="POST" target="_blank" id="form-bulk-pdf" class="d-inline">-->
+                <!--    @csrf-->
+                <!--    <input type="hidden" name="group_id" value="{{ request('group_id') }}">-->
+                <!--    <div id="bulk-pdf-inputs"></div>-->
+                <!--    <button type="submit" class="btn btn-sm btn-outline-dark" title="選択した項目の PDF をダウンロード" style="font-size: 0.75rem; padding: 0.15rem 0.3rem;">-->
+                <!--        <i class="bi bi-file-earmark-pdf"></i> <span class="d-none d-sm-inline">一括 PDF</span>-->
+                <!--    </button>-->
+                <!--</form>-->
+                
+                <form action="{{ route('masters.invoices.batch-pdf-mpdf') }}" method="POST" target="_blank" id="form-bulk-pdf" class="d-inline">
                     @csrf
                     <input type="hidden" name="group_id" value="{{ request('group_id') }}">
                     <div id="bulk-pdf-inputs"></div>
@@ -431,10 +440,14 @@
                                 </button> 
                             @endif 
                                 
-                            <a href="{{ route('masters.invoices.pdf', ['invoice' => $invoice, 'group_id' => request('group_id')]) }}" 
-                               class="btn btn-sm btn-outline-success" title="PDF ダウンロード" target="_blank" style="padding: 0.1rem 0.3rem;"> 
-                                <i class="bi bi-file-earmark-pdf" style="font-size: 0.8rem;"></i> 
-                            </a> 
+                            <!--<a href="{{ route('masters.invoices.pdf', ['invoice' => $invoice, 'group_id' => request('group_id')]) }}" -->
+                            <!--   class="btn btn-sm btn-outline-success" title="PDF ダウンロード" target="_blank" style="padding: 0.1rem 0.3rem;"> -->
+                            <!--    <i class="bi bi-file-earmark-pdf" style="font-size: 0.8rem;"></i> -->
+                            <!--</a> -->
+                            <a href="{{ route('masters.invoices.pdf-mpdf', ['id' => $invoice->id, 'group_id' => request('group_id')]) }}" 
+                               class="btn btn-sm btn-outline-success" title="PDF ダウンロード" target="_blank">
+                                <i class="bi bi-file-earmark-pdf" style="font-size: 0.8rem;"></i>
+                            </a>
                             <a href="{{ route('masters.invoices.show', ['invoice' => $invoice, 'group_id' => request('group_id')]) }}" 
                                class="btn btn-sm btn-outline-info" title="詳細" style="padding: 0.1rem 0.3rem;"> 
                                 <i class="bi bi-eye" style="font-size: 0.8rem;"></i> 
