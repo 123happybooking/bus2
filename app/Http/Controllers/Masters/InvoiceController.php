@@ -1464,30 +1464,6 @@ public function store(Request $request)
         
         $data = $this->preparePdfData($invoice);
         
-        // $mpdf = new Mpdf([
-        //     'mode' => 'utf-8',
-        //     'format' => 'A4',
-        //     'margin_footer' => 10,
-        //     'tempDir' => sys_get_temp_dir(),
-        //     'fontDir' => [
-        //         base_path('vendor/mpdf/mpdf/ttfonts'),
-        //         storage_path('fonts'),
-        //     ],
-        //     'fontdata' => [
-        //         'ipaexgothic' => [
-        //             'R' => 'ipaexgothic.ttf',
-        //             'B' => 'ipaexgothic.ttf',
-        //             'useOTL' => 0x80,
-        //         ],
-        //         'ipaexmincho' => [
-        //             'R' => 'ipaexmincho.ttf',
-        //             'B' => 'ipaexmincho.ttf',
-        //             'useOTL' => 0x80,
-        //         ],
-        //     ],
-        //     'default_font' => 'ipaexgothic',
-        // ]);
-        
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
@@ -1498,11 +1474,6 @@ public function store(Request $request)
                 storage_path('fonts'),
             ],
             'fontdata' => [
-                'genshin' => [
-                    'R' => 'GenShinGothic-Normal.ttf',
-                    'B' => 'GenShinGothic-Bold.ttf',
-                    'useOTL' => 0x80,
-                ],
                 'ipaexgothic' => [
                     'R' => 'ipaexgothic.ttf',
                     'B' => 'ipaexgothic.ttf',
@@ -1514,8 +1485,27 @@ public function store(Request $request)
                     'useOTL' => 0x80,
                 ],
             ],
-            'default_font' => 'genshin',
+            'default_font' => 'ipaexgothic',
         ]);
+        
+        // $mpdf = new Mpdf([
+        //     'mode' => 'utf-8',
+        //     'format' => 'A4',
+        //     'margin_footer' => 10,
+        //     'tempDir' => sys_get_temp_dir(),
+        //     'fontDir' => [
+        //         base_path('vendor/mpdf/mpdf/ttfonts'),
+        //         storage_path('fonts'),
+        //     ],
+        //     'fontdata' => [
+        //         'genshin' => [
+        //             'R' => 'GenShinGothic-Normal.ttf',
+        //             'B' => 'GenShinGothic-Bold.ttf',
+        //             'useOTL' => 0x80,
+        //         ],
+        //     ],
+        //     'default_font' => 'genshin',
+        // ]);
         
         $mpdf->shrink_tables_to_fit = 0;
         $mpdf->keep_table_proportions = true;

@@ -42,13 +42,13 @@
         .main-table thead th {
             background-color: #3b5998;
             color: #fff;
-            font-weight: bold;
+            font-weight: bold; text-shadow: 0.5px 0 0 currentColor;
             padding: 3px 2px;
         }
         
         .text-left { text-align: left !important; }
         .text-right { text-align: right !important; }
-        .font-bold { font-weight: bold; }
+        .font-bold { font-weight: bold; text-shadow: 0.5px 0 0 currentColor; }
         
         .desc-cell {
             padding-left: 5px;
@@ -70,11 +70,11 @@
         
         
         .footer-section { margin-top: 10px; font-size: 9pt; line-height: 1.4; }
-        .payment-deadline { margin-bottom: 8px; font-size: 10pt; font-weight: bold; color: #3b5998; text-transform: uppercase; }
+        .payment-deadline { margin-bottom: 8px; font-size: 10pt; font-weight: bold; text-shadow: 0.5px 0 0 currentColor; color: #3b5998; text-transform: uppercase; }
         .bank-info { width: 100%; line-height: 1.4; }
-        div.bank-title { font-weight: bold; margin-bottom: 4px; display: block; font-size: 10pt; text-decoration: none !important; border-bottom: none !important; color: #3b5998; text-transform: uppercase; }
+        div.bank-title { font-weight: bold; text-shadow: 0.5px 0 0 currentColor; margin-bottom: 4px; display: block; font-size: 10pt; text-decoration: none !important; border-bottom: none !important; color: #3b5998; text-transform: uppercase; }
         .bank-row { display: flex; margin-bottom: 2px; }
-        .bank-label { width: 100px; font-weight: bold; }
+        .bank-label { width: 100px; font-weight: bold; text-shadow: 0.5px 0 0 currentColor; }
     </style>
 </head>
 <body>
@@ -82,7 +82,7 @@
     <table class="layout-table no-break">
         <tr>
             <td style="width: 50%;">
-                <h1 style="font-size: 26pt; color: #3b5998; margin: 0; line-height: 1.2;"><strong>INVOICE</strong></h1>
+                <h1 style="font-size: 26pt; color: #3b5998; margin: 0; line-height: 1.2; font-weight: bold; text-shadow: 1px 0 0 currentColor;"><strong>INVOICE</strong></h1>
             </td>
             <td style="width: 50%; text-align: right; font-size: 9pt;">
                 <div><strong>Date:</strong> {{ $invoice->invoice_date }}</div>
@@ -98,7 +98,7 @@
             </td>
             <td style="width: 50%; text-align: right; vertical-align: top; font-size: 9pt; line-height: 1.4;">
                 <div style="float: left; width: 100%; display: block;">
-                    <div><strong style="font-size: 11pt; font-weight: bold;">{{ $company->name }}</strong></div>
+                    <div><strong style="font-size: 11pt; font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ $company->name }}</strong></div>
                     @if($company->invoice_code)
                         <div>{{ $company->invoice_code }}</div>
                     @endif
@@ -201,21 +201,21 @@
 
             <tr class="summary-row">
                 <td colspan="2" style="text-align: left;">10% Taxable</td>
-                <td style="font-weight: bold;">{{ number_format($summary_10->total_with_tax ?? 0) }}</td>
+                <td style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($summary_10->total_with_tax ?? 0) }}</td>
                 <td>Tax</td>
-                <td style="font-weight: bold;">{{ number_format($summary_10->tax_amount ?? 0) }}</td>
-                <td colspan="2" style="font-weight: bold;">Subtotal</td>
-                <td colspan="2" style="font-weight: bold;">
+                <td style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($summary_10->tax_amount ?? 0) }}</td>
+                <td colspan="2" style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">Subtotal</td>
+                <td colspan="2" style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">
                     @if($invoice->tax_mode == 1){{ number_format($invoice->total_amount) }}@else{{ number_format($invoice->subtotal_amount) }}@endif
                 </td>
             </tr>
             <tr class="summary-row">
                 <td colspan="2" style="text-align: left;">8% Taxable</td>
-                <td style="font-weight: bold;">{{ number_format($summary_8->total_with_tax ?? 0) }}</td>
+                <td style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($summary_8->total_with_tax ?? 0) }}</td>
                 <td>Tax</td>
-                <td style="font-weight: bold;">{{ number_format($summary_8->tax_amount ?? 0) }}</td>
-                <td colspan="2" style="font-weight: bold;">Total Tax</td>
-                <td colspan="2" style="font-weight: bold;">
+                <td style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($summary_8->tax_amount ?? 0) }}</td>
+                <td colspan="2" style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">Total Tax</td>
+                <td colspan="2" style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">
                     @if($invoice->tax_mode==1)
                         ({{number_format($invoice->tax_amount)}})
                     @else
@@ -225,10 +225,10 @@
             </tr>
             <tr class="summary-row">
                 <td colspan="2" style="text-align: left;">Non-Taxable</td>
-                <td style="font-weight: bold;">{{ number_format($invoice->non_taxable) }}</td>
+                <td style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($invoice->non_taxable) }}</td>
                 <td colspan="2"></td>
-                <td colspan="2" style="font-weight: bold;">GRAND TOTAL</td>
-                <td colspan="2" style="font-weight: bold;">{{ number_format($invoice->total_amount) }}</td>
+                <td colspan="2" style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">GRAND TOTAL</td>
+                <td colspan="2" style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($invoice->total_amount) }}</td>
             </tr>
         </tbody>
     </table>

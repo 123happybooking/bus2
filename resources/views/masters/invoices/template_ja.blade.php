@@ -41,13 +41,13 @@
         .main-table thead th {
             background-color: #3b5998;
             color: #fff;
-            font-weight: bold;
+            font-weight: bold; text-shadow: 0.5px 0 0 currentColor;
             padding: 3px 2px;
         }
         
         .text-left { text-align: left !important; }
         .text-right { text-align: right !important; }
-        .font-bold { font-weight: bold; }
+        .font-bold { font-weight: bold; text-shadow: 0.5px 0 0 currentColor; }
         
         .desc-cell {
             padding-left: 5px;
@@ -72,7 +72,7 @@
     <table class="layout-table no-break">
         <tr>
             <td style="width: 50%;">
-                <h1 style="font-size: 26pt; color: #3b5998; margin: 0; line-height: 1.2;"><strong>請求書</strong></h1>
+                <h1 style="font-size: 26pt; color: #3b5998; margin: 0; line-height: 1.2; font-weight: bold; text-shadow: 1px 0 0 currentColor;"><strong>請求書</strong></h1>
             </td>
             <td style="width: 50%; text-align: right; font-size: 9pt;">
                 <div>請求日：{{ $invoice->invoice_date }}</div>
@@ -88,7 +88,7 @@
             </td>
             <td style="width: 50%; text-align: right; vertical-align: top; font-size: 9pt; line-height: 1.4;">
                 <div style="float: left; width: 100%; display: block;">
-                    <div><strong style="font-size: 11pt; font-weight: bold;">{{ $company->name }}</strong></div>
+                    <div><strong style="font-size: 11pt; font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ $company->name }}</strong></div>
                     @if($company->invoice_code)
                         <div>{{ $company->invoice_code }}</div>
                     @endif
@@ -122,7 +122,7 @@
                 <table class="no-break">
                     <tr>
                         <td style="white-space: nowrap; font-size: 14pt; border-bottom: 2px solid #333;">
-                            ご請求金額({{$invoice->currency_code}})：<strong style="font-size: 15pt; font-weight: bold;">{{ number_format($invoice->total_amount) }}</strong>
+                            ご請求金額({{$invoice->currency_code}})：<strong style="font-size: 15pt; font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($invoice->total_amount) }}</strong>
                             @if($invoice->tax_mode == 1)(税込)@else(外税)@endif
                         </td>
                     </tr>
@@ -188,11 +188,11 @@
 
             <tr class="summary-row">
                 <td colspan="2" style="text-align: left;">10％対象</td>
-                <td style="font-weight: bold;">{{ number_format($summary_10->subtotal ?? 0) }}</td>
+                <td style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($summary_10->subtotal ?? 0) }}</td>
                 <td>消費税</td>
-                <td style="font-weight: bold;">{{ number_format($summary_10->tax_amount ?? 0) }}</td>
-                <td colspan="2" style="font-weight: bold;">小計</td>
-                <td colspan="2" style="font-weight: bold;">
+                <td style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($summary_10->tax_amount ?? 0) }}</td>
+                <td colspan="2" style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">小計</td>
+                <td colspan="2" style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">
                     @if($invoice->tax_mode == 1)
                         {{ number_format($invoice->total_amount) }}
                     @else
@@ -202,11 +202,11 @@
             </tr>
             <tr class="summary-row">
                 <td colspan="2" style="text-align: left;">8％対象</td>
-                <td style="font-weight: bold;">{{ number_format($summary_8->subtotal ?? 0) }}</td>
+                <td style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($summary_8->subtotal ?? 0) }}</td>
                 <td>消費税</td>
-                <td style="font-weight: bold;">{{ number_format($summary_8->tax_amount ?? 0) }}</td>
-                <td colspan="2" style="font-weight: bold;">消費税{{ $invoice->tax_mode==1 ?"(内税)":"" }}</td>
-                <td colspan="2" style="font-weight: bold;">
+                <td style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($summary_8->tax_amount ?? 0) }}</td>
+                <td colspan="2" style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">消費税{{ $invoice->tax_mode==1 ?"(内税)":"" }}</td>
+                <td colspan="2" style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">
                     @if($invoice->tax_mode==1)
                         ({{number_format($invoice->tax_amount)}})
                     @else
@@ -216,16 +216,16 @@
             </tr>
             <tr class="summary-row">
                 <td colspan="2" style="text-align: left;">非課税/免税</td>
-                <td style="font-weight: bold;">{{ number_format($invoice->non_taxable) }}</td>
+                <td style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($invoice->non_taxable) }}</td>
                 <td colspan="2"></td>
-                <td colspan="2" style="font-weight: bold;">請求合計</td>
-                <td colspan="2" style="font-weight: bold;">{{ number_format($invoice->total_amount) }}</td>
+                <td colspan="2" style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">請求合計</td>
+                <td colspan="2" style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor;">{{ number_format($invoice->total_amount) }}</td>
             </tr>
         </tbody>
     </table>
 
     <div style="margin-top: 10px; font-size: 9pt; line-height: 1.4;">
-        <div style="font-size: 11pt; font-weight: bold; margin-bottom: 8px;">
+        <div style="font-size: 11pt; font-weight: bold; text-shadow: 0.5px 0 0 currentColor; margin-bottom: 8px;">
             <strong>
                 お支払いは :{{ $invoice->due_date }} までに下記指定口座へお振込お願いします。
                 <br>
@@ -234,11 +234,11 @@
         </div>
         
         @if(!empty($invoice->notes))
-        <div style="font-weight: bold; margin-bottom: 4px; font-size: 11pt;">【備考】</div>
+        <div style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor; margin-bottom: 4px; font-size: 11pt;">【備考】</div>
         <div style="line-height: 1.4; margin-bottom: 10px;">{{ $invoice->notes }}</div>
         @endif
 
-        <div style="font-weight: bold; margin-bottom: 4px; font-size: 11pt;">【振込先】</div>
+        <div style="font-weight: bold; text-shadow: 0.5px 0 0 currentColor; margin-bottom: 4px; font-size: 11pt;">【振込先】</div>
         <div style="line-height: 1.4;">
             @foreach($bank as $line)
                 <div style="margin: 2px 0;">{{ $line }}</div>
