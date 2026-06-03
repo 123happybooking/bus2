@@ -1503,6 +1503,16 @@ public function store(Request $request)
                     'B' => 'GenShinGothic-Bold.ttf',
                     'useOTL' => 0x80,
                 ],
+                'ipaexgothic' => [
+                    'R' => 'ipaexgothic.ttf',
+                    'B' => 'ipaexgothic.ttf',
+                    'useOTL' => 0x80,
+                ],
+                'ipaexmincho' => [
+                    'R' => 'ipaexmincho.ttf',
+                    'B' => 'ipaexmincho.ttf',
+                    'useOTL' => 0x80,
+                ],
             ],
             'default_font' => 'genshin',
         ]);
