@@ -626,6 +626,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const hiddenId = document.getElementById(`${type}_id`);
         
         if (!searchInput) return;
+        
+        searchInput.addEventListener('input', function() {
+            if (this.value.trim() === '') {
+                if (hiddenId) hiddenId.value = '';
+            }
+        });
 
         const vehicleTypeInput = document.getElementById('vehicle_type');
         const vehicleModelInput = document.getElementById('vehicle_model');
@@ -816,6 +822,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('createForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
+        const guideSearchInput = document.getElementById('guide_search');
+        const guideIdHidden = document.getElementById('guide_id');
+        if (guideSearchInput && guideIdHidden && guideSearchInput.value.trim() === '') {
+            guideIdHidden.value = '';
+        }
+        
+        
         if (!validateDateRange()) {
             return;
         }
@@ -826,6 +839,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const otherCount = parseInt(document.querySelector('input[name="other_count"]')?.value) || 0;
         const totalPeople = adultCount + childCount + guideCount + otherCount;
         const seatingCapacity = parseInt(document.getElementById('seating_capacity')?.value) || 0;
+        
         
         if (seatingCapacity > 0 && totalPeople > seatingCapacity) {
             if (!confirm(`定員(${seatingCapacity}名)を超えています。このまま保存しますか？`)) {

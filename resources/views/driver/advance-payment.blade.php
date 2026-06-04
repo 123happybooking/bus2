@@ -46,9 +46,19 @@
             </div>
             @endforeach
         </div>
+        
+        <div class="receipts-section" id="receiptsSection">
+            <div class="receipts-header">
+                <span class="receipts-title">📷 領収書</span>
+            </div>
+            <div class="receipts-list" id="receiptsList">
+                <div class="no-receipts">読み込み中...</div>
+            </div>
+        </div>
 
         <div class="button-container">
             <button class="add-expense-btn" id="addExpenseBtn">+ 立替追加</button>
+            <button class="upload-receipt-btn" id="uploadReceiptBtn">📷 領収書アップロード</button>
             <button class="back-btn" id="cancelBtn">戻る</button>
         </div>
     </div>
@@ -351,6 +361,135 @@
     color: white;
     border-radius: 20px;
 }
+
+
+
+
+
+.upload-receipt-btn {
+    flex: 1;
+    padding: 12px 16px;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.upload-receipt-btn:active {
+    transform: scale(0.98);
+}
+
+/* 收据区域样式 */
+.receipts-section {
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.receipts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.receipts-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.receipts-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.receipt-item {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    background-color: #f3f4f6;
+    border: 1px solid var(--border-color);
+}
+
+.receipt-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.receipt-delete {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.no-receipts {
+    color: var(--text-secondary);
+    font-size: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+/* 图片预览模态框 */
+.image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+.image-modal.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+.image-modal img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}
+
+.image-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+
 </style>
 @endpush
 
@@ -570,5 +709,184 @@ document.getElementById('expenseModal')?.addEventListener('click', function(e) {
 document.addEventListener('DOMContentLoaded', function() {
     bindExpenseItemClickEvents();
 });
+
+
+
+
+
+
+function loadReceipts() {
+    const receiptsList = document.getElementById('receiptsList');
+    
+    receiptsList.innerHTML = '<div class="no-receipts">読み込み中...</div>';
+    
+    fetch(`/driver/advance-payment/receipts/${currentItineraryId}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.receipts && data.receipts.length > 0) {
+            let html = '';
+            data.receipts.forEach((receipt) => {
+                html += `
+                    <div class="receipt-item" data-receipt-id="${receipt.id}">
+                        <img src="${receipt.url}" class="receipt-image" onclick="viewReceiptImage('${receipt.url}')">
+                        <button class="receipt-delete" onclick="deleteReceipt(${receipt.id}, event)">×</button>
+                    </div>
+                `;
+            });
+            receiptsList.innerHTML = html;
+        } else {
+            receiptsList.innerHTML = '<div class="no-receipts">📷 領収書はありません</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        receiptsList.innerHTML = '<div class="no-receipts">読み込みエラー</div>';
+    });
+}
+
+function uploadReceipt() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/jpeg,image/png,image/jpg';
+    fileInput.multiple = true;
+    
+    fileInput.onchange = function(e) {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+        
+        const uploadBtn = document.getElementById('uploadReceiptBtn');
+        const originalText = uploadBtn.innerHTML;
+        let uploadedCount = 0;
+        const totalFiles = files.length;
+        
+        uploadBtn.innerHTML = `アップロード中... (0/${totalFiles})`;
+        uploadBtn.disabled = true;
+        
+        Array.from(files).forEach((file) => {
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`ファイル ${file.name} は5MB以下にしてください`);
+                uploadedCount++;
+                if (uploadedCount === totalFiles) {
+                    uploadBtn.innerHTML = originalText;
+                    uploadBtn.disabled = false;
+                }
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('receipt_image', file);
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+            formData.append('itinerary_id', currentItineraryId);
+            
+            fetch('/driver/advance-payment/receipts', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                uploadedCount++;
+                uploadBtn.innerHTML = `アップロード中... (${uploadedCount}/${totalFiles})`;
+                
+                if (uploadedCount === totalFiles) {
+                    uploadBtn.innerHTML = originalText;
+                    uploadBtn.disabled = false;
+                    loadReceipts();
+                }
+                
+                if (!data.success) {
+                    alert(`${file.name}: ${data.message || 'アップロードに失敗しました'}`);
+                }
+            })
+            .catch(error => {
+                uploadedCount++;
+                console.error('Error:', error);
+                alert(`${file.name}: アップロードに失敗しました`);
+                
+                if (uploadedCount === totalFiles) {
+                    uploadBtn.innerHTML = originalText;
+                    uploadBtn.disabled = false;
+                }
+            });
+        });
+    };
+    
+    fileInput.click();
+}
+
+function deleteReceipt(receiptId, event) {
+    event.stopPropagation();
+    
+    if (!confirm('この領収書を削除してもよろしいですか？')) {
+        return;
+    }
+    
+    fetch(`/driver/advance-payment/receipts/${receiptId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadReceipts();
+        } else {
+            alert(data.message || '削除に失敗しました');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('削除に失敗しました');
+    });
+}
+
+function viewReceiptImage(imageUrl) {
+    let modal = document.getElementById('imageViewModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'imageViewModal';
+        modal.className = 'image-modal';
+        modal.innerHTML = `
+            <button class="image-modal-close" onclick="closeImageViewModal()">×</button>
+            <img id="imageViewImg" src="">
+        `;
+        document.body.appendChild(modal);
+    }
+    const img = document.getElementById('imageViewImg');
+    img.src = imageUrl;
+    modal.classList.add('show');
+}
+
+function closeImageViewModal() {
+    const modal = document.getElementById('imageViewModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('imageViewModal');
+    if (modal && modal.classList.contains('show') && e.target === modal) {
+        closeImageViewModal();
+    }
+});
+
+document.getElementById('uploadReceiptBtn')?.addEventListener('click', function() {
+    uploadReceipt();
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadReceipts();
+});
+
 </script>
 @endpush

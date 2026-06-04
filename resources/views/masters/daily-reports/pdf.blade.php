@@ -10,14 +10,14 @@
     table {
         border-collapse: collapse;
         width: 100%;
-        font-size: 11pt;
+        font-size: 10pt;
     }
     th, td {
         text-align: center; 
         border: 1px solid #000;
         padding: 3px;
         vertical-align: middle;
-        font-size: 11pt;
+        font-size: 10pt;
         line-height: 150%;
         height: 20pt;
         word-break: break-all;
@@ -25,7 +25,7 @@
     }
     th {
         background-color: #f0f0f0;
-        font-weight: bold;
+        font-weight: 500;
     }
     .bg-gray {
         background-color: #f5f5f5;
@@ -61,7 +61,7 @@
         float: left;
         width: 50%;
         font-size: 24pt;
-        font-weight: bold;
+        /*font-weight: bold;*/
     }
     .header .c2 {
         text-align: right;

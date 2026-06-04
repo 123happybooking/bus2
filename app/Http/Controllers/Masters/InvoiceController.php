@@ -570,7 +570,7 @@ public function store(Request $request)
 
         DB::commit();
         DB::setDefaultConnection('mysql'); 
-        GenerateRequestPdfJob::dispatch($invoiceId,auth()->user()->id);
+        // GenerateRequestPdfJob::dispatch($invoiceId,auth()->user()->id);
         return redirect()->route('masters.invoices.edit', [
                 'invoice' => $invoiceId, // 假设你的路由参数名是 {invoice} 或 {id}
                 'group_id' => $validated['group_id'] // 保留 group_id 参数，防止筛选条件丢失
@@ -1467,26 +1467,34 @@ public function store(Request $request)
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
+            'margin_left' => 10,      // 左边距 15mm
+            'margin_right' => 10,     // 右边距 15mm
+            'margin_top' => 10,       // 上边距 20mm
+            'margin_bottom' => 10,    // 下边距 20mm
+            'margin_header' => 5,     // 页眉边距 5mm
+            'margin_footer' => 10,    // 页脚边距 10mm
             'margin_footer' => 10,
             'tempDir' => sys_get_temp_dir(),
             'fontDir' => [
-                base_path('vendor/mpdf/mpdf/ttfonts'),
                 storage_path('fonts'),
             ],
             'fontdata' => [
-                'ipaexgothic' => [
-                    'R' => 'ipaexgothic.ttf',
-                    'B' => 'ipaexgothic.ttf',
-                    'useOTL' => 0x80,
+                'msyh' => [
+                    'R' => 'msyh.ttf',
+                    'B' => 'msyhbd.ttf',
                 ],
-                'ipaexmincho' => [
-                    'R' => 'ipaexmincho.ttf',
-                    'B' => 'ipaexmincho.ttf',
-                    'useOTL' => 0x80,
+                'genshin' => [
+                    'R' => 'GenShinGothic-Normal.ttf',
+                    'B' => 'GenShinGothic-Bold.ttf',
                 ],
             ],
-            'default_font' => 'ipaexgothic',
+            'default_font' => 'msyh',
+            
+            'autoScriptToLang'  => true,
+            'autoLangToFont'    => true,
+            'useSubstitutions'  => true,
         ]);
+        
         
         // $mpdf = new Mpdf([
         //     'mode' => 'utf-8',
@@ -1498,13 +1506,18 @@ public function store(Request $request)
         //         storage_path('fonts'),
         //     ],
         //     'fontdata' => [
-        //         'genshin' => [
-        //             'R' => 'GenShinGothic-Normal.ttf',
-        //             'B' => 'GenShinGothic-Bold.ttf',
+        //         'ipaexgothic' => [
+        //             'R' => 'ipaexgothic.ttf',
+        //             'B' => 'ipaexgothic.ttf',
+        //             'useOTL' => 0x80,
+        //         ],
+        //         'ipaexmincho' => [
+        //             'R' => 'ipaexmincho.ttf',
+        //             'B' => 'ipaexmincho.ttf',
         //             'useOTL' => 0x80,
         //         ],
         //     ],
-        //     'default_font' => 'genshin',
+        //     'default_font' => 'ipaexgothic',
         // ]);
         
         $mpdf->shrink_tables_to_fit = 0;
@@ -1556,6 +1569,12 @@ public function store(Request $request)
             $billTo = $invoice->agency->bill_to;
         }
         
+        $groupName = '';
+        if ($invoice->reservation_id) {
+            $groupInfo = DB::table('group_info')->where('id', $invoice->reservation_id)->first();
+            $groupName = $groupInfo->group_name ?? '';
+        }
+        
         return [
             'invoice' => (object)[
                 'billing_title' => $invoice->billing_title,
@@ -1571,6 +1590,7 @@ public function store(Request $request)
                 'tax_mode' => $invoice->tax_mode,
                 'currency_code' => $invoice->currency_code,
                 'non_taxable' => $non_taxable,
+                'group_name' => $groupName,
             ],
             'summary_10' => $summary_10,
             'summary_8' => $summary_8,

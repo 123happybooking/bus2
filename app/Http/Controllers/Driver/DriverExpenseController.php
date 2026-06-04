@@ -5,9 +5,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Driver\DriverExpense;
 use App\Models\Driver\DriverExpenseType;
 use App\Models\Driver\DriverPaymentMethod;
+use App\Models\Driver\DriverExpensesReceipt;
 use App\Models\Masters\DailyItinerary;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class DriverExpenseController extends Controller
 {
@@ -197,4 +199,101 @@ class DriverExpenseController extends Controller
             'expenses' => $formattedExpenses
         ]);
     }
+    
+    
+    
+    
+    
+    
+    
+    public function getReceipts($itineraryId)
+    {
+        $driverId = session('driver_id');
+        
+        if (!$driverId) {
+            return response()->json(['success' => false, 'message' => '認証エラー'], 401);
+        }
+        
+        $receipts = DriverExpensesReceipt::where('driver_id', $driverId)
+            ->where('itinerary_id', $itineraryId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $formattedReceipts = [];
+        foreach ($receipts as $receipt) {
+            $formattedReceipts[] = [
+                'id' => $receipt->id,
+                'url' => asset('storage/' . $receipt->image_path),
+            ];
+        }
+        
+        return response()->json([
+            'success' => true,
+            'receipts' => $formattedReceipts,
+        ]);
+    }
+    
+    public function uploadReceipt(Request $request)
+    {
+        $driverId = session('driver_id');
+        
+        if (!$driverId) {
+            return response()->json(['success' => false, 'message' => '認証エラー'], 401);
+        }
+        
+        $request->validate([
+            'receipt_image' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+            'itinerary_id' => 'required|exists:daily_itinerary,id',
+        ]);
+        
+        $itinerary = DailyItinerary::findOrFail($request->itinerary_id);
+        $busAssignmentId = $itinerary->bus_assignment_id;
+        $expenseDate = $itinerary->date;
+        
+        $file = $request->file('receipt_image');
+        $filename = now()->format('Ymd_His') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('receipts/' . now()->format('Y/m'), $filename, 'public');
+        
+        $receipt = DriverExpensesReceipt::create([
+            'bus_assignment_id' => $busAssignmentId,
+            'itinerary_id' => $request->itinerary_id,
+            'driver_id' => $driverId,
+            'expense_date' => $expenseDate,
+            'image_path' => $path,
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => '領収書をアップロードしました',
+            'receipt' => [
+                'id' => $receipt->id,
+                'url' => asset('storage/' . $path),
+            ],
+        ]);
+    }
+
+    public function deleteReceipt($id)
+    {
+        $driverId = session('driver_id');
+        
+        if (!$driverId) {
+            return response()->json(['success' => false, 'message' => '認証エラー'], 401);
+        }
+        
+        $receipt = DriverExpensesReceipt::where('id', $id)
+            ->where('driver_id', $driverId)
+            ->firstOrFail();
+        
+        if (Storage::disk('public')->exists($receipt->image_path)) {
+            Storage::disk('public')->delete($receipt->image_path);
+        }
+        
+        $receipt->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => '削除しました',
+        ]);
+    }
+    
 }

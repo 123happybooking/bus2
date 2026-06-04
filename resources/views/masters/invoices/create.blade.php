@@ -156,7 +156,7 @@
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="reservation_id" class="form-label mb-0" style="font-size: 0.75rem;">予約 ID</label>
-                                        <input type="text" class="form-control form-control-sm" id="reservation_id" name="reservation_id" value="{{ old('reservation_id') }}" style="font-size: 0.875rem;">
+                                        <input type="text" class="form-control form-control-sm" id="reservation_id" name="reservation_id" value="{{ old('reservation_id', request('group_id')) }}" style="font-size: 0.875rem;">
                                     </div>
                                 </div>
                             </div>

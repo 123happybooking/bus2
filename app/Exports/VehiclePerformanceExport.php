@@ -32,7 +32,7 @@ class VehiclePerformanceExport implements FromArray, WithEvents
         $data = [];
         
         $dateCount = count($this->dates);
-        $lastColumnIndex = $dateCount + 2; // +2 因为增加了合计列
+        $lastColumnIndex = $dateCount + 2;
         
         $exportTypeText = '';
         if (in_array('count', $this->exportOptions) && in_array('workload', $this->exportOptions)) {
@@ -64,15 +64,13 @@ class VehiclePerformanceExport implements FromArray, WithEvents
         $row2[$lastColumnIndex - 1] = $today . '    ' . $this->username;
         $data[] = $row2;
         
-        // 表头 - 添加合计列
         $headerRow = ['車両名'];
         foreach ($this->dates as $date) {
             $headerRow[] = $date['display'];
         }
-        $headerRow[] = '合計';  // 添加合计列表头
+        $headerRow[] = '合計';
         $data[] = $headerRow;
         
-        // 数据行 - 计算每行合计
         foreach ($this->vehicles as $vehicle) {
             $row = [$vehicle->registration_number];
             $rowTotalCount = 0;
@@ -88,7 +86,6 @@ class VehiclePerformanceExport implements FromArray, WithEvents
                 $exportCount = in_array('count', $this->exportOptions);
                 $exportWorkload = in_array('workload', $this->exportOptions);
                 
-                // 0值显示为空
                 $displayCount = ($stat['count'] != 0) ? $stat['count'] : '';
                 $displayWorkload = ($stat['workload'] != 0) ? $stat['workload'] : '';
                 
@@ -107,7 +104,6 @@ class VehiclePerformanceExport implements FromArray, WithEvents
                 }
             }
             
-            // 添加该行的合计
             $formattedRowTotalWorkload = is_numeric($rowTotalWorkload) && floor($rowTotalWorkload) == $rowTotalWorkload 
                 ? (int)$rowTotalWorkload 
                 : $rowTotalWorkload;
@@ -135,7 +131,6 @@ class VehiclePerformanceExport implements FromArray, WithEvents
             $data[] = $row;
         }
         
-        // 合计行 - 计算每天的总计和总结算
         $totalRow = ['合計'];
         $dailyTotals = [];
         $grandTotalCount = 0;
@@ -185,7 +180,6 @@ class VehiclePerformanceExport implements FromArray, WithEvents
             }
         }
         
-        // 添加总结算到合计行
         $formattedGrandTotalWorkload = is_numeric($grandTotalWorkload) && floor($grandTotalWorkload) == $grandTotalWorkload 
             ? (int)$grandTotalWorkload 
             : $grandTotalWorkload;
@@ -221,7 +215,7 @@ class VehiclePerformanceExport implements FromArray, WithEvents
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
                 $dateCount = count($this->dates);
-                $lastColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dateCount + 2); // +2 因为有合计列
+                $lastColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dateCount + 2);
                 
                 $dataRowCount = count($this->vehicles) + 1;
                 $lastRow = 3 + $dataRowCount;

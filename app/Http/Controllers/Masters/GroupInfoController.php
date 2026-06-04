@@ -3933,20 +3933,29 @@ class GroupInfoController extends Controller
         
         $html = view('masters.group-infos.bus-assignment-pdf', $data)->render();
         
-        $mpdf = new \Mpdf\Mpdf([
+        $mpdf = new Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
             'margin_footer' => 10,
             'tempDir' => sys_get_temp_dir(),
             'fontDir' => [
-                base_path('vendor/mpdf/mpdf/ttfonts'),
                 storage_path('fonts'),
             ],
             'fontdata' => [
-                'ipaexgothic' => ['R' => 'ipaexgothic.ttf', 'useOTL' => 0x80],
-                'ipaexmincho' => ['R' => 'ipaexmincho.ttf', 'useOTL' => 0x80],
+                'msyh' => [
+                    'R' => 'msyh.ttf',
+                    'B' => 'msyhbd.ttf',
+                ],
+                'genshin' => [
+                    'R' => 'GenShinGothic-Normal.ttf',
+                    'B' => 'GenShinGothic-Bold.ttf',
+                ],
             ],
-            'default_font' => 'ipaexgothic'
+            'default_font' => 'msyh',
+            
+            'autoScriptToLang'  => true,
+            'autoLangToFont'    => true,
+            'useSubstitutions'  => true,
         ]);
         
         $mpdf->shrink_tables_to_fit = 0;

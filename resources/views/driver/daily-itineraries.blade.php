@@ -11,7 +11,7 @@
         <div class="page-title">{{ $formattedDate }}</div>
         <div class="header-right">
             <button class="report-btn" id="reportBtn">
-                运行日报
+                運行日報
             </button>
         </div>
     </div>

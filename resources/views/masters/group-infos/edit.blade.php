@@ -227,7 +227,8 @@
                     <div class="col-md-6" style="width:40%; padding-right: 5px; padding-left: 5px;">
                         <div class="tab-container">
                             <div class="d-flex w-100" style="border-bottom: 1px solid #aaa;">
-                                <span class="tab-item active flex-fill text-center px-2 py-1" data-tab="basic" style="background-color: white; border: 1px solid #aaa; border-bottom-color: white; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #374151; font-size: 0.8rem; cursor: pointer;">基本</span>
+                                <span class="tab-item active flex-fill text-center px-2 py-1" data-tab="invoice" style="background-color: white; border: 1px solid #aaa; border-bottom-color: white; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #374151; font-size: 0.8rem; cursor: pointer;">請求書</span>
+                                <span class="tab-item inactive flex-fill text-center px-2 py-1" data-tab="basic" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">基本</span>
                                 <span class="tab-item inactive flex-fill text-center px-2 py-1" data-tab="customer" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">顧客</span>
                                 <span class="tab-item inactive flex-fill text-center px-2 py-1" data-tab="history" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">履歴</span>
                             </div>
@@ -236,7 +237,48 @@
 
                         <div id="tabContent" class="tab-content" style="border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 193px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;">
                             
-                            <div class="tab-pane active" id="basic-tab">
+                            <div class="tab-pane active" id="invoice-tab">
+                                <div style="height: 100%; display: flex; flex-direction: column;">
+                                    <div class="invoice-list-container" style="flex: 1; overflow-y: auto; margin-bottom: 10px; max-height: 130px;">
+                                        @php
+                                            $groupInvoices = App\Models\Masters\Invoice::where('reservation_id', $groupInfo->id)
+                                                ->orderBy('created_at', 'desc')
+                                                ->get();
+                                        @endphp
+                                        @if($groupInvoices->count() > 0)
+                                            <table class="table table-sm table-bordered" style="font-size: 10px; margin-bottom: 0;">
+                                                <thead style="background-color: #f3f4f6; text-align: center;">
+                                                    <tr>
+                                                        <th style="width: 40%;">タイトル</th>
+                                                        <th style="width: 30%;">合計金額</th>
+                                                        <th style="width: 30%;">未入金</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($groupInvoices as $inv)
+                                                    <tr>
+                                                        <td>{{ $inv->billing_title ?? '-' }}</td>
+                                                        <td class="text-end">{{ number_format($inv->total_amount) }}</td>
+                                                        <td class="text-end">{{ number_format($inv->total_amount - $inv->paid_amount) }}</td>
+                                                    </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        @else
+                                            <div class="text-center text-muted py-3" style="font-size: 11px;">
+                                                <i class="bi bi-file-text"></i> 請求書はありません
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="text-center">
+                                        <button type="button" id="btn-add-invoice" class="btn btn-sm btn-primary" style="font-size: 11px; padding: 4px 12px;">
+                                            <i class="bi bi-plus-lg"></i> 追加
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        
+                            <div class="tab-pane" id="basic-tab" style="display: none;">
                                 <div class="file-manager" style="display: flex; flex-direction: column; height: 100%;">
                                     <div class="file-list" id="file-list" style="flex: 1; overflow-y: auto; margin-bottom: 10px; min-height: 0;">
                                         @if($groupInfo->files && $groupInfo->files->count() > 0)
@@ -2510,6 +2552,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     async function submitForm(event) {
         event.preventDefault();
+        
+        document.querySelectorAll('.vehicle-detail-card').forEach(card => {
+            const guideSearchInput = card.querySelector('input[id^="guide_search_"]');
+            const guideIdHidden = card.querySelector('input[id^="guide_id_"]');
+            
+            if (guideSearchInput && guideIdHidden) {
+                const guideSearchValue = guideSearchInput.value.trim();
+                
+                if (guideSearchValue === '') {
+                    guideIdHidden.value = '';
+                }
+            }
+        });
         
         const disabledFields = document.querySelectorAll('[disabled]');
         disabledFields.forEach(field => {
@@ -5453,6 +5508,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+
+
+
+
+
 function bindPdfExportEvents() {
     document.querySelectorAll('.btn-pdf-export').forEach(btn => {
         btn.removeEventListener('click', btn._pdfHandler);
@@ -5471,9 +5531,25 @@ function bindPdfExportEvents() {
 
 
 
+const addInvoiceBtn = document.getElementById('btn-add-invoice');
+if (addInvoiceBtn) {
+    addInvoiceBtn.addEventListener('click', function() {
+        const groupId = {{ $groupInfo->id }};
+        const url = `/masters/invoices/create?group_id=12&group_id=${groupId}`;
         
+        const childWindow = window.open(url, 'invoice_create_window', 'width=760,height=600,toolbar=no,location=no,menubar=no,scrollbars=yes,resizable=yes');
         
-        
+        if (childWindow) {
+            const timer = setInterval(function() {
+                if (childWindow.closed) {
+                    clearInterval(timer);
+                    location.reload();
+                }
+            }, 500);
+        }
+    });
+}
+
 
 
 

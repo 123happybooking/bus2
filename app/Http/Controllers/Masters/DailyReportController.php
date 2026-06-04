@@ -399,20 +399,23 @@ class DailyReportController extends Controller
             'margin_footer' => 10,
             'tempDir' => sys_get_temp_dir(),
             'fontDir' => [
-                base_path('vendor/mpdf/mpdf/ttfonts'),
                 storage_path('fonts'),
             ],
             'fontdata' => [
-                'ipaexgothic' => [
-                    'R' => 'ipaexgothic.ttf',
-                    'useOTL' => 0x80,
+                'msyh' => [
+                    'R' => 'msyh.ttf',
+                    'B' => 'msyhbd.ttf',
                 ],
-                'ipaexmincho' => [
-                    'R' => 'ipaexmincho.ttf',
-                    'useOTL' => 0x80,
+                'genshin' => [
+                    'R' => 'GenShinGothic-Normal.ttf',
+                    'B' => 'GenShinGothic-Bold.ttf',
                 ],
             ],
-            'default_font' => 'ipaexgothic',
+            'default_font' => 'msyh',
+            
+            'autoScriptToLang'  => true,
+            'autoLangToFont'    => true,
+            'useSubstitutions'  => true,
         ]);
         
         $mpdf->shrink_tables_to_fit = 0;

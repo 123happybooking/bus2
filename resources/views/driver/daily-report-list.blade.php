@@ -1,6 +1,6 @@
 @extends('layouts.driver')
 
-@section('title', '运行日报')
+@section('title', '運行日報')
 
 @section('content')
 <div class="mobile-container">
@@ -10,7 +10,7 @@
         </button>
         <div class="page-title">{{ $dateTitle }}</div>
         <div class="header-right">
-            <div class="page-subtitle">运行日报</div>
+            <div class="page-subtitle">運行日報</div>
         </div>
     </div>
 

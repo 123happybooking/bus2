@@ -1701,20 +1701,29 @@ class BusAssignmentController extends Controller
             }
         }
         
-        $mpdf = new \Mpdf\Mpdf([
+        $mpdf = new Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
             'margin_footer' => 10,
             'tempDir' => sys_get_temp_dir(),
             'fontDir' => [
-                base_path('vendor/mpdf/mpdf/ttfonts'),
                 storage_path('fonts'),
             ],
             'fontdata' => [
-                'ipaexgothic' => ['R' => 'ipaexgothic.ttf', 'useOTL' => 0x80],
-                'ipaexmincho' => ['R' => 'ipaexmincho.ttf', 'useOTL' => 0x80],
+                'msyh' => [
+                    'R' => 'msyh.ttf',
+                    'B' => 'msyhbd.ttf',
+                ],
+                'genshin' => [
+                    'R' => 'GenShinGothic-Normal.ttf',
+                    'B' => 'GenShinGothic-Bold.ttf',
+                ],
             ],
-            'default_font' => 'ipaexgothic',
+            'default_font' => 'msyh',
+            
+            'autoScriptToLang'  => true,
+            'autoLangToFont'    => true,
+            'useSubstitutions'  => true,
         ]);
         
         $mpdf->shrink_tables_to_fit = 0;
@@ -1777,9 +1786,9 @@ class BusAssignmentController extends Controller
             if ($userCompany) {
                 $companyInfo['name'] = $userCompany->user_company_name ?? '';
                 $companyInfo['tel'] = $userCompany->phone_number ?? '';
-                if (!empty($userCompany->setup_company_seal)) {
-                    $logoPath = storage_path('app/public/' . $userCompany->setup_company_seal);
-                    $companyLogo = url('/storage/' . $userCompany->setup_company_seal);
+                if (!empty($userCompany->company_logo)) {
+                    $logoPath = storage_path('app/public/' . $userCompany->company_logo);
+                    $companyLogo = url('/storage/' . $userCompany->company_logo);
                 }
             }
         } catch (\Exception $e) {}
