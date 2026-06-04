@@ -107,7 +107,7 @@
                         @if($company->setup_company_seal)
                         <tr>
                             <td stlye="text-align: right;">
-                                <img src="{{ $company->setup_company_seal }}" style="height: 80pt; width: 80pt; margin: -60pt -20pt 0 0;">
+                                <img src="{{ $company->setup_company_seal }}" style="height: 100pt; width: 100pt; margin: -80pt -20pt 0 0;">
                             </td>
                         </tr>
                         @endif
