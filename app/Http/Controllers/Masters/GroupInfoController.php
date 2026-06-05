@@ -15,6 +15,7 @@ use App\Models\Masters\Branch;
 use App\Models\Masters\GroupInfoDateRemark;
 use App\Models\Masters\BusAssignmentLog;
 use App\Models\Masters\VehicleGrade;
+use App\Models\Masters\Location;
 use App\Models\Masters\Option;
 use App\Models\Masters\GroupInfoFile;
 use App\Models\Masters\DriverCompensation;
@@ -948,6 +949,8 @@ class GroupInfoController extends Controller
                                         
         $vehicleGrades = VehicleGrade::orderBy('id')->get();
         
+        $locations = Location::orderBy('name')->get();
+        
         $groupedItineraries = [];
         $uniqueVehicles = [];
 
@@ -1103,7 +1106,8 @@ class GroupInfoController extends Controller
             'expenseTypes',
             'paymentMethods',
             'staffs',
-            'countries'
+            'countries',
+            'locations'
         ));
     }
 

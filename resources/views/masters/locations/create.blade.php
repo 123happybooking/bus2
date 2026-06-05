@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '新規地域登録')
+@section('title', '場所施設新規登録')
 
 @section('content')
 <div class="container-fluid">
@@ -9,7 +9,7 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('masters.home') }}">ホーム</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('masters.locations.index') }}">地域管理</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('masters.locations.index') }}">場所施設管理</a></li>
                     <li class="breadcrumb-item active" aria-current="page">新規登録</li>
                 </ol>
             </nav>
@@ -42,10 +42,10 @@
                 </div>
             @endif
             
-            <div class="card shadow-sm">
+            <div class="card shadow-sm card-edit">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-geo-alt-plus"></i> 新規地域登録
+                        <i class="bi bi-geo-alt"></i> 場所施設新規登録
                     </h5>
                 </div>
                 
@@ -53,67 +53,78 @@
                     <form action="{{ route('masters.locations.store') }}" method="POST" id="locationForm">
                         @csrf
                         
-                        <h6 class="mb-3 border-bottom pb-2">基本情報</h6>
-                        
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="location_code" class="form-label required">地域コード</label>
-                                <input type="text" class="form-control @error('location_code') is-invalid @enderror" id="location_code" name="location_code" value="{{ old('location_code') }}" required maxlength="20" placeholder="例: LOC001">
-                                @error('location_code')
+                            <div class="col-md-6">
+                                <label for="area" class="form-label">地区</label>
+                                <input type="text" class="form-control @error('area') is-invalid @enderror" 
+                                       id="area" name="area" 
+                                       value="{{ old('area') }}" 
+                                       maxlength="100" placeholder="例: 東京">
+                                @error('area')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 20文字以内、他と重複不可</small>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
-                                <label for="location_name" class="form-label required">地域名</label>
-                                <input type="text" class="form-control @error('location_name') is-invalid @enderror" id="location_name" name="location_name" value="{{ old('location_name') }}" required maxlength="100" placeholder="例: 東京地区">
-                                @error('location_name')
+                            <div class="col-md-6">
+                                <label for="category" class="form-label">分類</label>
+                                <input type="text" class="form-control @error('category') is-invalid @enderror" 
+                                       id="category" name="category" 
+                                       value="{{ old('category') }}" 
+                                       maxlength="100" placeholder="例: 観光施設">
+                                @error('category')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 100文字以内</small>
                             </div>
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="location_kana" class="form-label">地域名（カナ）</label>
-                                <input type="text" class="form-control @error('location_kana') is-invalid @enderror" id="location_kana" name="location_kana" value="{{ old('location_kana') }}" maxlength="100" placeholder="例: トウキョウチク">
-                                @error('location_kana')
+                            <div class="col-md-12">
+                                <label for="name" class="form-label required">施設名</label>
+                                <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                       id="name" name="name" 
+                                       value="{{ old('name') }}" 
+                                       required maxlength="200" placeholder="例: 東京タワー">
+                                @error('name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 100文字以内</small>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="display_order" class="form-label">表示順</label>
-                                <input type="number" class="form-control @error('display_order') is-invalid @enderror" id="display_order" name="display_order" value="{{ old('display_order') }}" min="0" placeholder="例: 10">
-                                @error('display_order')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-text text-muted">※ 数値を入力（未設定の場合は自動設定）</small>
                             </div>
                         </div>
                         
-                        <h6 class="mb-3 border-bottom pb-2 mt-4">地域情報</h6>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label for="address" class="form-label">住所</label>
+                                <input type="text" class="form-control @error('address') is-invalid @enderror" 
+                                       id="address" name="address" 
+                                       value="{{ old('address') }}" 
+                                       maxlength="500" placeholder="例: 東京都港区芝公園4-2-8">
+                                @error('address')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="prefecture" class="form-label required">都道府県</label>
-                                <input type="text" class="form-control @error('prefecture') is-invalid @enderror" id="prefecture" name="prefecture" value="{{ old('prefecture') }}" required maxlength="10" placeholder="例: 東京都">
-                                @error('prefecture')
+                            <div class="col-md-12">
+                                <label for="phone" class="form-label">電話番号</label>
+                                <input type="tel" class="form-control @error('phone') is-invalid @enderror" 
+                                       id="phone" name="phone" 
+                                       value="{{ old('phone') }}" 
+                                       maxlength="50" placeholder="例: 03-1234-5678">
+                                @error('phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 10文字以内</small>
                             </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="area_type" class="form-label required">エリアタイプ</label>
-                                <input type="text" class="form-control @error('area_type') is-invalid @enderror" id="area_type" name="area_type" value="{{ old('area_type') }}" required maxlength="20" placeholder="例: 首都圏">
-                                @error('area_type')
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label for="remark" class="form-label">備考</label>
+                                <textarea class="form-control @error('remark') is-invalid @enderror" 
+                                          id="remark" name="remark" 
+                                          rows="3" maxlength="500">{{ old('remark') }}</textarea>
+                                @error('remark')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">※ 20文字以内</small>
                             </div>
                         </div>
                         

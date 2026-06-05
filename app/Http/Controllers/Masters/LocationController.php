@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Masters;
 use App\Http\Controllers\Controller;
 use App\Models\Masters\Location;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class LocationController extends Controller
 {
@@ -13,22 +12,19 @@ class LocationController extends Controller
     {
         $query = Location::query();
         
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
+        if ($request->has('search')) {
+            $search = $request->input('search');
             $query->where(function($q) use ($search) {
-                $q->where('location_code', 'like', "%{$search}%")
-                  ->orWhere('location_name', 'like', "%{$search}%")
-                  ->orWhere('location_kana', 'like', "%{$search}%")
-                  ->orWhere('prefecture', 'like', "%{$search}%")
-                  ->orWhere('area_type', 'like', "%{$search}%");
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('area', 'LIKE', "%{$search}%")
+                  ->orWhere('category', 'LIKE', "%{$search}%")
+                  ->orWhere('address', 'LIKE', "%{$search}%")
+                  ->orWhere('phone', 'LIKE', "%{$search}%");
             });
         }
         
-        $locations = $query->orderBy('display_order')->paginate(20);
-        
-        if ($request->has('search')) {
-            $locations->appends(['search' => $request->search]);
-        }
+        $perPage = $request->input('per_page', 20);
+        $locations = $query->orderBy('id', 'desc')->paginate($perPage);
         
         return view('masters.locations.index', compact('locations'));
     }
@@ -41,134 +37,102 @@ class LocationController extends Controller
     public function store(Request $request)
     {
         $rules = [
-            'location_code' => 'required|string|max:20|unique:locations,location_code',
-            'location_name' => 'required|string|max:100',
-            'location_kana' => 'nullable|string|max:100',
-            'prefecture' => 'required|string|max:10',
-            'area_type' => 'required|string|max:20',
-            'display_order' => 'nullable|integer|min:0',
+            'area' => 'nullable|string|max:100',
+            'category' => 'nullable|string|max:100',
+            'name' => 'required|string|max:200',
+            'address' => 'nullable|string|max:500',
+            'phone' => 'nullable|string|max:50',
+            'remark' => 'nullable|string|max:500',
         ];
 
         $messages = [
-            'location_code.required' => '地域コードは必須です。',
-            'location_code.unique' => 'この地域コードは既に使用されています。',
-            'location_code.max' => '地域コードは20文字以内で入力してください。',
-            'location_name.required' => '地域名は必須です。',
-            'location_name.max' => '地域名は100文字以内で入力してください。',
-            'location_kana.max' => '地域名（カナ）は100文字以内で入力してください。',
-            'prefecture.required' => '都道府県は必須です。',
-            'prefecture.max' => '都道府県は10文字以内で入力してください。',
-            'area_type.required' => 'エリアタイプは必須です。',
-            'area_type.max' => 'エリアタイプは20文字以内で入力してください。',
-            'display_order.integer' => '表示順序は数値で入力してください。',
-            'display_order.min' => '表示順序は0以上の数値で入力してください。',
+            'name.required' => '施設名は必須です。',
+            'name.max' => '施設名は200文字以内で入力してください。',
+            'area.max' => '地区は100文字以内で入力してください。',
+            'category.max' => '分類は100文字以内で入力してください。',
+            'address.max' => '住所は500文字以内で入力してください。',
+            'phone.max' => '電話番号は50文字以内で入力してください。',
+            'remark.max' => '備考は500文字以内で入力してください。',
         ];
 
         $validated = $request->validate($rules, $messages);
 
-        if (!isset($validated['display_order']) || $validated['display_order'] === null) {
-            $maxOrder = Location::max('display_order');
-            $validated['display_order'] = ($maxOrder !== null) ? $maxOrder + 1 : 1;
-        }
-
         try {
-            Location::create($validated);
-
-            return redirect()->route('masters.locations.index')
-                ->with([
-                    'success' => '地域を登録しました。',
-                    'alert-type' => 'success'
+            $location = Location::create($validated);
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => '登録しました',
+                    'location' => $location
                 ]);
-
+            }
+            
+            return redirect()->route('masters.locations.index')->with('success', '場所施設を登録しました。');
+            
         } catch (\Exception $e) {
-            return redirect()->back()
-                ->withInput()
-                ->with([
-                    'error' => '登録に失敗しました。システムエラーが発生しました。',
-                    'alert-type' => 'danger'
-                ]);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '保存に失敗しました: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return back()->with('error', '保存に失敗しました')->withInput();
         }
     }
 
-    public function show(Location $location)
+    public function show($id)
     {
+        $location = Location::findOrFail($id);
         return view('masters.locations.show', compact('location'));
     }
 
-    public function edit(Location $location)
+    public function edit($id)
     {
+        $location = Location::findOrFail($id);
         return view('masters.locations.edit', compact('location'));
     }
 
-    public function update(Request $request, Location $location)
+    public function update(Request $request, $id)
     {
         $rules = [
-            'location_code' => [
-                'required',
-                'string',
-                'max:20',
-                Rule::unique('locations')->ignore($location->id),
-            ],
-            'location_name' => 'required|string|max:100',
-            'location_kana' => 'nullable|string|max:100',
-            'prefecture' => 'required|string|max:10',
-            'area_type' => 'required|string|max:20',
-            'display_order' => 'nullable|integer|min:0',
+            'area' => 'nullable|string|max:100',
+            'category' => 'nullable|string|max:100',
+            'name' => 'required|string|max:200',
+            'address' => 'nullable|string|max:500',
+            'phone' => 'nullable|string|max:50',
+            'remark' => 'nullable|string|max:500',
         ];
 
         $messages = [
-            'location_code.required' => '地域コードは必須です。',
-            'location_code.unique' => 'この地域コードは既に使用されています。',
-            'location_code.max' => '地域コードは20文字以内で入力してください。',
-            'location_name.required' => '地域名は必須です。',
-            'location_name.max' => '地域名は100文字以内で入力してください。',
-            'location_kana.max' => '地域名（カナ）は100文字以内で入力してください。',
-            'prefecture.required' => '都道府県は必須です。',
-            'prefecture.max' => '都道府県は10文字以内で入力してください。',
-            'area_type.required' => 'エリアタイプは必須です。',
-            'area_type.max' => 'エリアタイプは20文字以内で入力してください。',
-            'display_order.integer' => '表示順序は数値で入力してください。',
-            'display_order.min' => '表示順序は0以上の数値で入力してください。',
+            'name.required' => '施設名は必須です。',
+            'name.max' => '施設名は200文字以内で入力してください。',
+            'area.max' => '地区は100文字以内で入力してください。',
+            'category.max' => '分類は100文字以内で入力してください。',
+            'address.max' => '住所は500文字以内で入力してください。',
+            'phone.max' => '電話番号は50文字以内で入力してください。',
+            'remark.max' => '備考は500文字以内で入力してください。',
         ];
 
         $validated = $request->validate($rules, $messages);
 
-        try {
-            $location->update($validated);
+        $location = Location::findOrFail($id);
+        $location->update($validated);
 
-            return redirect()->route('masters.locations.index')
-                ->with([
-                    'success' => '地域情報を更新しました。',
-                    'alert-type' => 'success'
-                ]);
-
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->withInput()
-                ->with([
-                    'error' => '更新に失敗しました。システムエラーが発生しました。',
-                    'alert-type' => 'danger'
-                ]);
-        }
+        return redirect()->route('masters.locations.index')->with('success', '場所施設を更新しました。');
     }
 
-    public function destroy(Location $location)
+    public function destroy($id)
     {
-        try {
-            $location->delete();
+        $location = Location::findOrFail($id);
+        $location->delete();
 
-            return redirect()->route('masters.locations.index')
-                ->with([
-                    'success' => '地域を削除しました。',
-                    'alert-type' => 'success'
-                ]);
-
-        } catch (\Exception $e) {
-            return redirect()->route('masters.locations.index')
-                ->with([
-                    'error' => '削除に失敗しました。システムエラーが発生しました。',
-                    'alert-type' => 'danger'
-                ]);
-        }
+        return redirect()->route('masters.locations.index')->with('success', '場所施設を削除しました。');
+    }
+    
+    public function createWin()
+    {
+        return view('masters.locations.create_win');
     }
 }

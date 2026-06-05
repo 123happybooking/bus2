@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '地域詳細: ' . $location->location_name)
+@section('title', '場所施設詳細: ' . $location->name)
 
 @section('content')
 <div class="container-fluid">
@@ -9,8 +9,8 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('masters.home') }}">ホーム</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('masters.locations.index') }}">地域管理</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">詳細: {{ $location->location_name }}</li>
+                    <li class="breadcrumb-item"><a href="{{ route('masters.locations.index') }}">場所施設管理</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">詳細: {{ $location->name }}</li>
                 </ol>
             </nav>
             
@@ -28,10 +28,10 @@
                 </div>
             @endif
             
-            <div class="card shadow-sm">
+            <div class="card shadow-sm card-edit">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
-                        <i class="bi bi-geo-alt"></i> 地域詳細
+                        <i class="bi bi-geo-alt"></i> 場所施設詳細
                     </h5>
                     <div>
                         <a href="{{ route('masters.locations.edit', $location) }}" class="btn btn-light btn-sm">
@@ -48,46 +48,41 @@
                         <div class="col-md-6">
                             <h6 class="border-bottom pb-2 mb-3">基本情報</h6>
                             <dl class="row">
-                                <dt class="col-sm-4">地域コード</dt>
+                                <dt class="col-sm-4">施設名</dt>
                                 <dd class="col-sm-8">
-                                    <span class="badge bg-secondary">{{ $location->location_code }}</span>
+                                    <strong>{{ $location->name }}</strong>
                                 </dd>
                                 
-                                <dt class="col-sm-4">表示順</dt>
+                                <dt class="col-sm-4">地区</dt>
                                 <dd class="col-sm-8">
-                                    @if($location->display_order)
-                                        <span class="badge bg-info">{{ $location->display_order }}</span>
-                                    @else
-                                        <span class="text-muted">未設定</span>
-                                    @endif
+                                    {{ $location->area ?? '-' }}
                                 </dd>
                                 
-                                <dt class="col-sm-4">地域名</dt>
-                                <dd class="col-sm-8">{{ $location->location_name }}</dd>
-                                
-                                <dt class="col-sm-4">地域名（カナ）</dt>
+                                <dt class="col-sm-4">分類</dt>
                                 <dd class="col-sm-8">
-                                    @if($location->location_kana)
-                                        {{ $location->location_kana }}
-                                    @else
-                                        <span class="text-muted">未設定</span>
-                                    @endif
+                                    {{ $location->category ?? '-' }}
                                 </dd>
                             </dl>
                         </div>
                         
                         <div class="col-md-6">
-                            <h6 class="border-bottom pb-2 mb-3">地域情報</h6>
+                            <h6 class="border-bottom pb-2 mb-3">連絡先情報</h6>
                             <dl class="row">
-                                <dt class="col-sm-4">都道府県</dt>
+                                <dt class="col-sm-4">住所</dt>
                                 <dd class="col-sm-8">
-                                    <span class="badge bg-primary">{{ $location->prefecture }}</span>
+                                    @if($location->address)
+                                        <i class="bi bi-geo-alt-fill me-1"></i>{{ $location->address }}
+                                    @else
+                                        <span class="text-muted">未設定</span>
+                                    @endif
                                 </dd>
                                 
-                                <dt class="col-sm-4">エリアタイプ</dt>
+                                <dt class="col-sm-4">電話番号</dt>
                                 <dd class="col-sm-8">
-                                    @if($location->area_type)
-                                        <span class="badge bg-info">{{ $location->area_type }}</span>
+                                    @if($location->phone)
+                                        <a href="tel:{{ $location->phone }}" class="text-decoration-none">
+                                            <i class="bi bi-telephone me-1"></i>{{ $location->phone }}
+                                        </a>
                                     @else
                                         <span class="text-muted">未設定</span>
                                     @endif
@@ -95,6 +90,18 @@
                             </dl>
                         </div>
                     </div>
+                    
+                    @if($location->remark)
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <h6 class="border-bottom pb-2 mb-3">備考</h6>
+                            <dl class="row">
+                                <dt class="col-sm-2">備考</dt>
+                                <dd class="col-sm-10">{{ $location->remark }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    @endif
                     
                     <div class="row mt-4">
                         <div class="col-md-12">
@@ -125,7 +132,7 @@
                             }
                             </script>
                             <form action="{{ route('masters.locations.destroy', $location) }}" method="POST" 
-                                  class="d-inline" onsubmit="return confirmDelete('{{ $location->location_name }}')">
+                                  class="d-inline" onsubmit="return confirmDelete('{{ $location->name }}')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger">
@@ -152,6 +159,21 @@
 }
 .d-flex.gap-2 > *:last-child {
     margin-right: 0;
+}
+
+.card-edit .card-body dl {
+    margin-bottom: 0;
+}
+
+.card-edit .card-body dt {
+    font-weight: 500;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.card-edit .card-body dd {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
 }
 </style>
 @endpush

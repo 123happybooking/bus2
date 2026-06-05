@@ -804,15 +804,21 @@
                                             $itineraryBusId = $itinerary->bus_assignment_id ?? '';
                                         @endphp
                                         <tr class="itinerary-row" data-vehicle="{{ $vehicleIndex }}" data-index="{{ $globalIndex }}" data-bus-id="{{ $itineraryBusId }}" data-itinerary-id="{{ $itinerary->id }}">
-                                            <td style="vertical-align: middle; text-align: center; background-color: #f9f9f9; position: relative;">
+                                            <td style="vertical-align: middle; text-align: right; background-color: #f9f9f9; position: relative;">
                                                 <span class="row-number" style="position: absolute; top: 2px; left: 2px; color: #2563eb; font-size: 10px; font-weight: bold;">{{ $displayNumber }}</span>
                                                 <input type="hidden" name="daily_itineraries[{{ $globalIndex }}][id]" value="{{ $itinerary->id }}">
                                                 <input type="hidden" name="daily_itineraries[{{ $globalIndex }}][display_order]" value="{{ $globalIndex + 1 }}">
                                                 <input type="hidden" name="daily_itineraries[{{ $globalIndex }}][bus_assignment_id]" value="{{ $itineraryBusId }}" class="itinerary-bus-id">
                                                 <input type="hidden" name="daily_itineraries[{{ $globalIndex }}][vehicle_id]" value="{{ $itinerary->vehicle_id ?? '' }}" class="itinerary-vehicle-id">
                                                 <input type="hidden" name="daily_itineraries[{{ $globalIndex }}][driver_id]" value="{{ $itinerary->driver_id ?? $driverId }}" class="itinerary-driver-id">
-                                                <input type="text" class="form-control form-control-sm border datepicker-3months" name="daily_itineraries[{{ $globalIndex }}][date]" value="{{ $itinerary->date ? \Carbon\Carbon::parse($itinerary->date)->format('Y-m-d') : '' }}" style="width: 100%; text-align: center;" placeholder="YYYY-MM-DD">
                                                 <input type="hidden" name="daily_itineraries[{{ $globalIndex }}][vehicle_group]" value="{{ $vehicleIndex }}">
+                                                <input type="text" class="form-control form-control-sm border datepicker-3months" name="daily_itineraries[{{ $globalIndex }}][date]" value="{{ $itinerary->date ? \Carbon\Carbon::parse($itinerary->date)->format('Y-m-d') : '' }}" style="width: 100%; text-align: center;" placeholder="YYYY-MM-DD">
+                                                <a href="javascript:void(0);" 
+                                                   onclick="openLocationModal('{{ route('masters.locations.create_win') }}')" 
+                                                   class="btn btn-sm btn-outline-primary" 
+                                                   style="font-size: 10px; padding: 2px 4px; margin: 2px 0 0 0;">
+                                                    <i class="bi bi-plus-circle"></i> 場所施設
+                                                </a>
                                              </td>
                                             <td style="padding: 2px;">
                                                 <div class="d-flex flex-column" style="gap: 2px;">
@@ -820,10 +826,14 @@
                                                            name="daily_itineraries[{{ $globalIndex }}][time_start]" 
                                                            value="{{ $itinerary->time_start ? \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') : '08:00' }}" 
                                                            style="width: 100%;" step="60">
-                                                    <input type="text" class="form-control form-control-sm border" 
-                                                           name="daily_itineraries[{{ $globalIndex }}][start_location]" 
-                                                           value="{{ $itinerary->start_location ?? '' }}" 
-                                                           placeholder="開始場所" style="width: 100%;">
+                                                    <div class="position-relative w-100">
+                                                        <input type="text" class="form-control form-control-sm border search-input w-100" 
+                                                               id="start_location_search_{{ $globalIndex }}" 
+                                                               name="daily_itineraries[{{ $globalIndex }}][start_location]" 
+                                                               value="{{ $itinerary->start_location ?? '' }}" 
+                                                               placeholder="開始場所" autocomplete="off">
+                                                        <div class="suggestions-container" id="start_location_suggestions_{{ $globalIndex }}" style="display: none;"></div>
+                                                    </div>
                                                 </div>
                                              </td>
                                             <td style="padding: 2px;">
@@ -832,10 +842,14 @@
                                                            name="daily_itineraries[{{ $globalIndex }}][time_end]" 
                                                            value="{{ $itinerary->time_end ? \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') : '18:00' }}" 
                                                            style="width: 100%;" step="60">
-                                                    <input type="text" class="form-control form-control-sm border" 
-                                                           name="daily_itineraries[{{ $globalIndex }}][end_location]" 
-                                                           value="{{ $itinerary->end_location ?? '' }}" 
-                                                           placeholder="終了場所" style="width: 100%;">
+                                                    <div class="position-relative w-100">
+                                                        <input type="text" class="form-control form-control-sm border search-input w-100" 
+                                                               id="end_location_search_{{ $globalIndex }}" 
+                                                               name="daily_itineraries[{{ $globalIndex }}][end_location]" 
+                                                               value="{{ $itinerary->end_location ?? '' }}" 
+                                                               placeholder="終了場所" autocomplete="off">
+                                                        <div class="suggestions-container" id="end_location_suggestions_{{ $globalIndex }}" style="display: none;"></div>
+                                                    </div>
                                                 </div>
                                              </td>
                                             <td style="vertical-align: middle; padding: 2px;">
@@ -965,6 +979,19 @@
                 <button onclick="closeIframeModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #fff;">&times;</button>
             </div>
             <iframe id="modalIframe" src="" style="width: 100%; height: 480px; border: none; display: block;"></iframe>
+        </div>
+    </div>
+</div>
+
+
+<div id="locationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 10000; overflow: auto;">
+    <div style="position: relative; width: 100%; min-height: 100%; display: flex; justify-content: center; align-items: center; padding: 20px;">
+        <div style="background-color: #f3f4f6; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); width: 90%; max-width: 580px; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background-color: #374151; color: #fff;">
+                <span id="locationModalTitle" style="font-size: 14px; font-weight: 500;">場所施設 追加</span>
+                <button onclick="closeLocationModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #fff;">&times;</button>
+            </div>
+            <iframe id="locationModalIframe" src="" style="width: 100%; height: 480px; border: none; display: block;"></iframe>
         </div>
     </div>
 </div>
@@ -2363,192 +2390,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const agencies = @json($agencies ?? []);
     const branches = @json($branches ?? []);
     const categories = @json($reservationCategories ?? []);
+    const locations = @json($locations ?? []);
     
     let deletedItineraryIds = [];
-
-    // async function submitForm(event) {
-    //     event.preventDefault();
-        
-    //     const disabledFields = document.querySelectorAll('[disabled]');
-    //     disabledFields.forEach(field => {
-    //         field.removeAttribute('disabled');
-    //         field.setAttribute('data-temp-disabled', 'true');
-    //     });
-        
-    //     if (!validateDateRange()) {
-    //         const tempDisabled = document.querySelectorAll('[data-temp-disabled="true"]');
-    //         tempDisabled.forEach(field => {
-    //             field.setAttribute('disabled', 'disabled');
-    //             field.removeAttribute('data-temp-disabled');
-    //         });
-    //         return false;
-    //     }
-        
-    //     let hasError = false;
-        
-    //     // document.querySelectorAll('.vehicle-select').forEach(selectField => {
-    //     //     const vehicleIndex = selectField.id.replace('vehicle_select_', '');
-            
-    //     //     const card = selectField.closest('.card');
-            
-    //     //     if (card) {
-    //     //         const cardBusId = card.getAttribute('data-bus-id') || '';
-    //     //         const rows = card.querySelectorAll('.itinerary-row');
-    //     //         rows.forEach(row => {
-    //     //             const rowBusIdField = row.querySelector('.itinerary-bus-id');
-    //     //             if (rowBusIdField && rowBusIdField.value === cardBusId) {
-    //     //                 const vehicleIdInput = row.querySelector('.itinerary-vehicle-id');
-    //     //                 if (vehicleIdInput) {
-    //     //                     vehicleIdInput.value = selectField.value || '';
-    //     //                 }
-    //     //             }
-    //     //         });
-    //     //     }
-    //     // });
-        
-    //     // document.querySelectorAll('.driver-select').forEach(selectField => {
-    //     //     const card = selectField.closest('.card');
-            
-    //     //     if (card) {
-    //     //         const cardBusId = card.getAttribute('data-bus-id');
-    //     //         const rows = card.querySelectorAll('.itinerary-row');
-    //     //         rows.forEach(row => {
-    //     //             const rowBusIdField = row.querySelector('.itinerary-bus-id');
-    //     //             if (rowBusIdField && rowBusIdField.value === cardBusId) {
-    //     //                 const driverIdInput = row.querySelector('.itinerary-driver-id');
-    //     //                 if (driverIdInput) {
-    //     //                     driverIdInput.value = selectField.value || '';
-    //     //                 }
-    //     //             }
-    //     //         });
-    //     //     }
-    //     // });
-    
-    //     // document.querySelectorAll('.guide-select').forEach(selectField => {
-    //     //     const card = selectField.closest('.card');
-            
-    //     //     if (card) {
-    //     //         const cardBusId = card.getAttribute('data-bus-id');
-    //     //         const rows = card.querySelectorAll('.itinerary-row');
-    //     //         rows.forEach(row => {
-    //     //             const rowBusIdField = row.querySelector('.itinerary-bus-id');
-    //     //             if (rowBusIdField && rowBusIdField.value === cardBusId) {
-    //     //                 const guideIdInput = row.querySelector('.itinerary-guide-id');
-    //     //                 if (guideIdInput) {
-    //     //                     guideIdInput.value = selectField.value || '';
-    //     //                 }
-    //     //             }
-    //     //         });
-    //     //     }
-    //     // });
-        
-    //     if (hasError) {
-    //         const submitBtn = document.getElementById('saveBtn');
-    //         submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> 保存';
-    //         submitBtn.disabled = false;
-    //         const tempDisabled = document.querySelectorAll('[data-temp-disabled="true"]');
-    //         tempDisabled.forEach(field => {
-    //             field.setAttribute('disabled', 'disabled');
-    //             field.removeAttribute('data-temp-disabled');
-    //         });
-    //         return false;
-    //     }
-        
-    //     document.querySelectorAll('input[name*="[vehicle_type_spec_check]"]').forEach(cb => {
-    //         if (!cb.checked) {
-    //             const hidden = document.createElement('input');
-    //             hidden.type = 'hidden';
-    //             hidden.name = cb.name;
-    //             hidden.value = '0';
-    //             cb.parentNode.appendChild(hidden);
-    //         }
-    //     });
-        
-    //     const form = document.getElementById('editForm');
-    //     const formData = new FormData(form);
-    //     formData.append('_method', 'PUT');
-        
-    //     if (deletedItineraryIds.length > 0) {
-    //         deletedItineraryIds.forEach((id, index) => {
-    //             formData.append(`deleted_itineraries[${index}]`, id);
-    //         });
-    //     }
-        
-    //     const submitBtn = document.getElementById('saveBtn');
-    //     const originalText = submitBtn.innerHTML;
-    //     submitBtn.innerHTML = '保存中...';
-    //     submitBtn.disabled = true;
-        
-    //     removeErrorHighlights();
-        
-    //     try {
-    //         const response = await fetch(form.action, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
-    //                 'X-Requested-With': 'XMLHttpRequest',
-    //                 'Accept': 'application/json'
-    //             },
-    //             body: formData
-    //         });
-            
-    //         const text = await response.text();
-            
-    //         let data;
-    //         try {
-    //             data = JSON.parse(text);
-    //         } catch (e) {
-    //             alert('サーバーからの応答が不正です: ' + text.substring(0, 100));
-    //             submitBtn.innerHTML = originalText;
-    //             submitBtn.disabled = false;
-    //             const tempDisabled = document.querySelectorAll('[data-temp-disabled="true"]');
-    //             tempDisabled.forEach(field => {
-    //                 field.setAttribute('disabled', 'disabled');
-    //                 field.removeAttribute('data-temp-disabled');
-    //             });
-    //             return;
-    //         }
-            
-    //         if (data.success) {
-    //             showSuccessMessage(data.message || '保存しました。');
-    //             window.scrollTo(0, 0);
-                
-    //             submitBtn.innerHTML = originalText;
-    //             submitBtn.disabled = false;
-                
-    //             const tempDisabled = document.querySelectorAll('[data-temp-disabled="true"]');
-    //             tempDisabled.forEach(field => {
-    //                 field.setAttribute('disabled', 'disabled');
-    //                 field.removeAttribute('data-temp-disabled');
-    //             });
-                
-    //             if (data.bus_assignments) {
-    //                 updateBusAssignmentsData(data.bus_assignments);
-    //             }
-    //         } else {
-    //             submitBtn.innerHTML = originalText;
-    //             submitBtn.disabled = false;
-    //             showErrorMessage(data.message || '保存中にエラーが発生しました。');
-    //             window.scrollTo(0, 0);
-    //             const tempDisabled = document.querySelectorAll('[data-temp-disabled="true"]');
-    //             tempDisabled.forEach(field => {
-    //                 field.setAttribute('disabled', 'disabled');
-    //                 field.removeAttribute('data-temp-disabled');
-    //             });
-    //         }
-    //     } catch (error) {
-    //         submitBtn.innerHTML = originalText;
-    //         submitBtn.disabled = false;
-    //         alert('通信エラーが発生しました: ' + error.message);
-    //         const tempDisabled = document.querySelectorAll('[data-temp-disabled="true"]');
-    //         tempDisabled.forEach(field => {
-    //             field.setAttribute('disabled', 'disabled');
-    //             field.removeAttribute('data-temp-disabled');
-    //         });
-    //     }
-        
-    //     return false;
-    // }
     
     async function submitForm(event) {
         event.preventDefault();
@@ -2933,10 +2777,6 @@ function updateBusDetailClickHandler(e) {
                 });
             }
         });
-    
-        // setTimeout(() => {
-        //     setupSelectChangeHandlers(newIndex);
-        // }, 100);
     }
 
     function refreshEventListeners() {
@@ -3285,17 +3125,6 @@ function updateBusDetailClickHandler(e) {
                 if (agencyCountry && data.country && !agencyCountry.value) {
                     agencyCountry.value = data.country || '';
                 }
-            // } else if (type === 'guide') {
-            //     const guideInput = document.getElementById('guide');
-            //     if (guideInput) guideInput.value = data.display;
-            //     const guideSelect = document.getElementById('guide_select');
-            //     if (guideSelect) {
-            //         const option = guideSelect.querySelector(`option[value="${id}"]`);
-            //         if (option) {
-            //             option.selected = true;
-            //             guideSelect.dispatchEvent(new Event('change'));
-            //         }
-            //     }
             } else if (type === 'branch') {
                 const branchInput = document.getElementById('vehicle_branch');
                 if (branchInput) branchInput.value = data.display;
@@ -3364,6 +3193,73 @@ function updateBusDetailClickHandler(e) {
             }
         });
     }
+    
+function setupLocationSearch(globalIndex) {
+    const startSearchInput = document.getElementById(`start_location_search_${globalIndex}`);
+    const startSuggestionsDiv = document.getElementById(`start_location_suggestions_${globalIndex}`);
+    
+    if (startSearchInput && startSuggestionsDiv) {
+        setupLocationSearchInput(startSearchInput, startSuggestionsDiv);
+    }
+    
+    const endSearchInput = document.getElementById(`end_location_search_${globalIndex}`);
+    const endSuggestionsDiv = document.getElementById(`end_location_suggestions_${globalIndex}`);
+    
+    if (endSearchInput && endSuggestionsDiv) {
+        setupLocationSearchInput(endSearchInput, endSuggestionsDiv);
+    }
+}
+
+function setupLocationSearchInput(searchInput, suggestionsDiv) {
+    function showSuggestions(query = '') {
+        const filtered = locations.filter(item => {
+            const searchable = (item.name || '').toLowerCase();
+            return searchable.includes(query.toLowerCase());
+        }).slice(0, 10);
+
+        if (filtered.length === 0) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+
+        let html = '';
+        filtered.forEach(item => {
+            html += `<div class="suggestion-item" data-name="${item.name}">${escapeHtml(item.name)}</div>`;
+        });
+
+        suggestionsDiv.innerHTML = html;
+        suggestionsDiv.style.display = 'block';
+    }
+
+    searchInput.addEventListener('focus', function() {
+        showSuggestions('');
+    });
+
+    searchInput.addEventListener('input', function() {
+        showSuggestions(this.value);
+    });
+
+    suggestionsDiv.addEventListener('click', function(e) {
+        const suggestion = e.target.closest('.suggestion-item');
+        if (!suggestion) return;
+
+        const name = suggestion.getAttribute('data-name');
+        searchInput.value = name;
+        suggestionsDiv.style.display = 'none';
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+}
 
     function addRowAfter(clickedButton) {
         const currentRow = clickedButton.closest('tr.itinerary-row');
@@ -3391,6 +3287,7 @@ function updateBusDetailClickHandler(e) {
         const vehicleId = card.querySelector('.vehicle-select') ? card.querySelector('.vehicle-select').value : '';
         const driverId = card.querySelector('.driver-select') ? card.querySelector('.driver-select').value : '';
         const guideId = card.querySelector('.guide-select') ? card.querySelector('.guide-select').value : '';
+        
         
         const allRows = Array.from(tbody.querySelectorAll('tr.itinerary-row:not(.no-data-row)'));
         let newIndex = allRows.length;
@@ -3441,6 +3338,13 @@ function updateBusDetailClickHandler(e) {
                     }
                 }
             });
+        }
+        
+        
+        
+        const newGlobalIndex = newRow.getAttribute('data-index');
+        if (newGlobalIndex) {
+            setupLocationSearch(newGlobalIndex);
         }
     }
 
@@ -3544,7 +3448,7 @@ function updateBusDetailClickHandler(e) {
         const rowNumber = table ? table.querySelectorAll('tr.itinerary-row:not(.no-data-row)').length + 1 : 1;
         
         newRow.innerHTML = `
-            <td style="vertical-align: middle; text-align: center; background-color: #f9f9f9; position: relative;">
+            <td style="vertical-align: middle; text-align: right; background-color: #f9f9f9; position: relative;">
                 <span class="row-number" style="position: absolute; top: 2px; left: 2px; color: #2563eb; font-size: 10px; font-weight: bold;">${rowNumber}</span>
                 <input type="hidden" name="daily_itineraries[${uniqueIndex}][id]" value="">
                 <input type="hidden" name="daily_itineraries[${uniqueIndex}][display_order]" value="${rowNumber}">
@@ -3552,17 +3456,27 @@ function updateBusDetailClickHandler(e) {
                 <input type="hidden" name="daily_itineraries[${uniqueIndex}][vehicle_id]" value="${vehicleId}" class="itinerary-vehicle-id">
                 <input type="hidden" name="daily_itineraries[${uniqueIndex}][driver_id]" value="${driverId}" class="itinerary-driver-id">
                 <input type="hidden" name="daily_itineraries[${uniqueIndex}][guide_id]" value="${guideId}" class="itinerary-guide-id">
-                <input type="text" class="form-control form-control-sm border datepicker-3months" name="daily_itineraries[${uniqueIndex}][date]" value="${date}" style="width: 100%; text-align: center;" placeholder="YYYY-MM-DD">
                 <input type="hidden" name="daily_itineraries[${uniqueIndex}][vehicle_group]" value="${vehicleGroup}">
+                <input type="text" class="form-control form-control-sm border datepicker-3months" name="daily_itineraries[${uniqueIndex}][date]" value="${date}" style="width: 100%; text-align: center;" placeholder="YYYY-MM-DD">
+                <a href="javascript:void(0);" 
+                   onclick="openLocationModal('{{ route('masters.locations.create_win') }}')" 
+                   class="btn btn-sm btn-outline-primary" 
+                   style="font-size: 10px; padding: 2px 4px; margin: 2px 0 0 0;">
+                    <i class="bi bi-plus-circle"></i> 場所施設
+                </a>
              </td>
             <td style="padding: 2px;">
                 <div class="d-flex flex-column" style="gap: 2px;">
                     <input type="time" class="form-control form-control-sm border" 
                            name="daily_itineraries[${uniqueIndex}][time_start]" value="08:00" 
                            style="width: 100%;" step="60">
-                    <input type="text" class="form-control form-control-sm border" 
-                           name="daily_itineraries[${uniqueIndex}][start_location]" value="" 
-                           placeholder="開始場所" style="width: 100%;">
+                    <div class="position-relative w-100">
+                        <input type="text" class="form-control form-control-sm border search-input w-100" 
+                               id="start_location_search_${uniqueIndex}" 
+                               name="daily_itineraries[${uniqueIndex}][start_location]" value="" 
+                               placeholder="開始場所" autocomplete="off">
+                        <div class="suggestions-container" id="start_location_suggestions_${uniqueIndex}" style="display: none;"></div>
+                    </div>
                 </div>
             </td>
             <td style="padding: 2px;">
@@ -3570,9 +3484,13 @@ function updateBusDetailClickHandler(e) {
                     <input type="time" class="form-control form-control-sm border" 
                            name="daily_itineraries[${uniqueIndex}][time_end]" value="18:00" 
                            style="width: 100%;" step="60">
-                    <input type="text" class="form-control form-control-sm border" 
-                           name="daily_itineraries[${uniqueIndex}][end_location]" value="" 
-                           placeholder="終了場所" style="width: 100%;">
+                    <div class="position-relative w-100">
+                        <input type="text" class="form-control form-control-sm border search-input w-100" 
+                               id="end_location_search_${uniqueIndex}" 
+                               name="daily_itineraries[${uniqueIndex}][end_location]" value="" 
+                               placeholder="終了場所" autocomplete="off">
+                        <div class="suggestions-container" id="end_location_suggestions_${uniqueIndex}" style="display: none;"></div>
+                    </div>
                 </div>
             </td>
             <td style="vertical-align: middle; padding: 2px;">
@@ -3628,6 +3546,36 @@ function updateBusDetailClickHandler(e) {
                     input.setAttribute('name', newName);
                 }
             });
+                
+            const startSearch = row.querySelector('[id^="start_location_search_"]');
+            if (startSearch) {
+                startSearch.id = `start_location_search_${idx}`;
+            }
+            
+            const startSuggestions = row.querySelector('[id^="start_location_suggestions_"]');
+            if (startSuggestions) {
+                startSuggestions.id = `start_location_suggestions_${idx}`;
+            }
+            
+            const endSearch = row.querySelector('[id^="end_location_search_"]');
+            if (endSearch) {
+                endSearch.id = `end_location_search_${idx}`;
+            }
+            
+            const endSuggestions = row.querySelector('[id^="end_location_suggestions_"]');
+            if (endSuggestions) {
+                endSuggestions.id = `end_location_suggestions_${idx}`;
+            }
+            
+            const startId = row.querySelector('[id^="start_location_id_"]');
+            if (startId) {
+                startId.id = `start_location_id_${idx}`;
+            }
+            
+            const endId = row.querySelector('[id^="end_location_id_"]');
+            if (endId) {
+                endId.id = `end_location_id_${idx}`;
+            }
             
             const displayOrder = row.querySelector('input[name*="[display_order]"]');
             if (displayOrder) {
@@ -4167,6 +4115,17 @@ function updateBusDetailClickHandler(e) {
     
         return newCard;
     }
+    
+    
+    function escapeHtmlForJs(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
 
     function generateRowsFromSource(sourceRows, newIndex, newBusId) {
         let rowsHtml = '';
@@ -4180,19 +4139,6 @@ function updateBusDetailClickHandler(e) {
             const itineraryTextarea = row.querySelector('textarea[name*="[itinerary]"]');
             const vehicleWorkloadInput = row.querySelector('input[name*="[vehicle_workload]"]');
             const driverWorkloadInput = row.querySelector('input[name*="[driver_workload]"]');
-            
-            // let vehicleWorkload = '';
-            // let driverWorkload = '';
-            
-            // if (vehicleWorkloadInput) {
-            //     const val = vehicleWorkloadInput.value;
-            //     vehicleWorkload = (val !== null && val !== undefined && val !== '') ? val : '';
-            // }
-            
-            // if (driverWorkloadInput) {
-            //     const val = driverWorkloadInput.value;
-            //     driverWorkload = (val !== null && val !== undefined && val !== '') ? val : '';
-            // }
             
             let date = dateInput ? dateInput.value : '';
             if (date && date.includes(' ')) {
@@ -4215,7 +4161,7 @@ function updateBusDetailClickHandler(e) {
             
             rowsHtml += `
                 <tr class="itinerary-row" data-vehicle="${newIndex}" data-index="${globalIndex}" data-bus-id="${newBusId}" data-itinerary-id="">
-                    <td style="vertical-align: middle; text-align: center; background-color: #f9f9f9; position: relative;">
+                    <td style="vertical-align: middle; text-align: right; background-color: #f9f9f9; position: relative;">
                         <span class="row-number" style="position: absolute; top: 2px; left: 2px; color: #2563eb; font-size: 10px; font-weight: bold;">${idx + 1}</span>
                         <input type="hidden" name="daily_itineraries[${globalIndex}][id]" value="">
                         <input type="hidden" name="daily_itineraries[${globalIndex}][display_order]" value="${idx + 1}">
@@ -4223,17 +4169,27 @@ function updateBusDetailClickHandler(e) {
                         <input type="hidden" name="daily_itineraries[${globalIndex}][vehicle_id]" value="${vehicleId}" class="itinerary-vehicle-id">
                         <input type="hidden" name="daily_itineraries[${globalIndex}][driver_id]" value="${driverId}" class="itinerary-driver-id">
                         <input type="hidden" name="daily_itineraries[${globalIndex}][guide_id]" value="${guideId}" class="itinerary-guide-id">
-                        <input type="text" class="form-control form-control-sm border datepicker-3months" name="daily_itineraries[${globalIndex}][date]" value="${date}" style="width: 100%; text-align: center;" placeholder="YYYY-MM-DD">
                         <input type="hidden" name="daily_itineraries[${globalIndex}][vehicle_group]" value="${newIndex}">
+                        <input type="text" class="form-control form-control-sm border datepicker-3months" name="daily_itineraries[${globalIndex}][date]" value="${date}" style="width: 100%; text-align: center;" placeholder="YYYY-MM-DD">
+                        <a href="javascript:void(0);" 
+                           onclick="openLocationModal('{{ route('masters.locations.create_win') }}')" 
+                           class="btn btn-sm btn-outline-primary" 
+                           style="font-size: 10px; padding: 2px 4px; margin: 2px 0 0 0;">
+                            <i class="bi bi-plus-circle"></i> 場所施設
+                        </a>
                        </td>
                     <td style="padding: 2px;">
                         <div class="d-flex flex-column" style="gap: 2px;">
                             <input type="time" class="form-control form-control-sm border" 
                                    name="daily_itineraries[${globalIndex}][time_start]" value="${timeStart}" 
                                    style="width: 100%;" step="60">
-                            <input type="text" class="form-control form-control-sm border" 
-                                   name="daily_itineraries[${globalIndex}][start_location]" value="${startLocation}" 
-                                   placeholder="開始場所" style="width: 100%;">
+                            <div class="position-relative w-100">
+                                <input type="text" class="form-control form-control-sm border search-input w-100" 
+                                       id="start_location_search_${globalIndex}" 
+                                       name="daily_itineraries[${globalIndex}][start_location]" value="${escapeHtmlForJs(startLocation)}" 
+                                       placeholder="開始場所" autocomplete="off">
+                                <div class="suggestions-container" id="start_location_suggestions_${globalIndex}" style="display: none;"></div>
+                            </div>
                         </div>
                     </td>
                     <td style="padding: 2px;">
@@ -4241,9 +4197,13 @@ function updateBusDetailClickHandler(e) {
                             <input type="time" class="form-control form-control-sm border" 
                                    name="daily_itineraries[${globalIndex}][time_end]" value="${timeEnd}" 
                                    style="width: 100%;" step="60">
-                            <input type="text" class="form-control form-control-sm border" 
-                                   name="daily_itineraries[${globalIndex}][end_location]" value="${endLocation}" 
-                                   placeholder="終了場所" style="width: 100%;">
+                            <div class="position-relative w-100">
+                                <input type="text" class="form-control form-control-sm border search-input w-100" 
+                                       id="end_location_search_${globalIndex}" 
+                                       name="daily_itineraries[${globalIndex}][end_location]" value="${escapeHtmlForJs(endLocation)}" 
+                                       placeholder="終了場所" autocomplete="off">
+                                <div class="suggestions-container" id="end_location_suggestions_${globalIndex}" style="display: none;"></div>
+                            </div>
                         </div>
                     </td>
                     <td style="vertical-align: middle; padding: 2px;">
@@ -4632,6 +4592,15 @@ function updateBusDetailClickHandler(e) {
                 guide_code: item.guide_code
             };
         }, i);
+        
+        
+        
+        document.querySelectorAll(`.vehicle-itinerary-table[data-vehicle-table="${i}"] .itinerary-row`).forEach(row => {
+            const globalIndex = row.getAttribute('data-index');
+            if (globalIndex) {
+                setupLocationSearch(globalIndex);
+            }
+        });
     }
     
     const countries = @json($countries ?? []);
@@ -4680,8 +4649,6 @@ function updateBusDetailClickHandler(e) {
             
             function toggleLockFields(isLocked) {
                 const lockableFields = [
-                    // card.querySelectorAll('.vehicle-select'),
-                    // card.querySelectorAll('.driver-select'),
                     card.querySelectorAll('.search-input[id^="vehicle_search_"]'),
                     card.querySelectorAll('.search-input[id^="driver_search_"]'),
                     card.querySelectorAll('input[name*="[start_date]"]'),
@@ -4803,6 +4770,14 @@ function updateBusDetailClickHandler(e) {
                 guide_code: item.guide_code
             };
         }, cardIndex);
+        
+        
+        document.querySelectorAll(`.vehicle-itinerary-table[data-vehicle-table="${cardIndex}"] .itinerary-row`).forEach(row => {
+            const globalIndex = row.getAttribute('data-index');
+            if (globalIndex) {
+                setupLocationSearch(globalIndex);
+            }
+        });
     }
 
 });
@@ -5847,6 +5822,27 @@ document.querySelectorAll('.add-first-expense-row').forEach(btn => {
 });
 
 
+
+
+function openLocationModal(url) {
+    const modal = document.getElementById('locationModal');
+    const iframe = document.getElementById('locationModalIframe');
+    
+    if (!modal || !iframe) return;
+    
+    iframe.src = url;
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLocationModal() {
+    const modal = document.getElementById('locationModal');
+    const iframe = document.getElementById('locationModalIframe');
+    
+    if (iframe) iframe.src = '';
+    if (modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+}
 
 </script>
 @endpush

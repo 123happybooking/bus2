@@ -199,12 +199,14 @@
                         <a href="{{ route('masters.agencies.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">代理店</a>
                         <a href="{{ route('masters.partners.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">取引先</a>
                         <a href="{{ route('masters.itineraries.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">行程</a>
+                        <a href="{{ route('masters.locations.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">場所施設</a>
                         <a href="{{ route('masters.reservation-categories.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">予約分類</a>
                         <a href="{{ route('masters.attendance-categories.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">勤怠分類</a>
                         <a href="{{ route('masters.remarks.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">備考</a>
                         <a href="{{ route('masters.banks.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">Bank</a>
                         <a href="{{ route('masters.vehicle-types.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">車両種類</a>
                         <a href="{{ route('masters.vehicle-grades.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">車両グレード</a>
+                        
                         <div class="dropdown-divider my-1"></div>
                         <a href="{{ route('masters.login-histories.index') }}" class="btn btn-outline-secondary btn-sm w-100">ログイン履歴</a>
                     @endif

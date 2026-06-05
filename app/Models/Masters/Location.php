@@ -6,8 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Location extends Model
 {
+    protected $table = 'locations';
+    
     protected $fillable = [
-        'location_code', 'location_name', 'location_kana', 
-        'prefecture', 'area_type', 'display_order'
+        'area',
+        'category',
+        'name',
+        'address',
+        'phone',
+        'remark',
+    ];
+    
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 }

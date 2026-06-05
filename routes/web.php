@@ -124,6 +124,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::resource('partners', PartnerController::class)->names('partners');
         Route::resource('itineraries', ItineraryController::class)->names('itineraries');
         Route::resource('facilities', FacilityController::class)->names('facilities');
+        Route::get('locations/create_win', [LocationController::class, 'createWin'])->name('locations.create_win');
         Route::resource('locations', LocationController::class)->names('locations');
         Route::resource('purposes', PurposeController::class)->names('purposes');
         Route::resource('reservation-categories', ReservationCategoryController::class)->names('reservation-categories');

@@ -1195,6 +1195,7 @@
                     <li><a href="{{ route('masters.agencies.index') }}" data-route="agencies">代理店</a></li>
                     <li><a href="{{ route('masters.partners.index') }}" data-route="partners">取引先</a></li>
                     <li><a href="{{ route('masters.itineraries.index') }}" data-route="itineraries">行程</a></li>
+                    <li><a href="{{ route('masters.locations.index') }}" data-route="locations">場所施設</a></li>
                     <li><a href="{{ route('masters.reservation-categories.index') }}" data-route="reservation-categories">予約分類</a></li>
                     <li><a href="{{ route('masters.attendance-categories.index') }}" data-route="attendance-categories-master">勤怠分類</a></li>
                     <li><a href="{{ route('masters.remarks.index') }}" data-route="remarks">備考</a></li>
