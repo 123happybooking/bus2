@@ -239,7 +239,7 @@
                         @endif
                     </td>
                     <td class="text-start px-2 py-1 align-middle" style="max-width: 150px; text-align: left !important;">
-                        <span class="text-truncate d-inline-block" title="{{ $groupInfo->remarks ?? '' }}">
+                        <span class="d-inline-block" title="{{ $groupInfo->remarks ?? '' }}">
                             {{ $groupInfo->remarks ?? '--' }}
                         </span>
                     </td>
