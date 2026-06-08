@@ -26,7 +26,8 @@ class BusAssignment extends Model
         'daily_itinerary_id',
         'vehicle_id',
         'driver_id',
-        'guide_id',
+        // 'guide_id',
+        'guide',
         'start_date',
         'start_time',
         'end_date',
@@ -120,10 +121,10 @@ class BusAssignment extends Model
         return $this->belongsTo(Driver::class, 'driver_id', 'id');
     }
 
-    public function guide(): BelongsTo
-    {
-        return $this->belongsTo(Guide::class, 'guide_id', 'id');
-    }
+    // public function guide(): BelongsTo
+    // {
+    //     return $this->belongsTo(Guide::class, 'guide_id', 'id');
+    // }
 
     public function dailyItinerary(): BelongsTo
     {

@@ -167,10 +167,10 @@
                 <div class="label-width text-gray text-center">ガイド</div>
                 <div class="flex-1 position-relative">
                     <input type="text" name="guide_name_input" class="form-input" id="guide_search" 
-                           value="{{ $busAssignment->guide ? $busAssignment->guide->name . ($busAssignment->guide->guide_code ? ' (' . $busAssignment->guide->guide_code . ')' : '') : '' }}" 
+                           value="{{ $busAssignment->guide ?? '' }}" 
                            placeholder="ガイド名を入力" autocomplete="off"
                            {{ $vehicleReadonly }} style="{{ $vehicleBgColor }}">
-                    <input type="hidden" name="guide_id" id="guide_id" value="{{ $busAssignment->guide_id }}">
+                    <input type="hidden" name="guide" id="guide_hidden" value="{{ $busAssignment->guide ?? '' }}">
                     <div class="suggestions-container" id="guide_suggestions" style="display: none;"></div>
                 </div>
             </div>
@@ -239,9 +239,9 @@
                             <div class="suggestions-container" id="agency_suggestions" style="display: none;"></div>
                         </div>
                         
-                        <div class="label-width text-gray text-center">团体名</div>
+                        <div class="label-width text-gray text-center">団体名</div>
                         <div class="flex-1">
-                            <input type="text" name="group_name" value="{{ $busAssignment->groupInfo->group_name ?? '' }}" class="form-input" placeholder="团体名を入力" {{ $readonlyAttr }}>
+                            <input type="text" name="group_name" value="{{ $busAssignment->groupInfo->group_name ?? '' }}" class="form-input" placeholder="団体名を入力" {{ $readonlyAttr }}>
                         </div>
                     </div>
 
@@ -790,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupGuideSearch() {
         const searchInput = document.getElementById('guide_search');
         const suggestionsDiv = document.getElementById('guide_suggestions');
-        const hiddenId = document.getElementById('guide_id');
+        const hiddenInput = document.getElementById('guide_hidden');
         
         if (!searchInput) return;
 
@@ -836,7 +836,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const code = suggestion.dataset.code;
             
             searchInput.value = `${name} ${code ? '(' + code + ')' : ''}`;
-            hiddenId.value = id;
+            if (hiddenInput) {
+                hiddenInput.value = searchInput.value;
+            }
             suggestionsDiv.style.display = 'none';
         });
 
@@ -1009,6 +1011,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('editForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        
+        const guideSearchInput = document.getElementById('guide_search');
+        const guideHidden = document.getElementById('guide_hidden');
+        if (guideSearchInput && guideHidden) {
+            guideHidden.value = guideSearchInput.value.trim();
+        }
     
         const formData = new FormData(this);
         formData.append('_method', 'PUT');

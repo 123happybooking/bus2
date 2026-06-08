@@ -1140,7 +1140,7 @@
                     <i class="bi bi-chevron-down menu-arrow"></i>
                 </div>
                 <ul class="submenu submenu-s">
-                    <li><a href="{{ route('masters.invoices.index', ['group_id' => 12]) }}" data-route="invoices">請求一覧</a></li>
+                    <li><a href="{{ route('masters.invoices.index') }}" data-route="invoices">請求一覧</a></li>
                     <li><a href="{{ route('masters.payments.index') }}" data-route="payments">入金管理</a></li>
                     <li><a href="{{ route('masters.products.index') }}" data-route="products-sales">請求項目設定</a></li>
                     <li><a href="{{ route('masters.currencies.index') }}" data-route="currencies">為替レート</a></li>

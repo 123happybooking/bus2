@@ -15,6 +15,7 @@ use App\Models\Masters\Branch;
 use App\Models\Masters\GroupInfoDateRemark;
 use App\Models\Masters\BusAssignmentLog;
 use App\Models\Masters\VehicleGrade;
+use App\Models\Masters\VehicleType;
 use App\Models\Masters\Location;
 use App\Models\Masters\Option;
 use App\Models\Masters\GroupInfoFile;
@@ -22,6 +23,7 @@ use App\Models\Masters\DriverCompensation;
 use App\Models\Masters\DriverCompensationType;
 use App\Models\Masters\Staff;
 use App\Models\Masters\Country;
+use App\Models\Masters\Invoice;
 use App\Models\Driver\DriverExpense;
 use App\Models\Driver\DriverExpenseType;
 use App\Models\Driver\DriverPaymentMethod;
@@ -60,60 +62,172 @@ class GroupInfoController extends Controller
             $request->merge($searchParams);
         }
         
+        $reservationId = $request->input('reservation_id');
+        $branchId = $request->input('branch_id');
+        $vehicleTypeId = $request->input('vehicle_type_id');
+        $groupName = $request->input('group_name');
+        $agencyName = $request->input('agency_id');
+        $search = $request->input('search');
         $startDate = $request->input('start_date');
         $period = $request->input('period', 1);
         $displayDays = $request->input('display_days', 7);
-        $search = $request->input('search');
         
-        if (!$startDate) {
+        $hasExactSearch = !empty($reservationId);
+        
+        if (!$startDate && !$hasExactSearch) {
             $startDate = Carbon::today()->format('Y-m-d');
         }
         
-        $start = Carbon::parse($startDate);
-        
-        if ($period == 1) {
-            $end = $start->copy()->addDays(6);
-            $displayDays = 7;
-        } elseif ($period == 2) {
-            $end = $start->copy()->addDays(13);
-            $displayDays = 14;
-        } elseif ($period == 3) {
-            $end = $start->copy()->addDays(20);
-            $displayDays = 21;
-        } elseif ($period == 4) {
-            $end = $start->copy()->addMonth()->subDay();
-            $displayDays = $start->diffInDays($end) + 1;
-        } else {
-            $end = $start->copy()->addDays(6);
-            $displayDays = 7;
+        if ($startDate) {
+            $start = Carbon::parse($startDate);
+            
+            if ($period == 1) {
+                $end = $start->copy()->addDays(6);
+                $displayDays = 7;
+            } elseif ($period == 2) {
+                $end = $start->copy()->addDays(13);
+                $displayDays = 14;
+            } elseif ($period == 3) {
+                $end = $start->copy()->addDays(20);
+                $displayDays = 21;
+            } elseif ($period == 4) {
+                $end = $start->copy()->addMonth()->subDay();
+                $displayDays = $start->diffInDays($end) + 1;
+            } else {
+                $end = $start->copy()->addDays(6);
+                $displayDays = 7;
+            }
+            
+            $endDate = $end->format('Y-m-d');
         }
         
-        $endDate = $end->format('Y-m-d');
-        
         $query = GroupInfo::query();
+        
+        if ($reservationId) {
+            $query->where('id', $reservationId);
+        }
+        
+        if ($branchId) {
+            $query->whereHas('busAssignments.vehicle', function($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            });
+        }
+        
+        if ($vehicleTypeId) {
+            $query->whereHas('busAssignments.vehicle', function($q) use ($vehicleTypeId) {
+                $q->where('vehicle_type_id', $vehicleTypeId);
+            });
+        }
+        
+        if ($groupName) {
+            $query->where('group_name', 'like', "%{$groupName}%");
+        }
+        
+        if ($agencyName) {
+            $agency = Agency::find($agencyName);
+            if ($agency) {
+                $query->where('agency', $agency->agency_name);
+            }
+        }
         
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('agency', 'like', "%{$search}%")
-                  ->orWhere('vehicle', 'like', "%{$search}%");
+                  ->orWhere('vehicle', 'like', "%{$search}%")
+                  ->orWhere('group_name', 'like', "%{$search}%");
             });
         }
         
-        if ($startDate) {
-            $query->whereDate('start_date', '>=', $startDate);
-        }
-        
-        if ($endDate) {
-            $query->whereDate('end_date', '<=', $endDate);
+        if (!$hasExactSearch && $startDate && $endDate) {
+            $query->where(function($q) use ($startDate, $endDate) {
+                $q->whereDate('start_date', '>=', $startDate)
+                  ->whereDate('end_date', '<=', $endDate);
+            });
         }
         
         $perPage = $request->input('per_page', 20);
+        
         $groupInfos = $query->orderBy('start_date', 'asc')
-                           ->orderBy('start_time')
+                           ->orderBy('start_time', 'asc')
                            ->paginate($perPage)
                            ->withQueryString();
         
-        return view('masters.group-infos.index', compact('groupInfos', 'displayDays'));
+        $groupIds = $groupInfos->getCollection()->pluck('id')->toArray();
+        
+        $invoiceTotals = [];
+        $invoiceUnpaidTotals = [];
+        $invoiceCounts = [];
+        if (!empty($groupIds)) {
+            $invoices = Invoice::whereIn('group_id', $groupIds)
+                ->select('group_id', 
+                    \DB::raw('COUNT(*) as invoice_count'),
+                    \DB::raw('SUM(total_amount) as total_amount_sum'),
+                    \DB::raw('SUM(total_amount - paid_amount) as unpaid_sum'))
+                ->groupBy('group_id')
+                ->get();
+            
+            foreach ($invoices as $invoice) {
+                $invoiceCounts[$invoice->group_id] = $invoice->invoice_count;
+                $invoiceTotals[$invoice->group_id] = $invoice->total_amount_sum;
+                $invoiceUnpaidTotals[$invoice->group_id] = $invoice->unpaid_sum;
+            }
+        }
+        
+        $vehicleGrades = [];
+        $firstBusVehicles = [];
+        if (!empty($groupIds)) {
+            $firstBuses = BusAssignment::whereIn('group_info_id', $groupIds)
+                ->select('group_info_id', 'vehicle_grade_id')
+                ->orderBy('vehicle_index', 'asc')
+                ->get()
+                ->unique('group_info_id');
+            
+            foreach ($firstBuses as $bus) {
+                if ($bus->vehicle_grade_id) {
+                    $firstBusVehicles[$bus->group_info_id] = $bus->vehicle_grade_id;
+                }
+            }
+            
+            $gradeIds = array_values(array_unique(array_filter($firstBusVehicles)));
+            if (!empty($gradeIds)) {
+                $grades = VehicleGrade::whereIn('id', $gradeIds)->get()->keyBy('id');
+                foreach ($firstBusVehicles as $groupId => $gradeId) {
+                    if (isset($grades[$gradeId])) {
+                        $vehicleGrades[$groupId] = $grades[$gradeId]->description;
+                    }
+                }
+            }
+        }
+        
+        $groupInfos->getCollection()->transform(function($group) use ($invoiceCounts, $invoiceTotals, $invoiceUnpaidTotals, $vehicleGrades) {
+            $group->invoice_count = $invoiceCounts[$group->id] ?? 0;
+            $group->invoice_total = $invoiceTotals[$group->id] ?? 0;
+            $group->invoice_unpaid = $invoiceUnpaidTotals[$group->id] ?? 0;
+            $group->vehicle_grade_name = $vehicleGrades[$group->id] ?? '--';
+            
+            if ($group->start_date && $group->end_date) {
+                $startDate = Carbon::parse($group->start_date);
+                $endDate = Carbon::parse($group->end_date);
+                $days = $startDate->diffInDays($endDate) + 1;
+                $group->trip_days = $days;
+            } else {
+                $group->trip_days = 1;
+            }
+            
+            return $group;
+        });
+        
+        $branches = Branch::orderBy('display_order')->get();
+        $vehicleTypes = VehicleType::orderBy('type_name')->get();
+        $agencies = Agency::where('is_active', true)->orderBy('display_order')->get();
+        
+        return view('masters.group-infos.index', compact(
+            'groupInfos', 
+            'displayDays',
+            'branches',
+            'vehicleTypes',
+            'agencies'
+        ));
     }
 
     public function show($id)
@@ -490,7 +604,6 @@ class GroupInfoController extends Controller
             'agency_name_input' => 'nullable|string|max:200',
             
             'vehicle_id' => 'nullable|exists:vehicles,id',
-            'guide_id' => 'nullable|exists:guides,id',
             'driver_id' => 'nullable|exists:drivers,id',
             'agency_id' => 'nullable|exists:agencies,id',
             
@@ -543,7 +656,6 @@ class GroupInfoController extends Controller
             'end_time.date_format' => '終了時間の形式が正しくありません。HH:MM形式で入力してください。',
             'end_date.after_or_equal' => '終了日は開始日以降の日付を入力してください。',
             'vehicle_id.exists' => '選択された車両は存在しません。',
-            'guide_id.exists' => '選択されたガイドは存在しません。',
             'driver_id.exists' => '選択された運転手は存在しません。',
             'agency_id.exists' => '選択された代理店は存在しません。',
             'adult_count.integer' => '大人人数は数値で入力してください。',
@@ -610,11 +722,6 @@ class GroupInfoController extends Controller
                 $driverInfo = Driver::find($request->driver_id);
             }
     
-            $guideInfo = null;
-            if (!empty($request->guide_id)) {
-                $guideInfo = Guide::find($request->guide_id);
-            }
-    
             $agencyInfo = null;
             if (!empty($request->agency_id)) {
                 $agencyInfo = Agency::find($request->agency_id);
@@ -642,7 +749,6 @@ class GroupInfoController extends Controller
             $groupData = [
                 'vehicle_id' => $request->vehicle_id,
                 'driver_id' => $request->driver_id,
-                'guide_id' => $request->guide_id,
                 'vehicle_grade_id' => $validated['vehicle_grade_id'] ?? null,
                 'group_name' => $validated['group_name'] ?? null,
                 'itinerary_name' => $validated['itinerary_name'] ?? null,
@@ -669,7 +775,7 @@ class GroupInfoController extends Controller
                 'vehicle' => $validated['vehicle_name_input'] ?? $validated['vehicle'] ?? ($vehicleInfo->registration_number ?? null),
                 'vehicle_number' => $validated['vehicle_number'] ?? null,
                 'driver' => $validated['driver_name_input'] ?? $validated['driver'] ?? ($driverInfo->name ?? null),
-                'guide' => $validated['guide_name_input'] ?? $validated['guide'] ?? ($guideInfo->name ?? null),
+                'guide' => $validated['guide'] ?? null,
                 'vehicle_branch' => $validated['vehicle_branch'] ?? ($vehicleInfo->branch->branch_name ?? null),
                 'adult_count' => $validated['adult_count'] ?? 0,
                 'child_count' => $validated['child_count'] ?? 0,
@@ -705,7 +811,7 @@ class GroupInfoController extends Controller
                 'daily_itinerary_id' => null,
                 'vehicle_id' => !empty($request->vehicle_id) ? (int)$request->vehicle_id : null,
                 'driver_id' => !empty($request->driver_id) ? (int)$request->driver_id : null,
-                'guide_id' => !empty($request->guide_id) ? (int)$request->guide_id : null,
+                'guide' => $validated['guide'] ?? null,
                 'vehicle_grade_id' => $validated['vehicle_grade_id'] ?? null,
                 'business_category_id' => $request->business_category_id ?? null,
                 'itinerary_name' => $validated['itinerary_name'] ?? null,
@@ -828,12 +934,6 @@ class GroupInfoController extends Controller
                     $dailyItineraryData['driver_id'] = (int)$request->driver_id;
                 } else {
                     $dailyItineraryData['driver_id'] = null;
-                }
-
-                if (!empty($request->guide_id)) {
-                    $dailyItineraryData['guide_id'] = (int)$request->guide_id;
-                } else {
-                    $dailyItineraryData['guide_id'] = null;
                 }
             
                 $itinerary = DailyItinerary::create($dailyItineraryData);
@@ -1310,14 +1410,7 @@ class GroupInfoController extends Controller
     
             $userId = session('user_id', auth()->id() ?? 0);
             
-            $guideId = null;
-            $guideName = null;
-            
-            if ($request->filled('guide_id')) {
-                $guideId = $request->guide_id;
-                $guide = Guide::find($guideId);
-                $guideName = $guide ? $guide->name : '';
-            }
+            $guideName = $request->input('guide', '');
             
             $vehicleInfo = null;
             if (!empty($request->vehicle_id)) {
@@ -1328,14 +1421,6 @@ class GroupInfoController extends Controller
             $driverInfo = null;
             if (!empty($request->driver_id)) {
                 $driverInfo = Driver::find($request->driver_id);
-            }
-    
-            $guideInfo = null;
-            if (!empty($guideId)) {
-                $guideInfo = Guide::find($guideId);
-                if ($guideInfo) {
-                    $guideName = $guideInfo->name;
-                }
             }
     
             $agencyInfo = null;
@@ -1410,12 +1495,8 @@ class GroupInfoController extends Controller
                     $driverName = $driver ? $driver->name : '';
                 }
                 
-                $guideNameForBus = '';
-                $guideIdForBus = $newBusData['guide_id'] ?? null;
-                if ($guideIdForBus) {
-                    $guide = Guide::find($guideIdForBus);
-                    $guideNameForBus = $guide ? $guide->name : '';
-                }
+                $guideNameForBus = $newBusData['guide'] ?? '';
+                $guideIdForBus = null;
                 
                 $maxIndex = BusAssignment::where('group_info_id', $groupInfo->id)->max('vehicle_index') ?? 0;
                 $newVehicleIndex = $maxIndex + 1;
@@ -1487,7 +1568,6 @@ class GroupInfoController extends Controller
                         'vehicle' => $vehicleName,
                         'driver_id' => isset($newBusData['driver_id']) && $newBusData['driver_id'] > 0 ? (int)$newBusData['driver_id'] : 0,
                         'driver' => $driverName,
-                        'guide_id' => $guideIdForBus ? (int)$guideIdForBus : 0,
                         'guide' => $guideNameForBus,
                         'remarks' => $itineraryData['remarks'] ?? null,
                         'created_by' => $userId,
@@ -1553,14 +1633,14 @@ class GroupInfoController extends Controller
                         $submittedBusIds[] = (int)$busId;
                     }
                     
-                    $busDataGuideId = $busData['guide_id'] ?? null;
+                    $busDataGuide = $busData['guide'] ?? null;
                     
                     $busAssignmentDataArray[] = [
                         'id' => $busId,
                         'group_info_id' => $groupInfo->id,
                         'vehicle_id' => !empty($busData['vehicle_id']) && $busData['vehicle_id'] > 0 ? $busData['vehicle_id'] : null,
                         'driver_id' => !empty($busData['driver_id']) && $busData['driver_id'] > 0 ? $busData['driver_id'] : null,
-                        'guide_id' => $busDataGuideId,
+                        'guide' => $busDataGuide,
                         'vehicle_grade_id' => $busData['vehicle_grade_id'] ?? null,
                         'business_category_id' => $busData['business_category_id'] ?? null,
                         'itinerary_name' => $busData['itinerary_name'] ?? null,
@@ -2291,7 +2371,7 @@ class GroupInfoController extends Controller
                     $bus->update([
                         'vehicle_id' => $finalVehicleId,
                         'driver_id' => $finalDriverId,
-                        'guide_id' => $finalGuideId,
+                        'guide' => $submittedBusData['guide'] ?? null,
                         'start_date' => $firstItinerary->date,
                         'start_time' => $firstItinerary->time_start,
                         'end_date' => $lastItinerary->date,
@@ -2445,7 +2525,6 @@ class GroupInfoController extends Controller
                         
                         foreach ($itinerariesForBus as $itinerary) {
                             $itinerary->update([
-                                'guide_id' => $finalGuideId,
                                 'guide' => $guideName,
                             ]);
                         }
@@ -2458,15 +2537,6 @@ class GroupInfoController extends Controller
             }
     
             $this->recalculateGroupTotals($groupInfo->id);
-    
-            $guideIdForGroup = $guideId;
-            $guideNameForGroup = $guideName;
-            
-            if ($request->filled('guide_id')) {
-                $guideIdForGroup = $request->guide_id;
-                $guide = Guide::find($guideIdForGroup);
-                $guideNameForGroup = $guide ? $guide->name : '';
-            }
     
             $updateData = [
                 'agency' => $validated['agency_name_input'] ?? $validated['agency'] ?? $groupInfo->agency,
@@ -2498,8 +2568,7 @@ class GroupInfoController extends Controller
                 'vehicle' => $validated['vehicle_name_input'] ?? $validated['vehicle'] ?? ($vehicleInfo->registration_number ?? $groupInfo->vehicle),
                 'vehicle_number' => $validated['vehicle_number'] ?? $groupInfo->vehicle_number,
                 'driver' => $validated['driver_name_input'] ?? $validated['driver'] ?? ($driverInfo->name ?? $groupInfo->driver),
-                'guide' => $guideNameForGroup,
-                'guide_id' => $guideIdForGroup,
+                'guide' => $guideName,
                 'vehicle_branch' => $validated['vehicle_branch'] ?? ($vehicleInfo->branch->branch_name ?? $groupInfo->vehicle_branch),
                 'guide_count' => $validated['guide_count'] ?? $groupInfo->guide_count,
                 'vehicle_type_selection' => $finalVehicleSpec,
@@ -3056,11 +3125,7 @@ class GroupInfoController extends Controller
                             $driverName = $driver ? $driver->name : '';
                         }
                         
-                        $guideName = '';
-                        if (!empty($request->guide_id)) {
-                            $guide = Guide::find($request->guide_id);
-                            $guideName = $guide ? $guide->name : '';
-                        }
+                        $guideName = $request->input('guide', '');
                         
                         DailyItinerary::create([
                             'group_info_id' => $groupInfo->id,
@@ -3077,7 +3142,6 @@ class GroupInfoController extends Controller
                             'vehicle' => $vehicleName,
                             'driver_id' => $request->driver_id ?? 0,
                             'driver' => $driverName,
-                            'guide_id' => $request->guide_id ?? 0,
                             'guide' => $guideName,
                             'accommodation' => false,
                             'created_by' => $userId,
@@ -3112,7 +3176,6 @@ class GroupInfoController extends Controller
             $updateData = [
                 'vehicle_id' => !empty($request->vehicle_id) && $request->vehicle_id > 0 ? $request->vehicle_id : null,
                 'driver_id' => !empty($request->driver_id) && $request->driver_id > 0 ? $request->driver_id : null,
-                'guide_id' => $request->guide_id ?? null,
                 'vehicle_grade_id' => $request->vehicle_grade_id ?? null,
                 'business_category_id' => $request->business_category_id ?? null,
                 'itinerary_name' => $request->itinerary_name ?? null,

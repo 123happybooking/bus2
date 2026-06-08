@@ -11,6 +11,8 @@ use App\Models\Masters\Product;
 use App\Models\Masters\Bank;
 use App\Models\Masters\Agency;
 use App\Models\Masters\Staff;
+use App\Models\Masters\GroupInfo;
+use App\Models\Masters\DailyItinerary; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -40,84 +42,151 @@ use Mpdf\Mpdf;
 
 class InvoiceController extends Controller
 {
+    // public function index(Request $request)
+    // {
+    //     $groupId = $request->query('group_id');
+
+    //     if (! $groupId) {
+    //         return redirect()->back()->with([
+    //             'error' => 'グループIDが指定されていません。',
+    //             'alert-type' => 'danger'
+    //         ]);
+    //     }
+
+    //     // if (! auth()->user()->canAccessGroup($groupId)) {
+    //     //     abort(403, 'アクセス権限がありません。');
+    //     // }
+
+    //     $query = Invoice::where('group_id', $groupId);
+    //     if ($request->filled('agency_id') && $request->agency_id) {
+    //         $query->where('agency_id', $request->agency_id);
+    //     }
+
+    //     if ($request->filled('staff_id') && $request->staff_id) {
+    //         $query->where('staff_id', $request->staff_id);
+    //     }
+
+    //     if ($request->filled('payment_status') && count($request->payment_status)>0) {
+    //         $query->wherein('payment_status', $request->payment_status);
+    //     }
+
+    //     if ($request->filled('target_date') && $request->target_date) {
+    //         $end_date = date('Y-m-d',time());
+    //         if($request->days > 0){
+    //             $end_date = date('Y-m-d', strtotime($request->target_date . ' +'.$request->days.' day'));
+    //         }
+            
+    //         if($request->date_type== "operation"){
+    //             $query->where('operation_date','>=', $request->target_date)->where('operation_date','<=', $end_date);
+    //         }elseif($request->date_type== "billing"){
+    //             $query->where('invoice_date','>=', $request->target_date)->where('invoice_date','<=', $end_date);
+    //         }else{
+    //             $headers = PaymentHeader::where('group_id', $groupId)->where('payment_date','>=', $request->target_date)->where('payment_date','<=', $end_date)->pluck('id')->toArray();
+    //             $ids = PaymentDetail::whereIn('payment_header_id', $headers)->pluck('invoice_id')->toArray();
+    //             $query->wherein('id', $ids);
+
+    //         }
+
+    //     }
+
+    //     $totalAmount = (clone $query)->where('type', 1)->sum('total_amount');
+    //     $paidAmount  = (clone $query)->where('type', 1)->sum('paid_amount');
+
+    //     $perPage = 20; // 默认值
+    //     $allowedPerPages = [20, 30, 50]; // 允许的选项
+        
+    //     if ($request->filled('per_page') && in_array((int)$request->per_page, $allowedPerPages)) {
+    //         $perPage = (int)$request->per_page;
+    //     }
+    //     // --- [修改结束] ---
+
+    //     $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        
+    //     // appends 确保分页链接中携带当前搜索条件和 per_page 设置
+    //     $invoices->appends($request->only(['group_id', 'per_page','agency_id','staff_id']));
+
+    //     $departments = AccountDepartment::get();
+    //     $banks = Bank::where("is_active",1)->get();
+    //     $agencies = Agency::where("is_active",1)->get();
+    //     $staffs = Staff::where("is_active",1)->get();
+
+    //     $accounts = Account::where('is_active', 1)->get();
+    //     $partners = AccountPartner::get(); // 取引先
+    //     $taxes = AccountTax::get();       // 税区分
+
+    //     $accountConfig = AccountConfig::first();
+    //     $receiveAccount = Account::where('id', $accountConfig->account_mgj_id)->where('is_active', 1)->first();
+    //     $depositAccount = Account::where('id', $accountConfig->account_deposit_id)->where('is_active', 1)->first();
+    //     $spmsgAccount = Account::where('id', $accountConfig->account_spmsg_id)->where('is_active', 1)->first();
+
+    //     return view('masters.invoices.index', compact('invoices', 'groupId','banks','agencies','staffs','totalAmount','paidAmount','accounts','partners','taxes','departments','receiveAccount','depositAccount','spmsgAccount'));
+    // }
+    
     public function index(Request $request)
     {
-        $groupId = $request->query('group_id');
-
-        if (! $groupId) {
-            return redirect()->back()->with([
-                'error' => 'グループIDが指定されていません。',
-                'alert-type' => 'danger'
-            ]);
-        }
-
-        // if (! auth()->user()->canAccessGroup($groupId)) {
-        //     abort(403, 'アクセス権限がありません。');
-        // }
-
-        $query = Invoice::where('group_id', $groupId);
+        $query = Invoice::query();
+        
         if ($request->filled('agency_id') && $request->agency_id) {
             $query->where('agency_id', $request->agency_id);
         }
-
+    
         if ($request->filled('staff_id') && $request->staff_id) {
             $query->where('staff_id', $request->staff_id);
         }
-
-        if ($request->filled('payment_status') && count($request->payment_status)>0) {
-            $query->wherein('payment_status', $request->payment_status);
+    
+        if ($request->filled('payment_status') && count($request->payment_status) > 0) {
+            $query->whereIn('payment_status', $request->payment_status);
         }
-
+    
         if ($request->filled('target_date') && $request->target_date) {
-            $end_date = date('Y-m-d',time());
-            if($request->days > 0){
-                $end_date = date('Y-m-d', strtotime($request->target_date . ' +'.$request->days.' day'));
+            $end_date = date('Y-m-d', time());
+            if ($request->days > 0) {
+                $end_date = date('Y-m-d', strtotime($request->target_date . ' +' . $request->days . ' day'));
             }
             
-            if($request->date_type== "operation"){
-                $query->where('operation_date','>=', $request->target_date)->where('operation_date','<=', $end_date);
-            }elseif($request->date_type== "billing"){
-                $query->where('invoice_date','>=', $request->target_date)->where('invoice_date','<=', $end_date);
-            }else{
-                $headers = PaymentHeader::where('group_id', $groupId)->where('payment_date','>=', $request->target_date)->where('payment_date','<=', $end_date)->pluck('id')->toArray();
+            if ($request->date_type == "operation") {
+                $query->where('operation_date', '>=', $request->target_date)
+                      ->where('operation_date', '<=', $end_date);
+            } elseif ($request->date_type == "billing") {
+                $query->where('invoice_date', '>=', $request->target_date)
+                      ->where('invoice_date', '<=', $end_date);
+            } else {
+                $headers = PaymentHeader::where('payment_date', '>=', $request->target_date)
+                                        ->where('payment_date', '<=', $end_date)
+                                        ->pluck('id')->toArray();
                 $ids = PaymentDetail::whereIn('payment_header_id', $headers)->pluck('invoice_id')->toArray();
-                $query->wherein('id', $ids);
-
+                $query->whereIn('id', $ids);
             }
-
         }
-
+    
         $totalAmount = (clone $query)->where('type', 1)->sum('total_amount');
         $paidAmount  = (clone $query)->where('type', 1)->sum('paid_amount');
-
-        $perPage = 20; // 默认值
-        $allowedPerPages = [20, 30, 50]; // 允许的选项
+    
+        $perPage = 20;
+        $allowedPerPages = [20, 30, 50];
         
         if ($request->filled('per_page') && in_array((int)$request->per_page, $allowedPerPages)) {
             $perPage = (int)$request->per_page;
         }
-        // --- [修改结束] ---
-
+    
         $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage);
-        
-        // appends 确保分页链接中携带当前搜索条件和 per_page 设置
-        $invoices->appends($request->only(['group_id', 'per_page','agency_id','staff_id']));
-
+        $invoices->appends($request->only(['per_page', 'agency_id', 'staff_id']));
+    
         $departments = AccountDepartment::get();
-        $banks = Bank::where("is_active",1)->get();
-        $agencies = Agency::where("is_active",1)->get();
-        $staffs = Staff::where("is_active",1)->get();
-
+        $banks = Bank::where("is_active", 1)->get();
+        $agencies = Agency::where("is_active", 1)->get();
+        $staffs = Staff::where("is_active", 1)->get();
+    
         $accounts = Account::where('is_active', 1)->get();
-        $partners = AccountPartner::get(); // 取引先
-        $taxes = AccountTax::get();       // 税区分
-
+        $partners = AccountPartner::get();
+        $taxes = AccountTax::get();
+    
         $accountConfig = AccountConfig::first();
         $receiveAccount = Account::where('id', $accountConfig->account_mgj_id)->where('is_active', 1)->first();
         $depositAccount = Account::where('id', $accountConfig->account_deposit_id)->where('is_active', 1)->first();
         $spmsgAccount = Account::where('id', $accountConfig->account_spmsg_id)->where('is_active', 1)->first();
-
-        return view('masters.invoices.index', compact('invoices', 'groupId','banks','agencies','staffs','totalAmount','paidAmount','accounts','partners','taxes','departments','receiveAccount','depositAccount','spmsgAccount'));
+    
+        return view('masters.invoices.index', compact('invoices', 'banks', 'agencies', 'staffs', 'totalAmount', 'paidAmount', 'accounts', 'partners', 'taxes', 'departments', 'receiveAccount', 'depositAccount', 'spmsgAccount'));
     }
 
     public function sumInvoice(Request $request)
@@ -339,7 +408,49 @@ class InvoiceController extends Controller
         $currencies = Currency::select('currency_code', 'id')->distinct()->orderBy('currency_code')->get(); 
         $agencies = Agency::where("is_active",1)->get();
         $staffs = Staff::where("is_active",1)->get();
-        return view('masters.invoices.create', compact('groupId','currencies','products','banks','agencies','staffs'));
+        
+        $autoFillData = [
+            'reservation_id' => $groupId,
+            'agency_id' => null,
+            'agency_detail' => '',
+            'operation_date' => null,
+            'group_name' => '',
+        ];
+        if ($groupId) {
+            $groupInfo = GroupInfo::find($groupId);
+            if ($groupInfo) {
+                $autoFillData['reservation_id'] = $groupInfo->id;
+                
+                $autoFillData['group_name'] = $groupInfo->group_name ?? '';
+                
+                if ($groupInfo->agency) {
+                    $agency = Agency::where('agency_name', $groupInfo->agency)->first();
+                    if ($agency) {
+                        $autoFillData['agency_id'] = $agency->id;
+                        if ($agency->bill_to) {
+                            $autoFillData['agency_detail'] = $agency->bill_to;
+                        }
+                    } else {
+                        $autoFillData['agency_detail'] = $groupInfo->agency;
+                    }
+                }
+                
+                if ($groupInfo->start_date) {
+                    $autoFillData['operation_date'] = $groupInfo->start_date instanceof Carbon 
+                        ? $groupInfo->start_date->format('Y-m-d') 
+                        : $groupInfo->start_date;
+                } else {
+                    $firstItinerary = DailyItinerary::where('group_info_id', $groupId)
+                        ->orderBy('date', 'asc')
+                        ->first();
+                    if ($firstItinerary) {
+                        $autoFillData['operation_date'] = $firstItinerary->date;
+                    }
+                }
+            }
+        }
+        
+        return view('masters.invoices.create', compact('groupId','currencies','products','banks','agencies','staffs','autoFillData'));
     }
 
 public function store(Request $request)

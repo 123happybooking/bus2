@@ -105,7 +105,7 @@
                 <div class="flex-1 position-relative">
                     <input type="text" name="guide_name_input" class="form-input search-input" id="guide_search" 
                            value="{{ old('guide_name_input') }}" placeholder="ガイド名を入力" autocomplete="off">
-                    <input type="hidden" name="guide_id" id="guide_id" value="{{ old('guide_id') }}">
+                    <input type="hidden" name="guide" id="guide_hidden" value="{{ old('guide') }}">
                     <div class="suggestions-container" id="guide_suggestions" style="display: none;"></div>
                 </div>
             </div>
@@ -699,6 +699,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (agencyCountryInput && data.country && !agencyCountryInput.value) {
                     agencyCountryInput.value = data.country || '';
                 }
+            } else if (type === 'guide') {
+                const guideHidden = document.getElementById('guide_hidden');
+                if (guideHidden) {
+                    guideHidden.value = data.display;
+                }
             }
         });
 
@@ -823,9 +828,9 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         const guideSearchInput = document.getElementById('guide_search');
-        const guideIdHidden = document.getElementById('guide_id');
-        if (guideSearchInput && guideIdHidden && guideSearchInput.value.trim() === '') {
-            guideIdHidden.value = '';
+        const guideHidden = document.getElementById('guide_hidden');
+        if (guideSearchInput && guideHidden) {
+            guideHidden.value = guideSearchInput.value.trim();
         }
         
         

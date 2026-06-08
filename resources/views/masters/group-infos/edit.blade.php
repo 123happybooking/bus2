@@ -239,7 +239,7 @@
                             
                             <div class="tab-pane active" id="invoice-tab">
                                 <div style="height: 100%; display: flex; flex-direction: column;">
-                                    <div class="invoice-list-container" style="flex: 1; overflow-y: auto; margin-bottom: 10px; max-height: 130px;">
+                                    <div class="invoice-list-container" style="flex: 1; overflow-y: auto; margin-bottom: 10px; max-height: 135px;">
                                         @php
                                             $groupInvoices = App\Models\Masters\Invoice::where('reservation_id', $groupInfo->id)
                                                 ->orderBy('created_at', 'desc')
@@ -249,19 +249,38 @@
                                             <table class="table table-sm table-bordered" style="font-size: 10px; margin-bottom: 0;">
                                                 <thead style="background-color: #f3f4f6; text-align: center;">
                                                     <tr>
-                                                        <th style="width: 40%;">タイトル</th>
-                                                        <th style="width: 30%;">合計金額</th>
-                                                        <th style="width: 30%;">未入金</th>
+                                                        <th style="width: 50%;">タイトル</th>
+                                                        <th style="width: 20%;">合計金額</th>
+                                                        <th style="width: 20%;">未入金</th>
+                                                        <th style="width: 10%;">操作</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
+                                                    @php
+                                                        $inv_count=0;
+                                                        $total_amount_unpaid=0;
+                                                    @endphp
                                                     @foreach($groupInvoices as $inv)
+                                                        @php
+                                                            $inv_count++;
+                                                            $total_amount_unpaid = $total_amount_unpaid + $inv->total_amount - $inv->paid_amount;
+                                                        @endphp
                                                     <tr>
                                                         <td>{{ $inv->billing_title ?? '-' }}</td>
                                                         <td class="text-end">{{ number_format($inv->total_amount) }}</td>
                                                         <td class="text-end">{{ number_format($inv->total_amount - $inv->paid_amount) }}</td>
+                                                        <td class="text-center">
+                                                            <a href="{{ route('masters.invoices.edit', ['invoice' => $inv->id, 'group_id' => $groupInfo->id]) }}" 
+                                                               target="_blank">編集</a>
+                                                        </td>
                                                     </tr>
                                                     @endforeach
+                                                    <tr>
+                                                        <td>合計：{{ $inv_count }}</td>
+                                                        <td class="text-end"></td>
+                                                        <td class="text-end">{{ number_format($total_amount_unpaid) }}</td>
+                                                        <td class="text-center"></td>
+                                                    </tr>
                                                 </tbody>
                                             </table>
                                         @else
@@ -537,10 +556,10 @@
                                                 <div class="flex-1 position-relative w-100">
                                                     <input type="text" class="form-control form-control-sm border search-input w-100" 
                                                            id="guide_search_{{ $vehicleIndex }}" 
-                                                           value="{{ $guideInfo ? $guideInfo->name . ($guideInfo->guide_code ? '(' . $guideInfo->guide_code . ')' : '') : '' }}" 
+                                                           value="{{ $busAssignment->guide ?? '' }}" 
                                                            autocomplete="off"
                                                            placeholder="-- 選択 --">
-                                                    <input type="hidden" name="bus_assignments[{{ $vehicleIndex }}][guide_id]" id="guide_id_{{ $vehicleIndex }}" value="{{ $busAssignment->guide_id ?? '' }}">
+                                                    <input type="hidden" name="bus_assignments[{{ $vehicleIndex }}][guide]" id="guide_hidden_{{ $vehicleIndex }}" value="{{ $busAssignment->guide ?? '' }}">
                                                     <div class="suggestions-container" id="guide_suggestions_{{ $vehicleIndex }}" style="display: none;"></div>
                                                 </div>
                                             </div>
@@ -2399,14 +2418,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.querySelectorAll('.vehicle-detail-card').forEach(card => {
             const guideSearchInput = card.querySelector('input[id^="guide_search_"]');
-            const guideIdHidden = card.querySelector('input[id^="guide_id_"]');
+            const guideHidden = card.querySelector('input[id^="guide_hidden_"]');
             
-            if (guideSearchInput && guideIdHidden) {
+            if (guideSearchInput && guideHidden) {
                 const guideSearchValue = guideSearchInput.value.trim();
-                
-                if (guideSearchValue === '') {
-                    guideIdHidden.value = '';
-                }
+                guideHidden.value = guideSearchValue;
             }
         });
         
@@ -3173,11 +3189,11 @@ function updateBusDetailClickHandler(e) {
                 }
                 driverIdInput.dispatchEvent(new Event('change'));
             } else if (type === 'guide') {
-                const guideIdInput = document.getElementById(`guide_id_${containerId}`);
-                if (guideIdInput) {
-                    guideIdInput.value = data.id;
+                const guideHidden = document.getElementById(`guide_hidden_${containerId}`);
+                if (guideHidden) {
+                    guideHidden.value = data.display;
                 }
-                guideIdInput.dispatchEvent(new Event('change'));
+                guideHidden.dispatchEvent(new Event('change'));
             }
         });
 
@@ -3817,7 +3833,7 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
                                                    value="" 
                                                    autocomplete="off"
                                                    placeholder="-- 添乗員を選択 --">
-                                            <input type="hidden" name="bus_assignments[${newIndex}][guide_id]" id="guide_id_${newIndex}" value="">
+                                            <input type="hidden" name="bus_assignments[${newIndex}][guide]" id="guide_hidden_${newIndex}" value="">
                                             <div class="suggestions-container" id="guide_suggestions_${newIndex}" style="display: none;"></div>
                                         </div>
                                     </div>
@@ -5512,7 +5528,16 @@ if (addInvoiceBtn) {
         const groupId = {{ $groupInfo->id }};
         const url = `/masters/invoices/create?group_id=12&group_id=${groupId}`;
         
-        const childWindow = window.open(url, 'invoice_create_window', 'width=760,height=600,toolbar=no,location=no,menubar=no,scrollbars=yes,resizable=yes');
+        const screenWidth = window.screen.width;
+        const screenHeight = window.screen.height;
+        const windowWidth = 760;
+        
+        const left = screenWidth - windowWidth;
+        const top = 0;
+        
+        const features = `width=${windowWidth},height=${screenHeight},left=${left},top=${top},toolbar=no,location=no,menubar=no,scrollbars=yes,resizable=yes`;
+        
+        const childWindow = window.open(url, 'invoice_create_window', features);
         
         if (childWindow) {
             const timer = setInterval(function() {

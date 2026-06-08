@@ -21,24 +21,74 @@
                     <div class="d-flex align-items-center">
                         <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">開始日</span>
                         <input type="text" name="start_date" value="{{ request('start_date', \Carbon\Carbon::today()->format('Y-m-d')) }}" 
-                               class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" placeholder="開始日" id="start_date" onchange="submitWithEndDate()">
-                        
-                        <select name="period" class="form-select form-select-sm" style="width: 100px; margin-left: 8px;" id="period_select">
+                               class="form-control form-control-sm datepicker-3months" style="width: 120px; border-color: #E5E7EB;" id="start_date">
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <select name="period" class="form-select form-select-sm" style="width: 100px;" id="period_select">
                             <option value="1" {{ request('period') == 1 ? 'selected' : '' }}>1週間</option>
                             <option value="2" {{ request('period') == 2 ? 'selected' : '' }}>2週間</option>
                             <option value="3" {{ request('period') == 3 ? 'selected' : '' }}>3週間</option>
                             <option value="4" {{ request('period') == 4 ? 'selected' : '' }}>1ヶ月</option>
                         </select>
-                        
-                        <div class="btn-group btn-group-sm ms-2">
-                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', -1)">&lt;&lt;</button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', -1)">&lt;</button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="setToday()">今日</button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', 1)">&gt;</button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', 1)">&gt;&gt;</button>
-                        </div>
                     </div>
-
+                    
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', -1)">&lt;&lt;</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', -1)">&lt;</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="setToday()">今日</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="moveDate('week', 1)">&gt;</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="moveDate('month', 1)">&gt;&gt;</button>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">予約ID</span>
+                        <input type="text" name="reservation_id" value="{{ request('reservation_id') }}"
+                               class="form-control form-control-sm" style="width: 100px; border-color: #E5E7EB;">
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">営業所</span>
+                        <select name="branch_id" class="form-select form-select-sm" style="width: 100px; border-color: #E5E7EB;">
+                            <option value="">選択</option>
+                            @foreach($branches ?? [] as $branch)
+                                <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
+                                    {{ $branch->branch_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 30px;">車種</span>
+                        <select name="vehicle_type_id" class="form-select form-select-sm" style="width: 100px; border-color: #E5E7EB;">
+                            <option value="">選択</option>
+                            @foreach($vehicleTypes ?? [] as $type)
+                                <option value="{{ $type->id }}" {{ request('vehicle_type_id') == $type->id ? 'selected' : '' }}>
+                                    {{ $type->type_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">団体名</span>
+                        <input type="text" name="group_name" value="{{ request('group_name') }}"
+                               class="form-control form-control-sm" style="width: 120px; border-color: #E5E7EB;" placeholder="団体名">
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="me-1" style="font-size: 0.8rem; font-weight: 500; min-width: 45px;">代理店</span>
+                        <select name="agency_id" class="form-select form-select-sm" style="width: 120px; border-color: #E5E7EB;">
+                            <option value="">選択</option>
+                            @foreach($agencies ?? [] as $agency)
+                                <option value="{{ $agency->id }}" {{ request('agency_id') == $agency->id ? 'selected' : '' }}>
+                                    {{ $agency->agency_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
                     <div class="col">
                         <input type="text" name="search" value="{{ request('search') }}" 
                                class="form-control form-control-sm" style="border-color: #E5E7EB;" placeholder="代理店・車両...">
@@ -51,7 +101,7 @@
                         </button>
                         <a href="{{ route('masters.group-infos.index', ['reset_search' => 1]) }}" class="btn btn-sm btn-outline-secondary px-3"
                            style="border-color: #E5E7EB; color: #374151; font-size: 0.875rem;">
-                            リセット
+                            クリア
                         </a>
                     </div>
                 </div>
@@ -64,46 +114,107 @@
             <thead>
                 <tr>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 60px;">No.</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 160px;">初始</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 160px;">终了</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500;">代理店</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 160px;">期間</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">予約ID</th>
+                    <th class="text-start px-2 py-1" style="text-align: left !important; color: #374151; font-weight: 500;">代理店</th>
+                    <th class="text-start px-2 py-1" style="color: #374151; font-weight: 500;">团体名</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">状态</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 60px;">人数</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 60px;">車両種類</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500;">車両</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500;">请求</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500;">備考</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">操作</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 80px;">等級</th>
+                    <th class="text-start px-2 py-1" style="text-align: left !important; color: #374151; font-weight: 500;">車両</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 150px;">请求</th>
+                    <th class="text-start px-2 py-1" style="text-align: left !important; color: #374151; font-weight: 500; width: 150px;">備考</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 60px !important;">操作</th>
                 </tr>
-             </thead>
+            </thead>
             <tbody>
                 @forelse($groupInfos as $index => $groupInfo)
+                @php
+                    $statusBgColor = '#ffffff';
+                    $statusTextColor = '#000000';
+                    switch($groupInfo->reservation_status ?? '') {
+                        case '予約':
+                            $statusBgColor = '#ccf5ff';
+                            break;
+                        case '仮押さえ':
+                            $statusBgColor = '#ffff99';
+                            break;
+                        case '見積':
+                            $statusBgColor = '#ccffcc';
+                            break;
+                        case '危ない':
+                            $statusBgColor = '#ffcccc';
+                            break;
+                        case '確定待ち':
+                            $statusBgColor = '#ffd9b3';
+                            break;
+                        case '確定':
+                            $statusBgColor = '#cbb87c';
+                            break;
+                        case '送信済':
+                            $statusBgColor = '#e6e6fa';
+                            break;
+                        case '実績待ち':
+                            $statusBgColor = '#e0b0ff';
+                            break;
+                        case '運行済':
+                            $statusBgColor = '#c0c0c0';
+                            break;
+                        case '請求済':
+                            $statusBgColor = '#b0e0e6';
+                            break;
+                        case 'キャンセル':
+                            $statusBgColor = '#d3d3d3';
+                            break;
+                        case '稼働不可':
+                            $statusBgColor = '#2c2c2c';
+                            $statusTextColor = '#ffffff';
+                            break;
+                    }
+                    
+                    $startDateTime = '';
+                    if ($groupInfo->start_date) {
+                        $startDateTime = \Carbon\Carbon::parse($groupInfo->start_date)->format('Y/m/d');
+                        if ($groupInfo->start_time) {
+                            $startDateTime .= ' ' . substr($groupInfo->start_time, 0, 5);
+                        }
+                    }
+                    
+                    $periodText = '';
+                    if ($groupInfo->trip_days == 1) {
+                        $endTime = $groupInfo->end_time ? substr($groupInfo->end_time, 0, 5) : '';
+                        $periodText = $startDateTime . ' - ' . $endTime;
+                    } else {
+                        $periodText = $startDateTime . ' - ' . $groupInfo->trip_days . '日';
+                    }
+                @endphp
                 <tr>
                     <td class="text-center px-2 py-1 align-middle">
                         {{ $groupInfos->firstItem() + $index }}
-                     </td>
+                    </td>
+                    <td class="text-center px-2 py-1 align-middle" style="font-size: 0.75rem;">
+                        {{ $periodText }}
+                    </td>
                     <td class="text-center px-2 py-1 align-middle">
-                        @if($groupInfo->start_date)
-                            {{ \Carbon\Carbon::parse($groupInfo->start_date)->format('Y/m/d') }}
-                            @if($groupInfo->start_time)
-                                {{ substr($groupInfo->start_time, 0, 5) }}
-                            @endif
-                        @endif
-                     </td>
+                        <a href="{{ route('masters.group-infos.index', array_merge(request()->except('reservation_id'), ['reservation_id' => $groupInfo->id])) }}" 
+                           style="color: #2563eb; text-decoration: none;">
+                            {{ $groupInfo->id }}
+                        </a>
+                    </td>
+                    <td class="text-start px-2 py-1 align-middle" style="text-align: left !important;">
+                        <a href="{{ route('masters.group-infos.index', array_merge(request()->except('search'), ['search' => $groupInfo->agency ?? ''])) }}" 
+                           style="color: #2563eb; text-decoration: none;">
+                            {{ $groupInfo->agency ?? '' }}
+                        </a>
+                    </td>
+                    <td class="text-start px-2 py-1 align-middle">
+                        {{ $groupInfo->group_name ?? '' }}
+                    </td>
                     <td class="text-center px-2 py-1 align-middle">
-                        @if($groupInfo->end_date)
-                            {{ \Carbon\Carbon::parse($groupInfo->end_date)->format('Y/m/d') }}
-                            @if($groupInfo->end_time)
-                                {{ substr($groupInfo->end_time, 0, 5) }}
-                            @endif
-                        @endif
-                     </td>
-                    <td class="text-center px-2 py-1 align-middle">
-                        {{ $groupInfo->agency ?? '' }}
-                     </td>
-                    <td class="text-center px-2 py-1 align-middle">
-                        {{ $groupInfo->reservation_status ?? '不明' }}
-                     </td>
+                        <span style="background-color: {{ $statusBgColor }}; color: {{ $statusTextColor }}; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; display: inline-block; white-space: nowrap;">
+                            {{ $groupInfo->reservation_status ?? '不明' }}
+                        </span>
+                    </td>
                     <td class="text-center px-2 py-1 align-middle">
                         @php
                             $totalPax = ($groupInfo->adult_count ?? 0) + 
@@ -112,41 +223,39 @@
                                        ($groupInfo->other_count ?? 0);
                         @endphp
                         {{ $totalPax }}
-                     </td>
+                    </td>
                     <td class="text-center px-2 py-1 align-middle">
-                        <a href="{{ route('masters.bus-assignments.show', $groupInfo->id) }}" 
-                           style="color: #2563eb; text-decoration: none;">
-                            詳細
-                        </a>
-                     </td>
-                    <td class="text-center px-2 py-1 align-middle">
+                        {{ $groupInfo->vehicle_grade_name }}
+                    </td>
+                    <td class="text-start px-2 py-1 align-middle" style="text-align: left !important;">
                         {{ $groupInfo->vehicle ?? '--' }}
-                     </td>
-                    <td class="text-center px-2 py-1 align-middle">
-                        --
-                     </td>
-                    <td class="text-center px-2 py-1 align-middle" style="max-width: 150px;">
-                        <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $groupInfo->remarks ?? '' }}">
+                    </td>
+                    <td class="text-center px-2 py-1 align-middle" style="font-size: 0.7rem;">
+                        @if(isset($groupInfo->invoice_count) && $groupInfo->invoice_count > 0)
+                            {{ $groupInfo->invoice_count }}件 / 
+                            <span style="color: #dc2626;">¥{{ number_format($groupInfo->invoice_unpaid) }}</span>
+                        @else
+                            --
+                        @endif
+                    </td>
+                    <td class="text-start px-2 py-1 align-middle" style="max-width: 150px; text-align: left !important;">
+                        <span class="text-truncate d-inline-block" title="{{ $groupInfo->remarks ?? '' }}">
                             {{ $groupInfo->remarks ?? '--' }}
                         </span>
-                     </td>
-                    <td class="text-center px-2 py-1 align-middle">
+                    </td>
+                    <td class="text-center px-2 py-1 align-middle" style="width: 60px !important;">
                         <a href="{{ route('masters.group-infos.edit', $groupInfo->id) }}" 
-                           style="color: #2563eb; text-decoration: none; margin-right: 8px;">
+                           style="color: #2563eb; text-decoration: none;">
                             編集
                         </a>
-                        <a href="javascript:void(0);" onclick="confirmDelete('{{ $groupInfo->id }}', '{{ $groupInfo->agency ?? 'このグループ' }}')" 
-                           style="color: #dc3545; text-decoration: none;">
-                            削除
-                        </a>
-                     </td>
-                 </tr>
+                    </td>
+                </tr>
                 @empty
                 <tr>
-                    <td colspan="11" class="text-center py-3" style="color: #9ca3af;">
+                    <td colspan="12" class="text-center py-3" style="color: #9ca3af;">
                         グループデータがありません
-                     </td>
-                 </tr>
+                    </td>
+                </tr>
                 @endforelse
             </tbody>
          </table>
@@ -459,6 +568,11 @@ small {
         font-size: 0.7rem !important;
     }
 }
+
+.text-start {
+    text-align: left !important;
+}
+
 </style>
 @endpush
 
@@ -722,6 +836,144 @@ document.addEventListener('DOMContentLoaded', function() {
                     wrapper.appendChild(dayContainer);
                 });
             }
+        }
+    });
+});
+
+
+
+
+
+
+
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function moveDate(unit, direction) {
+    const startDateInput = document.getElementById('start_date');
+    const periodSelect = document.getElementById('period_select');
+    const displayDaysInput = document.getElementById('display_days');
+    
+    let currentStart = startDateInput.value ? new Date(startDateInput.value) : new Date();
+    let newStart = new Date(currentStart);
+    
+    if (unit === 'week') {
+        newStart.setDate(currentStart.getDate() + (7 * direction));
+    } else if (unit === 'month') {
+        newStart.setMonth(currentStart.getMonth() + direction);
+        if (newStart.getDate() !== currentStart.getDate()) {
+            newStart.setDate(0);
+        }
+    }
+    
+    startDateInput.value = formatDate(newStart);
+    
+    const periodValue = periodSelect ? parseInt(periodSelect.value) : 1;
+    let newEnd = new Date(newStart);
+    if (periodValue === 1) {
+        newEnd.setDate(newStart.getDate() + 6);
+    } else if (periodValue === 2) {
+        newEnd.setDate(newStart.getDate() + 13);
+    } else if (periodValue === 3) {
+        newEnd.setDate(newStart.getDate() + 20);
+    } else if (periodValue === 4) {
+        newEnd.setMonth(newStart.getMonth() + 1);
+        newEnd.setDate(newEnd.getDate() - 1);
+    } else {
+        newEnd.setDate(newStart.getDate() + 6);
+    }
+    
+    const newDisplayDays = Math.round((newEnd - newStart) / (1000 * 60 * 60 * 24)) + 1;
+    if (displayDaysInput) {
+        displayDaysInput.value = newDisplayDays;
+    }
+    
+    document.getElementById('searchForm').submit();
+}
+
+function setToday() {
+    const today = new Date();
+    const startDateInput = document.getElementById('start_date');
+    const periodSelect = document.getElementById('period_select');
+    const displayDaysInput = document.getElementById('display_days');
+    
+    let period = periodSelect ? parseInt(periodSelect.value) : 1;
+    
+    startDateInput.value = formatDate(today);
+    
+    let endDate = new Date(today);
+    if (period === 1) {
+        endDate.setDate(today.getDate() + 6);
+    } else if (period === 2) {
+        endDate.setDate(today.getDate() + 13);
+    } else if (period === 3) {
+        endDate.setDate(today.getDate() + 20);
+    } else if (period === 4) {
+        endDate.setMonth(today.getMonth() + 1);
+        endDate.setDate(endDate.getDate() - 1);
+    } else {
+        endDate.setDate(today.getDate() + 6);
+    }
+    
+    const actualDays = Math.round((endDate - today) / (1000 * 60 * 60 * 24)) + 1;
+    if (displayDaysInput) {
+        displayDaysInput.value = actualDays;
+    }
+    
+    document.getElementById('searchForm').submit();
+}
+
+function submitPeriod() {
+    const periodSelect = document.getElementById('period_select');
+    const startDateInput = document.getElementById('start_date');
+    const displayDaysInput = document.getElementById('display_days');
+    
+    const period = parseInt(periodSelect.value);
+    let startDate = startDateInput.value ? new Date(startDateInput.value) : new Date();
+    
+    let endDate = new Date(startDate);
+    if (period === 1) {
+        endDate.setDate(startDate.getDate() + 6);
+    } else if (period === 2) {
+        endDate.setDate(startDate.getDate() + 13);
+    } else if (period === 3) {
+        endDate.setDate(startDate.getDate() + 20);
+    } else if (period === 4) {
+        endDate.setMonth(startDate.getMonth() + 1);
+        endDate.setDate(endDate.getDate() - 1);
+    } else {
+        endDate.setDate(startDate.getDate() + 6);
+    }
+    
+    const actualDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    if (displayDaysInput) {
+        displayDaysInput.value = actualDays;
+    }
+    
+    document.getElementById('searchForm').submit();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const periodSelect = document.getElementById('period_select');
+    if (periodSelect) {
+        periodSelect.addEventListener('change', function() {
+            submitPeriod();
+        });
+    }
+    
+    flatpickr('input[name="start_date"]', {
+        locale: 'ja',
+        dateFormat: 'Y-m-d',
+        showMonths: 3,
+        allowInput: true,
+        clickOpens: true,
+        disableMobile: true,
+        onOpen: function(selectedDates, dateStr, instance) {
+            instance.calendarContainer.style.zIndex = '9999';
         }
     });
 });

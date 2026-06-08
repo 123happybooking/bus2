@@ -57,7 +57,7 @@
                 </div>
                 <div class="card-body p-2">
                     @if($isAdmin || $isOperationsManager || $isManager)
-                        <a class="btn btn-outline-secondary btn-sm w-100 mb-1" href="{{ route('masters.invoices.index', ['group_id' => 12]) }}">請求一覧</a>
+                        <a class="btn btn-outline-secondary btn-sm w-100 mb-1" href="{{ route('masters.invoices.index') }}">請求一覧</a>
                         <a class="btn btn-outline-secondary btn-sm w-100 mb-1" href="{{ route('masters.payments.index') }}">入金管理</a>
                         <a class="btn btn-outline-secondary btn-sm w-100 mb-1" href="{{ route('masters.products.index') }}">請求項目設定</a>
                         <a class="btn btn-outline-secondary btn-sm w-100 mb-1" href="{{ route('masters.currencies.index') }}">為替レート</a>

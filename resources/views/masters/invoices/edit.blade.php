@@ -128,7 +128,8 @@
                                             <option value="{{ $agency->id }}" 
                                                     {{ old('agency_id', $invoice->agency_id) == $agency->id ? 'selected' : '' }}
                                                     data-agency-name="{{ $agency->agency_name ?? '' }}"
-                                                    data-agency-code="{{ $agency->agency_code ?? '' }}">
+                                                    data-agency-code="{{ $agency->agency_code ?? '' }}"
+                                                    data-bill-to="{{ $agency->bill_to ?? '' }}">
                                                 {{ $agency->agency_name }}
                                             </option>
                                         @endforeach
@@ -823,26 +824,19 @@
 
             // --- 3.2 代理店联动逻辑 ---
             const agencySelect = document.getElementById('agency_id');
-            const clientDetailsTextarea = document.getElementById('agency_detail');
-            if (agencySelect && clientDetailsTextarea) {
+            const agencyDetailTextarea = document.getElementById('agency_detail');
+            if (agencySelect && agencyDetailTextarea) {
+                const originalAgencyDetail = agencyDetailTextarea.value;
+                
                 agencySelect.addEventListener('change', function () {
                     const selectedOption = this.options[this.selectedIndex];
-                    if (this.value === "") {
-                        clientDetailsTextarea.value = '';
+                    if (this.value === "" || this.value === "0") {
+                        agencyDetailTextarea.value = '';
                         return;
                     }
-                    const agencyName = selectedOption.getAttribute('data-agency-name') || '';
-                    const agencyCode = selectedOption.getAttribute('data-agency-code') || '';
-                    const name = selectedOption.text;
-                    let detailsText = `会社名:${name}\n`;
-                    if (agencyCode) detailsText += `コード:${agencyCode}\n`;
-                    clientDetailsTextarea.value = detailsText;
+                    const billTo = selectedOption.getAttribute('data-bill-to') || '';
+                    agencyDetailTextarea.value = billTo;
                 });
-                // 触发一次 change 以初始化数据 (如果已有选中项)
-                if (agencySelect.value) {
-                    const event = new Event('change');
-                    agencySelect.dispatchEvent(event);
-                }
             }
 
             // --- 3.3 锁定开关逻辑 ---

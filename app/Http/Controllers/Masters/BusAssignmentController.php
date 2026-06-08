@@ -99,7 +99,6 @@ class BusAssignmentController extends Controller
             'groupInfo',
             'vehicle.vehicleModel',
             'driver',
-            'guide',
             'dailyItineraries' => function($query) {
                 $query->orderBy('date', 'asc')->orderBy('time_start', 'asc');
             }
@@ -298,7 +297,7 @@ class BusAssignmentController extends Controller
             'group_info_id' => 'required|exists:group_info,id',
             'vehicle_id' => 'nullable|exists:vehicles,id',
             'driver_id' => 'nullable|exists:drivers,id',
-            'guide_id' => 'nullable|exists:guides,id',
+            'guide' => 'nullable|string|max:200',
             'start_date' => 'required|date',
             'start_time' => 'nullable',
             'end_date' => 'required|date',
@@ -418,7 +417,7 @@ class BusAssignmentController extends Controller
 
     public function show($id)
     {
-        $busAssignment = BusAssignment::with(['groupInfo', 'vehicle', 'driver', 'guide', 'dailyItineraries'])
+        $busAssignment = BusAssignment::with(['groupInfo', 'vehicle', 'driver', 'dailyItineraries'])
             ->findOrFail($id);
         
         return view('masters.bus-assignments.show', compact('busAssignment'));
@@ -432,7 +431,6 @@ class BusAssignmentController extends Controller
             'vehicle.vehicleType',
             'vehicle.branch',
             'driver',
-            'guide',
             'dailyItineraries'
         ])->findOrFail($id);
         
@@ -512,7 +510,6 @@ class BusAssignmentController extends Controller
             
             $oldVehicleId = $busAssignment->vehicle_id;
             $oldDriverId = $busAssignment->driver_id;
-            $oldGuideId = $busAssignment->guide_id;
             
             $oldStartDate = $busAssignment->start_date ? Carbon::parse($busAssignment->start_date)->format('Y-m-d') : null;
             $oldEndDate = $busAssignment->end_date ? Carbon::parse($busAssignment->end_date)->format('Y-m-d') : null;
@@ -522,7 +519,7 @@ class BusAssignmentController extends Controller
             $rules = [
                 'vehicle_id' => 'nullable|exists:vehicles,id',
                 'driver_id' => 'nullable|exists:drivers,id',
-                'guide_id' => 'nullable|exists:guides,id',
+                'guide' => 'nullable|string|max:200',
                 'start_date' => 'nullable|date',
                 'start_time' => 'nullable',
                 'end_date' => 'nullable|date',
@@ -547,6 +544,7 @@ class BusAssignmentController extends Controller
                 'status_sent' => 'nullable|boolean',
                 'status_finalized' => 'nullable|boolean',
                 'vehicle_type_spec_check' => 'nullable|boolean',
+                'vehicle_grade_id' => 'nullable|exists:vehicle_grades,id',
                 'temporary_driver' => 'nullable|boolean',
                 'ignore_operation' => 'nullable|boolean',
                 'ignore_driver' => 'nullable|boolean',
@@ -567,7 +565,6 @@ class BusAssignmentController extends Controller
             $messages = [
                 'vehicle_id.exists' => '選択された車両は存在しません。',
                 'driver_id.exists' => '選択された運転手は存在しません。',
-                'guide_id.exists' => '選択されたガイドは存在しません。',
                 'start_date.date' => '開始日の形式が正しくありません。',
                 'end_date.date' => '終了日の形式が正しくありません。',
                 'adult_count.integer' => '大人人数は数値で入力してください。',
@@ -677,6 +674,11 @@ class BusAssignmentController extends Controller
             }
             $groupInfo->update($groupInfoData);
             
+            if (isset($groupInfoData['vehicle_grade_id'])) {
+                $busAssignment->vehicle_grade_id = $groupInfoData['vehicle_grade_id'];
+                $busAssignment->save();
+            }
+            
             
             $userId = session('user_id', auth()->id() ?? 0);
             $username = session('username', auth()->user()->name ?? 'system');
@@ -754,9 +756,8 @@ class BusAssignmentController extends Controller
             }
             
             $guideName = '';
-            if ($busAssignment->guide_id) {
-                $guide = Guide::find($busAssignment->guide_id);
-                $guideName = $guide ? $guide->name : '';
+            if ($busAssignment->guide) {
+                $guideName = $busAssignment->guide;
             }
             
             Log::info("リソース名取得", [
@@ -771,7 +772,6 @@ class BusAssignmentController extends Controller
                 'vehicle' => $vehicleName,
                 'driver_id' => $busAssignment->driver_id,
                 'driver' => $driverName,
-                'guide_id' => $busAssignment->guide_id,
                 'guide' => $guideName,
                 'updated_at' => now(),
                 'updated_by' => session('user_id', auth()->id() ?? 0),
@@ -1426,7 +1426,6 @@ class BusAssignmentController extends Controller
             $data['vehicle'] = $template->vehicle;
             $data['driver_id'] = $template->driver_id;
             $data['driver'] = $template->driver;
-            $data['guide_id'] = $template->guide_id;
             $data['guide'] = $template->guide;
             
             Log::info("テンプレートから行程を作成", [
@@ -1637,7 +1636,7 @@ class BusAssignmentController extends Controller
             return back()->with('error', '印刷する項目を選択してください。');
         }
 
-        $assignments = BusAssignment::with(['groupInfo', 'vehicle', 'driver', 'guide', 'dailyItineraries'])
+        $assignments = BusAssignment::with(['groupInfo', 'vehicle', 'driver', 'dailyItineraries'])
             ->whereIn('id', $ids)
             ->orderBy('vehicle_index')
             ->get();
@@ -1688,9 +1687,11 @@ class BusAssignmentController extends Controller
             'groupInfo',
             'vehicle',
             'driver',
-            'guide',
             'dailyItineraries',
-        ])->whereIn('id', $busIds)->get();
+        ])->whereIn('id', $busIds)
+          ->orderBy('start_date', 'asc')
+          ->orderBy('start_time', 'asc')
+          ->get();
         
         foreach ($busAssignments as $assignment) {
             if (!$assignment->driver_id) {

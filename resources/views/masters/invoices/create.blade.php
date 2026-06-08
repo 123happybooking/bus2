@@ -63,9 +63,11 @@
                                     <select class="form-select form-select-sm" id="agency_id" name="agency_id" style="width: auto; min-width: 100px; font-size: 0.875rem;">
                                         <option value="0">-- 代理店を選択してください --</option>
                                         @foreach($agencies ?? [] as $agency)
-                                            <option value="{{ $agency->id }}" {{ old('agency_id') == $agency->id ? 'selected' : '' }}
-                                                    data-agency-name="{{ $agency->agency_name ?? '' }}"
-                                                    data-agency-code="{{ $agency->agency_code ?? '' }}">
+                                            <option value="{{ $agency->id }}" 
+                                                {{ old('agency_id', $autoFillData['agency_id'] ?? '') == $agency->id ? 'selected' : '' }}
+                                                data-agency-name="{{ $agency->agency_name ?? '' }}"
+                                                data-agency-code="{{ $agency->agency_code ?? '' }}"
+                                                data-bill-to="{{ $agency->bill_to ?? '' }}">
                                                 {{ $agency->agency_name }}
                                             </option>
                                         @endforeach
@@ -73,7 +75,9 @@
                                 </div>
                                 
                                 <!-- Textarea: 字体变小 -->
-                                <textarea required class="form-control form-control-sm" id="agency_detail" name="agency_detail" rows="3" placeholder="代理店を選択すると自動入力されます..." style="font-size: 0.875rem;">{{ old('agency_detail') }}</textarea>
+                                <textarea required class="form-control form-control-sm" id="agency_detail" 
+                                          name="agency_detail" rows="3" placeholder="代理店を選択すると自動入力されます..." 
+                                          style="font-size: 0.875rem;">{{ old('agency_detail', $autoFillData['agency_detail'] ?? '') }}</textarea>
                             </div>
 
                             <!-- 右侧：8 个字段 -->
@@ -144,19 +148,14 @@
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="operation_date" class="form-label mb-0" style="font-size: 0.75rem;">運行日</label>
-                                        <input 
-                                            type="text" 
-                                            class="form-control form-control-sm datepicker-3months" 
-                                            id="operation_date" 
-                                            name="operation_date" 
-                                            value="{{ old('operation_date') }}" 
-                                            style="font-size: 0.875rem;"
-                                            placeholder=""
-                                        >
+                                        <input type="text" class="form-control form-control-sm datepicker-3months" 
+                                               id="operation_date" name="operation_date" 
+                                               value="{{ old('operation_date', $autoFillData['operation_date'] ?? '') }}" 
+                                               style="font-size: 0.875rem;" placeholder="">
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="reservation_id" class="form-label mb-0" style="font-size: 0.75rem;">予約 ID</label>
-                                        <input type="text" class="form-control form-control-sm" id="reservation_id" name="reservation_id" value="{{ old('reservation_id', request('group_id')) }}" style="font-size: 0.875rem;">
+                                        <input type="text" class="form-control form-control-sm" id="reservation_id" name="reservation_id" value="{{ old('reservation_id', $autoFillData['reservation_id'] ?? '') }}" style="font-size: 0.875rem;">
                                     </div>
                                 </div>
                             </div>
@@ -172,7 +171,7 @@
                                 <label for="billing_title" class="form-label fw-bold mb-0" style="font-size: 0.875rem;">タイトル</label>
                                 <input type="text" class="form-control form-control-sm @error('billing_title') is-invalid @enderror"
                                     id="billing_title" name="billing_title"
-                                    value="{{ old('billing_title') }}" placeholder="例：2024 年 3 月分請求書" style="font-size: 0.875rem;">
+                                    value="{{ old('billing_title', $autoFillData['group_name'] ?? '') }}" placeholder="例：2024 年 3 月分請求書" style="font-size: 0.875rem;">
                             </div>
                             <div class="col-md-3">
                                 <label for="due_date" class="form-label fw-bold mb-0" style="font-size: 0.875rem;">支払指定日</label>
@@ -338,18 +337,41 @@
 <script>
 (function () {
     // 1. 代理店联动
+    // const agencySelect = document.getElementById('agency_id');
+    // const clientDetailsTextarea = document.getElementById('agency_detail');
+    // if (agencySelect && clientDetailsTextarea) {
+    //     agencySelect.addEventListener('change', function () {
+    //         const selectedOption = this.options[this.selectedIndex];
+    //         if (this.value === "") { clientDetailsTextarea.value = ""; return; }
+    //         const agencyName = selectedOption.getAttribute('data-agency-name') || '';
+    //         const agencyCode = selectedOption.getAttribute('data-agency-code') || '';
+    //         const name = selectedOption.text;
+    //         let detailsText = `会社名:${name}\n`;
+    //         if (agencyCode) detailsText += `コード:${agencyCode}\n`;
+    //         clientDetailsTextarea.value = detailsText;
+    //     });
+    // }
+    
+    // 1. 代理店联动
     const agencySelect = document.getElementById('agency_id');
-    const clientDetailsTextarea = document.getElementById('agency_detail');
-    if (agencySelect && clientDetailsTextarea) {
+    const agencyDetailTextarea = document.getElementById('agency_detail');
+    
+    if (agencySelect && agencyDetailTextarea) {
+        if (agencySelect.value && agencySelect.value !== "0") {
+            const selectedOption = agencySelect.options[agencySelect.selectedIndex];
+            const billTo = selectedOption.getAttribute('data-bill-to') || '';
+            if (billTo) {
+                agencyDetailTextarea.value = billTo;
+            }
+        }
         agencySelect.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
-            if (this.value === "") { clientDetailsTextarea.value = ""; return; }
-            const agencyName = selectedOption.getAttribute('data-agency-name') || '';
-            const agencyCode = selectedOption.getAttribute('data-agency-code') || '';
-            const name = selectedOption.text;
-            let detailsText = `会社名:${name}\n`;
-            if (agencyCode) detailsText += `コード:${agencyCode}\n`;
-            clientDetailsTextarea.value = detailsText;
+            if (this.value === "" || this.value === "0") {
+                agencyDetailTextarea.value = "";
+                return;
+            }
+            const billTo = selectedOption.getAttribute('data-bill-to') || '';
+            agencyDetailTextarea.value = billTo;
         });
     }
 

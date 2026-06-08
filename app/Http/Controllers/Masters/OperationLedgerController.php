@@ -150,7 +150,7 @@ class OperationLedgerController extends Controller
         }
         $filteredVehicleIds = $vehicleQuery->pluck('id');
         
-        $allItineraries = DailyItinerary::with(['busAssignment', 'groupInfo', 'busAssignment.driver', 'busAssignment.guide'])
+        $allItineraries = DailyItinerary::with(['busAssignment', 'groupInfo', 'busAssignment.driver'])
             ->when(!$hasExactSearch, function($query) use ($filteredVehicleIds, $startDate, $endDate) {
                 return $query->whereIn('vehicle_id', $filteredVehicleIds)
                              ->whereNotNull('vehicle_id')
@@ -369,7 +369,7 @@ class OperationLedgerController extends Controller
                 $groupInfoId = $groupInfo ? $groupInfo->id : ($itinerary->group_info_id ?? null);
                 $busAssignmentId = $busAssignment ? $busAssignment->id : ($itinerary->bus_assignment_id ?? null);
                 $driverName = $driver ? $driver->name : ($busAssignment ? $busAssignment->driver_name : ($itinerary->driver ?? ''));
-                $guideName = $guide ? $guide->name : ($busAssignment ? $busAssignment->guide_name : ($itinerary->guide ?? ''));
+                $guideName = $guide ?: ($busAssignment ? $busAssignment->guide_name : ($itinerary->guide ?? ''));
                 $groupName = $groupInfo ? $groupInfo->group_name : '';
                 
                 $result[] = [
