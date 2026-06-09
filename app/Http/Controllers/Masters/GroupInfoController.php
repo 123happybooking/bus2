@@ -32,6 +32,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Mpdf\Mpdf;
+use App\Exports\GroupInfosExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class GroupInfoController extends Controller
 {
@@ -4049,5 +4051,232 @@ class GroupInfoController extends Controller
     
 
 
+
+
+
+
+public function exportExcel(Request $request)
+{
+    $sessionKey = 'group_infos_search';
+    
+    $searchFields = ['start_date', 'period', 'display_days'];
+    
+    $isNewSearch = false;
+    foreach ($searchFields as $field) {
+        if ($request->filled($field)) {
+            $isNewSearch = true;
+            break;
+        }
+    }
+    
+    if ($request->has('reset_search')) {
+        session()->forget($sessionKey);
+        $isNewSearch = false;
+    }
+    
+    if ($isNewSearch) {
+        $searchParams = $request->only($searchFields);
+        session([$sessionKey => $searchParams]);
+    } else {
+        $searchParams = session($sessionKey, []);
+        $request->merge($searchParams);
+    }
+    
+    $reservationId = $request->input('reservation_id');
+    $branchId = $request->input('branch_id');
+    $vehicleTypeId = $request->input('vehicle_type_id');
+    $groupName = $request->input('group_name');
+    $agencyName = $request->input('agency_id');
+    $search = $request->input('search');
+    $startDate = $request->input('start_date');
+    $period = $request->input('period', 1);
+    
+    $hasExactSearch = !empty($reservationId);
+    
+    if (!$startDate && !$hasExactSearch) {
+        $startDate = Carbon::today()->format('Y-m-d');
+    }
+    
+    if ($startDate) {
+        $start = Carbon::parse($startDate);
+        
+        if ($period == 1) {
+            $end = $start->copy()->addDays(6);
+        } elseif ($period == 2) {
+            $end = $start->copy()->addDays(13);
+        } elseif ($period == 3) {
+            $end = $start->copy()->addDays(20);
+        } elseif ($period == 4) {
+            $end = $start->copy()->addMonth()->subDay();
+        } else {
+            $end = $start->copy()->addDays(6);
+        }
+        
+        $endDate = $end->format('Y-m-d');
+    }
+    
+    $query = GroupInfo::query();
+    
+    if ($reservationId) {
+        $query->where('id', $reservationId);
+    }
+    
+    if ($branchId) {
+        $query->whereHas('busAssignments.vehicle', function($q) use ($branchId) {
+            $q->where('branch_id', $branchId);
+        });
+    }
+    
+    if ($vehicleTypeId) {
+        $query->whereHas('busAssignments.vehicle', function($q) use ($vehicleTypeId) {
+            $q->where('vehicle_type_id', $vehicleTypeId);
+        });
+    }
+    
+    if ($groupName) {
+        $query->where('group_name', 'like', "%{$groupName}%");
+    }
+    
+    if ($agencyName) {
+        $agency = Agency::find($agencyName);
+        if ($agency) {
+            $query->where('agency', $agency->agency_name);
+        }
+    }
+    
+    if ($search) {
+        $query->where(function($q) use ($search) {
+            $q->where('agency', 'like', "%{$search}%")
+              ->orWhere('vehicle', 'like', "%{$search}%")
+              ->orWhere('group_name', 'like', "%{$search}%");
+        });
+    }
+    
+    if (!$hasExactSearch && $startDate && $endDate) {
+        $query->where(function($q) use ($startDate, $endDate) {
+            $q->whereDate('start_date', '>=', $startDate)
+              ->whereDate('end_date', '<=', $endDate);
+        });
+    }
+    
+    $perPage = $request->input('per_page', 20);
+    $currentPage = $request->input('page', 1);
+    
+    $groupInfos = $query->orderBy('start_date', 'asc')
+                       ->orderBy('start_time', 'asc')
+                       ->paginate($perPage, ['*'], 'page', $currentPage);
+    
+    $groupIds = $groupInfos->getCollection()->pluck('id')->toArray();
+    
+    $invoiceCounts = [];
+    $invoiceUnpaidTotals = [];
+    if (!empty($groupIds)) {
+        $invoices = Invoice::whereIn('group_id', $groupIds)
+            ->select('group_id', 
+                \DB::raw('COUNT(*) as invoice_count'),
+                \DB::raw('SUM(total_amount - paid_amount) as unpaid_sum'))
+            ->groupBy('group_id')
+            ->get();
+        
+        foreach ($invoices as $invoice) {
+            $invoiceCounts[$invoice->group_id] = $invoice->invoice_count;
+            $invoiceUnpaidTotals[$invoice->group_id] = $invoice->unpaid_sum;
+        }
+    }
+    
+    $vehicleGrades = [];
+    $firstBusVehicles = [];
+    if (!empty($groupIds)) {
+        $firstBuses = BusAssignment::whereIn('group_info_id', $groupIds)
+            ->select('group_info_id', 'vehicle_grade_id')
+            ->orderBy('vehicle_index', 'asc')
+            ->get()
+            ->unique('group_info_id');
+        
+        foreach ($firstBuses as $bus) {
+            if ($bus->vehicle_grade_id) {
+                $firstBusVehicles[$bus->group_info_id] = $bus->vehicle_grade_id;
+            }
+        }
+        
+        $gradeIds = array_values(array_unique(array_filter($firstBusVehicles)));
+        if (!empty($gradeIds)) {
+            $grades = VehicleGrade::whereIn('id', $gradeIds)->get()->keyBy('id');
+            foreach ($firstBusVehicles as $groupId => $gradeId) {
+                if (isset($grades[$gradeId])) {
+                    $vehicleGrades[$groupId] = $grades[$gradeId]->description;
+                }
+            }
+        }
+    }
+    
+    $exportData = [];
+    
+    foreach ($groupInfos as $index => $groupInfo) {
+        $startDateTime = '';
+        if ($groupInfo->start_date) {
+            $startDateTime = Carbon::parse($groupInfo->start_date)->format('Y/m/d');
+            if ($groupInfo->start_time) {
+                $startDateTime .= ' ' . substr($groupInfo->start_time, 0, 5);
+            }
+        }
+        
+        $tripDays = 1;
+        if ($groupInfo->start_date && $groupInfo->end_date) {
+            $startDateObj = Carbon::parse($groupInfo->start_date);
+            $endDateObj = Carbon::parse($groupInfo->end_date);
+            $tripDays = $startDateObj->diffInDays($endDateObj) + 1;
+        }
+        
+        $periodText = '';
+        if ($tripDays == 1) {
+            $endTime = $groupInfo->end_time ? substr($groupInfo->end_time, 0, 5) : '';
+            $periodText = $startDateTime . ' - ' . $endTime;
+        } else {
+            $periodText = $startDateTime . ' - ' . $tripDays . '日';
+        }
+        
+        $totalPax = ($groupInfo->adult_count ?? 0) + 
+                   ($groupInfo->child_count ?? 0) + 
+                   ($groupInfo->guide_count ?? 0) + 
+                   ($groupInfo->other_count ?? 0);
+        
+        $invoiceCount = $invoiceCounts[$groupInfo->id] ?? 0;
+        $invoiceUnpaid = $invoiceUnpaidTotals[$groupInfo->id] ?? 0;
+        $requestText = $invoiceCount > 0 ? $invoiceCount . '件 / ¥' . number_format($invoiceUnpaid) : '--';
+        
+        $exportData[] = [
+            $groupInfos->firstItem() + $index,
+            $periodText,
+            $groupInfo->id,
+            $groupInfo->agency ?? '',
+            $groupInfo->group_name ?? '',
+            $groupInfo->reservation_status ?? '不明',
+            $totalPax,
+            $vehicleGrades[$groupInfo->id] ?? '--',
+            $groupInfo->vehicle ?? '--',
+            $requestText,
+            $groupInfo->remarks ?? '--',
+        ];
+    }
+    
+    $companyInfo = ['name' => ''];
+    try {
+        $userCompany = \DB::table('user_company_info')->first();
+        if ($userCompany) {
+            $companyInfo['name'] = $userCompany->company_name ?? ($userCompany->user_company_name ?? '');
+        }
+    } catch (\Exception $e) {}
+    
+    $username = session('username', auth()->user()->name ?? '');
+    
+    $displayStartDate = $startDate ?? '';
+    $displayEndDate = $endDate ?? '';
+    
+    return Excel::download(
+        new GroupInfosExport($exportData, $companyInfo, $username, $displayStartDate, $displayEndDate),
+        '予約一覧_' . Carbon::now()->format('Ymd_His') . '.xlsx'
+    );
+}
     
 }

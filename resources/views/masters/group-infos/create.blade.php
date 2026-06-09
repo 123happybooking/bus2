@@ -648,7 +648,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const filtered = items.filter(item => {
                 const searchable = formatter(item).display.toLowerCase();
                 return searchable.includes(query.toLowerCase());
-            }).slice(0, 10);
+            }).slice(0, 100);
 
             if (filtered.length === 0) {
                 suggestionsDiv.style.display = 'none';

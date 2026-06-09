@@ -1182,7 +1182,7 @@ public function store(Request $request)
                 ->update([
                     'is_locked' => $lockState ? 1 : 0,
                     'updated_at' => now(),
-                    'locked_user_id' => session('staff_name', '未ログイン'),
+                    'locked_user' => session('staff_name', '未ログイン'),
                     'locked_at' => now(),
                 ]);
 

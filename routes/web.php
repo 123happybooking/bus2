@@ -148,7 +148,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::delete('/group-files/{id}', [GroupInfoController::class, 'deleteFile'])->name('group-files.delete');
         Route::get('/group-files/{id}/download', [GroupInfoController::class, 'downloadFile'])->name('group-files.download');
         
-        
+        Route::get('group-infos/export-excel', [GroupInfoController::class, 'exportExcel'])->name('group-infos.export-excel');
         
         Route::resource('group-infos', GroupInfoController::class)->names('group-infos');
         Route::post('group-infos/{id}/split-itineraries', [GroupInfoController::class, 'splitItineraries'])->name('group-infos.split-itineraries');

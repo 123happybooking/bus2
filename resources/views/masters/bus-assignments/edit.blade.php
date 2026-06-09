@@ -730,7 +730,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const filtered = vehicles.filter(item => {
                 const display = `${item.registration_number} ${item.vehicle_model ? '(' + item.vehicle_model.model_name + ')' : ''}`;
                 return display.toLowerCase().includes(query.toLowerCase());
-            }).slice(0, 10);
+            }).slice(0, 100);
     
             if (filtered.length === 0) {
                 suggestionsDiv.style.display = 'none';
@@ -798,7 +798,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const filtered = guides.filter(item => {
                 const display = `${item.name} ${item.guide_code ? '(' + item.guide_code + ')' : ''}`;
                 return display.toLowerCase().includes(query.toLowerCase());
-            }).slice(0, 10);
+            }).slice(0, 100);
 
             if (filtered.length === 0) {
                 suggestionsDiv.style.display = 'none';
@@ -869,7 +869,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const filtered = agencies.filter(item => {
                 const display = `${item.agency_name} ${item.branch_name ? '(' + item.branch_name + ')' : ''}`;
                 return display.toLowerCase().includes(query.toLowerCase());
-            }).slice(0, 10);
+            }).slice(0, 100);
     
             if (filtered.length === 0) {
                 suggestionsDiv.style.display = 'none';
@@ -940,7 +940,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const filtered = drivers.filter(item => {
                 const display = `${item.name} ${item.driver_code ? '(' + item.driver_code + ')' : ''}`;
                 return display.toLowerCase().includes(query.toLowerCase());
-            }).slice(0, 10);
+            }).slice(0, 100);
 
             if (filtered.length === 0) {
                 suggestionsDiv.style.display = 'none';

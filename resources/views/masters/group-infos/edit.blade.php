@@ -3080,7 +3080,7 @@ function updateBusDetailClickHandler(e) {
             const filtered = items.filter(item => {
                 const searchable = formatter(item).display.toLowerCase();
                 return searchable.includes(query.toLowerCase());
-            }).slice(0, 10);
+            }).slice(0, 100);
 
             if (filtered.length === 0) {
                 suggestionsDiv.style.display = 'none';
@@ -3231,7 +3231,7 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
         const filtered = locations.filter(item => {
             const searchable = (item.name || '').toLowerCase();
             return searchable.includes(query.toLowerCase());
-        }).slice(0, 10);
+        }).slice(0, 100);
 
         if (filtered.length === 0) {
             suggestionsDiv.style.display = 'none';

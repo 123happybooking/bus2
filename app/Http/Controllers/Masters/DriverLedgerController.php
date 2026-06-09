@@ -161,7 +161,7 @@ class DriverLedgerController extends Controller
         $vehicleTypes = VehicleType::orderBy('type_name')->get();
         $agencies = Agency::orderBy('agency_name')->get();
         
-        $allItineraries = DailyItinerary::with(['busAssignment', 'groupInfo', 'busAssignment.vehicle', 'busAssignment.guide'])
+        $allItineraries = DailyItinerary::with(['busAssignment', 'groupInfo', 'busAssignment.vehicle'])
             ->whereNotNull('driver_id')
             ->when(!$hasExactSearch, function($query) use ($startDate, $endDate) {
                 return $query->whereBetween('date', [$startDate, $endDate]);
