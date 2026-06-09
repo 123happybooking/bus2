@@ -146,7 +146,7 @@ class DriverItineraryController extends Controller
             return redirect()->route('driver.dashboard');
         }
         
-        $itineraries = DailyItinerary::with(['busAssignment.groupInfo', 'busAssignment.guide'])
+        $itineraries = DailyItinerary::with(['busAssignment.groupInfo'])
             ->where('driver_id', $driverId)
             ->whereDate('date', $date)
             ->orderBy('time_start', 'asc')

@@ -74,7 +74,7 @@
 
         <div class="detail-list">
             <div class="detail-item">
-                <div class="detail-value-full">{{ $itinerary->itinerary ?? '未設定' }}</div>
+                <div class="detail-value-full">{!! $itinerary->itinerary ? nl2br(e($itinerary->itinerary)) : '未設定' !!}</div>
             </div>
             <div class="detail-item">
                 <div class="detail-value-full" style="text-align: center;">
