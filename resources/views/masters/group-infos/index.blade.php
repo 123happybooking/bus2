@@ -6,14 +6,16 @@
 <div class="container-fluid px-4 py-0">
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h5 class="mb-0" style="color: #374151; font-size: 1.25rem;">予約一覧</h5>
-        <button type="button" id="exportExcelBtn" class="btn btn-success btn-sm px-3 py-1" 
-                style="background-color: #10b981; border-color: #10b981; font-size: 0.875rem;">
-            <i class="bi bi-file-earmark-excel"></i> Excel 出力
-        </button>
-        <button type="button" id="newGroupBtn" class="btn btn-primary btn-sm px-3 py-1" 
-                style="background-color: #2563eb; border-color: #2563eb; font-size: 0.875rem;">
-            新規予約
-        </button>
+        <div class="d-flex gap-2">
+            <button type="button" id="exportExcelBtn" class="btn btn-success btn-sm px-3 py-1" 
+                    style="background-color: #10b981; border-color: #10b981; font-size: 0.875rem;">
+                <i class="bi bi-file-earmark-excel"></i> Excel 出力
+            </button>
+            <button type="button" id="newGroupBtn" class="btn btn-primary btn-sm px-3 py-1" 
+                    style="background-color: #2563eb; border-color: #2563eb; font-size: 0.875rem;">
+                新規予約
+            </button>
+        </div>
     </div>
 
     <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">
