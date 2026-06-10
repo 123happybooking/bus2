@@ -44,11 +44,26 @@ class PaymentController extends Controller
      */
 public function store(Request $request)
 {
+    $items = $request->input('items', []);
+    $filteredItems = [];
+    foreach ($items as $item) {
+        if (isset($item['invoice_id']) && isset($item['payment_amount']) && $item['payment_amount'] > 0) {
+            $filteredItems[] = $item;
+        }
+    }
+    if (empty($filteredItems)) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', '有効な入金データがありません。');
+    }
+    $request->merge(['items' => $filteredItems]);
+    
+    
     // ==========================================
     // 1. 定义验证规则 (Rules)
     // ==========================================
     $rules = [
-        'group_id' => 'required|integer', 
+        // 'group_id' => 'required|integer', 
         'return_url' => 'nullable|string',
         'mode'     => 'required',
         'bank_id'  => 'nullable|integer', 
@@ -98,7 +113,8 @@ public function store(Request $request)
         $validated = $request->validate($rules, $messages);
         $validated = $request->all();
 
-        $groupId    = $validated['group_id'];
+        // $groupId    = $validated['group_id'];
+        $groupId    = 0;
         $bank_id       = $validated['bank_id'];
         $items      = $validated['items'];
         $batchToken = 'BATCH-' . date('YmdHis') . '-' . rand(1000, 9999);
@@ -216,11 +232,13 @@ public function store(Request $request)
 
         DB::commit();
 
-        if(!$return_url){
-            $return_url = "masters/invoices?group_id=".$groupId;
-        }else{
-            $return_url = $return_url."?group_id=".$groupId;
-        }
+        // if(!$return_url){
+        //     $return_url = "masters/invoices?group_id=".$groupId;
+        // }else{
+        //     $return_url = $return_url."?group_id=".$groupId;
+        // }
+        
+        $return_url = "masters/invoices";
         return redirect($return_url)->with('success', '登録完了：' . $batchToken);
 
     } catch (\Exception $e) {

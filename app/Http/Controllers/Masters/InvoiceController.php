@@ -1527,17 +1527,32 @@ public function store(Request $request)
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
+            'margin_left' => 10,      // 左边距 15mm
+            'margin_right' => 10,     // 右边距 15mm
+            'margin_top' => 10,       // 上边距 20mm
+            'margin_bottom' => 10,    // 下边距 20mm
+            'margin_header' => 5,     // 页眉边距 5mm
+            'margin_footer' => 10,    // 页脚边距 10mm
             'margin_footer' => 10,
             'tempDir' => sys_get_temp_dir(),
             'fontDir' => [
-                base_path('vendor/mpdf/mpdf/ttfonts'),
                 storage_path('fonts'),
             ],
             'fontdata' => [
-                'ipaexgothic' => ['R' => 'ipaexgothic.ttf', 'useOTL' => 0x80],
-                'ipaexmincho' => ['R' => 'ipaexmincho.ttf', 'useOTL' => 0x80],
+                'msyh' => [
+                    'R' => 'msyh.ttf',
+                    'B' => 'msyhbd.ttf',
+                ],
+                'genshin' => [
+                    'R' => 'GenShinGothic-Normal.ttf',
+                    'B' => 'GenShinGothic-Bold.ttf',
+                ],
             ],
-            'default_font' => 'ipaexgothic',
+            'default_font' => 'msyh',
+            
+            'autoScriptToLang'  => true,
+            'autoLangToFont'    => true,
+            'useSubstitutions'  => true,
         ]);
         
         $mpdf->shrink_tables_to_fit = 0;
@@ -1605,31 +1620,6 @@ public function store(Request $request)
             'autoLangToFont'    => true,
             'useSubstitutions'  => true,
         ]);
-        
-        
-        // $mpdf = new Mpdf([
-        //     'mode' => 'utf-8',
-        //     'format' => 'A4',
-        //     'margin_footer' => 10,
-        //     'tempDir' => sys_get_temp_dir(),
-        //     'fontDir' => [
-        //         base_path('vendor/mpdf/mpdf/ttfonts'),
-        //         storage_path('fonts'),
-        //     ],
-        //     'fontdata' => [
-        //         'ipaexgothic' => [
-        //             'R' => 'ipaexgothic.ttf',
-        //             'B' => 'ipaexgothic.ttf',
-        //             'useOTL' => 0x80,
-        //         ],
-        //         'ipaexmincho' => [
-        //             'R' => 'ipaexmincho.ttf',
-        //             'B' => 'ipaexmincho.ttf',
-        //             'useOTL' => 0x80,
-        //         ],
-        //     ],
-        //     'default_font' => 'ipaexgothic',
-        // ]);
         
         $mpdf->shrink_tables_to_fit = 0;
         $mpdf->keep_table_proportions = true;

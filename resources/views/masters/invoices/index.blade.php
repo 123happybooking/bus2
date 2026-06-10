@@ -388,8 +388,8 @@
                             data-balance-amount="{{ number_format($invoice->total_amount - $invoice->paid_amount, 2, '.', '') }}"> 
                     </td> 
                     <td class="text-center text-muted small py-1" style="font-size: 0.75rem;">{{ $invoice->id }}</td> 
-                    <td class="text-center py-1" style="font-size: 0.875rem;">{{ $invoice->agency->agency_name ?? ''}}</td> 
-                    <td class="text-center  py-1" style="font-size: 0.875rem;">{{ $invoice->billing_title }}</td> 
+                    <td class="py-1" style="font-size: 0.875rem;">{{ $invoice->agency->agency_name ?? ''}}</td> 
+                    <td class="py-1" style="font-size: 0.875rem;">{{ $invoice->billing_title }}</td> 
                     <td class="text-center py-1" style="font-size: 0.875rem;">
                         {{ $invoice->operation_date?->format('Y/m/d') }}
                     </td> 
@@ -397,10 +397,10 @@
                         {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('Y/m/d') }}
                     </td> 
                     <td class="text-center py-1" style="font-size: 0.875rem;">{{ $invoice->currency_code }}</td> 
-                    <td class="text-center font-monospace py-1" style="font-size: 0.875rem;"> 
+                    <td class="font-monospace py-1" style="font-size: 0.875rem; text-align: right;"> 
                         {{ number_format($invoice->total_amount, 0) }} 
                     </td> 
-                    <td class="text-center font-monospace py-1" style="font-size: 0.875rem;"> 
+                    <td class="font-monospace py-1" style="font-size: 0.875rem; text-align: right;"> 
                         {{ number_format($invoice->total_amount - $invoice->paid_amount, 0) }} 
                     </td> 
                     <td class="text-center font-monospace py-1" style="font-size: 0.875rem;"> 

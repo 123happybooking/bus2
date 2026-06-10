@@ -82,7 +82,7 @@
         <table class="layout-table no-break">
             <tr>
                 <td style="width: 60%; vertical-align: top;">
-                    <h1 style="font-size: 26pt; color: #3b5998; margin: 0; line-height: 1.2;"><strong>INVOICE</strong></h1>
+                    <h1 style="font-size: 26pt; color: #3b5998; margin: 0; padding: 0; line-height: 26pt;"><strong>INVOICE</strong></h1>
                     
                     <br>
                     
@@ -98,8 +98,9 @@
                                 <div><strong>Invoice #:</strong> {{ $invoice->invoice_number }}</div>
                                 
                                 <br>
+                                <br>
                                 
-                                <div style="font-size: 11pt;"><strong>{{ $company->name }}</strong></div>
+                                <div style="font-size: 11pt;">{{ $company->name }}</div>
                                 @if($company->invoice_code)
                                     <div>{{ $company->invoice_code }}</div>
                                 @endif
@@ -128,9 +129,6 @@
                     @if($invoice->billing_title)
                         <div>{{ $invoice->billing_title }}</div>
                     @endif
-                    @if($invoice->group_name)
-                        <div>{{ $invoice->group_name }}</div>
-                    @endif
                     @if($invoice->operation_date)
                         <div>Operation Date: {{ $invoice->operation_date }}</div>
                     @endif
@@ -138,10 +136,10 @@
             </tr>
         </table>
         
-        <table class="no-break" style="width: 100%; margin: 5pt 0;">
+        <table class="no-break" style="width: 100%; margin: 5pt 0; border-spacing: 0;">
             <tr>
                 <td style="width: 70%;">
-                    <table class="no-break">
+                    <table class="no-break" style="border-spacing: 0;">
                         <tr>
                             <td style="white-space: nowrap; font-size: 14pt; border-bottom: 2px solid #333;">
                                 Total Amount ({{ $invoice->currency_code }}): <strong>{{ number_format($invoice->total_amount) }}</strong> 
@@ -150,7 +148,7 @@
                         </tr>
                     </table>
                 </td>
-                <td style="width: 30%; font-size: 10pt; text-align: right;">
+                <td style="width: 30%; font-size: 10pt; text-align: right; vertical-align: bottom;">
                     @if($invoice->reservation_id)
                         Reservation ID: {{ $invoice->reservation_id }}
                     @endif

@@ -123,12 +123,13 @@
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 160px;">期間</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">予約ID</th>
                     <th class="text-start px-2 py-1" style="text-align: left !important; color: #374151; font-weight: 500;">代理店</th>
-                    <th class="text-start px-2 py-1" style="color: #374151; font-weight: 500;">团体名</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">状态</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 60px;">人数</th>
+                    <th class="text-start px-2 py-1" style="color: #374151; font-weight: 500;">団体名</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">状態</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 40px;">人数</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 80px;">等級</th>
-                    <th class="text-start px-2 py-1" style="text-align: left !important; color: #374151; font-weight: 500;">車両</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 150px;">请求</th>
+                    <th class="text-start px-2 py-1" style="text-align: left !important; color: #374151; font-weight: 500; min-width: 100px;">車両</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 150px;">請求</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">未入金</th>
                     <th class="text-start px-2 py-1" style="text-align: left !important; color: #374151; font-weight: 500; width: 150px;">備考</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 60px !important;">操作</th>
                 </tr>
@@ -239,7 +240,14 @@
                     <td class="text-center px-2 py-1 align-middle" style="font-size: 0.7rem;">
                         @if(isset($groupInfo->invoice_count) && $groupInfo->invoice_count > 0)
                             {{ $groupInfo->invoice_count }}件 / 
-                            <span style="color: #dc2626;">¥{{ number_format($groupInfo->invoice_unpaid) }}</span>
+                            <span style="color: #dc2626;">¥{{ number_format($groupInfo->invoice_total) }}</span>
+                        @else
+                            --
+                        @endif
+                    </td>
+                    <td class="text-center px-2 py-1 align-middle" style="font-size: 0.7rem;">
+                        @if(isset($groupInfo->invoice_unpaid) && $groupInfo->invoice_unpaid > 0)
+                            ¥{{ number_format($groupInfo->invoice_unpaid) }}
                         @else
                             --
                         @endif
@@ -577,6 +585,10 @@ small {
 
 .text-start {
     text-align: left !important;
+}
+
+.table-list tr th:first-child, .table-list tr td:first-child {
+    width: 40px !important;
 }
 
 </style>

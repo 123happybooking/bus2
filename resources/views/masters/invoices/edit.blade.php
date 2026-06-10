@@ -356,7 +356,7 @@
                                                         <option value="-2" {{ (isset($oldItem['tax_rate']) && $oldItem['tax_rate'] == -2) ? 'selected' : '' }}>非課税</option>
                                                     </select>
                                                 </td>
-                                                <td class="align-middle py-1"><input type="text" tabindex="-1" class="form-control form-control-sm line-total-input" value="{{ number_format(($oldItem['unit_price'] ?? 0) * ($oldItem['quantity'] ?? 0), 2) }}" readonly style="background-color: #f8f9fa; text-align: left;"></td>
+                                                <td class="align-middle py-1"><input type="text" tabindex="-1" class="form-control form-control-sm line-total-input" value="{{ number_format(($oldItem['unit_price'] ?? 0) * ($oldItem['quantity'] ?? 0), 2) }}" readonly style="background-color: #f8f9fa; text-align: right;"></td>
                                                 <td class="text-center align-middle py-1">
                                                     <div class="d-flex justify-content-center gap-1">
                                                         <button type="button" class="btn btn-outline-secondary btn-sm move-up-btn" title="上へ移動" tabindex="-1" style="padding: 0.1rem 0.3rem;"><i class="bi bi-arrow-up"></i></button>
@@ -1155,6 +1155,25 @@ body {
 .card-header h5 {
     font-size: 0.9rem !important;
     line-height: 1.2;
+}
+
+
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+    display: none !important;
+}
+
+input[type="number"] {
+    text-align: right;
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+}
+
+.tax-rate {
+    text-align: center;
 }
 </style>
 @endsection
