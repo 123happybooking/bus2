@@ -67,7 +67,7 @@
         </div>
         @endif
 
-        @if($canViewAccounting)
+        @if($canViewAccounting && session("enable_accounting") == 1)
         <div class="col-md-3 mb-3">
             <div class="card shadow-sm">
                 <div class="card-header bg-secondary text-white py-2">

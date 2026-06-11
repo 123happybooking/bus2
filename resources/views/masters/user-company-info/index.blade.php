@@ -45,7 +45,7 @@
                         @method('PUT')
                         
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="user_company_id" class="form-label required">運行会社ID</label>
                                 <input type="text" class="form-control bg-light" 
                                        id="user_company_id" 
@@ -53,7 +53,7 @@
                                        readonly disabled>
                             </div>
                             
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="user_company_name" class="form-label required">運行会社名</label>
                                 <input type="text" class="form-control bg-light" 
                                        id="user_company_name" 
@@ -61,25 +61,25 @@
                                        readonly disabled>
                             </div>
                             
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="user_plan" class="form-label required">契約種類</label>
                                 <input type="text" class="form-control bg-light" 
                                        id="user_plan" 
                                        value="{{ old('user_plan', $UserCompanyInfo->user_plan) }}" 
                                        readonly disabled>
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
+                            
+                            <div class="col-md-3">
                                 <label for="user_start_day" class="form-label">使用開始日</label>
                                 <input type="date" class="form-control bg-light" 
                                        id="user_start_day" 
                                        value="{{ old('user_start_day', $UserCompanyInfo->user_start_day ? $UserCompanyInfo->user_start_day->format('Y-m-d') : '') }}" 
                                        readonly disabled>
                             </div>
-                            
-                            <div class="col-md-6">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3">
                                 <label for="company_name" class="form-label required">会社名</label>
                                 <input type="text" class="form-control @error('company_name') is-invalid @enderror" 
                                        id="company_name" name="company_name" 
@@ -89,10 +89,19 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
+                            
+                            <div class="col-md-3">
+                                <label for="company_name_en" class="form-label">会社名（英語）</label>
+                                <input type="text" class="form-control @error('company_name_en') is-invalid @enderror" 
+                                       id="company_name_en" name="company_name_en" 
+                                       value="{{ old('company_name_en', $UserCompanyInfo->company_name_en) }}" 
+                                       maxlength="255">
+                                @error('company_name_en')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="col-md-3">
                                 <label for="postal_code" class="form-label required">郵便番号</label>
                                 <input type="text" class="form-control @error('postal_code') is-invalid @enderror" 
                                        id="postal_code" name="postal_code" 
@@ -103,20 +112,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-8">
-                                <label for="address" class="form-label required">住所</label>
-                                <input type="text" class="form-control @error('address') is-invalid @enderror" 
-                                       id="address" name="address" 
-                                       value="{{ old('address', $UserCompanyInfo->address) }}" 
-                                       required maxlength="255">
-                                @error('address')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <label for="phone_number" class="form-label required">Tel</label>
                                 <input type="text" class="form-control @error('phone_number') is-invalid @enderror" 
                                        id="phone_number" name="phone_number" 
@@ -126,8 +122,32 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="address" class="form-label required">住所</label>
+                                <input type="text" class="form-control @error('address') is-invalid @enderror" 
+                                       id="address" name="address" 
+                                       value="{{ old('address', $UserCompanyInfo->address) }}" 
+                                       required maxlength="255">
+                                @error('address')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                             
-                            <div class="col-md-6">
+                            <div class="col-md-3">
+                                <label for="address_en" class="form-label">住所（英語）</label>
+                                <input type="text" class="form-control @error('address_en') is-invalid @enderror" 
+                                       id="address_en" name="address_en" 
+                                       value="{{ old('address_en', $UserCompanyInfo->address_en) }}" 
+                                       maxlength="255">
+                                @error('address_en')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="col-md-3">
                                 <label for="fax_number" class="form-label">Fax</label>
                                 <input type="text" class="form-control @error('fax_number') is-invalid @enderror" 
                                        id="fax_number" name="fax_number" 
@@ -136,10 +156,8 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
+                            
+                            <div class="col-md-3">
                                 <label for="email" class="form-label">Mail</label>
                                 <input type="email" class="form-control @error('email') is-invalid @enderror" 
                                        id="email" name="email" 
@@ -148,8 +166,10 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
-                            <div class="col-md-6">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3">
                                 <label for="email_for_drv" class="form-label">業務用Mail</label>
                                 <input type="email" class="form-control @error('email_for_drv') is-invalid @enderror" 
                                        id="email_for_drv" name="email_for_drv" 
@@ -158,10 +178,8 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
+                            
+                            <div class="col-md-3">
                                 <label for="phone_number_emergency" class="form-label required">緊急電話</label>
                                 <input type="text" class="form-control @error('phone_number_emergency') is-invalid @enderror" 
                                        id="phone_number_emergency" name="phone_number_emergency" 
@@ -172,7 +190,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <label for="work_license_area" class="form-label required">運行地域</label>
                                 <input type="text" class="form-control @error('work_license_area') is-invalid @enderror" 
                                        id="work_license_area" name="work_license_area" 
@@ -182,10 +200,8 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
+                            
+                            <div class="col-md-3">
                                 <label for="work_license_number" class="form-label required">事業者情報</label>
                                 <input type="text" class="form-control @error('work_license_number') is-invalid @enderror" 
                                        id="work_license_number" name="work_license_number" 
@@ -195,8 +211,10 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
-                            <div class="col-md-6">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3">
                                 <label for="work_license_day" class="form-label required">事業許可日</label>
                                 <input type="date" class="form-control @error('work_license_day') is-invalid @enderror" 
                                        id="work_license_day" name="work_license_day" 
@@ -206,10 +224,8 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
+                            
+                            <div class="col-md-3">
                                 <label for="president_name" class="form-label required">取締役</label>
                                 <input type="text" class="form-control @error('president_name') is-invalid @enderror" 
                                        id="president_name" name="president_name" 
@@ -220,7 +236,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <label for="work_manager_name_1st" class="form-label required">責任者01</label>
                                 <input type="text" class="form-control @error('work_manager_name_1st') is-invalid @enderror" 
                                        id="work_manager_name_1st" name="work_manager_name_1st" 
@@ -230,10 +246,8 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
+                            
+                            <div class="col-md-3">
                                 <label for="work_manager_name_2nd" class="form-label">責任者02</label>
                                 <input type="text" class="form-control @error('work_manager_name_2nd') is-invalid @enderror" 
                                        id="work_manager_name_2nd" name="work_manager_name_2nd" 
@@ -242,8 +256,10 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
-                            <div class="col-md-6">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3">
                                 <label for="work_manager_name_3rd" class="form-label">責任者03</label>
                                 <input type="text" class="form-control @error('work_manager_name_3rd') is-invalid @enderror" 
                                        id="work_manager_name_3rd" name="work_manager_name_3rd" 
@@ -252,10 +268,8 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
+                            
+                            <div class="col-md-3">
                                 <label for="report_car_count" class="form-label">報告台数</label>
                                 <input type="number" class="form-control @error('report_car_count') is-invalid @enderror" 
                                        id="report_car_count" name="report_car_count" 
@@ -265,7 +279,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="report_employee_count" class="form-label">報告従業員数</label>
                                 <input type="number" class="form-control @error('report_employee_count') is-invalid @enderror" 
                                        id="report_employee_count" name="report_employee_count" 
@@ -275,7 +289,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="report_drv_count" class="form-label">報告運転手数</label>
                                 <input type="number" class="form-control @error('report_drv_count') is-invalid @enderror" 
                                        id="report_drv_count" name="report_drv_count" 
@@ -287,7 +301,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <label for="accounting_manager_name" class="form-label">会計責任者名</label>
                                 <input type="text" class="form-control @error('accounting_manager_name') is-invalid @enderror" 
                                        id="accounting_manager_name" name="accounting_manager_name" 
@@ -297,7 +311,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <label for="accounting_manager_department" class="form-label">会計責任者所属</label>
                                 <input type="text" class="form-control @error('accounting_manager_department') is-invalid @enderror" 
                                        id="accounting_manager_department" name="accounting_manager_department" 
@@ -306,19 +320,8 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label for="optional_car_insurance" class="form-label">保険内容</label>
-                                <textarea class="form-control @error('optional_car_insurance') is-invalid @enderror" 
-                                          id="optional_car_insurance" name="optional_car_insurance" rows="3">{{ old('optional_car_insurance', $UserCompanyInfo->optional_car_insurance) }}</textarea>
-                                @error('optional_car_insurance')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
                             
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <label for="invoice_code" class="form-label">登録番号</label>
                                 <input type="text" class="form-control @error('invoice_code') is-invalid @enderror" 
                                        id="invoice_code" name="invoice_code" 
@@ -327,10 +330,19 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                            
+                            <div class="col-md-3">
+                                <label for="optional_car_insurance" class="form-label">保険内容</label>
+                                <textarea class="form-control @error('optional_car_insurance') is-invalid @enderror" 
+                                          id="optional_car_insurance" name="optional_car_insurance" rows="1">{{ old('optional_car_insurance', $UserCompanyInfo->optional_car_insurance) }}</textarea>
+                                @error('optional_car_insurance')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="setup_start_time" class="form-label">開始時刻初期設定値</label>
                                 <input type="time" class="form-control @error('setup_start_time') is-invalid @enderror" 
                                        id="setup_start_time" name="setup_start_time" 
@@ -340,7 +352,7 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="setup_end_time" class="form-label">終了時刻初期設定値</label>
                                 <input type="time" class="form-control @error('setup_end_time') is-invalid @enderror" 
                                        id="setup_end_time" name="setup_end_time" 
@@ -350,12 +362,34 @@
                                 @enderror
                             </div>
                             
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="setup_bank_name" class="form-label">入金銀行初期設定値</label>
                                 <input type="text" class="form-control @error('setup_bank_name') is-invalid @enderror" 
                                        id="setup_bank_name" name="setup_bank_name" 
                                        value="{{ old('setup_bank_name', $UserCompanyInfo->setup_bank_name) }}" maxlength="255">
                                 @error('setup_bank_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label for="start_year" class="form-label">開始年</label>
+                                <input type="number" class="form-control @error('start_year') is-invalid @enderror" 
+                                       id="start_year" name="start_year" value="{{ old('start_year', $UserCompanyInfo->start_year ?? '') }}" 
+                                       min="2000" max="2099" step="1">
+                                @error('start_year')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="fiscal_month" class="form-label">決算月</label>
+                                <input type="number" class="form-control @error('fiscal_month') is-invalid @enderror" 
+                                       id="fiscal_month" name="fiscal_month" value="{{ old('fiscal_month', $UserCompanyInfo->fiscal_month ?? '') }}" 
+                                       min="1" max="12" step="1">
+                                @error('fiscal_month')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -400,26 +434,6 @@
                                            onchange="previewImage(this, 'logoPreview')">
                                 </div>
                                 @error('company_logo')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        
-                            <div class="col-md-6">
-                                <label for="start_year" class="form-label">開始年</label>
-                                <input type="number" class="form-control @error('start_year') is-invalid @enderror" 
-                                       id="start_year" name="start_year" value="{{ old('start_year', $UserCompanyInfo->start_year ?? '') }}" 
-                                       min="2000" max="2099" step="1">
-                                @error('start_year')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        
-                            <div class="col-md-6">
-                                <label for="fiscal_month" class="form-label">決算月</label>
-                                <input type="number" class="form-control @error('fiscal_month') is-invalid @enderror" 
-                                       id="fiscal_month" name="fiscal_month" value="{{ old('fiscal_month', $UserCompanyInfo->fiscal_month ?? '') }}" 
-                                       min="1" max="12" step="1">
-                                @error('fiscal_month')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

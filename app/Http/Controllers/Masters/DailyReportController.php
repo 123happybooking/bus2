@@ -12,6 +12,7 @@ use App\Models\Driver\DriverPaymentMethod;
 use App\Models\Driver\DriverVehicleCheck;
 use App\Models\Driver\DriverVehicleCheckItems;
 use App\Models\Driver\DriverVehicleCheckRemark;
+use App\Models\Driver\DriverExpensesReceipt;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Masters\Driver;
 use App\Models\Masters\Vehicle;
@@ -19,6 +20,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Mpdf\Mpdf;
+use Illuminate\Support\Facades\Storage;
 
 class DailyReportController extends Controller
 {
@@ -137,6 +139,25 @@ class DailyReportController extends Controller
             ->orderBy('expense_date', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
+            
+        $expenses = DriverExpense::with(['expenseType', 'paymentMethod'])
+            ->where('driver_id', $report->driver_id)
+            ->whereDate('expense_date', $report->date)
+            ->orderBy('expense_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $expenseIds = $expenses->pluck('id')->toArray();
+        $receiptsByExpense = [];
+        if (!empty($expenseIds)) {
+            $receipts = DriverExpensesReceipt::whereIn('expense_id', $expenseIds)
+                ->orderBy('created_at', 'asc')
+                ->get();
+            
+            foreach ($receipts as $receipt) {
+                $receiptsByExpense[$receipt->expense_id][] = $receipt;
+            }
+        }
         
         $expensesByItinerary = [];
         foreach ($expenses as $expense) {
@@ -159,7 +180,7 @@ class DailyReportController extends Controller
             }
         }
         
-        return view('masters.daily-reports.edit', compact('report', 'itineraries', 'operationTypes', 'expensesByItinerary', 'expenseTypes', 'paymentMethods', 'remarkText'));
+        return view('masters.daily-reports.edit', compact('report', 'itineraries', 'operationTypes', 'expensesByItinerary', 'expenseTypes', 'paymentMethods', 'remarkText', 'receiptsByExpense'));
     }
     
     public function update(Request $request, $id)
@@ -564,5 +585,70 @@ class DailyReportController extends Controller
         ];
         
         return $data;
+    }
+    
+    
+    
+    
+    
+    
+    public function uploadReceipt(Request $request)
+    {
+        $userId = session('user_id');
+        
+        if (!$userId) {
+            return response()->json(['success' => false, 'message' => '認証エラー'], 401);
+        }
+        
+        $request->validate([
+            'receipt_image' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+            'expense_id' => 'required|exists:driver_expenses,id',
+        ]);
+        
+        $expense = DriverExpense::findOrFail($request->expense_id);
+        
+        $file = $request->file('receipt_image');
+        $filename = now()->format('Ymd_His') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('receipts/' . now()->format('Y/m'), $filename, 'public');
+        
+        $receipt = DriverExpensesReceipt::create([
+            'bus_assignment_id' => $expense->bus_assignment_id,
+            'itinerary_id' => $expense->itinerary_id,
+            'expense_id' => $expense->id,
+            'driver_id' => $expense->driver_id,
+            'expense_date' => $expense->expense_date,
+            'image_path' => $path,
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => '領収書をアップロードしました',
+            'receipt' => [
+                'id' => $receipt->id,
+                'url' => asset('storage/' . $path),
+            ],
+        ]);
+    }
+    
+    public function deleteReceipt($id)
+    {
+        $userId = session('user_id');
+        
+        if (!$userId) {
+            return response()->json(['success' => false, 'message' => '認証エラー'], 401);
+        }
+        
+        $receipt = DriverExpensesReceipt::findOrFail($id);
+        
+        if (Storage::disk('public')->exists($receipt->image_path)) {
+            Storage::disk('public')->delete($receipt->image_path);
+        }
+        
+        $receipt->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => '削除しました',
+        ]);
     }
 }

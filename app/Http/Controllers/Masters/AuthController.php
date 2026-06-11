@@ -116,6 +116,8 @@ class AuthController extends Controller
             $request->session()->put('user_id', $staff->id);
             $request->session()->put('user_name', $staff->name);
             $request->session()->put('role', $staff->role);
+            $request->session()->put('enable_google_map', $user->enable_google_map);
+            $request->session()->put('enable_accounting', $user->enable_accounting);
             
             if ($staff->role === 'driver') {
                 $driver = Driver::where('login_id', $staff->login_id)->first();

@@ -142,14 +142,41 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-6 mb-3">
-                            <div class="form-check mt-4 pt-2">
-                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" 
-                                       {{ old('is_active', $user->is_active) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="is_active">
-                                    アカウント有効
-                                </label>
-                                <small class="form-text text-muted d-block">チェックを外すとログインできなくなります</small>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check form-switch mt-4 pt-2">
+                                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" 
+                                           style="width: 3rem; height: 1.5rem; cursor: pointer;"
+                                           {{ old('is_active', $user->is_active) ? 'checked' : '' }}>
+                                    <label class="form-check-label ms-2" for="is_active" style="font-weight: 500;">
+                                        アカウント有効
+                                    </label>
+                                    <small class="form-text text-muted d-block mt-1">チェックを外すとログインできなくなります</small>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check form-switch mt-4 pt-2">
+                                    <input type="checkbox" class="form-check-input" id="enable_google_map" name="enable_google_map" value="1" 
+                                           style="width: 3rem; height: 1.5rem; cursor: pointer;"
+                                           {{ old('enable_google_map', $user->enable_google_map ?? 0) ? 'checked' : '' }}>
+                                    <label class="form-check-label ms-2" for="enable_google_map" style="font-weight: 500;">
+                                        <i class="bi bi-map"></i> Googleマップ
+                                    </label>
+                                    <small class="form-text text-muted d-block mt-1">有効にするとGoogleマップ機能が利用できます</small>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check form-switch mt-4 pt-2">
+                                    <input type="checkbox" class="form-check-input" id="enable_accounting" name="enable_accounting" value="1" 
+                                           style="width: 3rem; height: 1.5rem; cursor: pointer;"
+                                           {{ old('enable_accounting', $user->enable_accounting ?? 0) ? 'checked' : '' }}>
+                                    <label class="form-check-label ms-2" for="enable_accounting" style="font-weight: 500;">
+                                        <i class="bi bi-calculator"></i> 会計機能
+                                    </label>
+                                    <small class="form-text text-muted d-block mt-1">有効にすると会計機能が利用できます</small>
+                                </div>
                             </div>
                         </div>
                         

@@ -29,19 +29,23 @@ class GroupInfosExport implements FromArray, WithEvents
     {
         $exportData = [];
         
-        $exportData[] = ['', '', '', '', '', '', '', '', '', '', ''];
+        $exportData[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
         
         $exportData[] = [
             'No.',
+            '開始日',
+            '日数',
             '期間',
             '予約ID',
             '代理店',
-            '团体名',
-            '状态',
+            '団体名',
+            'ステータス',
             '人数',
             '等級',
             '車両',
-            '请求',
+            '請求件数',
+            '請求合計',
+            '未入合計',
             '備考'
         ];
         
@@ -57,7 +61,7 @@ class GroupInfosExport implements FromArray, WithEvents
         return [
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
-                $lastColumn = 'K';
+                $lastColumn = 'O';
                 $lastRow = count($this->data) + 2;
                 
                 $sheet->mergeCells('A1:' . $lastColumn . '1');
@@ -89,16 +93,16 @@ class GroupInfosExport implements FromArray, WithEvents
                     ],
                 ]);
 
-                $sheet->getStyle('D' . $dataStartRow . ':D' . $dataEndRow)->applyFromArray([
+                $sheet->getStyle('F' . $dataStartRow . ':F' . $dataEndRow)->applyFromArray([
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT],
                 ]);
-                $sheet->getStyle('E' . $dataStartRow . ':E' . $dataEndRow)->applyFromArray([
-                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT],
-                ]);
-                $sheet->getStyle('I' . $dataStartRow . ':I' . $dataEndRow)->applyFromArray([
+                $sheet->getStyle('G' . $dataStartRow . ':G' . $dataEndRow)->applyFromArray([
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT],
                 ]);
                 $sheet->getStyle('K' . $dataStartRow . ':K' . $dataEndRow)->applyFromArray([
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT],
+                ]);
+                $sheet->getStyle('O' . $dataStartRow . ':O' . $dataEndRow)->applyFromArray([
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT],
                 ]);
 

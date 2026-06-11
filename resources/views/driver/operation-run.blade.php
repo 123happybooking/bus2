@@ -805,5 +805,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+@if(session('enable_google_map', 0) == 1)
 <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=geocoding&callback=onGoogleMapsReady" async defer></script>
+@endif
 @endpush

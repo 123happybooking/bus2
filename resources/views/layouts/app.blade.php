@@ -1207,7 +1207,7 @@
             </div>
             @endif
 
-            @if($canViewAccounting)
+            @if($canViewAccounting && session("enable_accounting") == 1)
             <div class="nav-item" data-menu="accounting">
                 <div class="nav-header" data-title="会計システム">
                     <i class="bi bi-calculator menu-icon"></i>

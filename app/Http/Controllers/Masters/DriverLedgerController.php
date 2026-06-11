@@ -442,7 +442,16 @@ class DriverLedgerController extends Controller
             
             $agency = $groupInfo ? $groupInfo->agencyInfo : null;
             $driver = $busAssignment ? $busAssignment->driver : null;
-            $guide = $busAssignment ? $busAssignment->guide : null;
+            
+            $guideName = '';
+            if ($busAssignment) {
+                if ($busAssignment->guide instanceof \App\Models\Masters\Guide) {
+                    $guideName = $busAssignment->guide->name ?? '';
+                } elseif (is_string($busAssignment->guide)) {
+                    $guideName = $busAssignment->guide;
+                }
+            }
+            
             $vehicle = $busAssignment ? $busAssignment->vehicle : null;
             
             $startTime = Carbon::parse($itinerary->time_start);
@@ -455,7 +464,6 @@ class DriverLedgerController extends Controller
                 $groupInfoId = $groupInfo ? $groupInfo->id : ($itinerary->group_info_id ?? null);
                 $busAssignmentId = $busAssignment ? $busAssignment->id : ($itinerary->bus_assignment_id ?? null);
                 $driverName = $driver ? $driver->name : ($busAssignment ? $busAssignment->driver_name : ($itinerary->driver ?? ''));
-                $guideName = $guide ? $guide->name : ($busAssignment ? $busAssignment->guide_name : ($itinerary->guide ?? ''));
                 $groupName = $groupInfo ? $groupInfo->group_name : '';
                 $vehicleName = $vehicle ? $vehicle->registration_number : ($itinerary->vehicle ?? '');
                 

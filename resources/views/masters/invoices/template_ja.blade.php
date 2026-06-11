@@ -65,6 +65,7 @@
             background-color: #f9f9f9;
             font-size: 9pt;
         }
+        
     </style>
 </head>
 <body>
@@ -91,7 +92,7 @@
                                 <br>
                                 <br>
                                 
-                                <div style="font-size: 11pt;">{{ $company->name }}</div>
+                                <div>{{ $company->name }}</div>
                                 @if($company->invoice_code)
                                     <div>{{ $company->invoice_code }}</div>
                                 @endif
@@ -108,7 +109,7 @@
                         @if($company->setup_company_seal)
                         <tr>
                             <td stlye="text-align: right;">
-                                <img src="{{ $company->setup_company_seal }}" style="height: 100pt; width: 100pt; margin: -80pt -20pt 0 0;">
+                                <img src="{{ $company->setup_company_seal }}" style="height: 80pt; width: 80pt; margin: -60pt -20pt 0 0;">
                             </td>
                         </tr>
                         @endif

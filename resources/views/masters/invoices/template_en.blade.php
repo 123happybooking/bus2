@@ -75,6 +75,7 @@
         div.bank-title { font-weight: bold; margin-bottom: 4px; display: block; font-size: 10pt; text-decoration: none !important; border-bottom: none !important; color: #3b5998; text-transform: uppercase; }
         .bank-row { display: flex; margin-bottom: 2px; }
         .bank-label { width: 100px; font-weight: bold; }
+        
     </style>
 </head>
 <body>
@@ -100,11 +101,11 @@
                                 <br>
                                 <br>
                                 
-                                <div style="font-size: 11pt;">{{ $company->name }}</div>
+                                <div>{{ $company->name_en }}</div>
                                 @if($company->invoice_code)
                                     <div>{{ $company->invoice_code }}</div>
                                 @endif
-                                <div>{{ $company->address }}</div>
+                                <div>{{ $company->address_en }}</div>
                                 @if($company->postal_code)
                                     <div>{{ $company->postal_code }}</div>
                                 @endif
@@ -117,7 +118,7 @@
                         @if($company->setup_company_seal)
                         <tr>
                             <td stlye="text-align: right;">
-                                <img src="{{ $company->setup_company_seal }}" style="height: 100pt; width: 100pt; margin: -80pt -20pt 0 0;">
+                                <img src="{{ $company->setup_company_seal }}" style="height: 80pt; width: 80pt; margin: -60pt -20pt 0 0;">
                             </td>
                         </tr>
                         @endif

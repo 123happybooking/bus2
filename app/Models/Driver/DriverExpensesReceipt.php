@@ -14,6 +14,7 @@ class DriverExpensesReceipt extends Model
     protected $fillable = [
         'bus_assignment_id',
         'itinerary_id',
+        'expense_id',
         'driver_id',
         'expense_date',
         'image_path',

@@ -211,6 +211,8 @@ Route::prefix('masters')->name('masters.')->group(function () {
             Route::put('/{id}', [DailyReportController::class, 'update'])->name('update');
             Route::get('/{id}/pdf', [DailyReportController::class, 'exportPdf'])->name('export-pdf');
             Route::put('/operation-log/{id}', [DailyReportController::class, 'updateOperationLog'])->name('update-operation-log');
+            Route::post('/upload-receipt', [DailyReportController::class, 'uploadReceipt'])->name('upload-receipt');
+            Route::delete('/delete-receipt/{id}', [DailyReportController::class, 'deleteReceipt'])->name('delete-receipt');
         });
         
         Route::resource('driver-operation-status', DriverOperationStatusController::class)->names('driver-operation-status');
@@ -345,7 +347,6 @@ Route::prefix('driver')->name('driver.')->middleware(['auth:masters', \App\Http\
     Route::delete('operation/log/{id}', [DriverOperationController::class, 'deleteLog'])->name('operation.log.delete');
     
     Route::get('advance-payment/receipts-by-expense', [DriverExpenseController::class, 'getReceiptsByExpense'])->name('advance-payment.receipts-by-expense');
-    Route::get('advance-payment/receipts/{itinerary_id}', [DriverExpenseController::class, 'getReceipts']);
     Route::post('advance-payment/receipts', [DriverExpenseController::class, 'uploadReceipt']);
     Route::delete('advance-payment/receipts/{id}', [DriverExpenseController::class, 'deleteReceipt']);
     

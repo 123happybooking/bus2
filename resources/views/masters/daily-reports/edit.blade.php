@@ -283,7 +283,8 @@
                                                     <th style="width: 10%;">金額</th>
                                                     <th style="width: 12%;">支払方法</th>
                                                     <th style="width: 8%;">代理店</th>
-                                                    <th style="width: 33%;">備考</th>
+                                                    <th style="width: 10%;">領収書</th>
+                                                    <th style="width: 23%;">備考</th>
                                                     <th style="width: 10%; text-align: center;">行操作</th>
                                                 </tr>
                                             </thead>
@@ -328,6 +329,29 @@
                                                                    style="cursor: pointer;">
                                                             <label class="form-check-label ms-1 expense-agency-label" for="agency_flag_{{ $expense->id }}" style="font-size: 0.7rem; cursor: pointer;">代理店</label>
                                                         </div>
+                                                    </td>
+                                                    <td>
+                                                        @php
+                                                            $expenseReceipts = $receiptsByExpense[$expense->id] ?? [];
+                                                        @endphp
+                                                        @if(count($expenseReceipts) > 0)
+                                                            <div class="d-flex flex-wrap">
+                                                                @foreach($expenseReceipts as $index => $receipt)
+                                                                    <div class="position-relative d-inline-block" style="margin: 0 10px 0 0;">
+                                                                        <a href="{{ asset('storage/' . $receipt->image_path) }}" target="_blank" class="btn btn-sm btn-outline-info" style="margin: 0; --bs-btn-padding-x: 2px !important; --bs-btn-padding-y: 2px !important; width: 100%;">
+                                                                            <img src="{{ asset('storage/' . $receipt->image_path) }}" style="max-width: 25px; max-height: 25px;">
+                                                                        </a>
+                                                                        <button type="button" class="btn-delete-receipt" data-receipt-id="{{ $receipt->id }}" 
+                                                                                style="position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background-color: #dc2626; color: white; border: none; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                                                            ×
+                                                                        </button>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+                                                        <button type="button" class="btn btn-sm btn-outline-success upload-receipt-inline" data-expense-id="{{ $expense->id }}" style="margin-top: 4px; padding: 2px 6px; font-size: 0.7rem;">
+                                                            <i class="bi bi-plus-lg"></i> 追加
+                                                        </button>
                                                     </td>
                                                     <td>
                                                         <input type="text" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][remark]" 
@@ -701,6 +725,9 @@ function addExpenseRow(button) {
                 </div>
             </td>
             <td>
+                <span class="text-muted" style="font-size: 0.7rem;">--</span>
+            </td>
+            <td>
                 <input type="text" name="expenses[${itineraryId}][${newIndex}][remark]" placeholder="備考"
                        class="form-control form-control-sm expense-remark-input" style="font-size: 0.7rem;">
             </td>
@@ -745,7 +772,7 @@ function deleteExpenseRow(button) {
         
         tbody.innerHTML = `
             <tr class="expense-row expense-empty-row">
-                <td colspan="7" class="text-center text-muted" style="padding: 20px;">
+                <td colspan="8" class="text-center text-muted" style="padding: 20px;">
                     立替金データがありません。「+」ボタンをクリックして追加してください。
                  </td>
              </tr>
@@ -796,6 +823,9 @@ function deleteExpenseRow(button) {
                                        style="cursor: pointer;">
                                 <label class="form-check-label ms-1 expense-agency-label" for="agency_flag_${newIndex}" style="font-size: 0.7rem; cursor: pointer;">代理店</label>
                             </div>
+                        </td>
+                        <td>
+                            <span class="text-muted" style="font-size: 0.7rem;">--</span>
                         </td>
                         <td>
                             <input type="text" name="expenses[${itineraryId}][${newIndex}][remark]" placeholder="備考"
@@ -946,6 +976,102 @@ document.querySelectorAll('.expense-tbody').forEach(tbody => {
     rows.forEach(row => {
         bindExpenseRowEvents(row);
     });
+});
+
+
+
+
+function initInlineReceiptUpload() {
+    document.querySelectorAll('.upload-receipt-inline').forEach(btn => {
+        btn.removeEventListener('click', btn._uploadHandler);
+        btn._uploadHandler = function(e) {
+            e.preventDefault();
+            const expenseId = this.getAttribute('data-expense-id');
+            if (!expenseId) return;
+            
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/jpeg,image/png,image/jpg';
+            fileInput.multiple = true;
+            
+            fileInput.onchange = function(e) {
+                const files = Array.from(e.target.files);
+                if (files.length === 0) return;
+                
+                files.forEach(file => {
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert(`ファイル ${file.name} は5MB以下にしてください`);
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('receipt_image', file);
+                    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+                    formData.append('expense_id', expenseId);
+                    
+                    fetch('{{ route("masters.daily-reports.upload-receipt") }}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert(data.message || 'アップロードに失敗しました');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('アップロードに失敗しました');
+                    });
+                });
+            };
+            
+            fileInput.click();
+        };
+        btn.addEventListener('click', btn._uploadHandler);
+    });
+    
+    document.querySelectorAll('.btn-delete-receipt').forEach(btn => {
+        btn.removeEventListener('click', btn._deleteHandler);
+        btn._deleteHandler = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const receiptId = this.getAttribute('data-receipt-id');
+            if (!confirm('この領収書を削除してもよろしいですか？')) {
+                return;
+            }
+            
+            const deleteUrl = '{{ route("masters.daily-reports.delete-receipt", ":id") }}';
+            fetch(deleteUrl.replace(':id', receiptId), {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || '削除に失敗しました');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('削除に失敗しました');
+            });
+        };
+        btn.addEventListener('click', btn._deleteHandler);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initInlineReceiptUpload();
 });
 </script>
 @endpush

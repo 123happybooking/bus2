@@ -23,8 +23,10 @@ class UserCompanyInfoController extends Controller
             
             $rules = [
                 'company_name' => 'required|string|max:255',
+                'company_name_en' => 'nullable|string|max:255',
                 'postal_code' => 'required|string|max:255',
                 'address' => 'required|string|max:255',
+                'address_en' => 'nullable|string|max:255',
                 'phone_number' => 'required|string|max:255',
                 'fax_number' => 'nullable|string|max:255',
                 'email' => 'nullable|email|max:255',
@@ -56,10 +58,12 @@ class UserCompanyInfoController extends Controller
             $messages = [
                 'company_name.required' => '会社名は必須です。',
                 'company_name.max' => '会社名は255文字以内で入力してください。',
+                'company_name_en.max' => '会社名（英語）は255文字以内で入力してください。',
                 'postal_code.required' => '郵便番号は必須です。',
                 'postal_code.max' => '郵便番号は255文字以内で入力してください。',
                 'address.required' => '住所は必須です。',
                 'address.max' => '住所は255文字以内で入力してください。',
+                'address_en.max' => '住所（英語）は255文字以内で入力してください。',
                 'phone_number.required' => 'Telは必須です。',
                 'phone_number.max' => 'Telは255文字以内で入力してください。',
                 'fax_number.max' => 'Faxは255文字以内で入力してください。',

@@ -266,7 +266,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="12" class="text-center py-3" style="color: #9ca3af;">
+                    <td colspan="13" class="text-center py-3" style="color: #9ca3af;">
                         グループデータがありません
                     </td>
                 </tr>

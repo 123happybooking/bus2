@@ -353,6 +353,8 @@ class UserController extends Controller
                 'user_plan' => $validated['user_plan'] ?? null,
                 'user_start_day' => $validated['user_start_day'] ?? null,
                 'is_active' => $request->has('is_active') ? 1 : 0,
+                'enable_google_map' => $request->has('enable_google_map') ? 1 : 0,
+                'enable_accounting' => $request->has('enable_accounting') ? 1 : 0,
             ];
 
             if (!empty($validated['password'])) {

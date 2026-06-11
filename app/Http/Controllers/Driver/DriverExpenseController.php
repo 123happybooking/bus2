@@ -63,6 +63,8 @@ class DriverExpenseController extends Controller
             'payment_method_id' => 'required|exists:driver_payment_methods,id',
             'agency_flag' => 'nullable|boolean',
             'remark' => 'nullable|string|max:500',
+            'receipts' => 'nullable|array',
+            'receipts.*' => 'image|mimes:jpeg,png,jpg|max:5120'
         ]);
         
         $expense = DriverExpense::create([
@@ -77,11 +79,28 @@ class DriverExpenseController extends Controller
             'remark' => $request->remark,
         ]);
         
+        if ($request->hasFile('receipts')) {
+            foreach ($request->file('receipts') as $file) {
+                $filename = now()->format('Ymd_His') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('receipts/' . now()->format('Y/m'), $filename, 'public');
+                
+                DriverExpensesReceipt::create([
+                    'bus_assignment_id' => $expense->bus_assignment_id,
+                    'itinerary_id' => $expense->itinerary_id,
+                    'expense_id' => $expense->id,
+                    'driver_id' => $driverId,
+                    'expense_date' => $expense->expense_date,
+                    'image_path' => $path,
+                ]);
+            }
+        }
+        
         $expense->load(['expenseType', 'paymentMethod']);
         
         return response()->json([
             'success' => true,
             'message' => '登録しました',
+            'expense_id' => $expense->id,
             'expense' => [
                 'id' => $expense->id,
                 'expense_date' => Carbon::parse($expense->expense_date)->format('Y/m/d'),
@@ -113,6 +132,10 @@ class DriverExpenseController extends Controller
             'payment_method_id' => 'required|exists:driver_payment_methods,id',
             'agency_flag' => 'nullable|boolean',
             'remark' => 'nullable|string|max:500',
+            'receipts' => 'nullable|array',
+            'receipts.*' => 'image|mimes:jpeg,png,jpg|max:5120',
+            'deleted_receipt_ids' => 'nullable|array',
+            'deleted_receipt_ids.*' => 'integer|exists:driver_expenses_receipt,id'
         ]);
         
         $expense->update([
@@ -123,6 +146,36 @@ class DriverExpenseController extends Controller
             'agency_flag' => $request->input('agency_flag', 0),
             'remark' => $request->remark,
         ]);
+        
+        if ($request->has('deleted_receipt_ids')) {
+            foreach ($request->deleted_receipt_ids as $receiptId) {
+                $receipt = DriverExpensesReceipt::where('id', $receiptId)
+                    ->where('driver_id', $driverId)
+                    ->first();
+                if ($receipt) {
+                    if (Storage::disk('public')->exists($receipt->image_path)) {
+                        Storage::disk('public')->delete($receipt->image_path);
+                    }
+                    $receipt->delete();
+                }
+            }
+        }
+        
+        if ($request->hasFile('receipts')) {
+            foreach ($request->file('receipts') as $file) {
+                $filename = now()->format('Ymd_His') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('receipts/' . now()->format('Y/m'), $filename, 'public');
+                
+                DriverExpensesReceipt::create([
+                    'bus_assignment_id' => $expense->bus_assignment_id,
+                    'itinerary_id' => $expense->itinerary_id,
+                    'expense_id' => $expense->id,
+                    'driver_id' => $driverId,
+                    'expense_date' => $expense->expense_date,
+                    'image_path' => $path,
+                ]);
+            }
+        }
         
         $expense->load(['expenseType', 'paymentMethod']);
         
@@ -153,6 +206,17 @@ class DriverExpenseController extends Controller
             ->where('driver_id', $driverId)
             ->firstOrFail();
         
+        $receipts = DriverExpensesReceipt::where('expense_id', $id)
+            ->where('driver_id', $driverId)
+            ->get();
+        
+        foreach ($receipts as $receipt) {
+            if (Storage::disk('public')->exists($receipt->image_path)) {
+                Storage::disk('public')->delete($receipt->image_path);
+            }
+            $receipt->delete();
+        }
+        
         $expense->delete();
         
         return response()->json([
@@ -160,7 +224,6 @@ class DriverExpenseController extends Controller
             'message' => '削除しました'
         ]);
     }
-    
     
     public function getExpensesData($itineraryId)
     {
@@ -200,13 +263,7 @@ class DriverExpenseController extends Controller
         ]);
     }
     
-    
-    
-    
-    
-    
-    
-    public function getReceipts($itineraryId)
+    public function getReceiptsByExpense(Request $request)
     {
         $driverId = session('driver_id');
         
@@ -214,9 +271,15 @@ class DriverExpenseController extends Controller
             return response()->json(['success' => false, 'message' => '認証エラー'], 401);
         }
         
+        $expenseId = $request->query('expense_id');
+        
+        if (!$expenseId) {
+            return response()->json(['success' => false, 'message' => '経費IDが指定されていません'], 400);
+        }
+        
         $receipts = DriverExpensesReceipt::where('driver_id', $driverId)
-            ->where('itinerary_id', $itineraryId)
-            ->orderBy('created_at', 'desc')
+            ->where('expense_id', $expenseId)
+            ->orderBy('created_at', 'asc')
             ->get();
         
         $formattedReceipts = [];
@@ -243,22 +306,23 @@ class DriverExpenseController extends Controller
         
         $request->validate([
             'receipt_image' => 'required|image|mimes:jpeg,png,jpg|max:5120',
-            'itinerary_id' => 'required|exists:daily_itinerary,id',
+            'expense_id' => 'required|exists:driver_expenses,id',
         ]);
         
-        $itinerary = DailyItinerary::findOrFail($request->itinerary_id);
-        $busAssignmentId = $itinerary->bus_assignment_id;
-        $expenseDate = $itinerary->date;
+        $expense = DriverExpense::where('id', $request->expense_id)
+            ->where('driver_id', $driverId)
+            ->firstOrFail();
         
         $file = $request->file('receipt_image');
         $filename = now()->format('Ymd_His') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         $path = $file->storeAs('receipts/' . now()->format('Y/m'), $filename, 'public');
         
         $receipt = DriverExpensesReceipt::create([
-            'bus_assignment_id' => $busAssignmentId,
-            'itinerary_id' => $request->itinerary_id,
+            'bus_assignment_id' => $expense->bus_assignment_id,
+            'itinerary_id' => $expense->itinerary_id,
+            'expense_id' => $expense->id,
             'driver_id' => $driverId,
-            'expense_date' => $expenseDate,
+            'expense_date' => $expense->expense_date,
             'image_path' => $path,
         ]);
         
@@ -271,7 +335,7 @@ class DriverExpenseController extends Controller
             ],
         ]);
     }
-
+    
     public function deleteReceipt($id)
     {
         $driverId = session('driver_id');
@@ -295,5 +359,4 @@ class DriverExpenseController extends Controller
             'message' => '削除しました',
         ]);
     }
-    
 }

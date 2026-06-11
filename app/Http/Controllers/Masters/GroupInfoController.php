@@ -3859,7 +3859,6 @@ class GroupInfoController extends Controller
             'groupInfo',
             'vehicle',
             'driver',
-            'guide',
             'dailyItineraries',
         ])->findOrFail($busId);
         
@@ -4168,18 +4167,21 @@ public function exportExcel(Request $request)
     
     $groupIds = $groupInfos->getCollection()->pluck('id')->toArray();
     
-    $invoiceCounts = [];
+    $invoiceTotals = [];
     $invoiceUnpaidTotals = [];
+    $invoiceCounts = [];
     if (!empty($groupIds)) {
         $invoices = Invoice::whereIn('group_id', $groupIds)
             ->select('group_id', 
                 \DB::raw('COUNT(*) as invoice_count'),
+                \DB::raw('SUM(total_amount) as total_amount_sum'),
                 \DB::raw('SUM(total_amount - paid_amount) as unpaid_sum'))
             ->groupBy('group_id')
             ->get();
         
         foreach ($invoices as $invoice) {
             $invoiceCounts[$invoice->group_id] = $invoice->invoice_count;
+            $invoiceTotals[$invoice->group_id] = $invoice->total_amount_sum;
             $invoiceUnpaidTotals[$invoice->group_id] = $invoice->unpaid_sum;
         }
     }
@@ -4242,21 +4244,25 @@ public function exportExcel(Request $request)
                    ($groupInfo->other_count ?? 0);
         
         $invoiceCount = $invoiceCounts[$groupInfo->id] ?? 0;
+        $invoiceTotal = $invoiceTotals[$groupInfo->id] ?? 0;
         $invoiceUnpaid = $invoiceUnpaidTotals[$groupInfo->id] ?? 0;
-        $requestText = $invoiceCount > 0 ? $invoiceCount . '件 / ¥' . number_format($invoiceUnpaid) : '--';
         
         $exportData[] = [
             $groupInfos->firstItem() + $index,
+            $startDateTime,
+            $tripDays,
             $periodText,
             $groupInfo->id,
             $groupInfo->agency ?? '',
             $groupInfo->group_name ?? '',
             $groupInfo->reservation_status ?? '不明',
             $totalPax,
-            $vehicleGrades[$groupInfo->id] ?? '--',
+            $vehicleGrades[$groupInfo->id] ?? '',
             $groupInfo->vehicle ?? '--',
-            $requestText,
-            $groupInfo->remarks ?? '--',
+            $invoiceCount > 0 ? $invoiceCount : 0,
+            $invoiceTotal > 0 ? '¥' . number_format($invoiceTotal) : '',
+            $invoiceUnpaid > 0 ? '¥' . number_format($invoiceUnpaid) : '',
+            $groupInfo->remarks ?? '',
         ];
     }
     

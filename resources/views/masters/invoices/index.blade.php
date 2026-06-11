@@ -12,10 +12,16 @@
         </h5>
         <!-- 修改点：btn-sm, 字体变小 -->
          <div>
-            <a href="{{ route('masters.invoices.create', ['group_id' => request('group_id')]) }}" class="btn btn-primary btn-sm" style="font-size: 0.875rem;">
+            <!--<a href="{{ route('masters.invoices.create', ['group_id' => request('group_id')]) }}" class="btn btn-primary btn-sm" style="font-size: 0.875rem;">-->
+            <!--    <i class="bi bi-plus-lg"></i> 新規追加-->
+            <!--</a>-->
+            <!--<a href="{{ route('masters.invoices.sum', ['group_id' => request('group_id')]) }}" class="btn btn-primary btn-sm" style="font-size: 0.875rem;">-->
+            <!--    合计-->
+            <!--</a>-->
+            <a href="{{ route('masters.invoices.create') }}" class="btn btn-primary btn-sm" style="font-size: 0.875rem;">
                 <i class="bi bi-plus-lg"></i> 新規追加
             </a>
-            <a href="{{ route('masters.invoices.sum', ['group_id' => request('group_id')]) }}" class="btn btn-primary btn-sm" style="font-size: 0.875rem;">
+            <a href="{{ route('masters.invoices.sum') }}" class="btn btn-primary btn-sm" style="font-size: 0.875rem;">
                 合计
             </a>
         </div>

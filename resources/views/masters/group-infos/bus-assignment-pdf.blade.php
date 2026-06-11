@@ -83,7 +83,7 @@ td { text-align: left; vertical-align: middle; background-color: #fff; padding: 
   <td style="width:10%;" class="bg-gray">車両No.</td>
   <td style="width:45%;" colspan="5">{{ $vehicleNumber ?? '' }}</td>
   <td style="width:10%;" class="bg-gray">添乗員</td>
-  <td style="width:35%;" colspan="3">{{ $guide->name ?? '' }}</td>
+  <td style="width:35%;" colspan="3">{{ $guide ?? '' }}</td>
  </tr>
 
  <tr>

@@ -29,7 +29,6 @@
                         <div class="expense-date">{{ \Carbon\Carbon::parse($expense->expense_date)->format('Y/m/d') }}</div>
                         <div class="expense-type">
                             {{ $expense->expenseType->type_name ?? '' }}
-                            
                             @if($expense->agency_flag)
                             <div class="expense-badge">代理店負担</div>
                             @endif
@@ -46,19 +45,9 @@
             </div>
             @endforeach
         </div>
-        
-        <div class="receipts-section" id="receiptsSection">
-            <div class="receipts-header">
-                <span class="receipts-title">📷 領収書</span>
-            </div>
-            <div class="receipts-list" id="receiptsList">
-                <div class="no-receipts">読み込み中...</div>
-            </div>
-        </div>
 
         <div class="button-container">
             <button class="add-expense-btn" id="addExpenseBtn">+ 立替追加</button>
-            <button class="upload-receipt-btn" id="uploadReceiptBtn">📷 領収書アップロード</button>
             <button class="back-btn" id="cancelBtn">戻る</button>
         </div>
     </div>
@@ -104,11 +93,27 @@
                 </label>
             </div>
         </div>
+        
+        <div class="receipts-area" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+            <div class="receipts-label" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                📷 領収書
+            </div>
+            <div class="preview-receipts-list" id="previewReceiptsList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+            </div>
+        </div>
+
         <div class="modal-buttons" style="display: flex; gap: 12px; justify-content: space-between;">
             <button class="modal-delete" id="deleteExpenseBtn" style="display: none;">削除</button>
             <button class="modal-confirm" id="confirmBtn">確認</button>
             <button class="modal-cancel" id="cancelModalBtn">キャンセル</button>
         </div>
+    </div>
+</div>
+
+<div class="image-modal" id="imageViewModal">
+    <div class="image-modal-content" style="text-align: center;">
+        <button class="image-modal-close" onclick="closeImageViewModal()">×</button>
+        <img id="imageViewImg" src="" style="max-width: 90%; max-height: 90%;">
     </div>
 </div>
 @endsection
@@ -362,10 +367,6 @@
     border-radius: 20px;
 }
 
-
-
-
-
 .upload-receipt-btn {
     flex: 1;
     padding: 12px 16px;
@@ -382,75 +383,6 @@
     transform: scale(0.98);
 }
 
-/* 收据区域样式 */
-.receipts-section {
-    background-color: var(--card-bg);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 16px;
-}
-
-.receipts-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.receipts-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.receipts-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.receipt-item {
-    position: relative;
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
-    background-color: #f3f4f6;
-    border: 1px solid var(--border-color);
-}
-
-.receipt-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    cursor: pointer;
-    border-radius: 8px;
-}
-
-.receipt-delete {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background-color: #dc2626;
-    color: white;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.no-receipts {
-    color: var(--text-secondary);
-    font-size: 12px;
-    padding: 20px;
-    text-align: center;
-}
-
-/* 图片预览模态框 */
 .image-modal {
     position: fixed;
     top: 0;
@@ -489,7 +421,60 @@
     cursor: pointer;
 }
 
+.preview-receipts-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
 
+.preview-receipt-item {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    background-color: #f3f4f6;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.preview-receipt-delete {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.upload-receipt-btn-square {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 10px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.upload-receipt-btn-square:active {
+    transform: scale(0.98);
+}
 </style>
 @endpush
 
@@ -499,6 +484,8 @@ let currentItineraryId = {{ $itinerary->id }};
 let currentBusAssignmentId = {{ $itinerary->bus_assignment_id ?? 'null' }};
 let currentEditingId = null;
 let currentDriverId = {{ session('driver_id') }};
+let pendingFiles = [];
+let deletedReceiptIds = [];
 
 function bindExpenseItemClickEvents() {
     document.querySelectorAll('.expense-item').forEach(item => {
@@ -531,6 +518,94 @@ function openEditModal(element) {
         deleteBtn.style.display = 'block';
     }
     
+    pendingFiles = [];
+    deletedReceiptIds = [];
+    
+    const previewContainer = document.getElementById('previewReceiptsList');
+    if (previewContainer) {
+        const existingItems = previewContainer.querySelectorAll('.preview-receipt-item');
+        existingItems.forEach(item => item.remove());
+        
+        let uploadBtn = document.getElementById('uploadReceiptBtnSquare');
+        if (uploadBtn) {
+            uploadBtn.remove();
+        }
+        
+        uploadBtn = document.createElement('label');
+        uploadBtn.className = 'upload-receipt-btn-square';
+        uploadBtn.id = 'uploadReceiptBtnSquare';
+        uploadBtn.style.display = 'flex';
+        uploadBtn.style.flexDirection = 'column';
+        uploadBtn.style.alignItems = 'center';
+        uploadBtn.style.justifyContent = 'center';
+        uploadBtn.style.width = '60px';
+        uploadBtn.style.height = '60px';
+        uploadBtn.style.backgroundColor = '#10b981';
+        uploadBtn.style.color = 'white';
+        uploadBtn.style.border = 'none';
+        uploadBtn.style.borderRadius = '6px';
+        uploadBtn.style.cursor = 'pointer';
+        uploadBtn.style.fontSize = '10px';
+        uploadBtn.style.textAlign = 'center';
+        uploadBtn.innerHTML = '📷<br>選択';
+        
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.id = 'receiptFileInput';
+        fileInput.accept = 'image/jpeg,image/png,image/jpg';
+        fileInput.multiple = true;
+        fileInput.style.display = 'none';
+        
+        fileInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            
+            files.forEach(file => {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`ファイル ${file.name} は5MB以下にしてください`);
+                    return;
+                }
+                
+                pendingFiles.push(file);
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'preview-receipt-item';
+                    previewDiv.setAttribute('data-filename', file.name);
+                    previewDiv.style.position = 'relative';
+                    previewDiv.style.width = '60px';
+                    previewDiv.style.height = '60px';
+                    previewDiv.style.borderRadius = '6px';
+                    previewDiv.style.border = '1px solid var(--border-color)';
+                    previewDiv.style.flexShrink = '0';
+                    
+                    previewDiv.innerHTML = `
+                        <img src="${event.target.result}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <button type="button" class="preview-receipt-delete" data-filename="${file.name}" 
+                                style="position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background-color: #dc2626; color: white; border: none; font-size: 12px; cursor: pointer;">
+                            ×
+                        </button>
+                    `;
+                    
+                    const currentUploadBtn = document.getElementById('uploadReceiptBtnSquare');
+                    if (currentUploadBtn) {
+                        previewContainer.insertBefore(previewDiv, currentUploadBtn);
+                    } else {
+                        previewContainer.appendChild(previewDiv);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            e.target.value = '';
+        });
+        
+        uploadBtn.appendChild(fileInput);
+        previewContainer.appendChild(uploadBtn);
+    }
+    
+    loadExistingReceipts(currentEditingId);
+    
     document.getElementById('expenseModal').classList.add('show');
 }
 
@@ -549,12 +624,163 @@ function openCreateModal() {
         deleteBtn.style.display = 'none';
     }
     
+    pendingFiles = [];
+    deletedReceiptIds = [];
+    
+    const previewContainer = document.getElementById('previewReceiptsList');
+    if (previewContainer) {
+        const existingItems = previewContainer.querySelectorAll('.preview-receipt-item');
+        existingItems.forEach(item => item.remove());
+        
+        let uploadBtn = document.getElementById('uploadReceiptBtnSquare');
+        if (uploadBtn) {
+            uploadBtn.remove();
+        }
+        
+        uploadBtn = document.createElement('label');
+        uploadBtn.className = 'upload-receipt-btn-square';
+        uploadBtn.id = 'uploadReceiptBtnSquare';
+        uploadBtn.style.display = 'flex';
+        uploadBtn.style.flexDirection = 'column';
+        uploadBtn.style.alignItems = 'center';
+        uploadBtn.style.justifyContent = 'center';
+        uploadBtn.style.width = '60px';
+        uploadBtn.style.height = '60px';
+        uploadBtn.style.backgroundColor = '#10b981';
+        uploadBtn.style.color = 'white';
+        uploadBtn.style.border = 'none';
+        uploadBtn.style.borderRadius = '6px';
+        uploadBtn.style.cursor = 'pointer';
+        uploadBtn.style.fontSize = '10px';
+        uploadBtn.style.textAlign = 'center';
+        uploadBtn.innerHTML = '📷<br>選択';
+        
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.id = 'receiptFileInput';
+        fileInput.accept = 'image/jpeg,image/png,image/jpg';
+        fileInput.multiple = true;
+        fileInput.style.display = 'none';
+        
+        fileInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            
+            files.forEach(file => {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`ファイル ${file.name} は5MB以下にしてください`);
+                    return;
+                }
+                
+                pendingFiles.push(file);
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'preview-receipt-item';
+                    previewDiv.setAttribute('data-filename', file.name);
+                    previewDiv.style.position = 'relative';
+                    previewDiv.style.width = '60px';
+                    previewDiv.style.height = '60px';
+                    previewDiv.style.borderRadius = '6px';
+                    previewDiv.style.border = '1px solid var(--border-color)';
+                    previewDiv.style.flexShrink = '0';
+                    
+                    previewDiv.innerHTML = `
+                        <img src="${event.target.result}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <button type="button" class="preview-receipt-delete" data-filename="${file.name}" 
+                                style="position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background-color: #dc2626; color: white; border: none; font-size: 12px; cursor: pointer;">
+                            ×
+                        </button>
+                    `;
+                    
+                    const currentUploadBtn = document.getElementById('uploadReceiptBtnSquare');
+                    if (currentUploadBtn) {
+                        previewContainer.insertBefore(previewDiv, currentUploadBtn);
+                    } else {
+                        previewContainer.appendChild(previewDiv);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            e.target.value = '';
+        });
+        
+        uploadBtn.appendChild(fileInput);
+        previewContainer.appendChild(uploadBtn);
+    }
+    
     document.getElementById('expenseModal').classList.add('show');
 }
 
 function closeModal() {
     document.getElementById('expenseModal').classList.remove('show');
     currentEditingId = null;
+    pendingFiles = [];
+    deletedReceiptIds = [];
+}
+
+function loadExistingReceipts(expenseId) {
+    const previewContainer = document.getElementById('previewReceiptsList');
+    if (!previewContainer) return;
+    
+    const uploadBtn = document.getElementById('uploadReceiptBtnSquare');
+    if (!uploadBtn) return;
+    
+    fetch(`/driver/advance-payment/receipts-by-expense?expense_id=${expenseId}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.receipts && data.receipts.length > 0) {
+            data.receipts.forEach((receipt) => {
+                const receiptDiv = document.createElement('div');
+                receiptDiv.className = 'preview-receipt-item';
+                receiptDiv.setAttribute('data-receipt-id', receipt.id);
+                receiptDiv.style.position = 'relative';
+                receiptDiv.style.width = '60px';
+                receiptDiv.style.height = '60px';
+                receiptDiv.style.borderRadius = '6px';
+                receiptDiv.style.border = '1px solid var(--border-color)';
+                receiptDiv.style.flexShrink = '0';
+                
+                receiptDiv.innerHTML = `
+                    <img src="${receipt.url}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" 
+                         onclick="viewReceiptImage('${receipt.url}')">
+                    <button type="button" class="existing-receipt-delete" data-receipt-id="${receipt.id}" 
+                            style="position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background-color: #dc2626; color: white; border: none; font-size: 12px; cursor: pointer;">
+                        ×
+                    </button>
+                `;
+                
+                previewContainer.insertBefore(receiptDiv, uploadBtn);
+            });
+            
+            document.querySelectorAll('.existing-receipt-delete').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const receiptId = this.getAttribute('data-receipt-id');
+                    deleteExistingReceipt(receiptId);
+                    this.closest('.preview-receipt-item').remove();
+                });
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function deleteExistingReceipt(receiptId) {
+    if (!confirm('この領収書を削除してもよろしいですか？')) {
+        return;
+    }
+    
+    deletedReceiptIds.push(receiptId);
 }
 
 function submitExpense() {
@@ -587,33 +813,44 @@ function submitExpense() {
         : '/driver/advance-payment';
     const method = currentEditingId ? 'PUT' : 'POST';
     
+    const formData = new FormData();
+    formData.append('itinerary_id', currentItineraryId);
+    formData.append('bus_assignment_id', currentBusAssignmentId);
+    formData.append('expense_date', expenseDate);
+    formData.append('amount', parseFloat(amount));
+    formData.append('type_id', parseInt(typeId));
+    formData.append('payment_method_id', parseInt(paymentMethodId));
+    formData.append('agency_flag', agencyFlag ? 1 : 0);
+    formData.append('remark', remark);
+    formData.append('_method', method === 'PUT' ? 'PUT' : 'POST');
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+    
+    pendingFiles.forEach((file, index) => {
+        formData.append(`receipts[${index}]`, file);
+    });
+    
+    deletedReceiptIds.forEach((id, index) => {
+        formData.append(`deleted_receipt_ids[${index}]`, id);
+    });
+    
     const btn = document.getElementById('confirmBtn');
     const originalText = btn.textContent;
     btn.textContent = '送信中...';
     btn.disabled = true;
     
     fetch(url, {
-        method: method,
+        method: 'POST',
+        body: formData,
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({
-            itinerary_id: currentItineraryId,
-            bus_assignment_id: currentBusAssignmentId,
-            expense_date: expenseDate,
-            amount: parseFloat(amount),
-            type_id: parseInt(typeId),
-            payment_method_id: parseInt(paymentMethodId),
-            agency_flag: agencyFlag ? 1 : 0,
-            remark: remark
-        })
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            closeModal();
-            location.reload();
+            setTimeout(() => {
+                location.reload();
+            }, 500);
         } else {
             alert(data.message || 'エラーが発生しました');
         }
@@ -628,226 +865,13 @@ function submitExpense() {
     });
 }
 
-function deleteExpense() {
-    if (!currentEditingId) return;
-    
-    if (!confirm('この立替を削除してもよろしいですか？')) {
-        return;
-    }
-    
-    const btn = document.getElementById('deleteExpenseBtn');
-    const originalText = btn.textContent;
-    btn.textContent = '削除中...';
-    btn.disabled = true;
-    
-    fetch(`/driver/advance-payment/${currentEditingId}`, {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            closeModal();
-            location.reload();
-        } else {
-            alert(data.message || '削除に失敗しました');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('エラーが発生しました');
-    })
-    .finally(() => {
-        btn.textContent = originalText;
-        btn.disabled = false;
-    });
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
-
-document.getElementById('backBtn')?.addEventListener('click', function() {
-    window.history.back();
-});
-
-document.getElementById('cancelBtn')?.addEventListener('click', function() {
-    window.history.back();
-});
-
-document.getElementById('addExpenseBtn')?.addEventListener('click', function() {
-    openCreateModal();
-});
-
-document.getElementById('confirmBtn')?.addEventListener('click', function() {
-    submitExpense();
-});
-
-document.getElementById('cancelModalBtn')?.addEventListener('click', function() {
-    closeModal();
-});
-
-document.getElementById('deleteExpenseBtn')?.addEventListener('click', function() {
-    deleteExpense();
-});
-
-document.getElementById('expenseModal')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeModal();
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('preview-receipt-delete')) {
+        const filename = e.target.getAttribute('data-filename');
+        pendingFiles = pendingFiles.filter(f => f.name !== filename);
+        e.target.closest('.preview-receipt-item')?.remove();
     }
 });
-
-document.addEventListener('DOMContentLoaded', function() {
-    bindExpenseItemClickEvents();
-});
-
-
-
-
-
-
-function loadReceipts() {
-    const receiptsList = document.getElementById('receiptsList');
-    
-    receiptsList.innerHTML = '<div class="no-receipts">読み込み中...</div>';
-    
-    fetch(`/driver/advance-payment/receipts/${currentItineraryId}`, {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success && data.receipts && data.receipts.length > 0) {
-            let html = '';
-            data.receipts.forEach((receipt) => {
-                html += `
-                    <div class="receipt-item" data-receipt-id="${receipt.id}">
-                        <img src="${receipt.url}" class="receipt-image" onclick="viewReceiptImage('${receipt.url}')">
-                        <button class="receipt-delete" onclick="deleteReceipt(${receipt.id}, event)">×</button>
-                    </div>
-                `;
-            });
-            receiptsList.innerHTML = html;
-        } else {
-            receiptsList.innerHTML = '<div class="no-receipts">📷 領収書はありません</div>';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        receiptsList.innerHTML = '<div class="no-receipts">読み込みエラー</div>';
-    });
-}
-
-function uploadReceipt() {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/jpeg,image/png,image/jpg';
-    fileInput.multiple = true;
-    
-    fileInput.onchange = function(e) {
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
-        
-        const uploadBtn = document.getElementById('uploadReceiptBtn');
-        const originalText = uploadBtn.innerHTML;
-        let uploadedCount = 0;
-        const totalFiles = files.length;
-        
-        uploadBtn.innerHTML = `アップロード中... (0/${totalFiles})`;
-        uploadBtn.disabled = true;
-        
-        Array.from(files).forEach((file) => {
-            if (file.size > 5 * 1024 * 1024) {
-                alert(`ファイル ${file.name} は5MB以下にしてください`);
-                uploadedCount++;
-                if (uploadedCount === totalFiles) {
-                    uploadBtn.innerHTML = originalText;
-                    uploadBtn.disabled = false;
-                }
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append('receipt_image', file);
-            formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-            formData.append('itinerary_id', currentItineraryId);
-            
-            fetch('/driver/advance-payment/receipts', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                uploadedCount++;
-                uploadBtn.innerHTML = `アップロード中... (${uploadedCount}/${totalFiles})`;
-                
-                if (uploadedCount === totalFiles) {
-                    uploadBtn.innerHTML = originalText;
-                    uploadBtn.disabled = false;
-                    loadReceipts();
-                }
-                
-                if (!data.success) {
-                    alert(`${file.name}: ${data.message || 'アップロードに失敗しました'}`);
-                }
-            })
-            .catch(error => {
-                uploadedCount++;
-                console.error('Error:', error);
-                alert(`${file.name}: アップロードに失敗しました`);
-                
-                if (uploadedCount === totalFiles) {
-                    uploadBtn.innerHTML = originalText;
-                    uploadBtn.disabled = false;
-                }
-            });
-        });
-    };
-    
-    fileInput.click();
-}
-
-function deleteReceipt(receiptId, event) {
-    event.stopPropagation();
-    
-    if (!confirm('この領収書を削除してもよろしいですか？')) {
-        return;
-    }
-    
-    fetch(`/driver/advance-payment/receipts/${receiptId}`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            loadReceipts();
-        } else {
-            alert(data.message || '削除に失敗しました');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('削除に失敗しました');
-    });
-}
 
 function viewReceiptImage(imageUrl) {
     let modal = document.getElementById('imageViewModal');
@@ -873,6 +897,68 @@ function closeImageViewModal() {
     }
 }
 
+document.getElementById('backBtn')?.addEventListener('click', function() {
+    window.history.back();
+});
+
+document.getElementById('cancelBtn')?.addEventListener('click', function() {
+    window.history.back();
+});
+
+document.getElementById('addExpenseBtn')?.addEventListener('click', function() {
+    openCreateModal();
+});
+
+document.getElementById('confirmBtn')?.addEventListener('click', function() {
+    submitExpense();
+});
+
+document.getElementById('cancelModalBtn')?.addEventListener('click', function() {
+    closeModal();
+});
+
+document.getElementById('deleteExpenseBtn')?.addEventListener('click', function() {
+    if (!currentEditingId) return;
+    if (!confirm('この立替を削除してもよろしいですか？')) {
+        return;
+    }
+    
+    const btn = document.getElementById('deleteExpenseBtn');
+    const originalText = btn.textContent;
+    btn.textContent = '削除中...';
+    btn.disabled = true;
+    
+    fetch(`/driver/advance-payment/${currentEditingId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeModal();
+            location.reload();
+        } else {
+            alert(data.message || '削除に失敗しました');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('エラーが発生しました');
+    })
+    .finally(() => {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    });
+});
+
+document.getElementById('expenseModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+
 document.addEventListener('click', function(e) {
     const modal = document.getElementById('imageViewModal');
     if (modal && modal.classList.contains('show') && e.target === modal) {
@@ -880,13 +966,8 @@ document.addEventListener('click', function(e) {
     }
 });
 
-document.getElementById('uploadReceiptBtn')?.addEventListener('click', function() {
-    uploadReceipt();
-});
-
 document.addEventListener('DOMContentLoaded', function() {
-    loadReceipts();
+    bindExpenseItemClickEvents();
 });
-
 </script>
 @endpush

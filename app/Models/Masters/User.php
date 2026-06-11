@@ -25,7 +25,9 @@ class User extends Authenticatable
         'user_company_name',
         'user_plan',
         'user_start_day',
-        'is_active'
+        'is_active',
+        'enable_google_map',
+        'enable_accounting'
     ];
 
     protected $hidden = [

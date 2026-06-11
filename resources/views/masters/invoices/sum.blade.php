@@ -12,10 +12,10 @@
         </h5>
         <div>
             <a id="downloadPdf" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <i class="fas fa-download fa-sm text-white-50"></i> PDF明细
+                <i class="fas fa-download fa-sm text-white-50"></i> Excel明細
             </a>
             <a id="downloadPdfSum" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <i class="fas fa-download fa-sm text-white-50"></i> PDF合计
+                <i class="fas fa-download fa-sm text-white-50"></i> Excel合計
             </a>
         </div>
 
@@ -557,7 +557,7 @@ if (currentParams.toString()) {
 
 // 赋值给按钮
 document.getElementById('downloadPdf').href = finalUrl;
-document.getElementById('downloadPdfSum').href = finalUrl + "&sum=1";
+document.getElementById('downloadPdfSum').href = finalUrl + "?sum=1";
 
 
 </script>
