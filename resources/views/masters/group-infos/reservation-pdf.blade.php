@@ -242,7 +242,10 @@
         </table>
         <br>
     @endforeach
-
+    
+    @php
+    if($invoiceItems){
+    @endphp
     <table class="table-border no-break">
         <thead>
             <tr>
@@ -335,6 +338,9 @@
             </tr>
         </tbody>
     </table>
+    @php
+    }
+    @endphp
 
     @if($groupInfo->agency_contact)
         <div style="margin: 10px 0 0 0;">{!! nl2br(e($groupInfo->agency_contact)) !!}</div>
