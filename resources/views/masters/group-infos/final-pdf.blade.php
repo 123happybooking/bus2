@@ -252,7 +252,7 @@
     @endforeach
 
     @php
-    if($invoiceItems){
+    if($invoiceItems && $invoiceItems->count() > 0){
     @endphp
     <table class="table-border no-break">
         <thead>
