@@ -165,7 +165,7 @@
                             <div>{{ $companyInfo->company_name ?? '' }}</div>
                             <div>{{ $companyInfo->address ?? '' }}</div>
                             <div>TEL：{{ $companyInfo->phone_number ?? '' }}</div>
-                            <div>担当：{{ $companyInfo->contact ?? '' }}</div>
+                            <div>担当：{{ $groupInfo->agency_contact_name ?? '' }}</div>
                         </td>
                     </tr>
                 </table>
