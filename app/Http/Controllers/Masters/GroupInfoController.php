@@ -4310,7 +4310,7 @@ public function exportExcel(Request $request)
             'dailyItineraries',
         ])->findOrFail($id);
         
-        $busAssignment = $groupInfo->busAssignments->first();
+        $busAssignment = $groupInfo->busAssignments->sortBy('vehicle_index')->first();
         $busId = $busAssignment->id ?? '';
         $busNumber = $busAssignment->vehicle_number ?? '';
         
@@ -4321,10 +4321,6 @@ public function exportExcel(Request $request)
         
         $totalAdult = $groupInfo->adult_count ?? 0;
         $totalChild = $groupInfo->child_count ?? 0;
-        
-        $busAssignment = $groupInfo->busAssignments->sortBy('vehicle_index')->first();
-        $busId = $busAssignment->id ?? '';
-        $busNumber = $busAssignment->vehicle_number ?? '';
         
         $vehicleInfo = '';
         if ($busAssignment && $busAssignment->vehicle_grade_id) {
@@ -4345,6 +4341,8 @@ public function exportExcel(Request $request)
         
         $summary_10 = (object)['subtotal' => 0, 'tax_amount' => 0];
         $summary_8 = (object)['subtotal' => 0, 'tax_amount' => 0];
+        
+        $lastInvoiceStaffId = null;
         
         foreach ($invoices as $invoice) {
             $items = InvoiceItem::where('invoice_id', $invoice->id)->get();
@@ -4373,6 +4371,7 @@ public function exportExcel(Request $request)
             $subtotalAmount += $invoice->subtotal_amount;
             $taxAmount += $invoice->tax_amount;
             $taxMode = $invoice->tax_mode;
+            $lastInvoiceStaffId = $invoice->staff_id;
         }
         
         if ($taxMode == 1) {
@@ -4380,15 +4379,14 @@ public function exportExcel(Request $request)
             $summary_8->tax_amount = $summary_8->subtotal - round($summary_8->subtotal / 1.08);
         }
         
-        
         $staffName = '';
-        if ($invoice->staff_id) {
-            $staff = DB::table('staffs')->where('id', $invoice->staff_id)->first();
+        if ($lastInvoiceStaffId) {
+            $staff = DB::table('staffs')->where('id', $lastInvoiceStaffId)->first();
             $staffName = $staff->name ?? '';
         }
         
         $companyInfo = UserCompanyInfo::first();
-        $companyInfo["contact"] = $staffName;
+        $companyInfo->contact = $staffName;
         
         $data = [
             'groupInfo' => $groupInfo,
@@ -4415,12 +4413,11 @@ public function exportExcel(Request $request)
         $mpdf = new \Mpdf\Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
-            'margin_left' => 10,      // 左边距 15mm
-            'margin_right' => 10,     // 右边距 15mm
-            'margin_top' => 10,       // 上边距 20mm
-            'margin_bottom' => 10,    // 下边距 20mm
-            'margin_header' => 5,     // 页眉边距 5mm
-            'margin_footer' => 10,    // 页脚边距 10mm
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+            'margin_header' => 5,
             'margin_footer' => 10,
             'tempDir' => sys_get_temp_dir(),
             'fontDir' => [storage_path('fonts')],
@@ -4438,7 +4435,7 @@ public function exportExcel(Request $request)
         $filename = '予約確認書_' . $groupInfo->id . '_' . date('Ymd') . '.pdf';
         return $mpdf->Output($filename, 'D');
     }
-    
+        
     public function exportFinalPdf($id)
     {
         $groupInfo = GroupInfo::with([
@@ -4447,7 +4444,7 @@ public function exportExcel(Request $request)
             'dailyItineraries',
         ])->findOrFail($id);
         
-        $busAssignment = $groupInfo->busAssignments->first();
+        $busAssignment = $groupInfo->busAssignments->sortBy('vehicle_index')->first();
         $busId = $busAssignment->id ?? '';
         $busNumber = $busAssignment->vehicle_number ?? '';
         
@@ -4458,10 +4455,6 @@ public function exportExcel(Request $request)
         
         $totalAdult = $groupInfo->adult_count ?? 0;
         $totalChild = $groupInfo->child_count ?? 0;
-        
-        $busAssignment = $groupInfo->busAssignments->sortBy('vehicle_index')->first();
-        $busId = $busAssignment->id ?? '';
-        $busNumber = $busAssignment->vehicle_number ?? '';
         
         $vehicleInfo = '';
         if ($busAssignment && $busAssignment->vehicle_grade_id) {
@@ -4482,6 +4475,8 @@ public function exportExcel(Request $request)
         
         $summary_10 = (object)['subtotal' => 0, 'tax_amount' => 0];
         $summary_8 = (object)['subtotal' => 0, 'tax_amount' => 0];
+        
+        $lastInvoiceStaffId = null;
         
         foreach ($invoices as $invoice) {
             $items = InvoiceItem::where('invoice_id', $invoice->id)->get();
@@ -4510,6 +4505,7 @@ public function exportExcel(Request $request)
             $subtotalAmount += $invoice->subtotal_amount;
             $taxAmount += $invoice->tax_amount;
             $taxMode = $invoice->tax_mode;
+            $lastInvoiceStaffId = $invoice->staff_id;
         }
         
         if ($taxMode == 1) {
@@ -4517,15 +4513,14 @@ public function exportExcel(Request $request)
             $summary_8->tax_amount = $summary_8->subtotal - round($summary_8->subtotal / 1.08);
         }
         
-        
         $staffName = '';
-        if ($invoice->staff_id) {
-            $staff = DB::table('staffs')->where('id', $invoice->staff_id)->first();
+        if ($lastInvoiceStaffId) {
+            $staff = DB::table('staffs')->where('id', $lastInvoiceStaffId)->first();
             $staffName = $staff->name ?? '';
         }
         
         $companyInfo = UserCompanyInfo::first();
-        $companyInfo["contact"] = $staffName;
+        $companyInfo->contact = $staffName;
         
         $data = [
             'groupInfo' => $groupInfo,
@@ -4552,12 +4547,11 @@ public function exportExcel(Request $request)
         $mpdf = new \Mpdf\Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
-            'margin_left' => 10,      // 左边距 15mm
-            'margin_right' => 10,     // 右边距 15mm
-            'margin_top' => 10,       // 上边距 20mm
-            'margin_bottom' => 10,    // 下边距 20mm
-            'margin_header' => 5,     // 页眉边距 5mm
-            'margin_footer' => 10,    // 页脚边距 10mm
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+            'margin_header' => 5,
             'margin_footer' => 10,
             'tempDir' => sys_get_temp_dir(),
             'fontDir' => [storage_path('fonts')],
