@@ -218,6 +218,18 @@
                                         >
                                     </div>
                                     <div class="col-md-3 col-6">
+                                        <label for="operation_days" class="form-label mb-0" style="font-size: 0.75rem;">運行日数</label>
+                                        <input 
+                                            type="text" 
+                                            class="form-control form-control-sm" 
+                                            id="operation_days" 
+                                            name="operation_days" 
+                                            value="{{ old('operation_days', $invoice->operation_days ?? '') }}" 
+                                            style="font-size: 0.875rem;"
+                                            placeholder=""
+                                        >
+                                    </div>
+                                    <div class="col-md-3 col-6">
                                         <label for="reservation_id" class="form-label mb-0" style="font-size: 0.75rem;">予約 ID</label>
                                         <input type="text" class="form-control form-control-sm" id="reservation_id" name="reservation_id" value="{{ old('reservation_id', $invoice->reservation_id) }}" style="font-size: 0.875rem;">
                                     </div>

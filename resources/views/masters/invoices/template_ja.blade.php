@@ -123,7 +123,12 @@
                         <div>{{ $invoice->billing_title }}</div>
                     @endif
                     @if($invoice->operation_date)
-                        <div>運行日：{{ $invoice->operation_date }}</div>
+                        <div>
+                            運行日：{{ $invoice->operation_date }}
+                            @if($invoice->operation_days)
+                                - {{ $invoice->operation_days }}
+                            @endif
+                        </div>
                     @endif
                 </td>
             </tr>

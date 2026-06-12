@@ -54,8 +54,18 @@
         @method('PUT')
         
         <div class="card shadow-sm mb-1">
-            <div class="card-header py-2 px-3" style="background-color: #141c28; border-bottom: 1px solid #aaa;">
-                <h6 class="mb-0" style="color: #fff; font-size: 0.875rem; font-weight: 500;">基本情報</h6>
+            <div class="card-header py-2 px-3 d-flex align-items-center" style="background-color: #141c28; border-bottom: 1px solid #aaa;">
+                <h6 class="mb-0" style="color: #fff; font-size: 0.875rem; font-weight: 500; margin: 0 15px 0 0;">基本情報</h6>
+                <div class="d-flex gap-2">
+                    <button type="button" id="btnReservationConfirm" class="btn btn-sm" 
+                            style="background-color: #2563eb; border: none; color: white; font-size: 0.7rem; padding: 2px 10px; border-radius: 4px;">
+                        <i class="bi bi-file-pdf"></i> 予約確認書
+                    </button>
+                    <button type="button" id="btnFinalConfirm" class="btn btn-sm" 
+                            style="background-color: #dc2626; border: none; color: white; font-size: 0.7rem; padding: 2px 10px; border-radius: 4px;">
+                        <i class="bi bi-file-pdf"></i> 最終確認書
+                    </button>
+                </div>
             </div>
             <div class="card-body p-2">
                 <div class="row" style="margin-right: -5px; margin-left: -5px;">
@@ -214,11 +224,17 @@
                             </div>
                         </div>
 
-                        <div class="row">
+                        <div class="row mb-1">
                             <div class="col-md-12">
-                                <div class="d-flex align-items-start w-100">
-                                    <span class="span-label">備考</span>
-                                    <textarea name="remarks" rows="4" class="form-control form-control-sm border w-100">{{ old('remarks', $groupInfo->remarks) }}</textarea>
+                                <div class="d-flex w-100 gap-2">
+                                    <div class="d-flex align-items-center w-50">
+                                        <span class="span-label" style="min-width: 50px; white-space: nowrap;">備考</span>
+                                        <textarea name="remarks" rows="4" class="form-control form-control-sm border w-100">{{ old('remarks', $groupInfo->remarks) }}</textarea>
+                                    </div>
+                                    <div class="d-flex align-items-center w-50">
+                                        <span class="span-label" style="min-width: 50px; white-space: nowrap;">代理店連絡</span>
+                                        <textarea name="agency_contact" rows="4" class="form-control form-control-sm border w-100">{{ old('agency_contact', $groupInfo->agency_contact) }}</textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -249,9 +265,10 @@
                                             <table class="table table-sm table-bordered" style="font-size: 10px; margin-bottom: 0;">
                                                 <thead style="background-color: #f3f4f6; text-align: center;">
                                                     <tr>
-                                                        <th style="width: 50%;">タイトル</th>
+                                                        <th style="width: 40%;">タイトル</th>
                                                         <th style="width: 20%;">合計金額</th>
                                                         <th style="width: 20%;">未入金</th>
+                                                        <th style="width: 10%;">タイプ</th>
                                                         <th style="width: 10%;">操作</th>
                                                     </tr>
                                                 </thead>
@@ -269,6 +286,13 @@
                                                         <td>{{ $inv->billing_title ?? '-' }}</td>
                                                         <td class="text-end">{{ number_format($inv->total_amount) }}</td>
                                                         <td class="text-end">{{ number_format($inv->total_amount - $inv->paid_amount) }}</td>
+                                                        <td class="text-end">
+                                                            @if($inv->type == 1)
+                                                                正式
+                                                            @else
+                                                                <span class="text-danger">臨時</span>
+                                                            @endif
+                                                        </td>
                                                         <td class="text-center">
                                                             <a href="{{ route('masters.invoices.edit', ['invoice' => $inv->id, 'group_id' => $groupInfo->id]) }}" 
                                                                target="_blank">編集</a>
@@ -460,7 +484,7 @@
                                                         <option value="">-- 選択 --</option>
                                                         @foreach($vehicleGrades ?? [] as $grade)
                                                             <option value="{{ $grade->id }}" {{ ($busAssignment->vehicle_grade_id ?? '') == $grade->id ? 'selected' : '' }}>
-                                                                {{ $grade->description ?? $grade->grade_name }}
+                                                                {{ $grade->grade_name }}
                                                             </option>
                                                         @endforeach
                                                     </select>
@@ -1266,7 +1290,7 @@ input[readonly]:focus { outline: none; border-color: #E5E7EB; }
     background-color: #141c28;
 }
 .vehicle-detail-card .card-header h6 span {
-    color: #a0aec0;
+    color: #fff;
     font-weight: normal;
 }
 
@@ -3740,7 +3764,7 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
                                             <span class="span-label">車両等級</span>
                                             <select name="bus_assignments[${newIndex}][vehicle_grade_id]" class="form-select form-select-sm border w-100">
                                                 <option value="">-- 選択 --</option>
-                                                ${vehicleGrades.map(g => `<option value="${g.id}">${g.description || g.grade_name}</option>`).join('')}
+                                                ${vehicleGrades.map(g => `<option value="${g.id}">${g.grade_name}</option>`).join('')}
                                             </select>
                                         </div>
                                         <div class="d-flex align-items-center" style="width: 50%;">
@@ -5868,6 +5892,21 @@ function closeLocationModal() {
     if (modal) modal.style.display = 'none';
     document.body.style.overflow = '';
 }
+
+
+
+
+document.getElementById('btnReservationConfirm')?.addEventListener('click', function() {
+    const groupId = {{ $groupInfo->id }};
+    const url = `/masters/group-infos/${groupId}/export-reservation-pdf`;
+    window.open(url, '_blank');
+});
+
+document.getElementById('btnFinalConfirm')?.addEventListener('click', function() {
+    const groupId = {{ $groupInfo->id }};
+    const url = `/masters/group-infos/${groupId}/export-final-pdf`;
+    window.open(url, '_blank');
+});
 
 </script>
 @endpush

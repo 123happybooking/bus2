@@ -539,6 +539,7 @@ class InvoiceController extends Controller
             'agency_id' => null,
             'agency_detail' => '',
             'operation_date' => null,
+            'operation_days' => '',
             'group_name' => '',
         ];
         if ($groupId) {
@@ -547,6 +548,13 @@ class InvoiceController extends Controller
                 $autoFillData['reservation_id'] = $groupInfo->id;
                 
                 $autoFillData['group_name'] = $groupInfo->group_name ?? '';
+                
+                $itineraryCount = DailyItinerary::where('group_info_id', $groupId)
+                    ->distinct('date')
+                    ->count('date');
+                if ($itineraryCount > 1) {
+                    $autoFillData['operation_days'] = $itineraryCount . '日間';
+                }
                 
                 if ($groupInfo->agency) {
                     $agency = Agency::where('agency_name', $groupInfo->agency)->first();
@@ -588,6 +596,7 @@ public function store(Request $request)
         'agency_id' => 'nullable|integer',
         'agency_detail' => 'required|string|max:250',
         'operation_date' => 'nullable|date',
+        'operation_days' => 'nullable|string|max:50',
         'bank_id' => 'required|integer',
         'billing_title' => 'nullable|string|max:200',
         'tax_mode' => 'required|in:1,2',
@@ -760,6 +769,7 @@ public function store(Request $request)
             'agency_id' => $validated['agency_id'],
             'agency_detail' => $validated['agency_detail'],
             'operation_date' => $validated['operation_date'],
+            'operation_days' => $validated['operation_days'] ?? null,
             'reservation_id' => $validated['reservation_id'],
         ]);
 
@@ -891,6 +901,7 @@ public function store(Request $request)
             'staff_id' => 'nullable|integer',
             'agency_detail' => 'required|string|max:250',
             'operation_date' => 'nullable|date',
+            'operation_days' => 'nullable|string|max:50',
             'group_id' => 'nullable|integer',
             'bank_id' => 'required|integer',
             
@@ -1026,6 +1037,7 @@ public function store(Request $request)
                 'agency_id' => $validated['agency_id'],
                 'agency_detail' => $validated['agency_detail'],
                 'operation_date' => $validated['operation_date'],
+                'operation_days' => $validated['operation_days'] ?? null,
                 'staff_id' => $validated['staff_id'],
             ]);
 
@@ -1805,6 +1817,7 @@ public function store(Request $request)
             'invoice' => (object)[
                 'billing_title' => $invoice->billing_title,
                 'operation_date' => $invoice->operation_date ? date('Y-m-d', strtotime($invoice->operation_date)) : '',
+                'operation_days' => $invoice->operation_days,
                 'reservation_id' => $invoice->reservation_id,
                 'invoice_date' => $invoice->invoice_date,
                 'due_date' => $invoice->due_date,

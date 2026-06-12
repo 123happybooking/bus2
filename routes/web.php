@@ -161,6 +161,9 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::post('group-infos/{id}/copy', [GroupInfoController::class, 'copy'])->name('group-infos.copy');
         Route::get('group-infos/{busId}/export-pdf-bus-assignment', [GroupInfoController::class, 'exportPdfBusAssignment'])->name('group-infos.export-pdf-bus-assignment');
         
+        Route::get('group-infos/{id}/export-reservation-pdf', [GroupInfoController::class, 'exportReservationPdf'])->name('group-infos.export-reservation-pdf');
+        Route::get('group-infos/{id}/export-final-pdf', [GroupInfoController::class, 'exportFinalPdf'])->name('group-infos.export-final-pdf');
+        
         
         Route::get('operation-ledger', [OperationLedgerController::class, 'index'])->name('operation-ledger.index');
         

@@ -31,6 +31,7 @@ class Invoice extends Model
         'agency_id',
         'agency_detail',
         'operation_date',
+        'operation_days',
         'reservation_id'
         
     ];

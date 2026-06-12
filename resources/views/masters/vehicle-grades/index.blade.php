@@ -67,7 +67,6 @@
                         <thead>
                             <tr>
                                 <th>No.</th>
-                                <th>コード</th>
                                 <th>グレード名</th>
                                 <th>説明</th>
                                 <th width="150">操作</th>
@@ -77,7 +76,6 @@
                             @forelse($grades as $index => $grade)
                             <tr>
                                 <td>{{ $grades->firstItem() + $index }}</td>
-                                <td><code>{{ $grade->code }}</code></td>
                                 <td>{{ $grade->grade_name }}</td>
                                 <td>{{ $grade->description ?? '-' }}</td>
                                 <td>
@@ -106,7 +104,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="text-center py-4">
+                                <td colspan="4" class="text-center py-4">
                                     @if(request('search'))
                                         <div class="text-muted">
                                             <i class="bi bi-search display-6 mb-2"></i>

@@ -70,7 +70,7 @@
                                 data-description="{{ $grade->description }}"
                                 data-grade-name="{{ $grade->grade_name }}"
                                 {{ ($groupInfo->vehicle_grade_id ?? '') == $grade->id ? 'selected' : '' }}>
-                                {{ $grade->description }} ({{ $grade->grade_name }})
+                                {{ $grade->grade_name }}
                             </option>
                         @endforeach
                     </select>

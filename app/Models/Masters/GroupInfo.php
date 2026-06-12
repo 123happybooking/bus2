@@ -23,6 +23,7 @@ class GroupInfo extends Model
         'end_time',
         'vehicle_type_selection',
         'remarks',
+        'agency_contact',
         'itinerary_id',
         'business_category',
         'reservation_categories_id',

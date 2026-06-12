@@ -42,16 +42,6 @@
                         
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="code" class="form-label required">コード</label>
-                                <input type="text" class="form-control @error('code') is-invalid @enderror" 
-                                       id="code" name="code" value="{{ old('code', $grade->code) }}" 
-                                       required maxlength="10" placeholder="例: HY">
-                                @error('code')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            
-                            <div class="col-md-6">
                                 <label for="grade_name" class="form-label required">グレード名</label>
                                 <input type="text" class="form-control @error('grade_name') is-invalid @enderror" 
                                        id="grade_name" name="grade_name" value="{{ old('grade_name', $grade->grade_name) }}" 

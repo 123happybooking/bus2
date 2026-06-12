@@ -21,7 +21,7 @@
                         @foreach($vehicleGrades ?? [] as $grade)
                             <option value="{{ $grade->id }}" 
                                 {{ (old('vehicle_grade_id') == $grade->id) || (empty(old('vehicle_grade_id')) && $grade->code == 'ST') ? 'selected' : '' }}>
-                                {{ $grade->description }} ({{ $grade->grade_name }})
+                                {{ $grade->grade_name }}
                             </option>
                         @endforeach
                     </select>

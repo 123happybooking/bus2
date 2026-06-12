@@ -38,15 +38,11 @@ class VehicleGradeController extends Controller
     public function store(Request $request)
     {
         $rules = [
-            'code' => 'required|string|max:10|unique:vehicle_grades,code',
             'grade_name' => 'required|string|max:50',
             'description' => 'nullable|string|max:100',
         ];
 
         $messages = [
-            'code.required' => 'コードは必須です。',
-            'code.unique' => 'このコードは既に使用されています。',
-            'code.max' => 'コードは10文字以内で入力してください。',
             'grade_name.required' => 'グレード名は必須です。',
             'grade_name.max' => 'グレード名は50文字以内で入力してください。',
             'description.max' => '説明は100文字以内で入力してください。',
@@ -69,20 +65,11 @@ class VehicleGradeController extends Controller
     public function update(Request $request, $id)
     {
         $rules = [
-            'code' => [
-                'required',
-                'string',
-                'max:10',
-                Rule::unique('vehicle_grades')->ignore($id),
-            ],
             'grade_name' => 'required|string|max:50',
             'description' => 'nullable|string|max:100',
         ];
 
         $messages = [
-            'code.required' => 'コードは必須です。',
-            'code.unique' => 'このコードは既に使用されています。',
-            'code.max' => 'コードは10文字以内で入力してください。',
             'grade_name.required' => 'グレード名は必須です。',
             'grade_name.max' => 'グレード名は50文字以内で入力してください。',
             'description.max' => '説明は100文字以内で入力してください。',

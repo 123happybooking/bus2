@@ -22,8 +22,10 @@ use App\Models\Masters\GroupInfoFile;
 use App\Models\Masters\DriverCompensation;
 use App\Models\Masters\DriverCompensationType;
 use App\Models\Masters\Staff;
+use App\Models\Masters\UserCompanyInfo;
 use App\Models\Masters\Country;
 use App\Models\Masters\Invoice;
+use App\Models\Masters\InvoiceItem;
 use App\Models\Driver\DriverExpense;
 use App\Models\Driver\DriverExpenseType;
 use App\Models\Driver\DriverPaymentMethod;
@@ -237,7 +239,6 @@ class GroupInfoController extends Controller
         $groupInfo = GroupInfo::with([
             'busAssignments.vehicle',
             'busAssignments.driver',
-            'busAssignments.guide',
             'dailyItineraries',
             'vehicleGrade'
         ])->findOrFail($id);
@@ -642,6 +643,7 @@ class GroupInfoController extends Controller
             'start_location' => 'nullable|string|max:255',
             'end_location' => 'nullable|string|max:255',
             'remarks' => 'nullable|string',
+            'agency_contact' => 'nullable|string',
             'ignore_operation' => 'nullable',
             'ignore_attendance' => 'nullable',
             'reservation_channel' => 'nullable|string|max:100',
@@ -767,6 +769,7 @@ class GroupInfoController extends Controller
                 'end_time' => $endTime,
                 'vehicle_type_selection' => $finalVehicleSpec,
                 'remarks' => $validated['remarks'] ?? null,
+                'agency_contact' => $validated['agency_contact'] ?? null,
                 'itinerary_id' => 0,
                 // 'business_category' => $validated['business_category'] ?? null,
                 'reservation_categories_id' => $request->input('reservation_categories_id') ?? null,
@@ -1250,6 +1253,7 @@ class GroupInfoController extends Controller
             'vehicle_grade_id' => 'nullable|exists:vehicle_grades,id',
             'vehicle_branch' => 'nullable|string|max:200',
             'remarks' => 'nullable|string',
+            'agency_contact' => 'nullable|string',
             'ignore_operation' => 'nullable',
             'ignore_attendance' => 'nullable',
             'reservation_channel' => 'nullable|string|max:100',
@@ -2555,6 +2559,7 @@ class GroupInfoController extends Controller
                 'end_date' => $maxEndDate ?? $validated['end_date'],
                 'end_time' => $maxEndTime,
                 'remarks' => $validated['remarks'] ?? null,
+                'agency_contact' => $validated['agency_contact'] ?? null,
                 'agt_tour_id' => $validated['agt_tour_id'] ?? null,
                 'business_category' => $validated['business_category'] ?? null,
                 'reservation_categories_id' => $validated['reservation_categories_id'] ?? null,
@@ -4284,5 +4289,292 @@ public function exportExcel(Request $request)
         '予約一覧_' . Carbon::now()->format('Ymd_His') . '.xlsx'
     );
 }
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    public function exportReservationPdf($id)
+    {
+        $groupInfo = GroupInfo::with([
+            'busAssignments.vehicle',
+            'busAssignments.driver',
+            'dailyItineraries',
+        ])->findOrFail($id);
+        
+        $busAssignment = $groupInfo->busAssignments->first();
+        $busId = $busAssignment->id ?? '';
+        $busNumber = $busAssignment->vehicle_number ?? '';
+        
+        $itineraries = $groupInfo->dailyItineraries
+            ->sortBy('date')
+            ->sortBy('time_start')
+            ->values();
+        
+        $totalAdult = $groupInfo->adult_count ?? 0;
+        $totalChild = $groupInfo->child_count ?? 0;
+        
+        $busAssignment = $groupInfo->busAssignments->sortBy('vehicle_index')->first();
+        $busId = $busAssignment->id ?? '';
+        $busNumber = $busAssignment->vehicle_number ?? '';
+        
+        $vehicleInfo = '';
+        if ($busAssignment && $busAssignment->vehicle_grade_id) {
+            $vehicleGrade = VehicleGrade::find($busAssignment->vehicle_grade_id);
+            $vehicleInfo = $vehicleGrade->grade_name ?? '';
+        }
+        
+        $invoices = Invoice::where('reservation_id', $groupInfo->id)
+            ->orWhere('group_id', $groupInfo->id)
+            ->get();
+        
+        $invoiceItems = collect();
+        $totalAmount = 0;
+        $subtotalAmount = 0;
+        $taxAmount = 0;
+        $nonTaxable = 0;
+        $taxMode = 1;
+        
+        $summary_10 = (object)['subtotal' => 0, 'tax_amount' => 0];
+        $summary_8 = (object)['subtotal' => 0, 'tax_amount' => 0];
+        
+        foreach ($invoices as $invoice) {
+            $items = InvoiceItem::where('invoice_id', $invoice->id)->get();
+            foreach ($items as $item) {
+                $invoiceItems->push($item);
+                
+                $taxRate = $item->tax_rate;
+                $amount = $item->amount;
+                
+                if ($taxRate == 10) {
+                    $summary_10->subtotal += $amount;
+                    if ($invoice->tax_mode == 2) {
+                        $summary_10->tax_amount += round($amount * 0.1);
+                    }
+                } elseif ($taxRate == 8) {
+                    $summary_8->subtotal += $amount;
+                    if ($invoice->tax_mode == 2) {
+                        $summary_8->tax_amount += round($amount * 0.08);
+                    }
+                } elseif ($taxRate < 0) {
+                    $nonTaxable += $amount;
+                }
+            }
+            
+            $totalAmount += $invoice->total_amount;
+            $subtotalAmount += $invoice->subtotal_amount;
+            $taxAmount += $invoice->tax_amount;
+            $taxMode = $invoice->tax_mode;
+        }
+        
+        if ($taxMode == 1) {
+            $summary_10->tax_amount = $summary_10->subtotal - round($summary_10->subtotal / 1.1);
+            $summary_8->tax_amount = $summary_8->subtotal - round($summary_8->subtotal / 1.08);
+        }
+        
+        
+        $staffName = '';
+        if ($invoice->staff_id) {
+            $staff = DB::table('staffs')->where('id', $invoice->staff_id)->first();
+            $staffName = $staff->name ?? '';
+        }
+        
+        $companyInfo = UserCompanyInfo::first();
+        $companyInfo["contact"] = $staffName;
+        
+        $data = [
+            'groupInfo' => $groupInfo,
+            'busAssignment' => $busAssignment,
+            'busId' => $busId,
+            'busNumber' => $busNumber,
+            'itineraries' => $itineraries,
+            'totalAdult' => $totalAdult,
+            'totalChild' => $totalChild,
+            'vehicleInfo' => $vehicleInfo,
+            'invoiceItems' => $invoiceItems,
+            'totalAmount' => $totalAmount,
+            'subtotalAmount' => $subtotalAmount,
+            'taxAmount' => $taxAmount,
+            'nonTaxable' => $nonTaxable,
+            'taxMode' => $taxMode,
+            'summary_10' => $summary_10,
+            'summary_8' => $summary_8,
+            'companyInfo' => $companyInfo,
+        ];
+        
+        $html = view('masters.group-infos.reservation-pdf', $data)->render();
+        
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_left' => 10,      // 左边距 15mm
+            'margin_right' => 10,     // 右边距 15mm
+            'margin_top' => 10,       // 上边距 20mm
+            'margin_bottom' => 10,    // 下边距 20mm
+            'margin_header' => 5,     // 页眉边距 5mm
+            'margin_footer' => 10,    // 页脚边距 10mm
+            'margin_footer' => 10,
+            'tempDir' => sys_get_temp_dir(),
+            'fontDir' => [storage_path('fonts')],
+            'fontdata' => [
+                'msyh' => ['R' => 'msyh.ttf', 'B' => 'msyhbd.ttf'],
+                'genshin' => ['R' => 'GenShinGothic-Normal.ttf', 'B' => 'GenShinGothic-Bold.ttf'],
+            ],
+            'default_font' => 'msyh',
+            'autoScriptToLang' => true,
+            'autoLangToFont' => true,
+        ]);
+        
+        $mpdf->WriteHTML($html);
+        
+        $filename = '予約確認書_' . $groupInfo->id . '_' . date('Ymd') . '.pdf';
+        return $mpdf->Output($filename, 'D');
+    }
+    
+    public function exportFinalPdf($id)
+    {
+        $groupInfo = GroupInfo::with([
+            'busAssignments.vehicle',
+            'busAssignments.driver',
+            'dailyItineraries',
+        ])->findOrFail($id);
+        
+        $busAssignment = $groupInfo->busAssignments->first();
+        $busId = $busAssignment->id ?? '';
+        $busNumber = $busAssignment->vehicle_number ?? '';
+        
+        $itineraries = $groupInfo->dailyItineraries
+            ->sortBy('date')
+            ->sortBy('time_start')
+            ->values();
+        
+        $totalAdult = $groupInfo->adult_count ?? 0;
+        $totalChild = $groupInfo->child_count ?? 0;
+        
+        $busAssignment = $groupInfo->busAssignments->sortBy('vehicle_index')->first();
+        $busId = $busAssignment->id ?? '';
+        $busNumber = $busAssignment->vehicle_number ?? '';
+        
+        $vehicleInfo = '';
+        if ($busAssignment && $busAssignment->vehicle_grade_id) {
+            $vehicleGrade = VehicleGrade::find($busAssignment->vehicle_grade_id);
+            $vehicleInfo = $vehicleGrade->grade_name ?? '';
+        }
+        
+        $invoices = Invoice::where('reservation_id', $groupInfo->id)
+            ->orWhere('group_id', $groupInfo->id)
+            ->get();
+        
+        $invoiceItems = collect();
+        $totalAmount = 0;
+        $subtotalAmount = 0;
+        $taxAmount = 0;
+        $nonTaxable = 0;
+        $taxMode = 1;
+        
+        $summary_10 = (object)['subtotal' => 0, 'tax_amount' => 0];
+        $summary_8 = (object)['subtotal' => 0, 'tax_amount' => 0];
+        
+        foreach ($invoices as $invoice) {
+            $items = InvoiceItem::where('invoice_id', $invoice->id)->get();
+            foreach ($items as $item) {
+                $invoiceItems->push($item);
+                
+                $taxRate = $item->tax_rate;
+                $amount = $item->amount;
+                
+                if ($taxRate == 10) {
+                    $summary_10->subtotal += $amount;
+                    if ($invoice->tax_mode == 2) {
+                        $summary_10->tax_amount += round($amount * 0.1);
+                    }
+                } elseif ($taxRate == 8) {
+                    $summary_8->subtotal += $amount;
+                    if ($invoice->tax_mode == 2) {
+                        $summary_8->tax_amount += round($amount * 0.08);
+                    }
+                } elseif ($taxRate < 0) {
+                    $nonTaxable += $amount;
+                }
+            }
+            
+            $totalAmount += $invoice->total_amount;
+            $subtotalAmount += $invoice->subtotal_amount;
+            $taxAmount += $invoice->tax_amount;
+            $taxMode = $invoice->tax_mode;
+        }
+        
+        if ($taxMode == 1) {
+            $summary_10->tax_amount = $summary_10->subtotal - round($summary_10->subtotal / 1.1);
+            $summary_8->tax_amount = $summary_8->subtotal - round($summary_8->subtotal / 1.08);
+        }
+        
+        
+        $staffName = '';
+        if ($invoice->staff_id) {
+            $staff = DB::table('staffs')->where('id', $invoice->staff_id)->first();
+            $staffName = $staff->name ?? '';
+        }
+        
+        $companyInfo = UserCompanyInfo::first();
+        $companyInfo["contact"] = $staffName;
+        
+        $data = [
+            'groupInfo' => $groupInfo,
+            'busAssignment' => $busAssignment,
+            'busId' => $busId,
+            'busNumber' => $busNumber,
+            'itineraries' => $itineraries,
+            'totalAdult' => $totalAdult,
+            'totalChild' => $totalChild,
+            'vehicleInfo' => $vehicleInfo,
+            'invoiceItems' => $invoiceItems,
+            'totalAmount' => $totalAmount,
+            'subtotalAmount' => $subtotalAmount,
+            'taxAmount' => $taxAmount,
+            'nonTaxable' => $nonTaxable,
+            'taxMode' => $taxMode,
+            'summary_10' => $summary_10,
+            'summary_8' => $summary_8,
+            'companyInfo' => $companyInfo,
+        ];
+        
+        $html = view('masters.group-infos.final-pdf', $data)->render();
+        
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_left' => 10,      // 左边距 15mm
+            'margin_right' => 10,     // 右边距 15mm
+            'margin_top' => 10,       // 上边距 20mm
+            'margin_bottom' => 10,    // 下边距 20mm
+            'margin_header' => 5,     // 页眉边距 5mm
+            'margin_footer' => 10,    // 页脚边距 10mm
+            'margin_footer' => 10,
+            'tempDir' => sys_get_temp_dir(),
+            'fontDir' => [storage_path('fonts')],
+            'fontdata' => [
+                'msyh' => ['R' => 'msyh.ttf', 'B' => 'msyhbd.ttf'],
+                'genshin' => ['R' => 'GenShinGothic-Normal.ttf', 'B' => 'GenShinGothic-Bold.ttf'],
+            ],
+            'default_font' => 'msyh',
+            'autoScriptToLang' => true,
+            'autoLangToFont' => true,
+        ]);
+        
+        $mpdf->WriteHTML($html);
+        
+        $filename = '最終確認書_' . $groupInfo->id . '_' . date('Ymd') . '.pdf';
+        return $mpdf->Output($filename, 'D');
+    }
+
     
 }
