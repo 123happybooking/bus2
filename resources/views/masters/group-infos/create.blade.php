@@ -98,7 +98,7 @@
             <div class="d-flex align-items-center mb-1">
                 <div class="label-width text-gray">号車</div>
                 <div class="input-width-100 mr-4">
-                    <input type="text" name="vehicle_number" value="{{ old('vehicle_number', '1/1') }}" class="form-input" id="vehicle_number" placeholder="号車">
+                    <input type="text" name="vehicle_number" value="{{ old('vehicle_number') }}" class="form-input" id="vehicle_number" placeholder="号車">
                 </div>
                 
                 <div class="label-width text-gray text-center">ガイド</div>

@@ -65,6 +65,8 @@ class BusAssignmentController extends Controller
         $agencyId = $request->input('agency_id');
         $reservationCategoriesId = $request->input('reservation_categories_id');
         $showCancelEstimate = $request->input('show_cancel_estimate');
+        $driverUndefined = $request->input('driver_undefined');
+        $vehicleUndefined = $request->input('vehicle_undefined');
         
         $hasExactSearch = !empty($reservationId) || !empty($operationId) || !empty($groupName);
         
@@ -179,6 +181,20 @@ class BusAssignmentController extends Controller
         if ($groupName) {
             $query->whereHas('groupInfo', function($q) use ($groupName) {
                 $q->where('group_name', 'like', '%' . $groupName . '%');
+            });
+        }
+        
+        if ($driverUndefined) {
+            $query->where(function($q) {
+                $q->whereNull('driver_id')
+                  ->orWhere('driver_id', 0);
+            });
+        }
+        
+        if ($vehicleUndefined) {
+            $query->where(function($q) {
+                $q->whereNull('vehicle_id')
+                  ->orWhere('vehicle_id', 0);
             });
         }
     

@@ -290,23 +290,6 @@
             </tr>
             @endforeach
     
-            @php 
-                $detailCount = count($invoiceItems); 
-                $summaryRows = 3; 
-                $targetTotalRows = 15; 
-                $remaining = max(0, $targetTotalRows - $detailCount - $summaryRows); 
-            @endphp
-            @for($i = 0; $i < $remaining; $i++)
-            <tr>
-                <td>&nbsp;</td>
-                <td colspan="4"></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            @endfor
-    
             <tr class="summary-row">
                 <td colspan="2" style="text-align: left;">10％対象</td>
                 <td style="font-weight: bold; text-align: right;">{{ number_format($summary_10->subtotal ?? 0) }}</td>

@@ -492,7 +492,7 @@
                                                 
                                                 <div class="d-flex align-items-center" style="width: 50%;">
                                                     <span class="span-label">号車</span>
-                                                    <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[{{ $vehicleIndex }}][vehicle_number]" value="{{ $busAssignment->vehicle_number ?? sprintf('%02d', $vehicleIndex) }}">
+                                                    <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[{{ $vehicleIndex }}][vehicle_number]" value="{{ $busAssignment->vehicle_number ?? '' }}">
                                                 </div>
                                             </div>
                                         </div>
@@ -3769,7 +3769,7 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
                                         </div>
                                         <div class="d-flex align-items-center" style="width: 50%;">
                                             <span class="span-label">号車</span>
-                                            <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][vehicle_number]" value="${newIndex.toString().padStart(2, '0')}">
+                                            <input type="text" class="form-control form-control-sm border w-100" name="bus_assignments[${newIndex}][vehicle_number]" value="">
                                         </div>
                                     </div>
                                 </div>
@@ -4319,9 +4319,9 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
             card.setAttribute('data-vehicle-index', newIndex);
             
             const vehicleNumber = card.querySelector('input[name*="[vehicle_number]"]');
-            if (vehicleNumber && (!vehicleNumber.value || vehicleNumber.value === vehicleNumber.defaultValue)) {
-                vehicleNumber.value = newIndex.toString().padStart(2, '0');
-            }
+            // if (vehicleNumber && (!vehicleNumber.value || vehicleNumber.value === vehicleNumber.defaultValue)) {
+            //     vehicleNumber.value = newIndex.toString().padStart(2, '0');
+            // }
             
             card.querySelectorAll('input, select, textarea').forEach(el => {
                 const name = el.getAttribute('name');

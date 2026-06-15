@@ -122,6 +122,7 @@
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 60px;">No.</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 160px;">期間</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">予約ID</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">担当</th>
                     <th class="text-start px-2 py-1" style="text-align: left !important; color: #374151; font-weight: 500;">代理店</th>
                     <th class="text-start px-2 py-1" style="color: #374151; font-weight: 500;">団体名</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">状態</th>
@@ -208,14 +209,17 @@
                             {{ $groupInfo->id }}
                         </a>
                     </td>
+                    <td class="text-start px-2 py-1 align-middle">
+                        {{ $groupInfo->agency_contact_name ?? '--' }}
+                    </td>
                     <td class="text-start px-2 py-1 align-middle" style="text-align: left !important;">
                         <a href="{{ route('masters.group-infos.index', array_merge(request()->except('search'), ['search' => $groupInfo->agency ?? ''])) }}" 
                            style="color: #2563eb; text-decoration: none;">
-                            {{ $groupInfo->agency ?? '' }}
+                            {{ $groupInfo->agency ?? '--' }}
                         </a>
                     </td>
                     <td class="text-start px-2 py-1 align-middle">
-                        {{ $groupInfo->group_name ?? '' }}
+                        {{ $groupInfo->group_name ?? '--' }}
                     </td>
                     <td class="text-center px-2 py-1 align-middle">
                         <span style="background-color: {{ $statusBgColor }}; color: {{ $statusTextColor }}; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; display: inline-block; white-space: nowrap;">

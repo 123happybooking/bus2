@@ -32,6 +32,9 @@
                             @if($expense->agency_flag)
                             <div class="expense-badge">代理店負担</div>
                             @endif
+                            @if($expense->receipts && $expense->receipts->count() > 0)
+                            <div class="expense-badge-photo">📷</div>
+                            @endif
                         </div>
                     </div>
                     <div class="expense-right">
@@ -474,6 +477,17 @@
 
 .upload-receipt-btn-square:active {
     transform: scale(0.98);
+}
+
+
+.expense-badge-photo {
+    font-size: 12px;
+    padding: 1px 6px;
+    margin: 0 0 0 10px;
+    background-color: #10b981;
+    color: white;
+    border-radius: 3px;
+    display: inline-block;
 }
 </style>
 @endpush

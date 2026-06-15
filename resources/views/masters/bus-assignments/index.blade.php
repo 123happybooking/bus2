@@ -237,6 +237,18 @@
                                class="form-check-input me-1" style="margin-top: 0;" {{ request('sort_by_driver') ? 'checked' : '' }}>
                         <label for="sort_by_driver" style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0;">運転手順でソート</label>
                     </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <input type="checkbox" name="driver_undefined" id="driver_undefined" value="1" 
+                               class="form-check-input me-1" style="margin-top: 0;" {{ request('driver_undefined') ? 'checked' : '' }}>
+                        <label for="driver_undefined" style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0;">運転手未定</label>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <input type="checkbox" name="vehicle_undefined" id="vehicle_undefined" value="1" 
+                               class="form-check-input me-1" style="margin-top: 0;" {{ request('vehicle_undefined') ? 'checked' : '' }}>
+                        <label for="vehicle_undefined" style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0;">車両未確定</label>
+                    </div>
 
                     <div class="d-flex gap-1">
                         <button type="submit" class="btn btn-sm px-2"
@@ -265,6 +277,7 @@
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">車両名<br>号車</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 80px;">運転手</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">予約ID<br>運行ID</th>
+                    <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">担当</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 120px;">開始時刻<br>開始場所</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; width: 60px;">最終確認</th>
                     <th class="text-center px-1 py-1" style="vertical-align: middle; background-color: #F3F4F6; color: #374151; font-weight: 500; min-width: 100px;">業務分類<br>行程名</th>
@@ -321,13 +334,13 @@
                         @endif
                         <a href="{{ route('masters.bus-assignments.index', array_merge(request()->except('driver_id'), ['driver_id' => $assignment->driver_id])) }}" 
                            style="color: #2563eb; text-decoration: none;">
-                            {{ $assignment->driver?->name ?? '---' }}
+                            {{ $assignment->driver?->name ?? '--' }}
                         </a>
                     </td>
                      
                     <td class="px-1 py-1 align-middle text-center">
                         <a href="{{ route('masters.bus-assignments.index', ['reservation_id' => $assignment->group_info_id]) }}" class="text-decoration-none">
-                            {{ $assignment->group_info_id ?? '---' }}
+                            {{ $assignment->group_info_id ?? '--' }}
                         </a>
                         @if($busCount > 1)
                             <span style="color: #6b7280;">[{{ $busCount }}]</span>
@@ -335,6 +348,9 @@
                         <br>
                         {{ $assignment->id }}
                      </td>
+                    <td class="px-1 py-1 align-middle">
+                        {{ $groupInfo->agency_contact_name ?? '--' }}
+                    </td>
                     <td class="px-1 py-1 align-middle">
                         <div>{{ $assignment->start_time ? \Carbon\Carbon::parse($assignment->start_time)->format('H:i') : '--:--' }} {{ $startLocation ?: '' }}</div>
                         <div>{{ $assignment->end_time ? \Carbon\Carbon::parse($assignment->end_time)->format('H:i') : '--:--' }} {{ $endLocation ?: '' }}</div>
@@ -359,16 +375,16 @@
                         </span>
                      </td>
                     <td class="px-1 py-1 align-middle">
-                        {{ $groupInfo->category_name ?? '---' }}<br>
-                        <small>{{ $groupInfo?->itinerary_name ?? '---' }}</small>
+                        {{ $groupInfo->category_name ?? '--' }}<br>
+                        <small>{{ $groupInfo?->itinerary_name ?? '--' }}</small>
                      </td>
                     <td class="px-1 py-1 align-middle">
-                        <span class="fw-bold">{{ $groupInfo?->group_name ?? '---' }}</span><br>
-                        <small class="text-muted">{{ $assignment->step_car ?? '---' }}</small>
+                        <span class="fw-bold">{{ $groupInfo?->group_name ?? '--' }}</span><br>
+                        <small class="text-muted">{{ $assignment->step_car ?? '--' }}</small>
                      </td>
                     <td class="px-1 py-1 align-middle">
-                        {{ $groupInfo?->agency ?? '---' }}<br>
-                        <small>{{ $groupInfo?->agency_country ?? '---' }}</small>
+                        {{ $groupInfo?->agency ?? '--' }}<br>
+                        <small>{{ $groupInfo?->agency_country ?? '--' }}</small>
                      </td>
                     <td class="px-1 py-1 align-middle">
                         @php
@@ -415,7 +431,7 @@
                             }
                         @endphp
                         <span style="background-color: {{ $statusBgColor }}; color: {{ $statusTextColor }}; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; display: inline-block; white-space: nowrap;">
-                            {{ $groupInfo?->reservation_status ?? '---' }}
+                            {{ $groupInfo?->reservation_status ?? '--' }}
                         </span>
                     </td>
                     <td class="text-center px-1 py-1 align-middle">
@@ -459,7 +475,7 @@
                      </td>
                 </tr>
                 @empty
-                <tr><td colspan="16" class="text-center py-3" style="color: #9ca3af;">運行データがありません</td></tr>
+                <tr><td colspan="17" class="text-center py-3" style="color: #9ca3af;">運行データがありません</td></tr>
                 @endforelse
             </tbody>
          </table>

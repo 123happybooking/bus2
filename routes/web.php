@@ -216,6 +216,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
             Route::put('/operation-log/{id}', [DailyReportController::class, 'updateOperationLog'])->name('update-operation-log');
             Route::post('/upload-receipt', [DailyReportController::class, 'uploadReceipt'])->name('upload-receipt');
             Route::delete('/delete-receipt/{id}', [DailyReportController::class, 'deleteReceipt'])->name('delete-receipt');
+            Route::get('/download-attachments', [DailyReportController::class, 'downloadAttachments'])->name('download-attachments');
         });
         
         Route::resource('driver-operation-status', DriverOperationStatusController::class)->names('driver-operation-status');

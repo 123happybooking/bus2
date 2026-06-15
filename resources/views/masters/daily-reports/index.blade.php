@@ -6,6 +6,9 @@
 <div class="container-fluid px-4 py-0">
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h5 class="mb-0" style="color: #374151; font-size: 1.25rem;">運行日報</h5>
+        <button type="button" id="btnDownloadAttachments" class="btn btn-sm btn-primary px-3 py-1" style="background-color: #10b981; border-color: #10b981;">
+            <i class="bi bi-paperclip"></i> 添付ダウンロード
+        </button>
     </div>
 
     <div class="bg-light p-2 mb-2 rounded" style="background-color: #F3F4F6 !important; border: 1px solid #E5E7EB;">
@@ -749,6 +752,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+});
+
+
+
+document.getElementById('btnDownloadAttachments')?.addEventListener('click', function() {
+    const form = document.getElementById('searchForm');
+    const formData = new FormData(form);
+    
+    const params = new URLSearchParams();
+    formData.forEach((value, key) => {
+        if (value) params.append(key, value);
+    });
+    
+    window.location.href = "{{ route('masters.daily-reports.download-attachments') }}?" + params.toString();
 });
 </script>
 @endpush

@@ -831,7 +831,7 @@ class GroupInfoController extends Controller
                 'status_sent' => 0,
                 'status_finalized' => 0,
                 'count_daily' => (int)$daysDiff,
-                'vehicle_number' => '01',
+                'vehicle_number' => '',
                 'step_car' => null,
                 'adult_count' => $validated['adult_count'] ?? 0,
                 'child_count' => $validated['child_count'] ?? 0,
@@ -2767,7 +2767,7 @@ class GroupInfoController extends Controller
                 'end_time' => $lastItinerary->time_end,
                 'count_daily' => $selectedItineraries->count(),
                 
-                'vehicle_number' => sprintf('%02d', $newVehicleIndex),
+                'vehicle_number' => '',
                 'vehicle_index' => $newVehicleIndex,
                 
                 'created_by' => $userId,
@@ -3046,7 +3046,7 @@ class GroupInfoController extends Controller
                 $busAssignment = new BusAssignment();
                 $busAssignment->group_info_id = $groupInfo->id;
                 $busAssignment->vehicle_index = $newVehicleIndex;
-                $busAssignment->vehicle_number = $request->vehicle_number ?? sprintf('%02d', $newVehicleIndex);
+                $busAssignment->vehicle_number = $request->vehicle_number ?? '';
                 $busAssignment->created_by = $userId;
                 $busAssignment->created_at = now();
                 $busAssignment->save();
@@ -4223,9 +4223,6 @@ public function exportExcel(Request $request)
         $startDateTime = '';
         if ($groupInfo->start_date) {
             $startDateTime = Carbon::parse($groupInfo->start_date)->format('Y/m/d');
-            if ($groupInfo->start_time) {
-                $startDateTime .= ' ' . substr($groupInfo->start_time, 0, 5);
-            }
         }
         
         $tripDays = 1;
@@ -4235,12 +4232,13 @@ public function exportExcel(Request $request)
             $tripDays = $startDateObj->diffInDays($endDateObj) + 1;
         }
         
+        $startTime = $groupInfo->start_time ? substr($groupInfo->start_time, 0, 5) : '';
+        $endTime = $groupInfo->end_time ? substr($groupInfo->end_time, 0, 5) : '';
         $periodText = '';
         if ($tripDays == 1) {
-            $endTime = $groupInfo->end_time ? substr($groupInfo->end_time, 0, 5) : '';
-            $periodText = $startDateTime . ' - ' . $endTime;
+            $periodText = $startDateTime . ' ' . $startTime . ' - ' . $endTime;
         } else {
-            $periodText = $startDateTime . ' - ' . $tripDays . '日';
+            $periodText = $startDateTime . ' ' . $startTime . ' - ' . $tripDays . '日';
         }
         
         $totalPax = ($groupInfo->adult_count ?? 0) + 

@@ -178,6 +178,11 @@
                                    {{ request('has_guide') == '1' ? 'checked' : '' }}>
                             <label class="form-check-label" for="has_guide" style="font-size: 0.8rem;">添乗員あり</label>
                         </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="driver_undefined" name="driver_undefined" value="1" 
+                                   {{ request('driver_undefined') == '1' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="driver_undefined" style="font-size: 0.8rem;">運転手未定</label>
+                        </div>
                     </div>
     
                     <div class="d-flex gap-1">

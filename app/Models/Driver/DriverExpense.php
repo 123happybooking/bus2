@@ -52,4 +52,9 @@ class DriverExpense extends Model
     {
         return $this->belongsTo(DriverPaymentMethod::class, 'payment_method_id');
     }
+    
+    public function receipts()
+    {
+        return $this->hasMany(DriverExpensesReceipt::class, 'expense_id');
+    }
 }

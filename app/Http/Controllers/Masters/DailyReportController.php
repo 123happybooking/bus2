@@ -21,6 +21,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Mpdf\Mpdf;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
+use ZipArchive;
 
 class DailyReportController extends Controller
 {
@@ -651,4 +653,135 @@ class DailyReportController extends Controller
             'message' => '削除しました',
         ]);
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    public function downloadAttachments(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $period = $request->input('period', 1);
+        $driverId = $request->input('driver_id');
+        $vehicleId = $request->input('vehicle_id');
+        
+        if (!$startDate) {
+            $startDate = Carbon::today()->format('Y-m-d');
+        }
+        
+        $start = Carbon::parse($startDate);
+        
+        if ($period == 1) {
+            $end = $start->copy()->addDays(6);
+        } elseif ($period == 2) {
+            $end = $start->copy()->addDays(13);
+        } elseif ($period == 3) {
+            $end = $start->copy()->addDays(20);
+        } elseif ($period == 4) {
+            $end = $start->copy()->addMonth()->subDay();
+        } else {
+            $end = $start->copy()->addDays(6);
+        }
+        
+        $endDate = $end->format('Y-m-d');
+        
+        $reportQuery = DriverDailyReport::query();
+        
+        if ($startDate) {
+            $reportQuery->whereDate('date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $reportQuery->whereDate('date', '<=', $endDate);
+        }
+        if ($driverId) {
+            $reportQuery->where('driver_id', $driverId);
+        }
+        if ($vehicleId) {
+            $reportQuery->where('vehicle_id', $vehicleId);
+        }
+        
+        $dates = $reportQuery->pluck('date')->toArray();
+        
+        if (empty($dates)) {
+            return redirect()->back()->with('error', '指定された期間の日報が見つかりません。');
+        }
+        
+        $expenses = DriverExpense::with(['receipts'])
+            ->whereIn('expense_date', $dates)
+            ->get();
+        
+        $expensesWithReceipts = $expenses->filter(function($expense) {
+            return $expense->receipts && $expense->receipts->count() > 0;
+        });
+        
+        if ($expensesWithReceipts->isEmpty()) {
+            return redirect()->back()->with('error', '添付ファイルが見つかりません。');
+        }
+        
+        $userId = session('user_id', auth()->id() ?? 0);
+        $tempBaseDir = storage_path('app/temp/downloads/' . $userId);
+        $tempDir = $tempBaseDir . '/立替';
+        
+        if (File::exists($tempDir)) {
+            File::deleteDirectory($tempDir);
+        }
+        File::makeDirectory($tempDir, 0755, true);
+        
+        $fileCount = 0;
+        
+        foreach ($expensesWithReceipts as $expense) {
+            $busId = $expense->bus_assignment_id ?? '0';
+            $itineraryId = $expense->itinerary_id ?? '0';
+            $expenseId = $expense->id;
+            
+            $expenseDir = $tempDir . '/' . $busId . '/' . $itineraryId . '/' . $expenseId;
+            File::makeDirectory($expenseDir, 0755, true);
+            
+            foreach ($expense->receipts as $receipt) {
+                $sourcePath = storage_path('app/public/' . $receipt->image_path);
+                if (file_exists($sourcePath)) {
+                    $filename = basename($receipt->image_path);
+                    $destPath = $expenseDir . '/' . $filename;
+                    copy($sourcePath, $destPath);
+                    $fileCount++;
+                }
+            }
+        }
+        
+        if ($fileCount === 0) {
+            File::deleteDirectory($tempDir);
+            return redirect()->back()->with('error', '添付ファイルが見つかりません。');
+        }
+        
+        $zipFileName = '立替_' . $start->format('Y年m月d日') . '-' . $end->format('Y年m月d日') . '.zip';
+        $zipPath = $tempBaseDir . '/' . $zipFileName;
+        
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            File::deleteDirectory($tempDir);
+            return redirect()->back()->with('error', 'ZIPファイルの作成に失敗しました。');
+        }
+        
+        $files = File::allFiles($tempDir);
+        foreach ($files as $file) {
+            $relativePath = '立替/' . $file->getRelativePathname();
+            $zip->addFile($file->getRealPath(), $relativePath);
+        }
+        
+        $zip->close();
+        
+        File::deleteDirectory($tempDir);
+        
+        if (!file_exists($zipPath)) {
+            return redirect()->back()->with('error', 'ZIPファイルの作成に失敗しました。');
+        }
+        
+        return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
+    }
+    
+    
 }

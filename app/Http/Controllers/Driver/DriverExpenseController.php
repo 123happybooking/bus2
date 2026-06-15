@@ -25,7 +25,7 @@ class DriverExpenseController extends Controller
             ->where('driver_id', $driverId)
             ->findOrFail($itineraryId);
         
-        $expenses = DriverExpense::with(['expenseType', 'paymentMethod'])
+        $expenses = DriverExpense::with(['expenseType', 'paymentMethod', 'receipts'])
             ->where('itinerary_id', $itineraryId)
             ->where('driver_id', $driverId)
             ->orderBy('expense_date', 'desc')

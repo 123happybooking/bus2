@@ -150,6 +150,8 @@ class OperationLedgerController extends Controller
         }
         $filteredVehicleIds = $vehicleQuery->pluck('id');
         
+        $driverUndefined = $request->input('driver_undefined');
+        
         $allItineraries = DailyItinerary::with(['busAssignment', 'groupInfo', 'busAssignment.driver'])
             ->when(!$hasExactSearch, function($query) use ($filteredVehicleIds, $startDate, $endDate) {
                 return $query->whereIn('vehicle_id', $filteredVehicleIds)
@@ -203,6 +205,14 @@ class OperationLedgerController extends Controller
             ->when($attendanceStatus, function($query) use ($attendanceStatus) {
                 $query->whereHas('busAssignment.driver', function($q) use ($attendanceStatus) {
                     $q->where('attendance_status', $attendanceStatus);
+                });
+            })
+            ->when($driverUndefined, function($query) {
+                return $query->where(function($q) {
+                    $q->whereNull('driver_id')
+                      ->orWhere('driver_id', 0)
+                      ->orWhere('driver', '')
+                      ->orWhereNull('driver');
                 });
             })
             ->orderBy('date', 'asc')
