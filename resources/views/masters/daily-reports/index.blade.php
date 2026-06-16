@@ -101,35 +101,41 @@
                 <tr>
                     <th>No.</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">日付</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500;">運転手</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500;">車両</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 90px;">出庫時間</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">出庫距離</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 90px;">帰庫時間</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">帰庫距離</th>
-                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">走行距離</th>
+                    <th class="px-2 py-1" style="text-align: left !important; color: #374151; font-weight: 500;">運転手</th>
+                    <th class="px-2 py-1" style="text-align: left !important; color: #374151; font-weight: 500;">車両</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 90px;">出入庫時間</th>
+                    <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">運行内容</th>
+                    <th class="px-2 py-1" style="text-align: right !important; color: #374151; font-weight: 500; width: 90px;">支払総額</th>
+                    <th class="px-2 py-1" style="text-align: right !important; color: #374151; font-weight: 500; width: 100px;">立替額</th>
+                    <th class="px-2 py-1" style="color: #374151; font-weight: 500; width: 100px;">備考</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 80px;">編集許可</th>
                     <th class="text-center px-2 py-1" style="color: #374151; font-weight: 500; width: 80px;">操作</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($reports as $index => $report)
-                @php
-                    $distance = null;
-                    if ($report->start_mileage && $report->end_mileage) {
-                        $distance = $report->end_mileage - $report->start_mileage;
-                    }
-                @endphp
                 <tr>
                     <td>{{ $reports->firstItem() + $index }}</td>
                     <td class="text-center px-2 py-1 align-middle">{{ \Carbon\Carbon::parse($report->date)->format('Y/m/d') }}</td>
-                    <td class="px-2 py-1 align-middle">{{ $report->driver->name ?? '-' }}</td>
-                    <td class="px-2 py-1 align-middle">{{ $report->vehicle->registration_number ?? '-' }}</td>
-                    <td class="text-center px-2 py-1 align-middle">{{ $report->start_time ? \Carbon\Carbon::parse($report->start_time)->format('H:i') : '-' }}</td>
-                    <td class="text-end px-2 py-1 align-middle">{{ $report->start_mileage ? number_format($report->start_mileage) : '-' }}</td>
-                    <td class="text-center px-2 py-1 align-middle">{{ $report->end_time ? \Carbon\Carbon::parse($report->end_time)->format('H:i') : '-' }}</td>
-                    <td class="text-end px-2 py-1 align-middle">{{ $report->end_mileage ? number_format($report->end_mileage) : '-' }}</td>
-                    <td class="text-end px-2 py-1 align-middle">{{ $distance !== null ? number_format($distance) : '-' }}</td>
+                    <td class="px-2 py-1 align-middle" style="text-align: left !important;">{{ $report->driver->name ?? '-' }}</td>
+                    <td class="px-2 py-1 align-middle" style="text-align: left !important;">{{ $report->vehicle->registration_number ?? '-' }}</td>
+                    <td class="text-center px-2 py-1 align-middle">{{ $report->start_time ? \Carbon\Carbon::parse($report->start_time)->format('H:i') : '-' }} - {{ $report->end_time ? \Carbon\Carbon::parse($report->end_time)->format('H:i') : '-' }}</td>
+                    <td class="text-end px-2 py-1 align-middle">{{ $report->display_id ?? '-' }}</td>
+                    <td class="px-2 py-1 align-middle" style="text-align: right !important;">
+                        @if($report->expense_total > 0)
+                            ¥{{ number_format($report->expense_total) }}
+                        @else
+                            -
+                        @endif
+                    </td>
+                    <td class="px-2 py-1 align-middle" style="text-align: right !important;">
+                        @if($report->reimbursable_expense_total > 0)
+                            ¥{{ number_format($report->reimbursable_expense_total) }}
+                        @else
+                            -
+                        @endif
+                    </td>
+                    <td class="px-2 py-1 align-middle" style="text-align: left !important;">{{ $report->remark ?? '--' }}</td>
                     <td class="text-center px-2 py-1 align-middle">
                         @if($report->allow_edit)
                             <span class="badge bg-success" style="background-color: #10b981 !important;">ON</span>

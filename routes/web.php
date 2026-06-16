@@ -48,6 +48,7 @@ use App\Http\Controllers\Masters\FriendController;
 
 use App\Http\Controllers\Masters\VehiclePerformanceController;
 use App\Http\Controllers\Masters\DriverPerformanceController;
+use App\Http\Controllers\Masters\AgencyPerformanceController;
 
 use App\Http\Controllers\Driver\DriverDashboardController;
 use App\Http\Controllers\Driver\DriverItineraryController;
@@ -248,6 +249,11 @@ Route::prefix('masters')->name('masters.')->group(function () {
         Route::prefix('driver-performance')->name('driver-performance.')->group(function () {
             Route::get('/', [DriverPerformanceController::class, 'index'])->name('index');
             Route::post('/export', [DriverPerformanceController::class, 'export'])->name('export');
+        });
+        
+        Route::prefix('agency-performance')->name('agency-performance.')->group(function () {
+            Route::get('/', [AgencyPerformanceController::class, 'index'])->name('index');
+            Route::post('/export', [AgencyPerformanceController::class, 'export'])->name('export');
         });
         
 

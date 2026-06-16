@@ -8,7 +8,7 @@
         <h5 class="mb-0 page-title">運行日報編集</h5>
         <div>
             <a href="{{ route('masters.daily-reports.export-pdf', $report->id) }}" class="btn btn-sm btn-outline-danger me-2" target="_blank">
-                <i class="bi bi-file-pdf"></i> PDF导出
+                <i class="bi bi-file-pdf"></i> PDF
             </a>
             <a href="{{ route('masters.daily-reports.index') }}" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> 一覧に戻る
@@ -208,6 +208,7 @@
                             <div class="card-header" style="background-color: #e9ecef;">
                                 <strong>行程 {{ $itineraryIndex + 1 }}</strong>
                                 <span class="ms-3 text-muted">
+                                    {{ $itinerary->busAssignment->group_info_id ?? '' }}-{{ $itinerary->bus_assignment_id ?? '' }}
                                     {{ \Carbon\Carbon::parse($itinerary->time_start)->format('H:i') }} {{ $itinerary->start_location ?? '?' }} - {{ \Carbon\Carbon::parse($itinerary->time_end)->format('H:i') }} {{ $itinerary->end_location ?? '?' }}
                                 </span>
                             </div>
@@ -275,6 +276,7 @@
                                 <div class="expense-section pt-0">
                                     <div class="table-responsive">
                                         <b>立替</b>
+                                        <span style="font-size: 12px; margin: 0 0 0 10px;">{{ $itinerary->busAssignment->group_info_id ?? '' }}-{{ $itinerary->bus_assignment_id ?? '' }}</span>
                                         <table class="table table-sm table-bordered expense-table" style="font-size: 0.75rem; background-color: #fff; margin-bottom: 0;">
                                             <thead class="table-light">
                                                 <tr>
@@ -308,7 +310,7 @@
                                                     </td>
                                                     <td>
                                                         <input type="number" name="expenses[{{ $itinerary->id }}][{{ $expenseIndex }}][amount]" 
-                                                               value="{{ $expense->amount }}" step="1" min="0"
+                                                               value="{{ intval($expense->amount) }}" step="1" min="0"
                                                                class="form-control form-control-sm expense-amount-input" style="font-size: 0.7rem; text-align: right;">
                                                     </td>
                                                     <td>

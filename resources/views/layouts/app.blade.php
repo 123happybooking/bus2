@@ -1158,7 +1158,7 @@
                 <ul class="submenu submenu-s">
                     <li><a href="{{ route('masters.vehicle-performance.index') }}" data-route="vehicle-performance">車両実績</a></li>
                     <li><a href="{{ route('masters.driver-performance.index') }}" data-route="driver-performance">運転手実績</a></li>
-                    <li><a href="{{ route('masters.fees.index') }}" data-route="fees">売上集計</a></li>
+                    <li><a href="{{ route('masters.agency-performance.index') }}" data-route="agency-performance">送客実績</a></li>
                 </ul>
             </div>
             @endif

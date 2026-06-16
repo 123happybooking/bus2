@@ -174,7 +174,7 @@
                     @if($isAdmin || $isOperationsManager || $isManager)
                     <a href="{{ route('masters.vehicle-performance.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">車両実績</a>
                     <a href="{{ route('masters.driver-performance.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">運転手実績</a>
-                    <a href="{{ route('masters.fees.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">売上集計</a>
+                    <a href="{{ route('masters.agency-performance.index') }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">送客実績</a>
                     @endif
                 </div>
             </div>

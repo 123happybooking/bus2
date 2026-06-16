@@ -113,6 +113,92 @@ class DailyReportController extends Controller
             ->orderBy('registration_number')
             ->get(['id', 'registration_number']);
         
+        $reportDates = $reports->getCollection()->pluck('date')->toArray();
+        $reportDriverIds = $reports->getCollection()->pluck('driver_id')->toArray();
+        
+        $itineraryMap = [];
+        $busAssignmentIds = [];
+        
+        if (!empty($reportDates) && !empty($reportDriverIds)) {
+            $itineraries = DailyItinerary::whereIn('date', $reportDates)
+                ->whereIn('driver_id', $reportDriverIds)
+                ->get();
+            
+            foreach ($itineraries as $itinerary) {
+                $key = $itinerary->driver_id . '_' . $itinerary->date;
+                $groupId = $itinerary->group_info_id ?? '';
+                $busId = $itinerary->bus_assignment_id ?? '';
+                
+                if ($groupId && $busId) {
+                    if (!isset($itineraryMap[$key])) {
+                        $itineraryMap[$key] = [];
+                    }
+                    $itineraryMap[$key][] = $groupId . '-' . $busId;
+                    
+                    if (!in_array($busId, $busAssignmentIds)) {
+                        $busAssignmentIds[] = $busId;
+                    }
+                }
+            }
+        }
+        
+        $expenseTotals = [];
+        $reimbursableExpenseTotals = [];
+        
+        if (!empty($busAssignmentIds)) {
+            $expenses = DriverExpense::whereIn('bus_assignment_id', $busAssignmentIds)
+                ->get();
+            
+            foreach ($expenses as $expense) {
+                $busId = $expense->bus_assignment_id;
+                
+                if (!isset($expenseTotals[$busId])) {
+                    $expenseTotals[$busId] = 0;
+                }
+                $expenseTotals[$busId] += $expense->amount;
+                
+                if ($expense->payment_method_id) {
+                    $paymentMethod = DriverPaymentMethod::find($expense->payment_method_id);
+                    if ($paymentMethod && $paymentMethod->is_reimbursable == 1) {
+                        if (!isset($reimbursableExpenseTotals[$busId])) {
+                            $reimbursableExpenseTotals[$busId] = 0;
+                        }
+                        $reimbursableExpenseTotals[$busId] += $expense->amount;
+                    }
+                }
+            }
+        }
+        
+        $reports->getCollection()->transform(function($report) use ($itineraryMap, $expenseTotals, $reimbursableExpenseTotals) {
+            $key = $report->driver_id . '_' . $report->date;
+            
+            if (isset($itineraryMap[$key])) {
+                $report->display_id = implode(',', $itineraryMap[$key]);
+            } else {
+                $report->display_id = '-';
+            }
+            
+            $busAssignments = DailyItinerary::where('driver_id', $report->driver_id)
+                ->whereDate('date', $report->date)
+                ->get();
+            
+            $totalExpense = 0;
+            $totalReimbursable = 0;
+            
+            foreach ($busAssignments as $busAssignment) {
+                $busId = $busAssignment->bus_assignment_id;
+                if ($busId) {
+                    $totalExpense += $expenseTotals[$busId] ?? 0;
+                    $totalReimbursable += $reimbursableExpenseTotals[$busId] ?? 0;
+                }
+            }
+            
+            $report->expense_total = $totalExpense;
+            $report->reimbursable_expense_total = $totalReimbursable;
+            
+            return $report;
+        });
+        
         return view('masters.daily-reports.index', compact('reports', 'drivers', 'vehicles', 'displayDays'));
     }
     
@@ -734,12 +820,23 @@ class DailyReportController extends Controller
         $fileCount = 0;
         
         foreach ($expensesWithReceipts as $expense) {
+            $groupId = '0';
             $busId = $expense->bus_assignment_id ?? '0';
-            $itineraryId = $expense->itinerary_id ?? '0';
-            $expenseId = $expense->id;
             
-            $expenseDir = $tempDir . '/' . $busId . '/' . $itineraryId . '/' . $expenseId;
-            File::makeDirectory($expenseDir, 0755, true);
+            if ($expense->itinerary_id) {
+                $itinerary = DailyItinerary::find($expense->itinerary_id);
+                if ($itinerary) {
+                    $groupId = $itinerary->group_info_id ?? '0';
+                }
+            }
+            
+            $displayId = $groupId . '-' . $busId;
+            
+            $expenseDir = $tempDir . '/' . $displayId;
+            
+            if (!File::exists($expenseDir)) {
+                File::makeDirectory($expenseDir, 0755, true);
+            }
             
             foreach ($expense->receipts as $receipt) {
                 $sourcePath = storage_path('app/public/' . $receipt->image_path);
@@ -768,7 +865,7 @@ class DailyReportController extends Controller
         
         $files = File::allFiles($tempDir);
         foreach ($files as $file) {
-            $relativePath = '立替/' . $file->getRelativePathname();
+            $relativePath = $file->getRelativePathname();
             $zip->addFile($file->getRealPath(), $relativePath);
         }
         
