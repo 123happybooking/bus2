@@ -2,6 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Masters\AuthController;
 use App\Http\Controllers\Masters\HomeController;
+use App\Http\Controllers\Masters\SystemMessageController;
 use App\Http\Controllers\Masters\BasicInfoController;
 use App\Http\Controllers\Masters\StaffController;
 use App\Http\Controllers\Masters\VehicleController;
@@ -108,220 +109,227 @@ Route::prefix('masters')->name('masters.')->group(function () {
     Route::middleware(['auth:masters', \App\Http\Middleware\SetUserDatabase::class])->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', [HomeController::class, 'index'])->name('home');
-        Route::resource('basicinfo', BasicInfoController::class)->names('basicinfo');
-        Route::resource('branches', BranchController::class)->names('branches');
-        Route::resource('staffs', StaffController::class)->names('staffs');
-        Route::resource('vehicles', VehicleController::class)->names('vehicles');
-        Route::resource('drivers', DriverController::class)->names('drivers');
-        Route::get('driver-license-types', [DriverLicenseTypeController::class, 'index'])->name('driver-license-types.index');
-        Route::post('driver-license-types/save', [DriverLicenseTypeController::class, 'save'])->name('driver-license-types.save');
-        Route::resource('guides', GuideController::class)->names('guides');
-        Route::resource('agencies', AgencyController::class)->names('agencies');
-        Route::get('countries', [CountryController::class, 'index'])->name('countries.index');
-        Route::post('countries/save', [CountryController::class, 'save'])->name('countries.save');
-        Route::get('agency-types', [AgencyTypeController::class, 'index'])->name('agency-types.index');
-        Route::post('agency-types/save', [AgencyTypeController::class, 'save'])->name('agency-types.save');
-        Route::resource('customers', CustomerController::class)->names('customers');
-        Route::resource('partners', PartnerController::class)->names('partners');
-        Route::resource('itineraries', ItineraryController::class)->names('itineraries');
-        Route::resource('facilities', FacilityController::class)->names('facilities');
-        Route::get('locations/create_win', [LocationController::class, 'createWin'])->name('locations.create_win');
-        Route::resource('locations', LocationController::class)->names('locations');
-        Route::resource('purposes', PurposeController::class)->names('purposes');
-        Route::resource('reservation-categories', ReservationCategoryController::class)->names('reservation-categories');
-        Route::resource('attendance-categories', AttendanceCategoryController::class)->names('attendance-categories');
-        Route::resource('remarks', RemarkController::class)->names('remarks');
-        Route::resource('fees', FeeController::class)->names('fees');
-        Route::resource('banks', BankController::class)->names('banks');
-        Route::resource('vehicle-types', VehicleTypeController::class)->names('vehicle-types');
-        Route::resource('vehicle-models', VehicleModelController::class)->names('vehicle-models');
-        Route::resource('vehicle-grades', VehicleGradeController::class)->names('vehicle-grades');
-        Route::resource('user-company-info', UserCompanyInfoController::class)->names('user-company-info');
-        Route::get('login-histories', [LoginHistoryController::class, 'index'])->name('login-histories.index');
-        Route::delete('login-histories/batch-delete', [LoginHistoryController::class, 'batchDelete'])->name('login-histories.batch-delete');
         
-        
-        
-
-        
-        Route::get('/group-infos/{id}/files', [GroupInfoController::class, 'getFiles'])->name('group-infos.files');
-        Route::post('/group-infos/{id}/upload-file', [GroupInfoController::class, 'uploadFile'])->name('group-infos.upload-file');
-        Route::delete('/group-files/{id}', [GroupInfoController::class, 'deleteFile'])->name('group-files.delete');
-        Route::get('/group-files/{id}/download', [GroupInfoController::class, 'downloadFile'])->name('group-files.download');
-        
-        Route::get('group-infos/export-excel', [GroupInfoController::class, 'exportExcel'])->name('group-infos.export-excel');
-        
-        Route::resource('group-infos', GroupInfoController::class)->names('group-infos');
-        Route::post('group-infos/{id}/split-itineraries', [GroupInfoController::class, 'splitItineraries'])->name('group-infos.split-itineraries');
-        Route::post('group-infos/batch-destroy', [GroupInfoController::class, 'batchDestroy'])->name('group-infos.batch-destroy');
-        Route::get('group-infos/uuid/{uuid}', [GroupInfoController::class, 'getByUuid'])->name('group-infos.by-uuid');
-        Route::post('group-infos/{id}/merge-by-id', [GroupInfoController::class, 'mergeItinerariesById'])->name('group-infos.merge-by-id');
-        Route::post('group-infos/{id}/update-bus-assignment', [GroupInfoController::class, 'updateBusAssignment'])->name('group-infos.update-bus-assignment');
-        Route::put('group-infos/{id}', [GroupInfoController::class, 'update'])->name('group-infos.update');
-        Route::post('group-infos/{id}/delete-itinerary', [GroupInfoController::class, 'deleteItinerary'])->name('group-infos.delete-itinerary');
-        Route::post('group-infos/{id}/copy', [GroupInfoController::class, 'copy'])->name('group-infos.copy');
-        Route::get('group-infos/{busId}/export-pdf-bus-assignment', [GroupInfoController::class, 'exportPdfBusAssignment'])->name('group-infos.export-pdf-bus-assignment');
-        
-        Route::get('group-infos/{id}/export-reservation-pdf', [GroupInfoController::class, 'exportReservationPdf'])->name('group-infos.export-reservation-pdf');
-        Route::get('group-infos/{id}/export-final-pdf', [GroupInfoController::class, 'exportFinalPdf'])->name('group-infos.export-final-pdf');
-        
-        
-        Route::get('operation-ledger', [OperationLedgerController::class, 'index'])->name('operation-ledger.index');
-        
-        Route::get('driver-ledger', [DriverLedgerController::class, 'index'])->name('driver-ledger.index');
-        
-        Route::prefix('driver-attendance')->name('driver-attendance.')->group(function () {
-            Route::get('/edit', [DriverAttendanceController::class, 'edit'])->name('edit');
-            Route::post('/', [DriverAttendanceController::class, 'store'])->name('store');
-            Route::delete('/{driverId}/{date}', [DriverAttendanceController::class, 'destroy'])->name('destroy');
+        Route::prefix('system-messages')->name('system-messages.')->group(function () {
+            Route::get('/', [SystemMessageController::class, 'index'])->name('index');
+            Route::post('/', [SystemMessageController::class, 'store'])->name('store');
+            Route::put('/{id}', [SystemMessageController::class, 'update'])->name('update');
+            Route::delete('/{id}', [SystemMessageController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/toggle-pin', [SystemMessageController::class, 'togglePin'])->name('toggle-pin');
         });
         
-        Route::prefix('group-info-date-remarks')->name('group-info-date-remarks.')->group(function () {
-            Route::get('/{date}', [GroupInfoDateRemarkController::class, 'show'])->name('show');
-            Route::post('', [GroupInfoDateRemarkController::class, 'store'])->name('store');
-            Route::delete('/{date}', [GroupInfoDateRemarkController::class, 'destroy'])->name('destroy');
+        Route::middleware('permission:operations')->group(function () {
+            Route::resource('basicinfo', BasicInfoController::class)->names('basicinfo');
+            Route::resource('branches', BranchController::class)->names('branches');
+            Route::resource('staffs', StaffController::class)->names('staffs');
+            Route::resource('vehicles', VehicleController::class)->names('vehicles');
+            Route::resource('drivers', DriverController::class)->names('drivers');
+            Route::get('driver-license-types', [DriverLicenseTypeController::class, 'index'])->name('driver-license-types.index');
+            Route::post('driver-license-types/save', [DriverLicenseTypeController::class, 'save'])->name('driver-license-types.save');
+            Route::resource('guides', GuideController::class)->names('guides');
+            Route::resource('agencies', AgencyController::class)->names('agencies');
+            Route::get('countries', [CountryController::class, 'index'])->name('countries.index');
+            Route::post('countries/save', [CountryController::class, 'save'])->name('countries.save');
+            Route::get('agency-types', [AgencyTypeController::class, 'index'])->name('agency-types.index');
+            Route::post('agency-types/save', [AgencyTypeController::class, 'save'])->name('agency-types.save');
+            Route::resource('customers', CustomerController::class)->names('customers');
+            Route::resource('partners', PartnerController::class)->names('partners');
+            Route::resource('itineraries', ItineraryController::class)->names('itineraries');
+            Route::resource('facilities', FacilityController::class)->names('facilities');
+            Route::get('locations/create_win', [LocationController::class, 'createWin'])->name('locations.create_win');
+            Route::resource('locations', LocationController::class)->names('locations');
+            Route::resource('purposes', PurposeController::class)->names('purposes');
+            Route::resource('reservation-categories', ReservationCategoryController::class)->names('reservation-categories');
+            Route::resource('attendance-categories', AttendanceCategoryController::class)->names('attendance-categories');
+            Route::resource('remarks', RemarkController::class)->names('remarks');
+            Route::resource('fees', FeeController::class)->names('fees');
+            Route::resource('banks', BankController::class)->names('banks');
+            Route::resource('vehicle-types', VehicleTypeController::class)->names('vehicle-types');
+            Route::resource('vehicle-models', VehicleModelController::class)->names('vehicle-models');
+            Route::resource('vehicle-grades', VehicleGradeController::class)->names('vehicle-grades');
+            Route::resource('user-company-info', UserCompanyInfoController::class)->names('user-company-info');
+            Route::get('login-histories', [LoginHistoryController::class, 'index'])->name('login-histories.index');
+            Route::delete('login-histories/batch-delete', [LoginHistoryController::class, 'batchDelete'])->name('login-histories.batch-delete');
+            
+            
+            Route::get('/group-infos/{id}/files', [GroupInfoController::class, 'getFiles'])->name('group-infos.files');
+            Route::post('/group-infos/{id}/upload-file', [GroupInfoController::class, 'uploadFile'])->name('group-infos.upload-file');
+            Route::delete('/group-files/{id}', [GroupInfoController::class, 'deleteFile'])->name('group-files.delete');
+            Route::get('/group-files/{id}/download', [GroupInfoController::class, 'downloadFile'])->name('group-files.download');
+            
+            Route::get('group-infos/export-excel', [GroupInfoController::class, 'exportExcel'])->name('group-infos.export-excel');
+            
+            Route::resource('group-infos', GroupInfoController::class)->names('group-infos');
+            Route::post('group-infos/{id}/split-itineraries', [GroupInfoController::class, 'splitItineraries'])->name('group-infos.split-itineraries');
+            Route::post('group-infos/batch-destroy', [GroupInfoController::class, 'batchDestroy'])->name('group-infos.batch-destroy');
+            Route::get('group-infos/uuid/{uuid}', [GroupInfoController::class, 'getByUuid'])->name('group-infos.by-uuid');
+            Route::post('group-infos/{id}/merge-by-id', [GroupInfoController::class, 'mergeItinerariesById'])->name('group-infos.merge-by-id');
+            Route::post('group-infos/{id}/update-bus-assignment', [GroupInfoController::class, 'updateBusAssignment'])->name('group-infos.update-bus-assignment');
+            Route::put('group-infos/{id}', [GroupInfoController::class, 'update'])->name('group-infos.update');
+            Route::post('group-infos/{id}/delete-itinerary', [GroupInfoController::class, 'deleteItinerary'])->name('group-infos.delete-itinerary');
+            Route::post('group-infos/{id}/copy', [GroupInfoController::class, 'copy'])->name('group-infos.copy');
+            Route::get('group-infos/{busId}/export-pdf-bus-assignment', [GroupInfoController::class, 'exportPdfBusAssignment'])->name('group-infos.export-pdf-bus-assignment');
+            
+            Route::get('group-infos/{id}/export-reservation-pdf', [GroupInfoController::class, 'exportReservationPdf'])->name('group-infos.export-reservation-pdf');
+            Route::get('group-infos/{id}/export-final-pdf', [GroupInfoController::class, 'exportFinalPdf'])->name('group-infos.export-final-pdf');
+            
+            Route::get('operation-ledger', [OperationLedgerController::class, 'index'])->name('operation-ledger.index');
+            
+            Route::get('driver-ledger', [DriverLedgerController::class, 'index'])->name('driver-ledger.index');
+            
+            Route::prefix('driver-attendance')->name('driver-attendance.')->group(function () {
+                Route::get('/edit', [DriverAttendanceController::class, 'edit'])->name('edit');
+                Route::post('/', [DriverAttendanceController::class, 'store'])->name('store');
+                Route::delete('/{driverId}/{date}', [DriverAttendanceController::class, 'destroy'])->name('destroy');
+            });
+            
+            Route::prefix('group-info-date-remarks')->name('group-info-date-remarks.')->group(function () {
+                Route::get('/{date}', [GroupInfoDateRemarkController::class, 'show'])->name('show');
+                Route::post('', [GroupInfoDateRemarkController::class, 'store'])->name('store');
+                Route::delete('/{date}', [GroupInfoDateRemarkController::class, 'destroy'])->name('destroy');
+            });
+            
+            Route::prefix('daily-itineraries')->name('daily-itineraries.')->group(function () {
+                Route::get('/', [DailyItineraryController::class, 'index'])->name('index');
+                Route::get('/create', [DailyItineraryController::class, 'create'])->name('create');
+                Route::post('/', [DailyItineraryController::class, 'store'])->name('store');
+                Route::get('/{id}', [DailyItineraryController::class, 'show'])->name('show');
+                Route::get('/{id}/edit', [DailyItineraryController::class, 'edit'])->name('edit');
+                Route::put('/{id}', [DailyItineraryController::class, 'update'])->name('update');
+                Route::delete('/{id}', [DailyItineraryController::class, 'destroy'])->name('destroy');
+                Route::post('/{id}/copy', [DailyItineraryController::class, 'copy'])->name('copy');
+                Route::patch('/{id}/status', [DailyItineraryController::class, 'updateStatus'])->name('update-status');
+                Route::post('/bulk-update-status', [DailyItineraryController::class, 'bulkUpdateStatus'])->name('bulk-update-status');
+                Route::get('/export/csv', [DailyItineraryController::class, 'export'])->name('export');
+                Route::get('by-group/{keyUuid}', [DailyItineraryController::class, 'byGroup'])
+                     ->name('by-group');
+            });
+            
+            Route::prefix('bus-assignments')->name('bus-assignments.')->group(function () {
+                Route::get('/', [BusAssignmentController::class, 'index'])->name('index');
+                Route::get('/create', [BusAssignmentController::class, 'create'])->name('create');
+                Route::post('/', [BusAssignmentController::class, 'store'])->name('store');
+                Route::get('/{id}', [BusAssignmentController::class, 'show'])->name('show');
+                Route::get('/{id}/edit', [BusAssignmentController::class, 'edit'])->name('edit');
+                Route::put('/{id}', [BusAssignmentController::class, 'update'])->name('update');
+                Route::delete('/{id}', [BusAssignmentController::class, 'destroy'])->name('destroy');
+                Route::post('/batch-export-pdf', [BusAssignmentController::class, 'batchExportPdf'])->name('batch-export-pdf');
+            });
+            
+            Route::prefix('daily-reports')->name('daily-reports.')->group(function () {
+                Route::get('/', [DailyReportController::class, 'index'])->name('index');
+                Route::get('/{id}/edit', [DailyReportController::class, 'edit'])->name('edit');
+                Route::put('/{id}', [DailyReportController::class, 'update'])->name('update');
+                Route::get('/{id}/pdf', [DailyReportController::class, 'exportPdf'])->name('export-pdf');
+                Route::put('/operation-log/{id}', [DailyReportController::class, 'updateOperationLog'])->name('update-operation-log');
+                Route::post('/upload-receipt', [DailyReportController::class, 'uploadReceipt'])->name('upload-receipt');
+                Route::delete('/delete-receipt/{id}', [DailyReportController::class, 'deleteReceipt'])->name('delete-receipt');
+                Route::get('/download-attachments', [DailyReportController::class, 'downloadAttachments'])->name('download-attachments');
+            });
+            
+            Route::resource('driver-operation-status', DriverOperationStatusController::class)->names('driver-operation-status');
+            
+            Route::resource('options', OptionController::class)->names('options');
+            Route::resource('driver-payment-methods', DriverPaymentMethodController::class)->names('driver-payment-methods');
+            Route::resource('driver-expense-types', DriverExpenseTypeController::class)->names('driver-expense-types');
+            Route::resource('driver-compensation-types', DriverCompensationTypeController::class)->names('driver-compensation-types');
+            Route::resource('driver-compensations', DriverCompensationController::class)->names('driver-compensations');
+            Route::resource('driver-vehicle-check-items', DriverVehicleCheckItemsController::class)->names('driver-vehicle-check-items');
+            
+            Route::prefix('friends')->name('friends.')->group(function () {
+                Route::get('/', [FriendController::class, 'index'])->name('index');
+                Route::get('/search', [FriendController::class, 'search'])->name('search');
+                Route::post('/', [FriendController::class, 'store'])->name('store');
+                Route::put('/{id}', [FriendController::class, 'update'])->name('update');
+                Route::delete('/{id}/cancel', [FriendController::class, 'cancel'])->name('cancel');
+                Route::delete('/{id}', [FriendController::class, 'destroy'])->name('destroy');
+            });
         });
         
-        Route::prefix('daily-itineraries')->name('daily-itineraries.')->group(function () {
-            Route::get('/', [DailyItineraryController::class, 'index'])->name('index');
-            Route::get('/create', [DailyItineraryController::class, 'create'])->name('create');
-            Route::post('/', [DailyItineraryController::class, 'store'])->name('store');
-            Route::get('/{id}', [DailyItineraryController::class, 'show'])->name('show');
-            Route::get('/{id}/edit', [DailyItineraryController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [DailyItineraryController::class, 'update'])->name('update');
-            Route::delete('/{id}', [DailyItineraryController::class, 'destroy'])->name('destroy');
-            Route::post('/{id}/copy', [DailyItineraryController::class, 'copy'])->name('copy');
-            Route::patch('/{id}/status', [DailyItineraryController::class, 'updateStatus'])->name('update-status');
-            Route::post('/bulk-update-status', [DailyItineraryController::class, 'bulkUpdateStatus'])->name('bulk-update-status');
-            Route::get('/export/csv', [DailyItineraryController::class, 'export'])->name('export');
-            Route::get('by-group/{keyUuid}', [DailyItineraryController::class, 'byGroup'])
-                 ->name('by-group');
+        Route::middleware('permission:results')->group(function () {
+            Route::prefix('vehicle-performance')->name('vehicle-performance.')->group(function () {
+                Route::get('/', [VehiclePerformanceController::class, 'index'])->name('index');
+                Route::post('/export', [VehiclePerformanceController::class, 'export'])->name('export');
+            });
+            
+            Route::prefix('driver-performance')->name('driver-performance.')->group(function () {
+                Route::get('/', [DriverPerformanceController::class, 'index'])->name('index');
+                Route::post('/export', [DriverPerformanceController::class, 'export'])->name('export');
+            });
+            
+            Route::prefix('agency-performance')->name('agency-performance.')->group(function () {
+                Route::get('/', [AgencyPerformanceController::class, 'index'])->name('index');
+                Route::post('/export', [AgencyPerformanceController::class, 'export'])->name('export');
+            });
         });
         
-        Route::prefix('bus-assignments')->name('bus-assignments.')->group(function () {
-            Route::get('/', [BusAssignmentController::class, 'index'])->name('index');
-            Route::get('/create', [BusAssignmentController::class, 'create'])->name('create');
-            Route::post('/', [BusAssignmentController::class, 'store'])->name('store');
-            Route::get('/{id}', [BusAssignmentController::class, 'show'])->name('show');
-            Route::get('/{id}/edit', [BusAssignmentController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [BusAssignmentController::class, 'update'])->name('update');
-            Route::delete('/{id}', [BusAssignmentController::class, 'destroy'])->name('destroy');
-            Route::post('/batch-export-pdf', [BusAssignmentController::class, 'batchExportPdf'])->name('batch-export-pdf');
+        Route::middleware('permission:sales')->group(function () {
+            Route::resource('currencies', CurrencyController::class)->names('currencies');
+            Route::get('invoices/get_journal', [InvoiceController::class, 'getJournal'])->name('invoices.journal.get');
+            Route::get('invoices/sum', [InvoiceController::class, 'sumInvoice'])->name('invoices.sum');
+            Route::get('invoices/excel', [InvoiceController::class, 'excel'])->name('invoices.pdf');
+            Route::resource('invoices', InvoiceController::class)->names('invoices');
+            Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
+            Route::post('invoices/{invoice}/toggle-lock', [InvoiceController::class, 'toggleLock'])->name('invoices.toggle-lock');
+            Route::post('invoices/bulk-toggle-lock', [InvoiceController::class, 'bulkToggleLock'])->name('invoices.bulk-toggle-lock');
+            Route::post('invoices/bulk-pdf', [InvoiceController::class, 'bulkPdf'])->name('invoices.bulk-pdf');
+            Route::post('invoices/journal', [InvoiceController::class, 'storeJournal'])->name('invoices.journal.store');
+            Route::get('/invoices/{invoice}/pdf-status', [InvoiceController::class, 'checkPdfStatus']);
+            Route::post('reconcile/batch', [PaymentController::class, 'storeBatch'])->name('invoices.reconcile.batch.store');
+            Route::get('invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
+            Route::post('invoices/batch-pdf-mpdf', [InvoiceController::class, 'batchExportPdf'])->name('invoices.batch-pdf-mpdf');
+            Route::get('invoices/{id}/pdf-mpdf', [InvoiceController::class, 'generatePdfMpdf'])->name('invoices.pdf-mpdf');
+
+            Route::resource('payments', PaymentController::class)->names('payments');
+            Route::put('payments/detail_update/{detail}', [PaymentController::class, 'detailUpdate'])
+                ->name('payments.detail.update');
+            Route::delete('payments/detail/{detail}/delete', [PaymentController::class, 'detailDestroy'])
+                ->name('payments.detail.destroy');
+            Route::resource('products', ProductController::class)->names('products');
         });
         
-        Route::prefix('daily-reports')->name('daily-reports.')->group(function () {
-            Route::get('/', [DailyReportController::class, 'index'])->name('index');
-            Route::get('/{id}/edit', [DailyReportController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [DailyReportController::class, 'update'])->name('update');
-            Route::get('/{id}/pdf', [DailyReportController::class, 'exportPdf'])->name('export-pdf');
-            Route::put('/operation-log/{id}', [DailyReportController::class, 'updateOperationLog'])->name('update-operation-log');
-            Route::post('/upload-receipt', [DailyReportController::class, 'uploadReceipt'])->name('upload-receipt');
-            Route::delete('/delete-receipt/{id}', [DailyReportController::class, 'deleteReceipt'])->name('delete-receipt');
-            Route::get('/download-attachments', [DailyReportController::class, 'downloadAttachments'])->name('download-attachments');
+        Route::middleware('permission:accounting')->group(function () {
+            Route::resource('account-categories', AccountCategoryController::class)->names('account-categories');
+            Route::resource('account-taxs', AccountTaxController::class)->names('account-taxs');
+            Route::resource('account-departments', AccountDepartmentController::class)->names('account-departments');
+            Route::resource('account_partners', AccountPartnerController::class)->names('account_partners');
+            Route::resource('accounts', AccountController::class)->names('accounts');
+            Route::resource('account-subs', AccountSubController::class)->names('account-subs');
+            Route::resource('journal_entries', AccountJournalEntryController::class)->names('journal_entries');
+            Route::get('/account/account-subs/{accountId}', [AccountJournalEntryController::class, 'getAccountSubs'])->name('account.account-subs');
+            Route::get('/account/journal-entries/{id}', [AccountJournalEntryController::class, 'show'])->name('journal_entries.show');
+            Route::get('/account-ledgers/index', [AccountLedgerController::class, 'index'])->name('account-ledgers.index');
+            Route::get('/account-ledgers/generate/{id}', [AccountLedgerController::class, 'generate'])->name('account-ledgers.generate');
+            Route::get('/account-ledgers/pdf', [AccountLedgerController::class, 'generatePdf'])->name('account-ledgers.pdf');
+            Route::get('/account-pl/index', [AccountPlController::class, 'index'])->name('account-pl.index');
+            Route::get('/account-pl/pdf', [AccountPlController::class, 'generatePdf'])->name('account-pl.pdf');
+            Route::get('/account-bs/index', [AccountBsController::class, 'index'])->name('account-bs.index');
+            Route::get('/account-bs/pdf', [AccountBsController::class, 'generatePdf'])->name('account-bs.pdf');
+            
+            Route::resource('account-month-sums', AccountMonthSumController::class)->names('account-month-sums');
+            Route::resource('account-periods', AccountPeriodController::class)->names('account-periods');
+            
+            Route::get('/account-sums/pdf', [AccountSumController::class, 'generatePdf'])->name('account-sums.pdf');
+            Route::resource('account-sums', AccountSumController::class)->names('account-sums');
+            
+            Route::post('/account-cash/journal', [AccountCashController::class, 'storeJournal'])->name('account-cash.journal.store');
+            Route::get('/account-cash/pdf', [AccountCashController::class, 'generatePdf'])->name('account-cash.pdf');
+            Route::resource('account-cash', AccountCashController::class)->names('account-cash');
+
+            Route::post('account-deposit/journal', [AccountDepositController::class, 'storeJournal'])->name('account-deposit.journal.store');
+            Route::get('/account-deposit/pdf', [AccountDepositController::class, 'generatePdf'])->name('account-deposit.pdf');
+            Route::resource('account-deposit', AccountDepositController::class)->names('account-deposit');
+
+            Route::get('/account-cash-ins/pdf', [AccountCashInController::class, 'generatePdf'])->name('account-cash-ins.pdf');
+            Route::post('account-cash-ins/saveAll', [AccountCashInController::class, 'saveAll'])->name('account-cash-ins.save-all');
+            Route::resource('account-cash-ins', AccountCashInController::class)->names('account-cash-ins');
+
+            Route::get('/account-cash-outs/pdf', [AccountCashOutController::class, 'generatePdf'])->name('account-cash-outs.pdf');
+            Route::post('account-cash-outs/saveAll', [AccountCashOutController::class, 'saveAll'])->name('account-cash-outs.save-all');
+            Route::resource('account-cash-outs', AccountCashOutController::class)->names('account-cash-outs');
+
+            Route::resource('account-config', AccountConfigController::class)->names('account-config');
         });
-        
-        Route::resource('driver-operation-status', DriverOperationStatusController::class)->names('driver-operation-status');
-        
-        Route::resource('options', OptionController::class)->names('options');
-        Route::resource('driver-payment-methods', DriverPaymentMethodController::class)->names('driver-payment-methods');
-        Route::resource('driver-expense-types', DriverExpenseTypeController::class)->names('driver-expense-types');
-        Route::resource('driver-compensation-types', DriverCompensationTypeController::class)->names('driver-compensation-types');
-        Route::resource('driver-compensations', DriverCompensationController::class)->names('driver-compensations');
-        Route::resource('driver-vehicle-check-items', DriverVehicleCheckItemsController::class)->names('driver-vehicle-check-items');
-        
-        
-        Route::prefix('friends')->name('friends.')->group(function () {
-            Route::get('/', [FriendController::class, 'index'])->name('index');
-            Route::get('/search', [FriendController::class, 'search'])->name('search');
-            Route::post('/', [FriendController::class, 'store'])->name('store');
-            Route::put('/{id}', [FriendController::class, 'update'])->name('update');
-            Route::delete('/{id}/cancel', [FriendController::class, 'cancel'])->name('cancel');
-            Route::delete('/{id}', [FriendController::class, 'destroy'])->name('destroy');
-        });
-        
-        
-        Route::prefix('vehicle-performance')->name('vehicle-performance.')->group(function () {
-            Route::get('/', [VehiclePerformanceController::class, 'index'])->name('index');
-            Route::post('/export', [VehiclePerformanceController::class, 'export'])->name('export');
-        });
-        
-        
-        Route::prefix('driver-performance')->name('driver-performance.')->group(function () {
-            Route::get('/', [DriverPerformanceController::class, 'index'])->name('index');
-            Route::post('/export', [DriverPerformanceController::class, 'export'])->name('export');
-        });
-        
-        Route::prefix('agency-performance')->name('agency-performance.')->group(function () {
-            Route::get('/', [AgencyPerformanceController::class, 'index'])->name('index');
-            Route::post('/export', [AgencyPerformanceController::class, 'export'])->name('export');
-        });
-        
-
-        Route::resource('currencies', CurrencyController::class)->names('currencies');
-        Route::get('invoices/get_journal', [InvoiceController::class, 'getJournal'])->name('invoices.journal.get');
-        Route::get('invoices/sum', [InvoiceController::class, 'sumInvoice'])->name('invoices.sum');
-        Route::get('invoices/excel', [InvoiceController::class, 'excel'])->name('invoices.pdf');
-        Route::resource('invoices', InvoiceController::class)->names('invoices');
-        Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
-        Route::post('invoices/{invoice}/toggle-lock', [InvoiceController::class, 'toggleLock'])->name('invoices.toggle-lock');
-        Route::post('invoices/bulk-toggle-lock', [InvoiceController::class, 'bulkToggleLock'])->name('invoices.bulk-toggle-lock');
-        Route::post('invoices/bulk-pdf', [InvoiceController::class, 'bulkPdf'])->name('invoices.bulk-pdf');
-        Route::post('invoices/journal', [InvoiceController::class, 'storeJournal'])->name('invoices.journal.store');
-        Route::get('/invoices/{invoice}/pdf-status', [InvoiceController::class, 'checkPdfStatus']);
-        Route::post('reconcile/batch', [PaymentController::class, 'storeBatch'])->name('invoices.reconcile.batch.store');
-        Route::get('invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
-        Route::post('invoices/batch-pdf-mpdf', [InvoiceController::class, 'batchExportPdf'])->name('invoices.batch-pdf-mpdf');
-        Route::get('invoices/{id}/pdf-mpdf', [InvoiceController::class, 'generatePdfMpdf'])->name('invoices.pdf-mpdf');
-
-
-        Route::resource('payments', PaymentController::class)->names('payments');
-        Route::put('payments/detail_update/{detail}', [PaymentController::class, 'detailUpdate'])
-            ->name('payments.detail.update');
-        Route::delete('payments/detail/{detail}/delete', [PaymentController::class, 'detailDestroy'])
-            ->name('payments.detail.destroy');
-        Route::resource('products', ProductController::class)->names('products');
-
-        Route::resource('account-categories', AccountCategoryController::class)->names('account-categories');//财务类别
-        Route::resource('account-taxs', AccountTaxController::class)->names('account-taxs');//财务类别
-        Route::resource('account-departments', AccountDepartmentController::class)->names('account-departments');//部门
-        Route::resource('account_partners', AccountPartnerController::class)->names('account_partners');//取引先
-        Route::resource('accounts', AccountController::class)->names('accounts');//勘定科目
-        Route::resource('account-subs', AccountSubController::class)->names('account-subs');//勘定科目
-        Route::resource('journal_entries', AccountJournalEntryController::class)->names('journal_entries');
-        Route::get('/account/account-subs/{accountId}', [AccountJournalEntryController::class, 'getAccountSubs'])->name('account.account-subs');
-        Route::get('/account/journal-entries/{id}', [AccountJournalEntryController::class, 'show'])->name('journal_entries.show');
-        Route::get('/account-ledgers/index', [AccountLedgerController::class, 'index'])->name('account-ledgers.index');
-        Route::get('/account-ledgers/generate/{id}', [AccountLedgerController::class, 'generate'])->name('account-ledgers.generate');
-        Route::get('/account-ledgers/pdf', [AccountLedgerController::class, 'generatePdf'])->name('account-ledgers.pdf');
-        Route::get('/account-pl/index', [AccountPlController::class, 'index'])->name('account-pl.index');
-        Route::get('/account-pl/pdf', [AccountPlController::class, 'generatePdf'])->name('account-pl.pdf');
-        Route::get('/account-bs/index', [AccountBsController::class, 'index'])->name('account-bs.index');
-        Route::get('/account-bs/pdf', [AccountBsController::class, 'generatePdf'])->name('account-bs.pdf');
-        
-        Route::resource('account-month-sums', AccountMonthSumController::class)->names('account-month-sums');//月次決算
-
-        Route::resource('account-periods', AccountPeriodController::class)->names('account-periods');//周期
-        
-        Route::get('/account-sums/pdf', [AccountSumController::class, 'generatePdf'])->name('account-sums.pdf');
-        Route::resource('account-sums', AccountSumController::class)->names('account-sums');//试算表
-        
-        Route::post('/account-cash/journal', [AccountCashController::class, 'storeJournal'])->name('account-cash.journal.store');
-        Route::get('/account-cash/pdf', [AccountCashController::class, 'generatePdf'])->name('account-cash.pdf');
-        Route::resource('account-cash', AccountCashController::class)->names('account-cash');//现金出纳账
-
-        Route::post('account-deposit/journal', [AccountDepositController::class, 'storeJournal'])->name('account-deposit.journal.store');
-        Route::get('/account-deposit/pdf', [AccountDepositController::class, 'generatePdf'])->name('account-deposit.pdf');
-        Route::resource('account-deposit', AccountDepositController::class)->names('account-deposit');//预金出纳账
-
-        Route::get('/account-cash-ins/pdf', [AccountCashInController::class, 'generatePdf'])->name('account-cash-ins.pdf');
-        Route::post('account-cash-ins/saveAll', [AccountCashInController::class, 'saveAll'])->name('account-cash-ins.save-all');
-        Route::resource('account-cash-ins', AccountCashInController::class)->names('account-cash-ins');//现金入力
-
-        Route::get('/account-cash-outs/pdf', [AccountCashOutController::class, 'generatePdf'])->name('account-cash-outs.pdf');
-        Route::post('account-cash-outs/saveAll', [AccountCashOutController::class, 'saveAll'])->name('account-cash-outs.save-all');
-        Route::resource('account-cash-outs', AccountCashOutController::class)->names('account-cash-outs');//现金出力
-
-        Route::resource('account-config', AccountConfigController::class)->names('account-config');//基本配置
         
     });
 });

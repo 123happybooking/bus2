@@ -1827,6 +1827,76 @@ class GroupInfoController extends Controller
             $existingItineraryIds = DailyItinerary::where('group_info_id', $groupInfo->id)
                                             ->pluck('id')
                                             ->toArray();
+                                            
+                                            
+                                            
+                                            
+            $busAssignment = $groupInfo->busAssignments->first();
+            $allItineraryDataForCheck = [];
+            
+            $existingItinerariesForCheck = DailyItinerary::where('group_info_id', $groupInfo->id)
+                ->where('bus_assignment_id', $busAssignment->id)
+                ->orderBy('date', 'asc')
+                ->get();
+            
+            foreach ($existingItinerariesForCheck as $itinerary) {
+                $allItineraryDataForCheck[] = [
+                    'date' => Carbon::parse($itinerary->date)->format('Y-m-d'),
+                    'time_start' => $itinerary->time_start,
+                    'time_end' => $itinerary->time_end,
+                ];
+            }
+            
+            if ($request->has('daily_itineraries')) {
+                foreach ($request->daily_itineraries as $newItinerary) {
+                    if (empty($newItinerary['id'])) {
+                        $exists = false;
+                        $newDate = $newItinerary['date'];
+                        $newStart = $newItinerary['time_start'] . ':00';
+                        $newEnd = $newItinerary['time_end'] . ':00';
+                        
+                        foreach ($allItineraryDataForCheck as $existing) {
+                            if ($existing['date'] == $newDate && 
+                                $existing['time_start'] == $newStart && 
+                                $existing['time_end'] == $newEnd) {
+                                $exists = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!$exists) {
+                            $allItineraryDataForCheck[] = [
+                                'date' => $newDate,
+                                'time_start' => $newStart,
+                                'time_end' => $newEnd,
+                            ];
+                        }
+                    }
+                }
+            }
+            
+            $shouldCheck = !in_array($validated['reservation_status'] ?? $groupInfo->reservation_status, ['見積', 'キャンセル']) 
+                && !$validated['ignore_operation'];
+            
+            if ($shouldCheck && !empty($allItineraryDataForCheck)) {
+                foreach ($allItineraryDataForCheck as $itineraryData) {
+                    $this->checkConflictsByItinerary(
+                        $busAssignment->vehicle_id,
+                        $busAssignment->driver_id,
+                        $itineraryData['date'],
+                        substr($itineraryData['time_start'], 0, 5),
+                        $itineraryData['date'],
+                        substr($itineraryData['time_end'], 0, 5),
+                        $groupInfo->id,
+                        $groupInfo->reservation_status,
+                        $validated['ignore_attendance'] ?? false,
+                        $validated['ignore_operation'] ?? false
+                    );
+                }
+            }
+
+
+                                            
     
             $submittedItineraryIds = [];
     
