@@ -308,13 +308,13 @@
     height: 60px;
     border: 1px solid #e5e7eb;
     border-radius: 4px;
-    overflow: hidden;
 }
 
 .message-modal-body .image-preview .preview-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: 4px;
 }
 
 .message-modal-body .image-preview .preview-item .remove-image {
