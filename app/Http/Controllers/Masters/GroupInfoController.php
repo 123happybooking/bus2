@@ -7,6 +7,7 @@ use App\Models\Masters\GroupInfo;
 use App\Models\Masters\DailyItinerary;
 use App\Models\Masters\BusAssignment;
 use App\Models\Masters\Vehicle;
+use App\Models\Masters\VehicleModel;
 use App\Models\Masters\Driver;
 use App\Models\Masters\Guide;
 use App\Models\Masters\Agency;
@@ -282,6 +283,11 @@ class GroupInfoController extends Controller
             ->get();
             
         $vehicleGrades = VehicleGrade::orderBy('id')->get();
+        
+        $vehicleModels = VehicleModel::whereNotNull('model_code')
+            ->where('model_code', '!=', '')
+            ->orderBy('model_code', 'asc')
+            ->get(['id', 'model_code']);
             
         $selectedVehicleId = $request->input('vehicle_id');
         $selectedVehicleName = $request->input('vehicle_name');
@@ -328,7 +334,8 @@ class GroupInfoController extends Controller
             'options',
             'defaultStaffName',
             'defaultBranchName',
-            'defaultBranchId' 
+            'defaultBranchId',
+            'vehicleModels'
         ));
     }
 
@@ -647,6 +654,7 @@ class GroupInfoController extends Controller
             'ignore_operation' => 'nullable',
             'ignore_attendance' => 'nullable',
             'reservation_channel' => 'nullable|string|max:100',
+            'vehicle_model_code' => 'nullable|string|max:100',
         ];
     
         $messages = [
@@ -853,6 +861,7 @@ class GroupInfoController extends Controller
                 'doc_remarks' => null,
                 'history_remarks' => null,
                 'vehicle_index' => 1,
+                'vehicle_model_code' => $validated['vehicle_model_code'] ?? null,
                 'created_by' => (int)$userId,
                 'updated_by' => (int)$userId,
                 'created_at' => now(),
@@ -1026,6 +1035,10 @@ class GroupInfoController extends Controller
                         ->where('is_active', true)
                         ->orderBy('name')
                         ->get();
+                        
+        $vehicleModels = VehicleModel::with('vehicleType')
+            ->orderBy('model_name')
+            ->get();
                         
         $countries = Country::where('is_active', true)->orderBy('display_order')->get();
         
@@ -1212,7 +1225,8 @@ class GroupInfoController extends Controller
             'paymentMethods',
             'staffs',
             'countries',
-            'locations'
+            'locations',
+            'vehicleModels'
         ));
     }
 
@@ -2480,6 +2494,9 @@ class GroupInfoController extends Controller
                         'group_name' => $submittedBusData['group_name'] ?? null,
                         'agt_tour_id' => $submittedBusData['agt_tour_id'] ?? null,
                         'agency_country' => $submittedBusData['agency_country'] ?? null,
+                        'payment_method' => $submittedBusData['payment_method'] ?? null,
+                        'amount' => $submittedBusData['amount'] ?? null,
+                        'vehicle_model_code' => $submittedBusData['vehicle_model_code'] ?? null,
                     ]);
                     
                     if (isset($submittedBusData['compensations']) && is_array($submittedBusData['compensations'])) {
@@ -3280,6 +3297,9 @@ class GroupInfoController extends Controller
                 'lock_arrangement' => $request->boolean('lock_arrangement'),
                 'status_sent' => $request->boolean('status_sent'),
                 'status_finalized' => $request->boolean('status_finalized'),
+                'payment_method' => $request->payment_method,
+                'amount' => $request->amount,
+                'vehicle_model_code' => $request->vehicle_model_code,
                 'updated_by' => $userId,
                 'updated_at' => now(),
             ];
@@ -3841,14 +3861,24 @@ class GroupInfoController extends Controller
     {
         try {
             $file = GroupInfoFile::findOrFail($id);
-            $filePath = storage_path("app/public/{$file->file_path}");
-            
-            if (!file_exists($filePath)) {
+            $filePath = $file->file_path;
+    
+            if (empty($filePath)) {
+                abort(404, 'ファイルパスが設定されていません。');
+            }
+    
+            if (filter_var($filePath, FILTER_VALIDATE_URL)) {
+                return redirect()->away($filePath);
+            }
+    
+            $fullPath = storage_path("app/public/{$filePath}");
+    
+            if (!file_exists($fullPath)) {
                 abort(404, 'ファイルが見つかりません。');
             }
-            
-            return response()->download($filePath, $file->file_name);
-            
+    
+            return response()->download($fullPath, $file->file_name);
+    
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'ダウンロードに失敗しました: ' . $e->getMessage());
         }

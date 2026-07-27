@@ -10,6 +10,7 @@ class VehicleModel extends Model
     protected $fillable = [
         'vehicle_type_id',
         'model_name',
+        'model_code',
         'maker',
         'remarks',
         'display_order'

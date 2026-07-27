@@ -7,6 +7,11 @@
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h5 class="mb-0" style="color: #374151; font-size: 1.25rem;">予約一覧</h5>
         <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary btn-sm px-3 py-1" 
+                    style="background-color: #2563eb; border-color: #2563eb; font-size: 0.875rem;" 
+                    onclick="window.open('{{ route("masters.group-infos.import") }}', '_blank');">
+                Excel導入
+            </button>
             <button type="button" id="exportExcelBtn" class="btn btn-success btn-sm px-3 py-1" 
                     style="background-color: #10b981; border-color: #10b981; font-size: 0.875rem;">
                 <i class="bi bi-file-earmark-excel"></i> Excel 出力

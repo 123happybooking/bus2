@@ -185,7 +185,6 @@
 </div>
 @endsection
 
-
 @push('scripts')
 <script>
 document.getElementById('per_page_select').addEventListener('change', function() {

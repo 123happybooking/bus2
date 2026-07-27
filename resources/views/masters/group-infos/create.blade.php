@@ -9,43 +9,67 @@
         <input type="hidden" name="iframe" value="1" id="isIframe">
 
         <div class="card mt-2 mb-2">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                <div class="d-flex align-items-center flex-shrink-0">
-                    <label for="status" class="label-text mr-2">車両指定</label>
-                    <input type="checkbox" id="status" class="checkbox mr-5" name="vehicle_selection" {{ old('vehicle_selection') ? 'checked' : '' }}>
+<div class="d-flex align-items-center justify-content-between flex-nowrap gap-2" style="min-width: 0;">
+    <div class="d-flex align-items-center flex-shrink-0">
+        <label for="status" class="label-text mr-2" style="white-space: nowrap;">車両指定</label>
+        <input type="checkbox" id="status" class="checkbox mr-5" name="vehicle_selection" {{ old('vehicle_selection') ? 'checked' : '' }}>
+    </div>
+    
+    <div class="d-flex align-items-center flex-shrink-0">
+        <label for="vehicle_grade_id" class="label-text mr-2" style="white-space: nowrap;">車輛等級</label>
+        <select name="vehicle_grade_id" id="vehicle_grade_id" class="form-input-small" style="width:80px; flex-shrink: 0;">
+            @foreach($vehicleGrades ?? [] as $grade)
+                <option value="{{ $grade->id }}" 
+                    {{ (old('vehicle_grade_id') == $grade->id) || (empty(old('vehicle_grade_id')) && $grade->code == 'ST') ? 'selected' : '' }}>
+                    {{ $grade->grade_name }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+    
+    <div class="d-flex align-items-center flex-shrink-0">
+        <label for="vehicle_model_code" class="label-text mr-2" style="white-space: nowrap;">モデルCode</label>
+        <div class="position-relative" style="width:60px; flex-shrink: 0;">
+            <input type="text" name="vehicle_model_code" id="vehicle_model_code" 
+                   class="form-input-small search-input w-100" 
+                   value="{{ old('vehicle_model_code') }}" 
+                   placeholder="-- 選択 --" autocomplete="off">
+            <div class="suggestions-container" id="vehicle_model_code_suggestions" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <div class="d-flex align-items-center flex-shrink-0">
+        <label for="yoyaku" class="label-text mr-2" style="white-space: nowrap;">予約状況</label>
+        <select id="yoyaku" class="form-input-small" name="reservation_status" style="width:60px; flex-shrink: 0;">
+            <option value="予約" style="background-color: #ccf5ff; color: black;" {{ old('reservation_status') == '予約' ? 'selected' : '' }} selected>予約</option>
+            <option value="仮押さえ" style="background-color: #ffff99; color: black;" {{ old('reservation_status') == '仮押さえ' ? 'selected' : '' }}>仮押さえ</option>
+            <option value="見積" style="background-color: #ccffcc; color: black;" {{ old('reservation_status') == '見積' ? 'selected' : '' }}>見積</option>
+            <option value="危ない" style="background-color: #ffcccc; color: black;" {{ old('reservation_status') == '危ない' ? 'selected' : '' }}>危ない</option>
+            <option value="確定待ち" style="background-color: #ffd9b3; color: black;" {{ old('reservation_status') == '確定待ち' ? 'selected' : '' }}>確定待ち</option>
+            <option value="確定" style="background-color: #cbb87c; color: black;" {{ old('reservation_status') == '確定' ? 'selected' : '' }}>確定</option>
+            <option value="送信済" style="background-color: #e6e6fa; color: black;" {{ old('reservation_status') == '送信済' ? 'selected' : '' }}>送信済</option>
+            <option value="実績待ち" style="background-color: #e0b0ff; color: black;" {{ old('reservation_status') == '実績待ち' ? 'selected' : '' }}>実績待ち</option>
+            <option value="運行済" style="background-color: #c0c0c0; color: black;" {{ old('reservation_status') == '運行済' ? 'selected' : '' }}>運行済</option>
+            <option value="請求済" style="background-color: #b0e0e6; color: black;" {{ old('reservation_status') == '請求済' ? 'selected' : '' }}>請求済</option>
+            <option value="キャンセル" style="background-color: #d3d3d3; color: black;" {{ old('reservation_status') == 'キャンセル' ? 'selected' : '' }}>キャンセル</option>
+            <option value="稼働不可" style="background-color: #2c2c2c; color: white;" {{ old('reservation_status') == '稼働不可' ? 'selected' : '' }}>稼働不可</option>
+        </select>
+    </div>
+</div>
+        </div>
+
+        <div class="card">
+            <div class="d-flex align-items-center mb-1 position-relative">
+                <div class="label-width text-gray">車両名</div>
+                <div class="flex-1 position-relative">
+                    <input type="text" name="vehicle_name_input" class="form-input search-input" id="vehicle_search" 
+                           value="{{ old('vehicle_name_input') }}" placeholder="車両名を入力" autocomplete="off">
+                    <input type="hidden" name="vehicle_id" id="vehicle_id" value="{{ old('vehicle_id') }}">
+                    <div class="suggestions-container" id="vehicle_suggestions" style="display: none;"></div>
                 </div>
                 
-                <div class="d-flex align-items-center flex-shrink-0">
-                    <label for="vehicle_grade_id" class="label-text mr-2">車輛等級</label>
-                    <select name="vehicle_grade_id" id="vehicle_grade_id" class="form-input-small" style="width:80px;">
-                        @foreach($vehicleGrades ?? [] as $grade)
-                            <option value="{{ $grade->id }}" 
-                                {{ (old('vehicle_grade_id') == $grade->id) || (empty(old('vehicle_grade_id')) && $grade->code == 'ST') ? 'selected' : '' }}>
-                                {{ $grade->grade_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
                 
-                <div class="d-flex align-items-center flex-shrink-0">
-                    <label for="yoyaku" class="label-text mr-2">予約状況</label>
-                    <select id="yoyaku" class="form-input-small" name="reservation_status" style="width:80px;">
-                        <option value="予約" style="background-color: #ccf5ff; color: black;" {{ old('reservation_status') == '予約' ? 'selected' : '' }} selected>予約</option>
-                        <option value="仮押さえ" style="background-color: #ffff99; color: black;" {{ old('reservation_status') == '仮押さえ' ? 'selected' : '' }}>仮押さえ</option>
-                        <option value="見積" style="background-color: #ccffcc; color: black;" {{ old('reservation_status') == '見積' ? 'selected' : '' }}>見積</option>
-                        <option value="危ない" style="background-color: #ffcccc; color: black;" {{ old('reservation_status') == '危ない' ? 'selected' : '' }}>危ない</option>
-                        <option value="確定待ち" style="background-color: #ffd9b3; color: black;" {{ old('reservation_status') == '確定待ち' ? 'selected' : '' }}>確定待ち</option>
-                        <option value="確定" style="background-color: #cbb87c; color: black;" {{ old('reservation_status') == '確定' ? 'selected' : '' }}>確定</option>
-                        <option value="送信済" style="background-color: #e6e6fa; color: black;" {{ old('reservation_status') == '送信済' ? 'selected' : '' }}>送信済</option>
-                        <option value="実績待ち" style="background-color: #e0b0ff; color: black;" {{ old('reservation_status') == '実績待ち' ? 'selected' : '' }}>実績待ち</option>
-                        <option value="運行済" style="background-color: #c0c0c0; color: black;" {{ old('reservation_status') == '運行済' ? 'selected' : '' }}>運行済</option>
-                        <option value="請求済" style="background-color: #b0e0e6; color: black;" {{ old('reservation_status') == '請求済' ? 'selected' : '' }}>請求済</option>
-                        <option value="キャンセル" style="background-color: #d3d3d3; color: black;" {{ old('reservation_status') == 'キャンセル' ? 'selected' : '' }}>キャンセル</option>
-                        <option value="稼働不可" style="background-color: #2c2c2c; color: white;" {{ old('reservation_status') == '稼働不可' ? 'selected' : '' }}>稼働不可</option>
-                    </select>
-                </div>
-                
-                <div class="d-flex align-items-center flex-shrink-0">
+                <div class="d-flex align-items-center flex-shrink-0 ms-4">
                     <label for="category" class="label-text mr-2">業務分類</label>
                     <select id="category" name="reservation_categories_id" class="form-input" style="width: 80px;">
                         <option value="">-- 選択 --</option>
@@ -59,18 +83,6 @@
                             </option>
                         @endforeach
                     </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="d-flex align-items-center mb-1 position-relative">
-                <div class="label-width text-gray">車両名</div>
-                <div class="flex-1 position-relative">
-                    <input type="text" name="vehicle_name_input" class="form-input search-input" id="vehicle_search" 
-                           value="{{ old('vehicle_name_input') }}" placeholder="車両名を入力" autocomplete="off">
-                    <input type="hidden" name="vehicle_id" id="vehicle_id" value="{{ old('vehicle_id') }}">
-                    <div class="suggestions-container" id="vehicle_suggestions" style="display: none;"></div>
                 </div>
             </div>
 
@@ -619,6 +631,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const guides = @json($guides ?? []);
     const drivers = @json($drivers ?? []);
     const agencies = @json($agencies ?? []);
+    const vehicleModelCodes = @json($vehicleModels ?? []);
 
     function setupSearch(type, items, formatter, autoFillVehicleNumber = true) {
         const searchInput = document.getElementById(`${type}_search`);
@@ -764,6 +777,64 @@ document.addEventListener('DOMContentLoaded', function() {
             email: item.email
         };
     });
+    
+    function setupVehicleModelCodeSearch() {
+        const searchInput = document.getElementById('vehicle_model_code');
+        const suggestionsDiv = document.getElementById('vehicle_model_code_suggestions');
+        
+        if (!searchInput) return;
+
+        function showSuggestions(query = '') {
+            const filtered = vehicleModelCodes.filter(item => {
+                const searchable = (item.model_code || '').toLowerCase();
+                return searchable.includes(query.toLowerCase());
+            }).slice(0, 100);
+
+            if (filtered.length === 0) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(item => {
+                html += `<div class="suggestion-item" data-model-code="${item.model_code}">${item.model_code}</div>`;
+            });
+
+            suggestionsDiv.innerHTML = html;
+            suggestionsDiv.style.display = 'block';
+        }
+
+        searchInput.addEventListener('focus', function() {
+            showSuggestions('');
+        });
+
+        searchInput.addEventListener('input', function() {
+            showSuggestions(this.value);
+        });
+
+        suggestionsDiv.addEventListener('click', function(e) {
+            const suggestion = e.target.closest('.suggestion-item');
+            if (!suggestion) return;
+
+            const modelCode = suggestion.getAttribute('data-model-code');
+            searchInput.value = modelCode;
+            suggestionsDiv.style.display = 'none';
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                suggestionsDiv.style.display = 'none';
+            }
+        });
+
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                suggestionsDiv.style.display = 'none';
+            }
+        });
+    }
+
+    setupVehicleModelCodeSearch();
 
     function checkSeatingCapacity() {
         const adultCount = parseInt(document.getElementById('adult_count')?.value) || 0;

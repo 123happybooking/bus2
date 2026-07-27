@@ -1,12 +1,10 @@
 <?php
-
 namespace App\Models\Masters;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 
 class BusAssignment extends Model
 {
@@ -26,7 +24,6 @@ class BusAssignment extends Model
         'daily_itinerary_id',
         'vehicle_id',
         'driver_id',
-        // 'guide_id',
         'guide',
         'start_date',
         'start_time',
@@ -67,6 +64,9 @@ class BusAssignment extends Model
         'group_name',
         'agt_tour_id',
         'agency_country',
+        'payment_method',
+        'amount',
+        'vehicle_model_code',
     ];
 
     protected $dates = [
@@ -104,41 +104,39 @@ class BusAssignment extends Model
         'group_name' => 'string',
         'agt_tour_id' => 'string',
         'agency_country' => 'string',
+        'payment_method' => 'string',
+        'amount' => 'integer',
+        'vehicle_model_code' => 'string',
     ];
 
-    public function groupInfo(): BelongsTo
+    public function groupInfo()
     {
         return $this->belongsTo(GroupInfo::class, 'group_info_id', 'id');
     }
 
-    public function vehicle(): BelongsTo
+    public function vehicle()
     {
         return $this->belongsTo(Vehicle::class, 'vehicle_id', 'id');
     }
 
-    public function driver(): BelongsTo
+    public function driver()
     {
         return $this->belongsTo(Driver::class, 'driver_id', 'id');
     }
 
-    // public function guide(): BelongsTo
-    // {
-    //     return $this->belongsTo(Guide::class, 'guide_id', 'id');
-    // }
-
-    public function dailyItinerary(): BelongsTo
+    public function dailyItinerary()
     {
         return $this->belongsTo(DailyItinerary::class, 'daily_itinerary_id', 'id');
     }
 
-    public function dailyItineraries(): HasMany
+    public function dailyItineraries()
     {
         return $this->hasMany(DailyItinerary::class, 'bus_assignment_id', 'id')
                     ->orderBy('date', 'asc')
                     ->orderBy('time_start', 'asc');
     }
 
-    public function getStatusDisplayAttribute(): string
+    public function getStatusDisplayAttribute()
     {
         if ($this->status_finalized) {
             return '最終確定';
@@ -150,7 +148,7 @@ class BusAssignment extends Model
         return '未確定';
     }
 
-    public function getPeriodDisplayAttribute(): string
+    public function getPeriodDisplayAttribute()
     {
         $start = $this->start_date
             ? (is_string($this->start_date) ? date('m/d', strtotime($this->start_date)) : $this->start_date->format('m/d'))
@@ -169,7 +167,7 @@ class BusAssignment extends Model
         return "---\n---";
     }
 
-    public function getVehicleDisplayAttribute(): string
+    public function getVehicleDisplayAttribute()
     {
         if ($this->vehicle) {
             $modelName = $this->vehicle->vehicleModel ? $this->vehicle->vehicleModel->model_name : '';
@@ -179,17 +177,17 @@ class BusAssignment extends Model
         return $this->vehicle_number ? '号車 ' . $this->vehicle_number : '---';
     }
 
-    public function getDriverDisplayAttribute(): string
+    public function getDriverDisplayAttribute()
     {
         return $this->driver?->name ?? '---';
     }
 
-    public function getIdDisplayAttribute(): string
+    public function getIdDisplayAttribute()
     {
         return '運行:' . $this->id;
     }
 
-    public function getStartInfoAttribute(): string
+    public function getStartInfoAttribute()
     {
         $firstDay = $this->dailyItineraries->first();
         if ($firstDay) {
@@ -207,41 +205,41 @@ class BusAssignment extends Model
         return $startDate . ' ' . $startTime . "\n---";
     }
 
-    public function getGroupStickerAttribute(): string
+    public function getGroupStickerAttribute()
     {
         $groupName = $this->groupInfo?->group_name ?? '---';
         $sticker = $this->step_car ?? '---';
         return $groupName . "\n" . $sticker;
     }
 
-    public function getBusinessItineraryAttribute(): string
+    public function getBusinessItineraryAttribute()
     {
         $business = $this->groupInfo?->business_category ?? '---';
         $itinerary = $this->groupInfo?->itinerary_name ?? '---';
         return $business . "\n" . $itinerary;
     }
 
-    public function getReservationStatusDisplayAttribute(): string
+    public function getReservationStatusDisplayAttribute()
     {
         return $this->groupInfo?->reservation_status ?? '---';
     }
 
-    public function getBillingDisplayAttribute(): string
+    public function getBillingDisplayAttribute()
     {
         return "--\n--";
     }
 
-    public function getAdvanceDisplayAttribute(): string
+    public function getAdvanceDisplayAttribute()
     {
         return '--';
     }
 
-    public function getFormattedVehicleIndexAttribute(): string
+    public function getFormattedVehicleIndexAttribute()
     {
         return sprintf('%02d', $this->vehicle_index ?? 1);
     }
 
-    public function getRemarksArrayAttribute(): array
+    public function getRemarksArrayAttribute()
     {
         return [
             'basic' => $this->operation_basic_remarks,
@@ -250,7 +248,7 @@ class BusAssignment extends Model
         ];
     }
 
-    public function getTotalPassengersAttribute(): int
+    public function getTotalPassengersAttribute()
     {
         return ($this->adult_count ?? 0) + 
                ($this->child_count ?? 0) + 
@@ -362,12 +360,12 @@ class BusAssignment extends Model
         return $result;
     }
     
-    public function businessCategory(): BelongsTo
+    public function businessCategory()
     {
         return $this->belongsTo(ReservationCategory::class, 'business_category_id', 'id');
     }
     
-    public function vehicleGrade(): BelongsTo
+    public function vehicleGrade()
     {
         return $this->belongsTo(VehicleGrade::class, 'vehicle_grade_id', 'id');
     }

@@ -32,6 +32,7 @@ use App\Http\Controllers\Masters\UserCompanyInfoController;
 
 use App\Http\Controllers\Masters\DailyItineraryController;
 use App\Http\Controllers\Masters\GroupInfoController;
+use App\Http\Controllers\Masters\ImportController;
 use App\Http\Controllers\Masters\GroupInfoDateRemarkController;
 use App\Http\Controllers\Masters\BusAssignmentController;
 use App\Http\Controllers\Masters\OperationLedgerController;
@@ -152,6 +153,20 @@ Route::prefix('masters')->name('masters.')->group(function () {
             Route::delete('login-histories/batch-delete', [LoginHistoryController::class, 'batchDelete'])->name('login-histories.batch-delete');
             
             
+            
+            
+            
+            Route::get('group-infos/import', [ImportController::class, 'index'])->name('group-infos.import');
+            Route::post('group-infos/import/upload', [ImportController::class, 'upload'])->name('group-infos.import.upload');
+            Route::get('group-infos/import/template', [ImportController::class, 'downloadTemplate'])->name('group-infos.import.template');
+            Route::get('group-infos/import/history', [ImportController::class, 'historyList'])->name('group-infos.import.history.list');
+            Route::get('group-infos/import/history/{id}', [ImportController::class, 'history'])->name('group-infos.import.history');
+            Route::get('group-infos/import/history/{id}/data', [ImportController::class, 'getHistoryData'])->name('group-infos.import.history.data');
+            Route::put('group-infos/import/history/{id}/data', [ImportController::class, 'updateHistoryData'])->name('group-infos.import.history.update');
+            Route::post('group-infos/import/history/{id}/reimport', [ImportController::class, 'reimport'])->name('group-infos.import.history.reimport');
+            Route::delete('group-infos/import/history/{id}', [ImportController::class, 'destroy'])->name('group-infos.import.history.destroy');
+            
+            
             Route::get('/group-infos/{id}/files', [GroupInfoController::class, 'getFiles'])->name('group-infos.files');
             Route::post('/group-infos/{id}/upload-file', [GroupInfoController::class, 'uploadFile'])->name('group-infos.upload-file');
             Route::delete('/group-files/{id}', [GroupInfoController::class, 'deleteFile'])->name('group-files.delete');
@@ -172,6 +187,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
             
             Route::get('group-infos/{id}/export-reservation-pdf', [GroupInfoController::class, 'exportReservationPdf'])->name('group-infos.export-reservation-pdf');
             Route::get('group-infos/{id}/export-final-pdf', [GroupInfoController::class, 'exportFinalPdf'])->name('group-infos.export-final-pdf');
+    
             
             Route::get('operation-ledger', [OperationLedgerController::class, 'index'])->name('operation-ledger.index');
             

@@ -58,6 +58,8 @@ class GroupInfo extends Model
         'operation_count',
         'created_by',
         'updated_by',
+        'amount',
+        'vehicle_model_code',
     ];
     
     protected $casts = [
@@ -69,6 +71,7 @@ class GroupInfo extends Model
         'end_date' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'amount' => 'decimal:2',
     ];
     
     public function busAssignments()
@@ -91,7 +94,6 @@ class GroupInfo extends Model
         return $this->belongsTo(Agency::class, 'agency_id', 'id');
     }
     
-    
     public function getReservationCategoriesIdAttribute($value)
     {
         return $value ?? 0;
@@ -112,7 +114,7 @@ class GroupInfo extends Model
         return $this->belongsTo(VehicleGrade::class, 'vehicle_grade_id');
     }
     
-    public function files(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function files()
     {
         return $this->hasMany(GroupInfoFile::class, 'group_info_id', 'id');
     }

@@ -52,6 +52,7 @@ class VehicleTypeController extends Controller
             'type_name' => 'required|string|max:255|unique:vehicle_types,type_name',
             'models' => 'nullable|array',
             'models.*.model_name' => 'required|string|max:100',
+            'models.*.model_code' => 'nullable|string|max:50',
             'models.*.maker' => 'nullable|string|max:50',
             'models.*.remarks' => 'nullable|string|max:255',
         ];
@@ -62,6 +63,7 @@ class VehicleTypeController extends Controller
             'type_name.max' => '車両種類名は255文字以内で入力してください。',
             'models.*.model_name.required' => 'モデル名は必須です。',
             'models.*.model_name.max' => 'モデル名は100文字以内で入力してください。',
+            'models.*.model_code.max' => '車両モデルCodeは50文字以内で入力してください。',
             'models.*.maker.max' => 'メーカーは50文字以内で入力してください。',
             'models.*.remarks.max' => '備考は255文字以内で入力してください。',
         ];
@@ -132,6 +134,7 @@ class VehicleTypeController extends Controller
             'models' => 'nullable|array',
             'models.*.id' => 'nullable|exists:vehicle_models,id',
             'models.*.model_name' => 'required|string|max:100',
+            'models.*.model_code' => 'nullable|string|max:50',
             'models.*.maker' => 'nullable|string|max:50',
             'models.*.remarks' => 'nullable|string|max:255',
         ];
@@ -142,6 +145,7 @@ class VehicleTypeController extends Controller
             'type_name.max' => '車両種類名は255文字以内で入力してください。',
             'models.*.model_name.required' => 'モデル名は必須です。',
             'models.*.model_name.max' => 'モデル名は100文字以内で入力してください。',
+            'models.*.model_code.max' => '車両モデルCodeは50文字以内で入力してください。',
             'models.*.maker.max' => 'メーカーは50文字以内で入力してください。',
             'models.*.remarks.max' => '備考は255文字以内で入力してください。',
         ];
@@ -171,6 +175,7 @@ class VehicleTypeController extends Controller
                 
                 $createData = [
                     'model_name' => $modelData['model_name'],
+                    'model_code' => $modelData['model_code'] ?? null,
                     'maker' => $modelData['maker'] ?? null,
                     'remarks' => $modelData['remarks'] ?? null,
                     'display_order' => $displayOrder,
