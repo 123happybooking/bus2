@@ -131,7 +131,17 @@ class ImportController extends Controller
                 $amount = $this->getCellValue($row, 'F');
                 if (!empty($amount)) {
                     $cleanedAmount = str_replace(['¥', ',', ' ', '　'], '', trim($amount));
-                    if (!is_numeric($cleanedAmount)) {
+                    $nonNumericKeywords = ['合併', '未定', '合并', '取消', 'CXL'];
+                    $isNonNumeric = false;
+                    foreach ($nonNumericKeywords as $keyword) {
+                        if (strpos($cleanedAmount, $keyword) !== false) {
+                            $isNonNumeric = true;
+                            break;
+                        }
+                    }
+                    if ($isNonNumeric) {
+                        $rowData['amount'] = null;
+                    } elseif (!is_numeric($cleanedAmount)) {
                         $rowErrors[] = '金額は数値で入力してください';
                         $rowData['amount'] = null;
                     } else {
@@ -178,6 +188,10 @@ class ImportController extends Controller
                 $stickerText = $this->getCellValue($row, 'R');
                 $stickerLink = $this->getCellHyperlink($worksheet, $index, 'R');
                 if (!empty($stickerText) || !empty($stickerLink)) {
+                    $isNamePattern = preg_match('/^[A-Z][a-z]+\.?\s+[A-Z][a-z]+/', trim($stickerText ?? ''));
+                    if ($isNamePattern && strpos($stickerText, '.') === false) {
+                        $stickerText = '';
+                    }
                     $rowData['sticker'] = [
                         'text' => $stickerText,
                         'link' => $stickerLink,
@@ -356,10 +370,15 @@ class ImportController extends Controller
         if (!empty($rowData['sticker'])) {
             $stickerText = $rowData['sticker']['text'] ?? '';
             $stickerLink = $rowData['sticker']['link'] ?? '';
-
             $fileName = !empty($stickerText) ? $stickerText : pathinfo($stickerLink, PATHINFO_BASENAME);
-
             if (!empty($fileName)) {
+                $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+                if (empty($extension) || strlen($extension) > 10) {
+                    $extension = '';
+                }
+                if (strpos($fileName, '.') === false) {
+                    $extension = '';
+                }
                 GroupInfoFile::create([
                     'group_info_id' => $groupInfo->id,
                     'bus_assignment_id' => $busAssignment->id,
@@ -367,7 +386,7 @@ class ImportController extends Controller
                     'file_path' => $stickerLink,
                     'file_size' => 0,
                     'file_type' => null,
-                    'file_extension' => pathinfo($fileName, PATHINFO_EXTENSION),
+                    'file_extension' => $extension,
                     'uploaded_by' => $userId,
                     'created_at' => now(),
                     'updated_at' => now(),
