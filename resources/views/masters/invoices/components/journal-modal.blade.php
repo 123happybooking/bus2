@@ -207,12 +207,16 @@
 
 <script>
     window.AccountSettings = {
-        receiveAccountTaxId: "{{ $receiveAccount->tax_id ?? '' }}",
-        receiveAccountCode: "{{ $receiveAccount->code ?? '' }}",
-        receiveAccountName: "{{ $receiveAccount->name ?? '' }}",
-        depositAccountTaxId: "{{ $depositAccount->tax_id ?? '' }}",
-        depositAccountCode: "{{ $depositAccount->code ?? '' }}",
-        depositAccountName: "{{ $depositAccount->name ?? '' }}"
+        receiveAccountTaxId: "{{ $receiveAccount ? $receiveAccount->tax_id : '' }}",
+        receiveAccountCode: "{{ $receiveAccount ? $receiveAccount->code : '' }}",
+        receiveAccountName: "{{ $receiveAccount ? $receiveAccount->name : '' }}",
+        depositAccountTaxId: "{{ $depositAccount ? $depositAccount->tax_id : '' }}",
+        depositAccountCode: "{{ $depositAccount ? $depositAccount->code : '' }}",
+        depositAccountName: "{{ $depositAccount ? $depositAccount->name : '' }}",
+        spmsgAccountId: "{{ $spmsgAccount ? $spmsgAccount->id : '' }}",
+        spmsgAccountCode: "{{ $spmsgAccount ? $spmsgAccount->code : '' }}",
+        spmsgAccountName: "{{ $spmsgAccount ? $spmsgAccount->name : '' }}",
+        spmsgAccountTaxId: "{{ $spmsgAccount ? $spmsgAccount->tax_id : '' }}"
     };
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -300,9 +304,9 @@
                 }
                 totalAmount += amountVal;
 
-                const defaultAccountId = "{{ $spmsgAccount->id }}";
-                const defaultAccountName = "{{ $spmsgAccount->code }} - {{ $spmsgAccount->name }}";
-                const defaultTaxId = "{{ $spmsgAccount->tax_id }}";
+                const defaultAccountId = "{{ $spmsgAccount->id ?? '' }}";
+                const defaultAccountName = "{{ ($spmsgAccount->code ?? '') . ' - ' . ($spmsgAccount->name ?? '') }}";
+                const defaultTaxId = "{{ $spmsgAccount->tax_id ?? '' }}";
 
                 const newRowHtml = `
                 <div class="row g-2 align-items-center mb-2 credit-row">

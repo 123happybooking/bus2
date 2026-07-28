@@ -124,6 +124,15 @@ class InvoiceController extends Controller
     
     public function index(Request $request)
     {
+        $accountConfig = AccountConfig::first();
+        if (!$accountConfig) {
+            $accountConfig = AccountConfig::create([
+                'account_mgj_id' => null,
+                'account_deposit_id' => null,
+                'account_spmsg_id' => null,
+            ]);
+        }
+        
         $query = Invoice::query();
         
         if ($request->filled('agency_id') && $request->agency_id) {
@@ -181,10 +190,15 @@ class InvoiceController extends Controller
         $partners = AccountPartner::get();
         $taxes = AccountTax::get();
     
-        $accountConfig = AccountConfig::first();
-        $receiveAccount = Account::where('id', $accountConfig->account_mgj_id)->where('is_active', 1)->first();
-        $depositAccount = Account::where('id', $accountConfig->account_deposit_id)->where('is_active', 1)->first();
-        $spmsgAccount = Account::where('id', $accountConfig->account_spmsg_id)->where('is_active', 1)->first();
+        $receiveAccount = null;
+        $depositAccount = null;
+        $spmsgAccount = null;
+    
+        if ($accountConfig) {
+            $receiveAccount = Account::where('id', $accountConfig->account_mgj_id)->where('is_active', 1)->first();
+            $depositAccount = Account::where('id', $accountConfig->account_deposit_id)->where('is_active', 1)->first();
+            $spmsgAccount = Account::where('id', $accountConfig->account_spmsg_id)->where('is_active', 1)->first();
+        }
     
         return view('masters.invoices.index', compact('invoices', 'banks', 'agencies', 'staffs', 'totalAmount', 'paidAmount', 'accounts', 'partners', 'taxes', 'departments', 'receiveAccount', 'depositAccount', 'spmsgAccount'));
     }
@@ -258,6 +272,15 @@ class InvoiceController extends Controller
     
     public function sumInvoice(Request $request)
     {
+        $accountConfig = AccountConfig::first();
+        if (!$accountConfig) {
+            $accountConfig = AccountConfig::create([
+                'account_mgj_id' => null,
+                'account_deposit_id' => null,
+                'account_spmsg_id' => null,
+            ]);
+        }
+    
         $query = Invoice::query();
         
         if ($request->filled('agency_id') && $request->agency_id) {
