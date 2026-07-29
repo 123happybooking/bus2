@@ -203,10 +203,7 @@ class ImportController extends Controller
                 $rowData['remarks'] = $this->getCellValue($row, 'T');
 
                 if (!empty($rowData['vehicle_type'])) {
-                    $vehicleModel = VehicleModel::where('model_code', $rowData['vehicle_type'])->first();
-                    if ($vehicleModel) {
-                        $rowData['vehicle_model_code'] = $vehicleModel->model_code;
-                    }
+                    $rowData['vehicle_model_code'] = $rowData['vehicle_type'];
                 }
 
                 if (empty($rowErrors)) {
