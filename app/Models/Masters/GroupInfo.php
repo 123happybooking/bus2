@@ -58,6 +58,7 @@ class GroupInfo extends Model
         'operation_count',
         'created_by',
         'updated_by',
+        'payment_method',
         'amount',
         'vehicle_model_code',
     ];

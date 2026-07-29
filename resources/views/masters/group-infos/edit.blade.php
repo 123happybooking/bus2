@@ -227,6 +227,44 @@
                         <div class="row mb-1">
                             <div class="col-md-12">
                                 <div class="d-flex w-100 gap-2">
+                                    <div class="d-flex w-50 gap-2">
+                                        <div class="d-flex align-items-center flex-fill">
+                                            <span class="span-label" style="min-width: 50px;">支払方法</span>
+                                            <input type="text" class="form-control form-control-sm border w-100" 
+                                                   name="payment_method" 
+                                                   value="{{ old('payment_method', $groupInfo->payment_method ?? '') }}" 
+                                                   placeholder="--">
+                                        </div>
+                                        <div class="d-flex align-items-center flex-fill">
+                                            <span class="span-label" style="min-width: 50px;">金額</span>
+                                            <input type="number" class="form-control form-control-sm border w-100" 
+                                                   name="amount" 
+                                                   value="{{ old('amount', $groupInfo->amount ? intval($groupInfo->amount) : '') }}" 
+                                                   placeholder="0" step="1" min="0">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-center w-50">
+                                        <span class="span-label" style="min-width: 50px;">車両モデルCode</span>
+                                        <div class="flex-1 position-relative w-100">
+                                            <input type="text" class="form-control form-control-sm border search-input w-100" 
+                                                   id="vehicle_model_code_search_group" 
+                                                   value="{{ old('vehicle_model_code', $groupInfo->vehicle_model_code ?? '') }}" 
+                                                   autocomplete="off"
+                                                   placeholder="-- 選択 --">
+                                            <input type="hidden" name="vehicle_model_code" 
+                                                   id="vehicle_model_code_id_group" 
+                                                   value="{{ old('vehicle_model_code', $groupInfo->vehicle_model_code ?? '') }}">
+                                            <div class="suggestions-container" id="vehicle_model_code_suggestions_group" style="display: none;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-1">
+                            <div class="col-md-12">
+                                <div class="d-flex w-100 gap-2">
                                     <div class="d-flex align-items-center w-50">
                                         <span class="span-label" style="min-width: 50px; white-space: nowrap;">備考</span>
                                         <textarea name="remarks" rows="4" class="form-control form-control-sm border w-100">{{ old('remarks', $groupInfo->remarks) }}</textarea>
@@ -251,7 +289,7 @@
                             <div class="tab-line" style="display: none;"></div>
                         </div>
 
-                        <div id="tabContent" class="tab-content" style="border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 193px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;">
+                        <div id="tabContent" class="tab-content" style="border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 235px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;">
                             
                             <div class="tab-pane active" id="invoice-tab">
                                 <div style="height: 100%; display: flex; flex-direction: column;">
@@ -589,43 +627,6 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <div class="row mb-1">
-                                    <div class="col-md-12">
-                                        <div class="d-flex w-100">
-                                            <div class="d-flex align-items-center" style="width: 25%;">
-                                                <span class="span-label" style="min-width: 50px;">支払方法</span>
-                                                <input type="text" class="form-control form-control-sm border w-100" 
-                                                       name="bus_assignments[{{ $vehicleIndex }}][payment_method]" 
-                                                       value="{{ $busAssignment->payment_method ?? '' }}" 
-                                                       placeholder="--">
-                                            </div>
-                                
-                                            <div class="d-flex align-items-center" style="width: 25%;">
-                                                <span class="span-label" style="min-width: 50px;">金額</span>
-                                                <input type="number" class="form-control form-control-sm border w-100" 
-                                                       name="bus_assignments[{{ $vehicleIndex }}][amount]" 
-                                                       value="{{ $busAssignment->amount ?? '' }}" 
-                                                       placeholder="0" step="1" min="0">
-                                            </div>
-                                
-                                            <div class="d-flex align-items-center" style="width: 50%;">
-                                                <span class="span-label" style="min-width: 50px;">車両モデルCode</span>
-                                                <div class="flex-1 position-relative w-100">
-                                                    <input type="text" class="form-control form-control-sm border search-input w-100" 
-                                                           id="vehicle_model_code_search_{{ $vehicleIndex }}" 
-                                                           value="{{ $busAssignment->vehicle_model_code ?? '' }}" 
-                                                           autocomplete="off"
-                                                           placeholder="-- 選択 --">
-                                                    <input type="hidden" name="bus_assignments[{{ $vehicleIndex }}][vehicle_model_code]" 
-                                                           id="vehicle_model_code_{{ $vehicleIndex }}" 
-                                                           value="{{ $busAssignment->vehicle_model_code ?? '' }}">
-                                                    <div class="suggestions-container" id="vehicle_model_code_suggestions_{{ $vehicleIndex }}" style="display: none;"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
 
                             <div class="col-md-6" style="width:40%; padding-right: 5px; padding-left: 5px;">
@@ -636,7 +637,7 @@
                                         <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="{{ $vehicleIndex }}" data-tab2="expense-{{ $vehicleIndex }}" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">立替</span>
                                     </div>
 
-                                    <div id="basic2-{{ $vehicleIndex }}" class="tab-content2" style="border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: auto; height: 139px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
+                                    <div id="basic2-{{ $vehicleIndex }}" class="tab-content2" style="border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: auto; height: 102px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
                                         <div class="file-manager-{{ $vehicleIndex }}" style="display: flex; flex-direction: column; height: 100%;">
                                             <div class="file-list file-list-bus" id="file-list-bus-{{ $busId }}" data-bus-id="{{ $busId }}" style="flex: 1; margin-bottom: 10px;">
                                                 @if(isset($group['files']) && $group['files']->count() > 0)
@@ -1241,7 +1242,7 @@ input[readonly]:focus { outline: none; border-color: #E5E7EB; }
     border-top: 0;
     background-color: #fff;
     padding: 10px;
-    height: 139px;
+    height: 102px;
 }
 .container-fluid {
     max-width: 1600px;
@@ -1660,7 +1661,7 @@ span.flatpickr-weekday {
     padding: 6px;
     max-height: 260px;
     overflow-y: auto;
-    min-height: 139px;
+    min-height: 102px;
 }
 
 .input-num-no-arrow {
@@ -3139,8 +3140,8 @@ function updateBusDetailClickHandler(e) {
 
         function showSuggestions(query = '') {
             const filtered = items.filter(item => {
-                const searchable = formatter(item).display.toLowerCase();
-                return searchable.includes(query.toLowerCase());
+                const display = formatter(item).display || '';
+                return display.toLowerCase().includes(query.toLowerCase());
             }).slice(0, 100);
 
             if (filtered.length === 0) {
@@ -3160,11 +3161,18 @@ function updateBusDetailClickHandler(e) {
 
         searchInput.addEventListener('focus', function() {
             showSuggestions('');
+            if (hiddenId && searchInput.value) {
+                hiddenId.value = searchInput.value;
+            }
         });
 
         searchInput.addEventListener('input', function() {
             showSuggestions(this.value);
-    
+        
+            if (hiddenId) {
+                hiddenId.value = this.value;
+            }
+        
             if (type === 'country') {
                 const agencyCountryInput = document.getElementById('agency_country');
                 if (agencyCountryInput) {
@@ -3256,7 +3264,7 @@ function updateBusDetailClickHandler(e) {
                 }
                 guideHidden.dispatchEvent(new Event('change'));
             } else if (type === 'vehicle_model_code') {
-                const vehicleModelCodeInput = document.getElementById(`vehicle_model_code_${containerId}`);
+                const vehicleModelCodeInput = document.getElementById(`vehicle_model_code_id_${containerId}`);
                 if (vehicleModelCodeInput) {
                     vehicleModelCodeInput.value = data.model_code;
                     vehicleModelCodeInput.dispatchEvent(new Event('change', { bubbles: true }));
@@ -3908,43 +3916,6 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="row mb-1">
-                            <div class="col-md-12">
-                                <div class="d-flex w-100">
-                                    <div class="d-flex align-items-center" style="width: 25%;">
-                                        <span class="span-label" style="min-width: 50px;">支払方法</span>
-                                        <input type="text" class="form-control form-control-sm border w-100" 
-                                               name="bus_assignments[${newIndex}][payment_method]" 
-                                               value="" 
-                                               placeholder="--">
-                                    </div>
-                        
-                                    <div class="d-flex align-items-center" style="width: 25%;">
-                                        <span class="span-label" style="min-width: 50px;">金額</span>
-                                        <input type="number" class="form-control form-control-sm border w-100" 
-                                               name="bus_assignments[${newIndex}][amount]" 
-                                               value="" 
-                                               placeholder="0" step="1" min="0">
-                                    </div>
-                        
-                                    <div class="d-flex align-items-center" style="width: 50%;">
-                                        <span class="span-label" style="min-width: 50px;">車両モデルCode</span>
-                                        <div class="flex-1 position-relative w-100">
-                                            <input type="text" class="form-control form-control-sm border search-input w-100" 
-                                                   id="vehicle_model_code_search_${newIndex}" 
-                                                   value="" 
-                                                   autocomplete="off"
-                                                   placeholder="-- 選択 --">
-                                            <input type="hidden" name="bus_assignments[${newIndex}][vehicle_model_code]" 
-                                                   id="vehicle_model_code_${newIndex}" 
-                                                   value="">
-                                            <div class="suggestions-container" id="vehicle_model_code_suggestions_${newIndex}" style="display: none;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
     
                     <div class="col-md-6" style="width:40%; padding-right: 5px; padding-left: 5px;">
@@ -3955,7 +3926,7 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
                                 <span class="tab-button2 flex-fill text-center px-2 py-1" data-container="${newIndex}" data-tab2="expense-${newIndex}" style="background-color: #F3F4F6; border: 1px solid #aaa; border-bottom-color: #aaa; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-bottom: -1px; color: #6B7280; font-size: 0.8rem; cursor: pointer; margin-left: -1px;">立替</span>
                             </div>
     
-                            <div id="basic2-${newIndex}" class="tab-content2" style="border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 139px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
+                            <div id="basic2-${newIndex}" class="tab-content2" style="border: 1px solid #aaa; border-top: 0; background-color: #fff; padding: 10px; height: 102px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; overflow: auto;">
                                 <div class="file-manager-${newIndex}" style="display: flex; flex-direction: column; height: 100%;">
                                     <div class="file-list file-list-bus" id="file-list-bus-${newBusId}" data-bus-id="${newBusId}" style="flex: 1; margin-bottom: 10px;">
                                         <div class="file-empty-bus" style="text-align: center; padding: 10px 0 0 0; color: #9ca3af; font-size: 11px;">
@@ -4675,13 +4646,20 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
         };
     });
     
-    setupSearch('vehicle_model_code', vehicleModelCodes, (item) => {
+    // setupSearch('vehicle_model_code', vehicleModelCodes, (item) => {
+    //     return {
+    //         display: item.model_code || '',
+    //         id: item.id,
+    //         model_code: item.model_code || ''
+    //     };
+    // }, 'group');
+    setupSearch('vehicle_model_code', vehicleModelCodes.filter(item => item.model_code && item.model_code.trim() !== ''), (item) => {
         return {
             display: item.model_code,
             id: item.id,
             model_code: item.model_code
         };
-    });
+    }, 'group');
     
     const staffs = @json($staffs ?? []);
     setupSearch('staff', staffs, (item) => {

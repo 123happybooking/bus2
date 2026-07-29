@@ -1270,6 +1270,11 @@ class GroupInfoController extends Controller
             'agency_contact' => 'nullable|string',
             'ignore_operation' => 'nullable',
             'ignore_attendance' => 'nullable',
+            
+            'payment_method' => 'nullable|string|max:50',
+            'amount' => 'nullable|integer|min:0',
+            'vehicle_model_code' => 'nullable|string|max:50',
+            
             'reservation_channel' => 'nullable|string|max:100',
             'luggage' => 'nullable|string|max:200',
             'options' => 'nullable|array',
@@ -2335,6 +2340,7 @@ class GroupInfoController extends Controller
                     }
                 }
                 
+        
                 $busAssignments = BusAssignment::where('group_info_id', $groupInfo->id)->get();
     
                 $submittedBusAssignmentData = [];
@@ -2494,9 +2500,6 @@ class GroupInfoController extends Controller
                         'group_name' => $submittedBusData['group_name'] ?? null,
                         'agt_tour_id' => $submittedBusData['agt_tour_id'] ?? null,
                         'agency_country' => $submittedBusData['agency_country'] ?? null,
-                        'payment_method' => $submittedBusData['payment_method'] ?? null,
-                        'amount' => $submittedBusData['amount'] ?? null,
-                        'vehicle_model_code' => $submittedBusData['vehicle_model_code'] ?? null,
                     ]);
                     
                     if (isset($submittedBusData['compensations']) && is_array($submittedBusData['compensations'])) {
@@ -2669,6 +2672,9 @@ class GroupInfoController extends Controller
                 'ignore_operation' => $validated['ignore_operation'] ? 1 : 0,
                 'ignore_attendance' => $validated['ignore_attendance'] ? 1 : 0,
                 'vehicle_grade_id' => $validated['vehicle_grade_id'] ?? null,
+                'payment_method' => $validated['payment_method'] ?? null,
+                'amount' => isset($validated['amount']) && $validated['amount'] !== '' ? (int)$validated['amount'] : null,
+                'vehicle_model_code' => $validated['vehicle_model_code'] ?? null,
                 'updated_at' => now(),
                 'updated_by' => $userId,
             ];
@@ -3297,9 +3303,6 @@ class GroupInfoController extends Controller
                 'lock_arrangement' => $request->boolean('lock_arrangement'),
                 'status_sent' => $request->boolean('status_sent'),
                 'status_finalized' => $request->boolean('status_finalized'),
-                'payment_method' => $request->payment_method,
-                'amount' => $request->amount,
-                'vehicle_model_code' => $request->vehicle_model_code,
                 'updated_by' => $userId,
                 'updated_at' => now(),
             ];

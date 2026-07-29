@@ -17,7 +17,7 @@ class ImportController extends Controller
 {
     private $columnMapping = [
         'A' => 'no',
-        'B' => 'agt_tour_id',
+        'B' => 'agency',
         'C' => 'agency_contact_name',
         'D' => 'payment_method',
         'E' => 'collection_date',
@@ -177,7 +177,7 @@ class ImportController extends Controller
                     $rowData['end_time'] = '18:00:00';
                 }
 
-                $rowData['agt_tour_id'] = $this->getCellValue($row, 'B');
+                $rowData['agency'] = $this->getCellValue($row, 'B');
                 $rowData['agency_contact_name'] = $this->getCellValue($row, 'C');
                 $rowData['payment_method'] = $this->getCellValue($row, 'D');
                 $rowData['group_name'] = $this->getCellValue($row, 'K');
@@ -288,7 +288,7 @@ class ImportController extends Controller
                     'history_id' => $history->id,
                     'result_data' => array_map(function($item) {
                         return [
-                            'agt_tour_id' => $item['agt_tour_id'] ?? null,
+                            'agency' => $item['agency'] ?? null,
                             'group_name' => $item['group_name'] ?? null,
                             'start_date' => $item['start_date'] ?? null,
                             'start_time' => isset($item['start_time']) ? substr($item['start_time'], 0, 5) : null,
@@ -337,8 +337,12 @@ class ImportController extends Controller
         $daysDiff = Carbon::parse($startDate)->diffInDays(Carbon::parse($endDate)) + 1;
 
         $groupInfo = GroupInfo::create([
-            'agt_tour_id' => $rowData['agt_tour_id'] ?? null,
+            'agency' => $rowData['agency'] ?? null,
             'agency_contact_name' => $rowData['agency_contact_name'] ?? null,
+            'reservation_status' => '予約',
+            'payment_method' => $rowData['payment_method'] ?? null,
+            'amount' => $rowData['amount'] ?? null,
+            'vehicle_model_code' => $rowData['vehicle_model_code'] ?? null,
             'start_date' => $startDate,
             'start_time' => $rowData['start_time'] ?? '08:00:00',
             'end_date' => $endDate,
@@ -352,11 +356,8 @@ class ImportController extends Controller
 
         $busAssignment = BusAssignment::create([
             'group_info_id' => $groupInfo->id,
-            'payment_method' => $rowData['payment_method'] ?? null,
-            'amount' => $rowData['amount'] ?? null,
             'representative' => $rowData['representative'] ?? null,
             'representative_phone' => $rowData['representative_phone'] ?? null,
-            'vehicle_model_code' => $rowData['vehicle_model_code'] ?? null,
             'start_date' => $startDate,
             'start_time' => $rowData['start_time'] ?? '08:00:00',
             'end_date' => $endDate,
@@ -437,117 +438,117 @@ class ImportController extends Controller
         ]);
     }
 
-public function updateHistoryData(Request $request, $id)
-{
-    $history = ImportHistory::findOrFail($id);
-    $data = $history->imported_data;
-    $rowIndex = $request->input('row_index');
-    $field = $request->input('field');
-    $value = $request->input('value');
+    public function updateHistoryData(Request $request, $id)
+    {
+        $history = ImportHistory::findOrFail($id);
+        $data = $history->imported_data;
+        $rowIndex = $request->input('row_index');
+        $field = $request->input('field');
+        $value = $request->input('value');
 
-    if (!isset($data[$rowIndex])) {
-        return response()->json(['success' => false, 'message' => '行データが見つかりません']);
-    }
+        if (!isset($data[$rowIndex])) {
+            return response()->json(['success' => false, 'message' => '行データが見つかりません']);
+        }
 
-    $oldRowData = $data[$rowIndex];
-    $newRowData = $oldRowData;
-    $newRowData[$field] = $value;
+        $oldRowData = $data[$rowIndex];
+        $newRowData = $oldRowData;
+        $newRowData[$field] = $value;
 
-    if ($oldRowData[$field] == $value) {
-        return response()->json(['success' => true, 'message' => '変更はありません']);
-    }
+        if ($oldRowData[$field] == $value) {
+            return response()->json(['success' => true, 'message' => '変更はありません']);
+        }
 
-    $data[$rowIndex][$field] = $value;
-    $data[$rowIndex]['status'] = 'pending';
-    $data[$rowIndex]['error'] = null;
+        $data[$rowIndex][$field] = $value;
+        $data[$rowIndex]['status'] = 'pending';
+        $data[$rowIndex]['error'] = null;
 
-    if (isset($oldRowData['group_info_id']) && $oldRowData['group_info_id'] > 0) {
-        $groupId = $oldRowData['group_info_id'];
-        $groupInfo = GroupInfo::find($groupId);
+        if (isset($oldRowData['group_info_id']) && $oldRowData['group_info_id'] > 0) {
+            $groupId = $oldRowData['group_info_id'];
+            $groupInfo = GroupInfo::find($groupId);
 
-        if ($groupInfo) {
-            DB::beginTransaction();
-            try {
-                $groupInfo->update([
-                    'agt_tour_id' => $newRowData['agt_tour_id'] ?? $groupInfo->agt_tour_id,
-                    'agency_contact_name' => $newRowData['agency_contact_name'] ?? $groupInfo->agency_contact_name,
-                    'start_date' => $newRowData['start_date'] ?? $groupInfo->start_date,
-                    'end_date' => $newRowData['end_date'] ?? $groupInfo->end_date,
-                    'group_name' => $newRowData['group_name'] ?? $groupInfo->group_name,
-                    'vehicle_type' => $newRowData['vehicle_type'] ?? $groupInfo->vehicle_type,
-                    'remarks' => $newRowData['remarks'] ?? $groupInfo->remarks,
-                ]);
-
-                $busAssignment = BusAssignment::where('group_info_id', $groupId)->first();
-                if ($busAssignment) {
-                    $busAssignment->update([
-                        'payment_method' => $newRowData['payment_method'] ?? $busAssignment->payment_method,
-                        'amount' => $newRowData['amount'] ?? $busAssignment->amount,
-                        'representative' => $newRowData['representative'] ?? $busAssignment->representative,
-                        'representative_phone' => $newRowData['representative_phone'] ?? $busAssignment->representative_phone,
-                        'vehicle_model_code' => $newRowData['vehicle_model_code'] ?? $busAssignment->vehicle_model_code,
+            if ($groupInfo) {
+                DB::beginTransaction();
+                try {
+                    $groupInfo->update([
+                        'agency' => $newRowData['agency'] ?? $groupInfo->agency,
+                        'agency_contact_name' => $newRowData['agency_contact_name'] ?? $groupInfo->agency_contact_name,
+                        'payment_method' => $newRowData['payment_method'] ?? $groupInfo->payment_method,
+                        'amount' => $newRowData['amount'] ?? $groupInfo->amount,
+                        'vehicle_model_code' => $newRowData['vehicle_model_code'] ?? $groupInfo->vehicle_model_code,
+                        'start_date' => $newRowData['start_date'] ?? $groupInfo->start_date,
+                        'end_date' => $newRowData['end_date'] ?? $groupInfo->end_date,
+                        'group_name' => $newRowData['group_name'] ?? $groupInfo->group_name,
+                        'vehicle_type' => $newRowData['vehicle_type'] ?? $groupInfo->vehicle_type,
+                        'remarks' => $newRowData['remarks'] ?? $groupInfo->remarks,
                     ]);
-                }
 
-                if (!empty($newRowData['start_date'])) {
-                    $itineraries = DailyItinerary::where('group_info_id', $groupId)->get();
-                    $daysCount = $itineraries->count();
-
-                    if ($daysCount == 1) {
-                        $itinerary = $itineraries->first();
-                        $itinerary->update([
-                            'date' => $newRowData['start_date'],
-                            'time_start' => $newRowData['start_time'] ?? '08:00:00',
-                            'time_end' => $newRowData['end_time'] ?? '18:00:00',
+                    $busAssignment = BusAssignment::where('group_info_id', $groupId)->first();
+                    if ($busAssignment) {
+                        $busAssignment->update([
+                            'representative' => $newRowData['representative'] ?? $busAssignment->representative,
+                            'representative_phone' => $newRowData['representative_phone'] ?? $busAssignment->representative_phone,
                         ]);
-                    } else {
-                        $startDate = Carbon::parse($newRowData['start_date']);
-                        foreach ($itineraries as $index => $itinerary) {
+                    }
+
+                    if (!empty($newRowData['start_date'])) {
+                        $itineraries = DailyItinerary::where('group_info_id', $groupId)->get();
+                        $daysCount = $itineraries->count();
+
+                        if ($daysCount == 1) {
+                            $itinerary = $itineraries->first();
                             $itinerary->update([
-                                'date' => $startDate->copy()->addDays($index)->format('Y-m-d'),
+                                'date' => $newRowData['start_date'],
                                 'time_start' => $newRowData['start_time'] ?? '08:00:00',
                                 'time_end' => $newRowData['end_time'] ?? '18:00:00',
                             ]);
+                        } else {
+                            $startDate = Carbon::parse($newRowData['start_date']);
+                            foreach ($itineraries as $index => $itinerary) {
+                                $itinerary->update([
+                                    'date' => $startDate->copy()->addDays($index)->format('Y-m-d'),
+                                    'time_start' => $newRowData['start_time'] ?? '08:00:00',
+                                    'time_end' => $newRowData['end_time'] ?? '18:00:00',
+                                ]);
+                            }
                         }
                     }
+
+                    $data[$rowIndex]['status'] = 'pending';
+                    $data[$rowIndex]['error'] = null;
+                    $history->update(['imported_data' => $data]);
+
+                    DB::commit();
+
+                    return response()->json(['success' => true, 'message' => 'データを更新しました']);
+
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    $data[$rowIndex]['status'] = 'failed';
+                    $data[$rowIndex]['error'] = $e->getMessage();
+                    $history->update(['imported_data' => $data]);
+                    return response()->json(['success' => false, 'message' => $e->getMessage()]);
                 }
-
-                $data[$rowIndex]['status'] = 'pending';
-                $data[$rowIndex]['error'] = null;
-                $history->update(['imported_data' => $data]);
-
-                DB::commit();
-
-                return response()->json(['success' => true, 'message' => 'データを更新しました']);
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $data[$rowIndex]['status'] = 'failed';
-                $data[$rowIndex]['error'] = $e->getMessage();
-                $history->update(['imported_data' => $data]);
-                return response()->json(['success' => false, 'message' => $e->getMessage()]);
             }
         }
-    }
 
-    $history->update(['imported_data' => $data]);
-
-    try {
-        $result = $this->importRow($newRowData);
-        if ($result['success']) {
-            $data[$rowIndex]['status'] = 'pending';
-            $data[$rowIndex]['error'] = null;
-            $data[$rowIndex]['group_info_id'] = $result['group_id'];
-            $history->update(['imported_data' => $data]);
-        }
-        return response()->json(['success' => true]);
-    } catch (\Exception $e) {
-        $data[$rowIndex]['status'] = 'failed';
-        $data[$rowIndex]['error'] = $e->getMessage();
         $history->update(['imported_data' => $data]);
-        return response()->json(['success' => false, 'message' => $e->getMessage()]);
+
+        try {
+            $result = $this->importRow($newRowData);
+            if ($result['success']) {
+                $data[$rowIndex]['status'] = 'pending';
+                $data[$rowIndex]['error'] = null;
+                $data[$rowIndex]['group_info_id'] = $result['group_id'];
+                $history->update(['imported_data' => $data]);
+            }
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            $data[$rowIndex]['status'] = 'failed';
+            $data[$rowIndex]['error'] = $e->getMessage();
+            $history->update(['imported_data' => $data]);
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
-}
 
     public function reimport(Request $request, $id)
     {
@@ -557,55 +558,46 @@ public function updateHistoryData(Request $request, $id)
         $errors = [];
         $successCount = 0;
         $failedCount = 0;
-    
+
         DB::beginTransaction();
-    
+
         try {
             foreach ($data as $index => $row) {
                 if (isset($row['status']) && $row['status'] === 'success') {
                     continue;
                 }
-    
+
                 try {
                     if (isset($row['group_info_id']) && $row['group_info_id'] > 0) {
                         $groupId = $row['group_info_id'];
                         $groupInfo = GroupInfo::find($groupId);
-    
+
                         if ($groupInfo) {
                             $groupInfo->update([
-                                'agt_tour_id' => $row['agt_tour_id'] ?? $groupInfo->agt_tour_id,
+                                'agency' => $row['agency'] ?? $groupInfo->agency,
                                 'agency_contact_name' => $row['agency_contact_name'] ?? $groupInfo->agency_contact_name,
+                                'payment_method' => $row['payment_method'] ?? $groupInfo->payment_method,
+                                'amount' => $row['amount'] ?? $groupInfo->amount,
+                                'vehicle_model_code' => $row['vehicle_model_code'] ?? $groupInfo->vehicle_model_code,
                                 'start_date' => $row['start_date'] ?? $groupInfo->start_date,
                                 'end_date' => $row['end_date'] ?? $groupInfo->end_date,
                                 'group_name' => $row['group_name'] ?? $groupInfo->group_name,
                                 'vehicle_type' => $row['vehicle_type'] ?? $groupInfo->vehicle_type,
                                 'remarks' => $row['remarks'] ?? $groupInfo->remarks,
                             ]);
-    
+
                             $busAssignment = BusAssignment::where('group_info_id', $groupId)->first();
                             if ($busAssignment) {
-                                $vehicleModelCode = $row['vehicle_model_code'] ?? null;
-    
-                                if (empty($vehicleModelCode) && !empty($row['vehicle_type'])) {
-                                    $vehicleModel = VehicleModel::where('model_code', $row['vehicle_type'])->first();
-                                    if ($vehicleModel) {
-                                        $vehicleModelCode = $vehicleModel->model_code;
-                                    }
-                                }
-    
                                 $busAssignment->update([
-                                    'payment_method' => $row['payment_method'] ?? $busAssignment->payment_method,
-                                    'amount' => $row['amount'] ?? $busAssignment->amount,
                                     'representative' => $row['representative'] ?? $busAssignment->representative,
                                     'representative_phone' => $row['representative_phone'] ?? $busAssignment->representative_phone,
-                                    'vehicle_model_code' => $vehicleModelCode ?? $busAssignment->vehicle_model_code,
                                 ]);
                             }
-    
+
                             if (!empty($row['start_date'])) {
                                 $itineraries = DailyItinerary::where('group_info_id', $groupId)->get();
                                 $daysCount = $itineraries->count();
-    
+
                                 if ($daysCount == 1) {
                                     $itinerary = $itineraries->first();
                                     $itinerary->update([
@@ -624,14 +616,14 @@ public function updateHistoryData(Request $request, $id)
                                     }
                                 }
                             }
-    
+
                             $successCount++;
                             $data[$index]['status'] = 'success';
                             $data[$index]['error'] = null;
                             continue;
                         }
                     }
-    
+
                     $result = $this->importRow($row);
                     if ($result['success']) {
                         $successCount++;
@@ -658,9 +650,9 @@ public function updateHistoryData(Request $request, $id)
                     $data[$index]['error'] = $e->getMessage();
                 }
             }
-    
+
             DB::commit();
-    
+
             $history->update([
                 'status' => $failedCount > 0 ? 'failed' : 'completed',
                 'total_rows' => count($data),
@@ -670,14 +662,14 @@ public function updateHistoryData(Request $request, $id)
                 'error_log' => $errors,
                 'updated_at' => now(),
             ]);
-    
+
             return response()->json([
                 'success' => true,
                 'success_rows' => $successCount,
                 'failed_rows' => $failedCount,
                 'errors' => $errors,
             ]);
-    
+
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -743,8 +735,8 @@ public function updateHistoryData(Request $request, $id)
     private function getCellHyperlink($worksheet, $rowIndex, $column)
     {
         try {
-            $columnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($column);
-            $cell = $worksheet->getCellByColumnAndRow($columnIndex, $rowIndex + 1);
+            $cellAddress = $column . ($rowIndex + 1);
+            $cell = $worksheet->getCell($cellAddress);
             if ($cell && $cell->hasHyperlink()) {
                 return $cell->getHyperlink()->getUrl();
             }
