@@ -180,6 +180,7 @@ class ImportController extends Controller
                 $rowData['agency'] = $this->getCellValue($row, 'B');
                 $rowData['agency_contact_name'] = $this->getCellValue($row, 'C');
                 $rowData['payment_method'] = $this->getCellValue($row, 'D');
+                $rowData['content'] = $this->getCellValue($row, 'N');
                 $rowData['group_name'] = $this->getCellValue($row, 'K');
                 $rowData['representative'] = $this->getCellValue($row, 'L');
                 $rowData['representative_phone'] = $this->getCellValue($row, 'M');
@@ -403,6 +404,7 @@ class ImportController extends Controller
                 'date' => $currentDate->format('Y-m-d'),
                 'time_start' => $rowData['start_time'] ?? '08:00:00',
                 'time_end' => $rowData['end_time'] ?? '18:00:00',
+                'itinerary' => ($i === 0) ? ($rowData['content'] ?? null) : null,
                 'created_by' => $userId,
                 'updated_by' => $userId,
             ]);
@@ -497,6 +499,7 @@ class ImportController extends Controller
                                 'date' => $newRowData['start_date'],
                                 'time_start' => $newRowData['start_time'] ?? '08:00:00',
                                 'time_end' => $newRowData['end_time'] ?? '18:00:00',
+                                'itinerary' => $newRowData['content'] ?? $itinerary->itinerary,
                             ]);
                         } else {
                             $startDate = Carbon::parse($newRowData['start_date']);
@@ -505,6 +508,7 @@ class ImportController extends Controller
                                     'date' => $startDate->copy()->addDays($index)->format('Y-m-d'),
                                     'time_start' => $newRowData['start_time'] ?? '08:00:00',
                                     'time_end' => $newRowData['end_time'] ?? '18:00:00',
+                                    'itinerary' => ($index === 0) ? ($newRowData['content'] ?? $itinerary->itinerary) : null,
                                 ]);
                             }
                         }
@@ -601,6 +605,7 @@ class ImportController extends Controller
                                         'date' => $row['start_date'],
                                         'time_start' => $row['start_time'] ?? '08:00:00',
                                         'time_end' => $row['end_time'] ?? '18:00:00',
+                                        'itinerary' => $row['content'] ?? $itinerary->itinerary,
                                     ]);
                                 } else {
                                     $startDate = Carbon::parse($row['start_date']);
@@ -609,6 +614,7 @@ class ImportController extends Controller
                                             'date' => $startDate->copy()->addDays($idx)->format('Y-m-d'),
                                             'time_start' => $row['start_time'] ?? '08:00:00',
                                             'time_end' => $row['end_time'] ?? '18:00:00',
+                                            'itinerary' => ($idx === 0) ? ($row['content'] ?? $itinerary->itinerary) : null,
                                         ]);
                                     }
                                 }
