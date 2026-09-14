@@ -444,6 +444,24 @@
                                     </div>
                                 @endif
                                 
+                                @php
+                                    $workHours = $scheduleData[$driver->id]['daily_work_hours'][$dateStr] ?? 0;
+                                @endphp
+                                @if($workHours > 0 && $workHours > $warningTimeA)
+                                    @php
+                                        if ($workHours >= $warningTimeC) {
+                                            $badgeClass = 'work-hours-badge work-hours-danger';
+                                        } elseif ($workHours >= $warningTimeB) {
+                                            $badgeClass = 'work-hours-badge work-hours-info';
+                                        } else {
+                                            $badgeClass = 'work-hours-badge work-hours-warning';
+                                        }
+                                    @endphp
+                                    <div class="{{ $badgeClass }}" title="本日の勤務時間: {{ $workHours }}時間">
+                                        {{ $workHours }}
+                                    </div>
+                                @endif
+                                
                                 @if($showAttendanceBlock && $attendanceCategoryName)
                                     <div class="attendance-block" 
                                          style="position: absolute; top: 0; left: {{ $attendanceStartPercent }}%; width: {{ $attendanceWidthPercent }}%; height: 100%; background-color: {{ $attendanceColor }}; z-index: 200; cursor: pointer;"
@@ -977,6 +995,63 @@ span.flatpickr-weekday {
 
 .flatpickr-calendar.multiMonth .flatpickr-rContainer {
     width: 514px !important;
+}
+
+
+
+.work-hours-badge {
+    position: absolute;
+    top: 22px;
+    left: 2px;
+    font-size: 0.6rem;
+    font-weight: bold;
+    min-width: 18px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2px;
+    z-index: 200;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.work-hours-badge.work-hours-warning {
+    background-color: #d1d5db;
+    color: #000000;
+}
+
+.work-hours-badge.work-hours-warning:hover {
+    background-color: #9ca3af;
+}
+
+.work-hours-badge.work-hours-info {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.work-hours-badge.work-hours-info:hover {
+    background-color: #1d4ed8;
+}
+
+.work-hours-badge.work-hours-danger {
+    background-color: #dc2626;
+    color: #ffffff;
+}
+
+.work-hours-badge.work-hours-danger:hover {
+    background-color: #b91c1c;
+}
+
+@media (max-width: 768px) {
+    .work-hours-badge {
+        font-size: 0.4rem !important;
+        min-width: 12px !important;
+        height: 12px !important;
+        top: 14px !important;
+        left: 1px !important;
+    }
 }
 
 

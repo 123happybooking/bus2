@@ -106,11 +106,13 @@
                         $rowBgColor = $loop->index % 2 == 0 ? '#f8f9fa' : '#ffffff';
                         $driverTotalCount = 0;
                         $driverTotalWorkload = 0;
+                        $driverTotalWorkHours = 0;
                         foreach($dates as $date) {
                             $dateStr = $date['date_str'];
-                            $stat = $statistics[$driver->id][$dateStr] ?? ['count' => 0, 'workload' => 0];
+                            $stat = $statistics[$driver->id][$dateStr] ?? ['count' => 0, 'workload' => 0, 'work_hours' => 0];
                             $driverTotalCount += $stat['count'];
                             $driverTotalWorkload += $stat['workload'];
+                            $driverTotalWorkHours += $stat['work_hours'] ?? 0;
                         }
                         $formattedDriverTotalWorkload = is_numeric($driverTotalWorkload) && floor($driverTotalWorkload) == $driverTotalWorkload 
                             ? (int)$driverTotalWorkload 
@@ -123,9 +125,10 @@
                         @foreach($dates as $date)
                             @php
                                 $dateStr = $date['date_str'];
-                                $stat = $statistics[$driver->id][$dateStr] ?? ['count' => 0, 'workload' => 0];
+                                $stat = $statistics[$driver->id][$dateStr] ?? ['count' => 0, 'workload' => 0, 'work_hours' => 0];
                                 $workload = $stat['workload'];
                                 $formattedWorkload = is_numeric($workload) && floor($workload) == $workload ? (int)$workload : $workload;
+                                $workHours = $stat['work_hours'] ?? 0;
                             @endphp
                             <td class="text-center" style="background-color: {{ $rowBgColor }};">
                                 @if($stat['count'] != 0)
@@ -134,6 +137,10 @@
                                 <br>
                                 @if($formattedWorkload != 0)
                                     {{ $formattedWorkload }}
+                                @endif
+                                <br>
+                                @if($workHours > 0)
+                                    {{ $workHours }}
                                 @endif
                             </td>
                         @endforeach
@@ -145,6 +152,10 @@
                             @if($formattedDriverTotalWorkload != 0)
                                 {{ $formattedDriverTotalWorkload }}
                             @endif
+                            <br>
+                            @if($driverTotalWorkHours > 0)
+                                {{ $driverTotalWorkHours }}
+                            @endif
                         </td>
                     </tr>
                 @endforeach
@@ -154,9 +165,11 @@
                     $footBgColor = '#e9ecef';
                     $grandTotalCount = 0;
                     $grandTotalWorkload = 0;
+                    $grandTotalWorkHours = 0;
                     foreach($totalStatistics as $stat) {
                         $grandTotalCount += $stat['count'];
                         $grandTotalWorkload += $stat['formatted_workload'];
+                        $grandTotalWorkHours += $stat['work_hours'] ?? 0;  // ✅ 新增
                     }
                     $formattedGrandTotalWorkload = is_numeric($grandTotalWorkload) && floor($grandTotalWorkload) == $grandTotalWorkload 
                         ? (int)$grandTotalWorkload 
@@ -169,7 +182,7 @@
                     @foreach($dates as $date)
                         @php
                             $dateStr = $date['date_str'];
-                            $totalStat = $totalStatistics[$dateStr] ?? ['count' => 0, 'formatted_workload' => 0];
+                            $totalStat = $totalStatistics[$dateStr] ?? ['count' => 0, 'formatted_workload' => 0, 'work_hours' => 0];
                         @endphp
                         <td class="text-center" style="background-color: {{ $footBgColor }};">
                             @if($totalStat['count'] != 0)
@@ -178,6 +191,10 @@
                             <br>
                             @if($totalStat['formatted_workload'] != 0)
                                 {{ $totalStat['formatted_workload'] }}
+                            @endif
+                            <br>
+                            @if(($totalStat['work_hours'] ?? 0) > 0)
+                                {{ $totalStat['work_hours'] }}
                             @endif
                         </td>
                     @endforeach
@@ -188,6 +205,10 @@
                         <br>
                         @if($formattedGrandTotalWorkload != 0)
                             {{ $formattedGrandTotalWorkload }}
+                        @endif
+                        <br>
+                        @if($grandTotalWorkHours > 0)
+                            {{ $grandTotalWorkHours }}
                         @endif
                     </td>
                 </tr>
@@ -215,6 +236,12 @@
                     <label class="d-flex align-items-center" style="cursor: pointer;">
                         <input type="checkbox" id="export_workload" value="workload" class="me-2" checked>
                         <span>工数</span>
+                    </label>
+                </div>
+                <div class="mb-3">
+                    <label class="d-flex align-items-center" style="cursor: pointer;">
+                        <input type="checkbox" id="export_work_hours" value="work_hours" class="me-2" checked>
+                        <span>勤務時間</span>
                     </label>
                 </div>
                 <div class="d-flex justify-content-end gap-2 mt-3">
@@ -428,8 +455,9 @@ function closeExportModal() {
 function exportExcel() {
     const countChecked = document.getElementById('export_count').checked;
     const workloadChecked = document.getElementById('export_workload').checked;
+    const workHoursChecked = document.getElementById('export_work_hours').checked;
     
-    if (!countChecked && !workloadChecked) {
+    if (!countChecked && !workloadChecked && !workHoursChecked) {
         alert('出力する項目を少なくとも1つ選択してください。');
         return;
     }
@@ -437,6 +465,7 @@ function exportExcel() {
     const exportOptions = [];
     if (countChecked) exportOptions.push('count');
     if (workloadChecked) exportOptions.push('workload');
+    if (workHoursChecked) exportOptions.push('work_hours');
     
     const startDate = document.querySelector('input[name="start_date"]').value;
     

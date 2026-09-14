@@ -97,6 +97,8 @@ class DriverPerformanceController extends Controller
             $statistics[$did] = [];
         }
         
+        $dailyTimeData = [];
+        
         foreach ($itineraries as $itinerary) {
             $did = $itinerary->driver_id;
             if ($itinerary->date instanceof \Carbon\Carbon) {
@@ -109,11 +111,42 @@ class DriverPerformanceController extends Controller
                 $statistics[$did][$dateStr] = [
                     'count' => 0,
                     'workload' => 0,
+                    'work_hours' => 0,
                 ];
             }
             
             $statistics[$did][$dateStr]['count']++;
             $statistics[$did][$dateStr]['workload'] += (float)($itinerary->driver_workload ?? 0);
+            
+            if (!isset($dailyTimeData[$did][$dateStr])) {
+                $dailyTimeData[$did][$dateStr] = [
+                    'start_minutes' => [],
+                    'end_minutes' => [],
+                ];
+            }
+            
+            if ($itinerary->time_start) {
+                $startTime = Carbon::parse($itinerary->time_start);
+                $dailyTimeData[$did][$dateStr]['start_minutes'][] = $startTime->hour * 60 + $startTime->minute;
+            }
+            if ($itinerary->time_end) {
+                $endTime = Carbon::parse($itinerary->time_end);
+                $dailyTimeData[$did][$dateStr]['end_minutes'][] = $endTime->hour * 60 + $endTime->minute;
+            }
+        }
+        
+        foreach ($dailyTimeData as $did => $dateData) {
+            foreach ($dateData as $dateStr => $times) {
+                if (!empty($times['start_minutes']) && !empty($times['end_minutes'])) {
+                    $firstStart = min($times['start_minutes']);
+                    $lastEnd = max($times['end_minutes']);
+                    $diffMinutes = $lastEnd - $firstStart;
+                    
+                    if ($diffMinutes > 0) {
+                        $statistics[$did][$dateStr]['work_hours'] = (int)ceil($diffMinutes / 60);
+                    }
+                }
+            }
         }
         
         $totalStatistics = [];
@@ -121,12 +154,14 @@ class DriverPerformanceController extends Controller
             $dateStr = $date['date_str'];
             $totalCount = 0;
             $totalWorkload = 0;
+            $totalWorkHours = 0;
             
             foreach ($drivers as $driver) {
                 $did = $driver->id;
                 if (isset($statistics[$did][$dateStr])) {
                     $totalCount += $statistics[$did][$dateStr]['count'];
                     $totalWorkload += $statistics[$did][$dateStr]['workload'];
+                    $totalWorkHours += $statistics[$did][$dateStr]['work_hours'] ?? 0;
                 }
             }
             
@@ -134,7 +169,8 @@ class DriverPerformanceController extends Controller
                 'count' => $totalCount,
                 'formatted_workload' => is_numeric($totalWorkload) && floor($totalWorkload) == $totalWorkload 
                     ? (int)$totalWorkload 
-                    : $totalWorkload
+                    : $totalWorkload,
+                'work_hours' => $totalWorkHours,
             ];
         }
         
@@ -226,6 +262,8 @@ class DriverPerformanceController extends Controller
             $statistics[$did] = [];
         }
         
+        $dailyTimeData = [];
+        
         foreach ($itineraries as $itinerary) {
             $did = $itinerary->driver_id;
             if ($itinerary->date instanceof \Carbon\Carbon) {
@@ -238,11 +276,68 @@ class DriverPerformanceController extends Controller
                 $statistics[$did][$dateStr] = [
                     'count' => 0,
                     'workload' => 0,
+                    'work_hours' => 0,
                 ];
             }
             
             $statistics[$did][$dateStr]['count']++;
             $statistics[$did][$dateStr]['workload'] += (float)($itinerary->driver_workload ?? 0);
+            
+            if (!isset($dailyTimeData[$did][$dateStr])) {
+                $dailyTimeData[$did][$dateStr] = [
+                    'start_minutes' => [],
+                    'end_minutes' => [],
+                ];
+            }
+            
+            if ($itinerary->time_start) {
+                $startTime = Carbon::parse($itinerary->time_start);
+                $dailyTimeData[$did][$dateStr]['start_minutes'][] = $startTime->hour * 60 + $startTime->minute;
+            }
+            if ($itinerary->time_end) {
+                $endTime = Carbon::parse($itinerary->time_end);
+                $dailyTimeData[$did][$dateStr]['end_minutes'][] = $endTime->hour * 60 + $endTime->minute;
+            }
+        }
+        
+        foreach ($dailyTimeData as $did => $dateData) {
+            foreach ($dateData as $dateStr => $times) {
+                if (!empty($times['start_minutes']) && !empty($times['end_minutes'])) {
+                    $firstStart = min($times['start_minutes']);
+                    $lastEnd = max($times['end_minutes']);
+                    $diffMinutes = $lastEnd - $firstStart;
+                    
+                    if ($diffMinutes > 0) {
+                        $statistics[$did][$dateStr]['work_hours'] = (int)ceil($diffMinutes / 60);
+                    }
+                }
+            }
+        }
+        
+        
+        $totalStatistics = [];
+        foreach ($dates as $date) {
+            $dateStr = $date['date_str'];
+            $totalCount = 0;
+            $totalWorkload = 0;
+            $totalWorkHours = 0;
+            
+            foreach ($drivers as $driver) {
+                $did = $driver->id;
+                if (isset($statistics[$did][$dateStr])) {
+                    $totalCount += $statistics[$did][$dateStr]['count'];
+                    $totalWorkload += $statistics[$did][$dateStr]['workload'];
+                    $totalWorkHours += $statistics[$did][$dateStr]['work_hours'] ?? 0;
+                }
+            }
+            
+            $totalStatistics[$dateStr] = [
+                'count' => $totalCount,
+                'formatted_workload' => is_numeric($totalWorkload) && floor($totalWorkload) == $totalWorkload 
+                    ? (int)$totalWorkload 
+                    : $totalWorkload,
+                'work_hours' => $totalWorkHours,
+            ];
         }
         
         $companyInfo = ['name' => ''];
@@ -256,7 +351,7 @@ class DriverPerformanceController extends Controller
         $username = session('username', auth()->user()->name ?? '');
         
         return Excel::download(
-            new DriverPerformanceExport($dates, $drivers, $statistics, $companyInfo, $username, $exportOptions),
+            new DriverPerformanceExport($dates, $drivers, $statistics, $companyInfo, $username, $exportOptions, $totalStatistics),
             '運転手実績_' . $startDate . '_' . $endDate . '.xlsx'
         );
     }

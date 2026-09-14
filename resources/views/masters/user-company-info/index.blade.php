@@ -363,6 +363,39 @@
                             </div>
                             
                             <div class="col-md-3">
+                                <label for="warning_time_a" class="form-label">警告時間A</label>
+                                <input type="number" class="form-control @error('warning_time_a') is-invalid @enderror" 
+                                       id="warning_time_a" name="warning_time_a" 
+                                       value="{{ old('warning_time_a', $UserCompanyInfo->warning_time_a) }}" 
+                                       min="0" step="1">
+                                @error('warning_time_a')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label for="warning_time_b" class="form-label">警告時間B</label>
+                                <input type="number" class="form-control @error('warning_time_b') is-invalid @enderror" 
+                                       id="warning_time_b" name="warning_time_b" 
+                                       value="{{ old('warning_time_b', $UserCompanyInfo->warning_time_b) }}" 
+                                       min="0" step="1">
+                                @error('warning_time_b')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label for="warning_time_c" class="form-label">警告時間C</label>
+                                <input type="number" class="form-control @error('warning_time_c') is-invalid @enderror" 
+                                       id="warning_time_c" name="warning_time_c" 
+                                       value="{{ old('warning_time_c', $UserCompanyInfo->warning_time_c) }}" 
+                                       min="0" step="1">
+                                @error('warning_time_c')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="col-md-3">
                                 <label for="setup_bank_name" class="form-label">入金銀行初期設定値</label>
                                 <input type="text" class="form-control @error('setup_bank_name') is-invalid @enderror" 
                                        id="setup_bank_name" name="setup_bank_name" 

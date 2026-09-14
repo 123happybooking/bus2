@@ -12,6 +12,7 @@ use App\Models\Masters\Agency;
 use App\Models\Masters\Branch;
 use App\Models\Masters\GroupInfoDateRemark;
 use App\Models\Masters\DriverAttendance;
+use App\Models\Masters\UserCompanyInfo;
 use App\Helpers\HolidayHelper;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -20,6 +21,11 @@ class DriverLedgerController extends Controller
 {
     public function index(Request $request)
     {
+        $companyInfo = UserCompanyInfo::first();
+        $warningTimeA = $companyInfo->warning_time_a ?? 0;
+        $warningTimeB = $companyInfo->warning_time_b ?? 0;
+        $warningTimeC = $companyInfo->warning_time_c ?? 0;
+        
         $sessionKey = 'driver_ledger_search';
                 
         $searchFields = ['start_date', 'period', 'display_days'];
@@ -302,6 +308,7 @@ class DriverLedgerController extends Controller
         foreach ($drivers as $driver) {
             $driverIdVal = $driver->id;
             $driverSchedule = [];
+            $dailyWorkHours = [];
             
             foreach ($dates as $dateInfo) {
                 $dateStr = $dateInfo['date']->format('Y-m-d');
@@ -313,14 +320,41 @@ class DriverLedgerController extends Controller
                 
                 if ($dayItineraries->count() > 0) {
                     $driverSchedule[$dateStr] = $this->formatItineraries($dayItineraries, $busColors);
+                    
+                    $startTimes = [];
+                    $endTimes = [];
+                    foreach ($dayItineraries as $itinerary) {
+                        if ($itinerary->time_start) {
+                            $startTimes[] = Carbon::parse($itinerary->time_start)->hour * 60 + Carbon::parse($itinerary->time_start)->minute;
+                        }
+                        if ($itinerary->time_end) {
+                            $endTimes[] = Carbon::parse($itinerary->time_end)->hour * 60 + Carbon::parse($itinerary->time_end)->minute;
+                        }
+                    }
+                    
+                    if (!empty($startTimes) && !empty($endTimes)) {
+                        $firstStart = min($startTimes);
+                        $lastEnd = max($endTimes);
+                        $diffMinutes = $lastEnd - $firstStart;
+                        
+                        if ($diffMinutes > 0) {
+                            $dailyWorkHours[$dateStr] = (int)ceil($diffMinutes / 60);
+                        } else {
+                            $dailyWorkHours[$dateStr] = 0;
+                        }
+                    } else {
+                        $dailyWorkHours[$dateStr] = 0;
+                    }
                 } else {
                     $driverSchedule[$dateStr] = null;
+                    $dailyWorkHours[$dateStr] = 0;
                 }
             }
             
             $scheduleData[$driverIdVal] = [
                 'driver' => $driver,
-                'schedule' => $driverSchedule
+                'schedule' => $driverSchedule,
+                'daily_work_hours' => $dailyWorkHours
             ];
         }
         
@@ -385,6 +419,9 @@ class DriverLedgerController extends Controller
             'scheduleData',
             'startDate',
             'endDate',
+            'warningTimeA',
+            'warningTimeB',
+            'warningTimeC',
             'vehicleTypes',
             'vehicles',
             'branches',
