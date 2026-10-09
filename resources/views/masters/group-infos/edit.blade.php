@@ -65,6 +65,10 @@
                             style="background-color: #dc2626; border: none; color: white; font-size: 0.7rem; padding: 2px 10px; border-radius: 4px;">
                         <i class="bi bi-file-pdf"></i> 最終確認書
                     </button>
+                    <button type="button" id="btnTransportReceipt" class="btn btn-sm" 
+                            style="background-color: #dc2626; border: none; color: white; font-size: 0.7rem; padding: 2px 10px; border-radius: 4px;">
+                        <i class="bi bi-file-pdf"></i> 運送引受書
+                    </button>
                 </div>
             </div>
             <div class="card-body p-2">
@@ -164,9 +168,27 @@
                         <div class="row mb-1">
                             <div class="col-md-12">
                                 <div class="d-flex w-100 gap-2">
-                                    <div class="d-flex align-items-center w-50">
-                                        <span class="span-label" style="min-width: 50px; white-space: nowrap;">団体名</span>
-                                        <input type="text" class="form-control form-control-sm border w-100" name="group_name" value="{{ old('group_name', $groupInfo->group_name ?? '') }}">
+                                    <div class="d-flex w-50 gap-2">
+                                        <div class="d-flex align-items-center w-50">
+                                            <span class="span-label" style="min-width: 50px; white-space: nowrap;">団体名</span>
+                                            <input type="text" class="form-control form-control-sm border w-100" name="group_name" value="{{ old('group_name', $groupInfo->group_name ?? '') }}">
+                                        </div>
+                                        <div class="d-flex align-items-center w-50">
+                                            <span class="span-label" style="min-width: 50px;">申込</span>
+                                            <div class="flex-1 position-relative w-100">
+                                                <select name="application_method_id" id="application_method_id" class="form-select form-select-sm border w-100">
+                                                    <option value=""></option>
+                                                    @foreach($applicationMethods ?? [] as $method)
+                                                        <option value="{{ $method->id }}"
+                                                            {{ old('application_method_id', $groupInfo->application_method_id ?? '') == $method->id ? 'selected' : '' }}>
+                                                            {{ $method->method_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        
                                     </div>
                                     
                                     <div class="d-flex w-50 gap-2">
@@ -239,8 +261,15 @@
                                             <span class="span-label" style="min-width: 50px;">金額</span>
                                             <input type="number" class="form-control form-control-sm border w-100" 
                                                    name="amount" 
+                                                   id="amount_input"
                                                    value="{{ old('amount', $groupInfo->amount ? intval($groupInfo->amount) : '') }}" 
-                                                   placeholder="0" step="1" min="0">
+                                                   placeholder="0" step="1" min="0" readonly
+                                                   data-bs-toggle="modal" data-bs-target="#fareModal"
+                                                   style="cursor: pointer; background-color: #fff;">
+                                                   
+                                            <input type="hidden" name="fare_base" id="fare_base_hidden" value="{{ old('fare_base', $groupInfo->fare_base ?? '') }}">
+                                            <input type="hidden" name="fare_charge" id="fare_charge_hidden" value="{{ old('fare_charge', $groupInfo->fare_charge ?? '') }}">
+                                            <input type="hidden" name="fare_breakdown" id="fare_breakdown_hidden" value="{{ old('fare_breakdown', $groupInfo->fare_breakdown ?? '') }}">
                                         </div>
                                     </div>
                                     
@@ -465,6 +494,12 @@
                                     data-vehicle-index="{{ $vehicleIndex }}"
                                     style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
                                 <i class="bi bi-file-pdf"></i> 運行指示書PDF
+                            </button>
+                            <button type="button" class="btn-pdf-export2 btn btn-sm" 
+                                    data-bus-id="{{ $busId }}" 
+                                    data-vehicle-index="{{ $vehicleIndex }}"
+                                    style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
+                                <i class="bi bi-file-pdf"></i> 運行指示書PDF2
                             </button>
                         </h6>
                         <div class="d-flex align-items-center ms-auto card-header-actions" style="gap: 15px;">
@@ -860,6 +895,30 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        
+                        <div class="row mt-2">
+                            <div class="col-md-12">
+                                <div class="d-flex align-items-center" style="gap: 8px;">
+                                    <span class="span-label" style="min-width: 62px !important; width: 62px !important; white-space: nowrap;">開始地点</span>
+                                    <div class="position-relative" style="flex: 1;">
+                                        <input type="text" class="form-control form-control-sm border search-input"
+                                               id="departure_location_search_{{ $vehicleIndex }}"
+                                               name="bus_assignments[{{ $vehicleIndex }}][departure_location]"
+                                               value="{{ $busAssignment->departure_location ?? '' }}"
+                                               placeholder="開始地点" autocomplete="off">
+                                        <div class="suggestions-container" id="departure_location_suggestions_{{ $vehicleIndex }}" style="display: none;"></div>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm border datepicker-3months" style="width: 160px;"
+                                           name="bus_assignments[{{ $vehicleIndex }}][departure_date]"
+                                           value="{{ $busAssignment->departure_date ? \Carbon\Carbon::parse($busAssignment->departure_date)->format('Y-m-d') : '' }}"
+                                           placeholder="YYYY-MM-DD" autocomplete="off">
+                                    <input type="time" class="form-control form-control-sm border" style="width: 110px;" step="60"
+                                           name="bus_assignments[{{ $vehicleIndex }}][departure_time]"
+                                           value="{{ $busAssignment->departure_time ? \Carbon\Carbon::parse($busAssignment->departure_time)->format('H:i') : '' }}">
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="row mt-2">
                             <div class="col-md-12">
@@ -978,6 +1037,30 @@
                             </div>
                         </div>
                         
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="d-flex align-items-center" style="gap: 8px;">
+                                    <span class="span-label" style="min-width: 62px !important; width: 62px !important; white-space: nowrap;">終了地点</span>
+                                    <div class="position-relative" style="flex: 1;">
+                                        <input type="text" class="form-control form-control-sm border search-input"
+                                               id="arrival_location_search_{{ $vehicleIndex }}"
+                                               name="bus_assignments[{{ $vehicleIndex }}][arrival_location]"
+                                               value="{{ $busAssignment->arrival_location ?? '' }}"
+                                               placeholder="終了地点" autocomplete="off">
+                                        <div class="suggestions-container" id="arrival_location_suggestions_{{ $vehicleIndex }}" style="display: none;"></div>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm border datepicker-3months" style="width: 160px;"
+                                           name="bus_assignments[{{ $vehicleIndex }}][arrival_date]"
+                                           value="{{ $busAssignment->arrival_date ? \Carbon\Carbon::parse($busAssignment->arrival_date)->format('Y-m-d') : '' }}"
+                                           placeholder="YYYY-MM-DD" autocomplete="off">
+                                    <input type="time" class="form-control form-control-sm border" style="width: 110px;" step="60"
+                                           name="bus_assignments[{{ $vehicleIndex }}][arrival_time]"
+                                           value="{{ $busAssignment->arrival_time ? \Carbon\Carbon::parse($busAssignment->arrival_time)->format('H:i') : '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
                         <div class="row mt-2" style="margin-right: -5px; margin-left: -5px;">
                             <div class="col-md-6" style="width:60%; padding-right: 5px; padding-left: 5px;">
                                 <div class="d-flex w-100 mb-1">
@@ -1071,6 +1154,56 @@
                 <button onclick="closeLocationModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #fff;">&times;</button>
             </div>
             <iframe id="locationModalIframe" src="" style="width: 100%; height: 480px; border: none; display: block;"></iframe>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div class="modal" id="fareModal" tabindex="-1" aria-labelledby="fareModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white py-2">
+                <h6 class="modal-title" id="fareModalLabel">
+                    運賃・料金
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="閉じる"></button>
+            </div>
+            <div class="modal-body" style="font-size:12px;color:#aaa;">
+            
+                <div class="mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center flex-fill">
+                            <span class="span-label" style="min-width: 50px;">運賃</span>
+                            <input type="number" class="form-control form-control-sm border" id="fare_base" step="1" min="0" placeholder="0">
+                            <span class="ms-1">円</span>
+                        </div>
+                        <div class="d-flex align-items-center flex-fill">
+                            <span class="span-label" style="min-width: 50px;">料金</span>
+                            <input type="number" class="form-control form-control-sm border" id="fare_charge" step="1" min="0" placeholder="0">
+                            <span class="ms-1">円</span>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="d-flex align-items-center mb-2">
+                    <span class="span-label" style="min-width: 90px;">料金の内訳</span>
+                    <input type="text" class="form-control form-control-sm border" id="fare_breakdown" placeholder="内訳を入力">
+                </div>
+            
+                <div class="d-flex align-items-center mb-2">
+                    <span class="span-label" style="min-width: 90px;">合計</span>
+                    <input type="number" class="form-control form-control-sm border" id="fare_total" step="1" min="0" readonly style="background-color: #f3f4f6;">
+                    <span class="ms-1" style="white-space: nowrap;">円（消費税等を含む）</span>
+                </div>
+            
+            </div>
+            <div class="modal-footer py-1">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary btn-sm" id="fareApplyBtn">確認</button>
+            </div>
         </div>
     </div>
 </div>
@@ -2306,7 +2439,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let endDateValue = null;
     
     
-    document.querySelectorAll('.vehicle-itinerary-table .datepicker-3months, #itinerary-table .datepicker-3months').forEach(function(el) {
+    document.querySelectorAll('.datepicker-3months').forEach(function(el) {
         if (!el._flatpickr) {
             flatpickr(el, {
                 locale: 'ja',
@@ -2592,142 +2725,141 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-function updateBusDetailClickHandler(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const btn = this;
-    const card = btn.closest('.card');
-    const groupId = {{ $groupInfo->id }};
-    const busId = card.getAttribute('data-bus-id');
-    
-    const vehicleSelect = card.querySelector('.vehicle-select');
-    const driverSelect = card.querySelector('.driver-select');
-    const guideSelect = card.querySelector('.guide-select');
-    
-    const vehicleId = vehicleSelect ? vehicleSelect.value : '';
-    const driverId = driverSelect ? driverSelect.value : '';
-    const guideId = guideSelect ? guideSelect.value : '';
-    
-    if (!vehicleId) {
-        alert('車両を選択してください。');
-        return;
-    }
-    
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '更新中...';
-    btn.disabled = true;
-    
-    const itineraries = [];
-    const rows = card.querySelectorAll('tbody tr.itinerary-row');
-    
-    
-    rows.forEach((row, index) => {
-        const dateInput = row.querySelector('input[name*="[date]"]');
-        let dateValue = dateInput ? dateInput.value : '';
-        if (dateValue && dateValue.includes(' ')) {
-            dateValue = dateValue.split(' ')[0];
-        }
+    function updateBusDetailClickHandler(e) {
+        e.preventDefault();
+        e.stopPropagation();
         
-        let rowVehicleId = row.querySelector('.itinerary-vehicle-id')?.value;
-        if (!rowVehicleId || rowVehicleId === '0') {
-            rowVehicleId = vehicleId;
-        }
+        const btn = this;
+        const card = btn.closest('.card');
+        const groupId = {{ $groupInfo->id }};
+        const busId = card.getAttribute('data-bus-id');
         
-        const timeStartInput = row.querySelector('input[name*="[time_start]"]');
-        const timeEndInput = row.querySelector('input[name*="[time_end]"]');
-        const startLocationInput = row.querySelector('input[name*="[start_location]"]');
-        const endLocationInput = row.querySelector('input[name*="[end_location]"]');
-        const itineraryTextarea = row.querySelector('textarea[name*="[itinerary]"]');
-        const vehicle_workload = row.querySelector('textarea[name*="[vehicle_workload]"]');
-        const driver_workload = row.querySelector('textarea[name*="[driver_workload]"]');
+        const vehicleSelect = card.querySelector('.vehicle-select');
+        const driverSelect = card.querySelector('.driver-select');
+        const guideSelect = card.querySelector('.guide-select');
         
-        const itineraryId = row.getAttribute('data-itinerary-id') || '';
+        const vehicleId = vehicleSelect ? vehicleSelect.value : null;
+        const driverId = driverSelect ? driverSelect.value : '';
+        const guideId = guideSelect ? guideSelect.value : '';
         
-        itineraries.push({
-            id: itineraryId,
-            date: dateValue,
-            time_start: timeStartInput ? timeStartInput.value : '08:00',
-            time_end: timeEndInput ? timeEndInput.value : '18:00',
-            start_location: startLocationInput ? startLocationInput.value : '',
-            end_location: endLocationInput ? endLocationInput.value : '',
-            itinerary: itineraryTextarea ? itineraryTextarea.value : '',
-            vehicle_workload: vehicleWorkloadInput ? vehicleWorkloadInput.value : '',
-            driver_workload: driverWorkloadInput ? driverWorkloadInput.value : '',
-            vehicle_id: rowVehicleId,
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '更新中...';
+        btn.disabled = true;
+        
+        const itineraries = [];
+        const rows = card.querySelectorAll('tbody tr.itinerary-row');
+        
+        rows.forEach((row, index) => {
+            const dateInput = row.querySelector('input[name*="[date]"]');
+            let dateValue = dateInput ? dateInput.value : '';
+            if (dateValue && dateValue.includes(' ')) {
+                dateValue = dateValue.split(' ')[0];
+            }
+            
+            let rowVehicleId = row.querySelector('.itinerary-vehicle-id')?.value;
+            if ((!rowVehicleId || rowVehicleId === '0') && vehicleId) {
+                rowVehicleId = vehicleId;
+            }
+            
+            const timeStartInput = row.querySelector('input[name*="[time_start]"]');
+            const timeEndInput = row.querySelector('input[name*="[time_end]"]');
+            const startLocationInput = row.querySelector('input[name*="[start_location]"]');
+            const endLocationInput = row.querySelector('input[name*="[end_location]"]');
+            const itineraryTextarea = row.querySelector('textarea[name*="[itinerary]"]');
+            const vehicleWorkloadInput = row.querySelector('input[name*="[vehicle_workload]"]');
+            const driverWorkloadInput = row.querySelector('input[name*="[driver_workload]"]');
+            
+            const itineraryId = row.getAttribute('data-itinerary-id') || '';
+            
+            itineraries.push({
+                id: itineraryId,
+                date: dateValue,
+                time_start: timeStartInput ? timeStartInput.value : '08:00',
+                time_end: timeEndInput ? timeEndInput.value : '18:00',
+                start_location: startLocationInput ? startLocationInput.value : '',
+                end_location: endLocationInput ? endLocationInput.value : '',
+                itinerary: itineraryTextarea ? itineraryTextarea.value : '',
+                vehicle_workload: vehicleWorkloadInput ? vehicleWorkloadInput.value : '',
+                driver_workload: driverWorkloadInput ? driverWorkloadInput.value : '',
+                vehicle_id: rowVehicleId,
+                driver_id: driverId,
+                guide_id: guideId,
+                bus_assignment_id: busId
+            });
+        });
+        
+        const busData = {
+            bus_id: busId,
+            vehicle_id: vehicleId,
             driver_id: driverId,
             guide_id: guideId,
-            bus_assignment_id: busId
-        });
-    });
-    
-    
-    const busData = {
-        bus_id: busId,
-        vehicle_id: vehicleId,
-        driver_id: driverId,
-        guide_id: guideId,
-        vehicle_number: card.querySelector('input[name*="[vehicle_number]"]')?.value || '',
-        step_car: card.querySelector('input[name*="[step_car]"]')?.value || '',
-        adult_count: card.querySelector('input[name*="[adult_count]"]')?.value || 0,
-        child_count: card.querySelector('input[name*="[child_count]"]')?.value || 0,
-        guide_count: card.querySelector('input[name*="[guide_count]"]')?.value || 0,
-        other_count: card.querySelector('input[name*="[other_count]"]')?.value || 0,
-        luggage_count: card.querySelector('input[name*="[luggage_count]"]')?.value || 0,
-        vehicle_model_code: card.querySelector('input[name*="[vehicle_model_code]"]')?.value || '',
-        vehicle_type_spec_check: card.querySelector('input[name*="[vehicle_type_spec_check]"]')?.checked ? 1 : 0,
-        temporary_driver: card.querySelector('input[name*="[temporary_driver]"]')?.checked ? 1 : 0,
-        accompanying: card.querySelector('input[name*="[accompanying]"]')?.value || '',
-        representative: card.querySelector('input[name*="[representative]"]')?.value || '',
-        representative_phone: card.querySelector('input[name*="[representative_phone]"]')?.value || '',
-        attention: card.querySelector('input[name*="[attention]"]')?.value || '',
-        operation_remarks: card.querySelector('textarea[name*="[operation_remarks]"]')?.value || '',
-        operation_memo: card.querySelector('textarea[name*="[operation_memo]"]')?.value || '',
-        operation_basic_remarks: card.querySelector('textarea[name*="[operation_basic_remarks]"]')?.value || '',
-        doc_remarks: card.querySelector('textarea[name*="[doc_remarks]"]')?.value || '',
-        history_remarks: card.querySelector('textarea[name*="[history_remarks]"]')?.value || '',
-        lock_arrangement: card.querySelector('input[name*="[lock_arrangement]"]')?.checked ? 1 : 0,
-        status_sent: card.querySelector('input[name*="[status_sent]"]')?.checked ? 1 : 0,
-        status_finalized: card.querySelector('input[name*="[status_finalized]"]')?.checked ? 1 : 0,
-        itineraries: itineraries,
-        _token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
-    };
-    
-    fetch(`/masters/group-infos/${groupId}/update-bus-assignment`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': busData._token,
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify(busData)
-    })
-    .then(async response => {
-        const text = await response.text();
-        try {
-            const data = JSON.parse(text);
-            if (data.success) {
-                alert('運行詳細を更新しました。');
-                location.reload();
-            } else {
-                alert('エラー: ' + data.message);
+            vehicle_number: card.querySelector('input[name*="[vehicle_number]"]')?.value || '',
+            step_car: card.querySelector('input[name*="[step_car]"]')?.value || '',
+            adult_count: card.querySelector('input[name*="[adult_count]"]')?.value || 0,
+            child_count: card.querySelector('input[name*="[child_count]"]')?.value || 0,
+            guide_count: card.querySelector('input[name*="[guide_count]"]')?.value || 0,
+            other_count: card.querySelector('input[name*="[other_count]"]')?.value || 0,
+            luggage_count: card.querySelector('input[name*="[luggage_count]"]')?.value || 0,
+            vehicle_model_code: card.querySelector('input[name*="[vehicle_model_code]"]')?.value || '',
+            vehicle_type_spec_check: card.querySelector('input[name*="[vehicle_type_spec_check]"]')?.checked ? 1 : 0,
+            temporary_driver: card.querySelector('input[name*="[temporary_driver]"]')?.checked ? 1 : 0,
+            accompanying: card.querySelector('input[name*="[accompanying]"]')?.value || '',
+            representative: card.querySelector('input[name*="[representative]"]')?.value || '',
+            representative_phone: card.querySelector('input[name*="[representative_phone]"]')?.value || '',
+            attention: card.querySelector('input[name*="[attention]"]')?.value || '',
+            operation_remarks: card.querySelector('textarea[name*="[operation_remarks]"]')?.value || '',
+            operation_memo: card.querySelector('textarea[name*="[operation_memo]"]')?.value || '',
+            operation_basic_remarks: card.querySelector('textarea[name*="[operation_basic_remarks]"]')?.value || '',
+            doc_remarks: card.querySelector('textarea[name*="[doc_remarks]"]')?.value || '',
+            history_remarks: card.querySelector('textarea[name*="[history_remarks]"]')?.value || '',
+            lock_arrangement: card.querySelector('input[name*="[lock_arrangement]"]')?.checked ? 1 : 0,
+            status_sent: card.querySelector('input[name*="[status_sent]"]')?.checked ? 1 : 0,
+            status_finalized: card.querySelector('input[name*="[status_finalized]"]')?.checked ? 1 : 0,
+            departure_location: card.querySelector('input[name*="[departure_location]"]')?.value || '',
+            departure_date: card.querySelector('input[name*="[departure_date]"]')?.value || '',
+            departure_time: card.querySelector('input[name*="[departure_time]"]')?.value || '',
+            arrival_location: card.querySelector('input[name*="[arrival_location]"]')?.value || '',
+            arrival_date: card.querySelector('input[name*="[arrival_date]"]')?.value || '',
+            arrival_time: card.querySelector('input[name*="[arrival_time]"]')?.value || '',
+            itineraries: itineraries,
+            _token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
+        };
+        
+        fetch(`/masters/group-infos/${groupId}/update-bus-assignment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': busData._token,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(busData)
+        })
+        .then(async response => {
+            const text = await response.text();
+            try {
+                const data = JSON.parse(text);
+                if (data.success) {
+                    alert('運行詳細を更新しました。');
+                    location.reload();
+                } else {
+                    alert('エラー: ' + data.message);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                console.error('JSON解析エラー:', e);
+                alert('サーバーからの応答が不正です。');
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
-        } catch (e) {
-            console.error('JSON解析エラー:', e);
-            alert('サーバーからの応答が不正です。');
+        })
+        .catch(error => {
+            console.error('Fetchエラー:', error);
+            alert('更新中にエラーが発生しました: ' + error.message);
             btn.innerHTML = originalText;
             btn.disabled = false;
-        }
-    })
-    .catch(error => {
-        console.error('Fetchエラー:', error);
-        alert('更新中にエラーが発生しました: ' + error.message);
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    });
-}
+        });
+    }
 
     function addClickHandler(e) {
         e.preventDefault();
@@ -2908,6 +3040,7 @@ function updateBusDetailClickHandler(e) {
         });
         
         bindPdfExportEvents();
+        bindPdfExport2Events();
         
         
         const tabButtons2 = document.querySelectorAll('.tab-button2');
@@ -3285,72 +3418,79 @@ function updateBusDetailClickHandler(e) {
         });
     }
     
-function setupLocationSearch(globalIndex) {
-    const startSearchInput = document.getElementById(`start_location_search_${globalIndex}`);
-    const startSuggestionsDiv = document.getElementById(`start_location_suggestions_${globalIndex}`);
-    
-    if (startSearchInput && startSuggestionsDiv) {
-        setupLocationSearchInput(startSearchInput, startSuggestionsDiv);
-    }
-    
-    const endSearchInput = document.getElementById(`end_location_search_${globalIndex}`);
-    const endSuggestionsDiv = document.getElementById(`end_location_suggestions_${globalIndex}`);
-    
-    if (endSearchInput && endSuggestionsDiv) {
-        setupLocationSearchInput(endSearchInput, endSuggestionsDiv);
-    }
-}
-
-function setupLocationSearchInput(searchInput, suggestionsDiv) {
-    function showSuggestions(query = '') {
-        const filtered = locations.filter(item => {
-            const searchable = (item.name || '').toLowerCase();
-            return searchable.includes(query.toLowerCase());
-        }).slice(0, 100);
-
-        if (filtered.length === 0) {
-            suggestionsDiv.style.display = 'none';
-            return;
+    function setupLocationSearch(globalIndex) {
+        const startSearchInput = document.getElementById(`start_location_search_${globalIndex}`);
+        const startSuggestionsDiv = document.getElementById(`start_location_suggestions_${globalIndex}`);
+        
+        if (startSearchInput && startSuggestionsDiv) {
+            setupLocationSearchInput(startSearchInput, startSuggestionsDiv);
         }
-
-        let html = '';
-        filtered.forEach(item => {
-            html += `<div class="suggestion-item" data-name="${item.name}">${escapeHtml(item.name)}</div>`;
+        
+        const endSearchInput = document.getElementById(`end_location_search_${globalIndex}`);
+        const endSuggestionsDiv = document.getElementById(`end_location_suggestions_${globalIndex}`);
+        
+        if (endSearchInput && endSuggestionsDiv) {
+            setupLocationSearchInput(endSearchInput, endSuggestionsDiv);
+        }
+    }
+    
+    function setupLocationSearchInput(searchInput, suggestionsDiv) {
+        function showSuggestions(query = '') {
+            const filtered = locations.filter(item => {
+                const searchable = (item.name || '').toLowerCase();
+                return searchable.includes(query.toLowerCase());
+            }).slice(0, 100);
+    
+            if (filtered.length === 0) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+    
+            let html = '';
+            filtered.forEach(item => {
+                html += `<div class="suggestion-item" data-name="${item.name}">${escapeHtml(item.name)}</div>`;
+            });
+    
+            suggestionsDiv.innerHTML = html;
+            suggestionsDiv.style.display = 'block';
+        }
+    
+        searchInput.addEventListener('focus', function() {
+            showSuggestions('');
         });
-
-        suggestionsDiv.innerHTML = html;
-        suggestionsDiv.style.display = 'block';
+    
+        searchInput.addEventListener('input', function() {
+            showSuggestions(this.value);
+        });
+    
+        suggestionsDiv.addEventListener('click', function(e) {
+            const suggestion = e.target.closest('.suggestion-item');
+            if (!suggestion) return;
+    
+            const name = suggestion.getAttribute('data-name');
+            searchInput.value = name;
+            suggestionsDiv.style.display = 'none';
+        });
+    
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                suggestionsDiv.style.display = 'none';
+            }
+        });
+    
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                suggestionsDiv.style.display = 'none';
+            }
+        });
     }
-
-    searchInput.addEventListener('focus', function() {
-        showSuggestions('');
-    });
-
-    searchInput.addEventListener('input', function() {
-        showSuggestions(this.value);
-    });
-
-    suggestionsDiv.addEventListener('click', function(e) {
-        const suggestion = e.target.closest('.suggestion-item');
-        if (!suggestion) return;
-
-        const name = suggestion.getAttribute('data-name');
-        searchInput.value = name;
-        suggestionsDiv.style.display = 'none';
-    });
-
-    document.addEventListener('click', function(e) {
-        if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
-            suggestionsDiv.style.display = 'none';
-        }
-    });
-
-    searchInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            suggestionsDiv.style.display = 'none';
-        }
-    });
-}
+    
+    function setupLocationSearchSimple(inputId, suggestionsId) {
+        const searchInput = document.getElementById(inputId);
+        const suggestionsDiv = document.getElementById(suggestionsId);
+        if (!searchInput || !suggestionsDiv) return;
+        setupLocationSearchInput(searchInput, suggestionsDiv);
+    }
 
     function addRowAfter(clickedButton) {
         const currentRow = clickedButton.closest('tr.itinerary-row');
@@ -3732,6 +3872,13 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
     
         const sourceSelectedOptions = getSourceOptions();
         
+        const srcDepartureLocation = sourceCard.querySelector('input[name*="[departure_location]"]')?.value || '';
+        const srcDepartureDate = sourceCard.querySelector('input[name*="[departure_date]"]')?.value || '';
+        const srcDepartureTime = sourceCard.querySelector('input[name*="[departure_time]"]')?.value || '';
+        const srcArrivalLocation = sourceCard.querySelector('input[name*="[arrival_location]"]')?.value || '';
+        const srcArrivalDate = sourceCard.querySelector('input[name*="[arrival_date]"]')?.value || '';
+        const srcArrivalTime = sourceCard.querySelector('input[name*="[arrival_time]"]')?.value || '';
+        
         const vehicleGrades = @json($vehicleGrades ?? []);
         const reservationCategories = @json($reservationCategories ?? []);
         const options = @json($options ?? []);
@@ -3768,6 +3915,12 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
                             data-vehicle-index="${newIndex}"
                             style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
                         <i class="bi bi-file-pdf"></i> 運行指示書PDF
+                    </button>
+                    <button type="button" class="btn-pdf-export2 btn btn-sm" 
+                            data-bus-id="${newBusId}" 
+                            data-vehicle-index="${newIndex}"
+                            style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
+                        <i class="bi bi-file-pdf"></i> 運行指示書PDF2
                     </button>
                 </h6>
                 <div class="d-flex align-items-center ms-auto card-header-actions" style="gap: 15px;">
@@ -3968,6 +4121,27 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
                         </div>
                     </div>
                 </div>
+                
+                
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <div class="d-flex align-items-center" style="gap: 8px;">
+                            <span class="span-label" style="min-width: 62px !important; width: 62px !important; white-space: nowrap;">開始地点</span>
+                            <div class="position-relative" style="flex: 1;">
+                                <input type="text" class="form-control form-control-sm border search-input"
+                                       id="departure_location_search_${newIndex}"
+                                       name="bus_assignments[${newIndex}][departure_location]"
+                                       value="${srcDepartureLocation}" placeholder="開始地点" autocomplete="off">
+                                <div class="suggestions-container" id="departure_location_suggestions_${newIndex}" style="display: none;"></div>
+                            </div>
+                            <input type="text" class="form-control form-control-sm border datepicker-3months" style="width: 160px;"
+                                   name="bus_assignments[${newIndex}][departure_date]" value="${srcDepartureDate}"
+                                   placeholder="YYYY-MM-DD" autocomplete="off">
+                            <input type="time" class="form-control form-control-sm border" style="width: 110px;" step="60"
+                                   name="bus_assignments[${newIndex}][departure_time]" value="${srcDepartureTime}">
+                        </div>
+                    </div>
+                </div>
     
                 <div class="row mt-2">
                     <div class="col-md-12">
@@ -3989,6 +4163,27 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
                         </table>
                     </div>
                 </div>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-flex align-items-center" style="gap: 8px;">
+                            <span class="span-label" style="min-width: 62px !important; width: 62px !important; white-space: nowrap;">終了地点</span>
+                            <div class="position-relative" style="flex: 1;">
+                                <input type="text" class="form-control form-control-sm border search-input"
+                                       id="arrival_location_search_${newIndex}"
+                                       name="bus_assignments[${newIndex}][arrival_location]"
+                                       value="${srcArrivalLocation}" placeholder="終了地点" autocomplete="off">
+                                <div class="suggestions-container" id="arrival_location_suggestions_${newIndex}" style="display: none;"></div>
+                            </div>
+                            <input type="text" class="form-control form-control-sm border datepicker-3months" style="width: 160px;"
+                                   name="bus_assignments[${newIndex}][arrival_date]" value="${srcArrivalDate}"
+                                   placeholder="YYYY-MM-DD" autocomplete="off">
+                            <input type="time" class="form-control form-control-sm border" style="width: 110px;" step="60"
+                                   name="bus_assignments[${newIndex}][arrival_time]" value="${srcArrivalTime}">
+                        </div>
+                    </div>
+                </div>
+                
                 
                 <div class="row mt-2" style="margin-right: -5px; margin-left: -5px;">
                     <div class="col-md-6" style="width:60%; padding-right: 5px; padding-left: 5px;">
@@ -4709,14 +4904,16 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
         }, i);
         
         
-        
-        
         document.querySelectorAll(`.vehicle-itinerary-table[data-vehicle-table="${i}"] .itinerary-row`).forEach(row => {
             const globalIndex = row.getAttribute('data-index');
             if (globalIndex) {
                 setupLocationSearch(globalIndex);
             }
         });
+        
+        
+        setupLocationSearchSimple(`departure_location_search_${i}`, `departure_location_suggestions_${i}`);
+        setupLocationSearchSimple(`arrival_location_search_${i}`, `arrival_location_suggestions_${i}`);
     }
     
     const countries = @json($countries ?? []);
@@ -4773,6 +4970,12 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
                     card.querySelectorAll('input[name*="[end_time]"]'),
                     card.querySelectorAll('input[name*="[start_location]"]'),
                     card.querySelectorAll('input[name*="[end_location]"]'),
+                    card.querySelectorAll('input[name*="[departure_location]"]'),
+                    card.querySelectorAll('input[name*="[departure_date]"]'),
+                    card.querySelectorAll('input[name*="[departure_time]"]'),
+                    card.querySelectorAll('input[name*="[arrival_location]"]'),
+                    card.querySelectorAll('input[name*="[arrival_date]"]'),
+                    card.querySelectorAll('input[name*="[arrival_time]"]'),
                     card.querySelectorAll('input[name*="[vehicle_workload]"]'),
                     card.querySelectorAll('input[name*="[driver_workload]"]'),
                     card.querySelectorAll('.datepicker-3months'),
@@ -4902,6 +5105,10 @@ function setupLocationSearchInput(searchInput, suggestionsDiv) {
                 setupLocationSearch(globalIndex);
             }
         });
+        
+        
+        setupLocationSearchSimple(`departure_location_search_${cardIndex}`, `departure_location_suggestions_${cardIndex}`);
+        setupLocationSearchSimple(`arrival_location_search_${cardIndex}`, `arrival_location_suggestions_${cardIndex}`);
     }
 
 });
@@ -5625,6 +5832,21 @@ function bindPdfExportEvents() {
     });
 }
 
+function bindPdfExport2Events() {
+    document.querySelectorAll('.btn-pdf-export2').forEach(btn => {
+        btn.removeEventListener('click', btn._pdfExport2Handler);
+        const pdfExport2Handler = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const busId = this.getAttribute('data-bus-id');
+            const url = `/masters/group-infos/${busId}/export-pdf-bus-assignment2`;
+            window.open(url, '_blank');
+        };
+        btn.addEventListener('click', pdfExport2Handler);
+        btn._pdfExport2Handler = pdfExport2Handler;
+    });
+}
+
 
 
 
@@ -5989,6 +6211,66 @@ document.getElementById('btnFinalConfirm')?.addEventListener('click', function()
     const url = `/masters/group-infos/${groupId}/export-final-pdf`;
     window.open(url, '_blank');
 });
+
+document.getElementById('btnTransportReceipt')?.addEventListener('click', function() {
+    const groupId = {{ $groupInfo->id }};
+    const url = `/masters/group-infos/${groupId}/export-transport-receipt`;
+    window.open(url, '_blank');
+});
+
+
+
+
+(function() {
+    const fareBase = document.getElementById('fare_base');
+    const fareCharge = document.getElementById('fare_charge');
+    const fareBreakdown = document.getElementById('fare_breakdown');
+    const fareTotal = document.getElementById('fare_total');
+    const amountInput = document.getElementById('amount_input');
+    const applyBtn = document.getElementById('fareApplyBtn');
+
+    const fareBaseHidden = document.getElementById('fare_base_hidden');
+    const fareChargeHidden = document.getElementById('fare_charge_hidden');
+    const fareBreakdownHidden = document.getElementById('fare_breakdown_hidden');
+
+    function calcTotal() {
+        const base = parseFloat(fareBase?.value) || 0;
+        const charge = parseFloat(fareCharge?.value) || 0;
+        const total = base + charge;
+        if (fareTotal) fareTotal.value = total;
+    }
+
+    [fareBase, fareCharge].forEach(el => {
+        if (el) el.addEventListener('input', calcTotal);
+    });
+
+    const fareModal = document.getElementById('fareModal');
+    if (fareModal) {
+        fareModal.addEventListener('show.bs.modal', function() {
+            fareBase.value = fareBaseHidden?.value || '';
+            fareCharge.value = fareChargeHidden?.value || '';
+            fareBreakdown.value = fareBreakdownHidden?.value || '';
+            const total = (parseFloat(fareBase.value) || 0) + (parseFloat(fareCharge.value) || 0);
+            fareTotal.value = total;
+        });
+    }
+
+    if (applyBtn) {
+        applyBtn.addEventListener('click', function() {
+            const total = parseFloat(fareTotal?.value) || 0;
+            if (amountInput) {
+                amountInput.value = total;
+                amountInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            if (fareBaseHidden) fareBaseHidden.value = fareBase.value;
+            if (fareChargeHidden) fareChargeHidden.value = fareCharge.value;
+            if (fareBreakdownHidden) fareBreakdownHidden.value = fareBreakdown.value;
+
+            const modal = bootstrap.Modal.getInstance(fareModal);
+            if (modal) modal.hide();
+        });
+    }
+})();
 
 </script>
 @endpush

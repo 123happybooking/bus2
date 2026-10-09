@@ -38,7 +38,13 @@
                         
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="category" class="form-label required">カテゴリー</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="category" class="form-label required" style="margin-bottom: 0;">カテゴリー</label>
+                                    <button type="button" class="btn btn-sm p-0 border-0" style="color: #2563eb; background: transparent;"
+                                            data-bs-toggle="modal" data-bs-target="#checkCategoryModal">
+                                        <i class="bi bi-gear"></i> 管理
+                                    </button>
+                                </div>
                                 <select class="form-control @error('category') is-invalid @enderror" 
                                         id="category" name="category" required>
                                     <option value="">選択してください</option>
@@ -101,7 +107,32 @@
         </div>
     </div>
 </div>
+
+
+
+<div class="modal fade" id="checkCategoryModal" tabindex="-1" aria-labelledby="checkCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="checkCategoryModalLabel">
+                    <i class="bi bi-gear"></i> カテゴリー管理
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="閉じる"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small" style="font-size: 14px;">1行に1つのカテゴリーを入力してください。</p>
+                <textarea id="checkCategoriesTextarea" class="form-control" rows="12" style="font-size: 14px;">@foreach($categories as $categoryName){{ $categoryName }}
+@endforeach</textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="saveCheckCategoriesBtn">保存する</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
 
 @push('styles')
 <style>
@@ -110,4 +141,35 @@
     color: #dc3545;
 }
 </style>
+@endpush
+
+
+@push('scripts')
+<script>
+document.getElementById('saveCheckCategoriesBtn').addEventListener('click', function () {
+    var types = document.getElementById('checkCategoriesTextarea').value;
+
+    fetch('{{ route("masters.driver-vehicle-check-categories.save") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ categories: types })
+    })
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+        if (data.success) {
+            alert('カテゴリーを保存しました。');
+            location.reload();
+        } else {
+            alert('保存に失敗しました。');
+        }
+    })
+    .catch(function (error) {
+        console.error('Error:', error);
+        alert('エラーが発生しました。');
+    });
+});
+</script>
 @endpush

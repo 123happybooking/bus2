@@ -17,6 +17,7 @@ use App\Models\Masters\VehicleGrade;
 use App\Models\Masters\GroupInfoDateRemark;
 use App\Models\Masters\BusAssignmentLog;
 use App\Models\Masters\Option;
+use App\Models\Masters\ReservationApplicationMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -478,6 +479,11 @@ class BusAssignmentController extends Controller
             ->orderBy('display_order', 'asc')
             ->orderBy('agency_code', 'asc')
             ->get();
+            
+        $applicationMethods = ReservationApplicationMethod::where('is_active', true)
+            ->orderBy('display_order')
+            ->orderBy('id')
+            ->get();
         
         $reservationCategories = ReservationCategory::where('is_active', true)
             ->orderBy('display_order', 'asc')
@@ -505,7 +511,8 @@ class BusAssignmentController extends Controller
             'logs',
             'vehicleGrades',
             'options',
-            'selectedOptions'
+            'selectedOptions',
+            'applicationMethods'
         ));
     }
 
@@ -546,6 +553,7 @@ class BusAssignmentController extends Controller
                 'child_count' => 'nullable|integer|min:0',
                 'guide_count' => 'nullable|integer|min:0',
                 'luggage' => 'nullable|string|max:255',
+                'application_method_id' => 'nullable|exists:reservation_application_methods,id',
                 'options' => 'nullable|array',
                 'options.*' => 'exists:option,id',
                 'representative' => 'nullable|string|max:100',
@@ -893,6 +901,7 @@ class BusAssignmentController extends Controller
                     'group_name',
                     'itinerary_name',
                     'agt_tour_id',
+                    'application_method_id',
                     'remarks',
                 ];
                 

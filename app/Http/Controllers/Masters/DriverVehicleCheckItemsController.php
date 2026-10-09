@@ -119,4 +119,32 @@ class DriverVehicleCheckItemsController extends Controller
         return redirect()->route('masters.driver-vehicle-check-items.index')
             ->with('success', '点検項目を削除しました。');
     }
+    
+    
+    
+    public function saveCategories(Request $request)
+    {
+        $text = (string) $request->input('categories', '');
+
+        $names = collect(preg_split('/\r\n|\r|\n/', $text))
+            ->map(fn ($v) => trim($v))
+            ->filter(fn ($v) => $v !== '')
+            ->unique()
+            ->values();
+
+        DriverVehicleCheckCategory::query()->update(['is_active' => false]);
+
+        $order = 1;
+        foreach ($names as $name) {
+            DriverVehicleCheckCategory::updateOrCreate(
+                ['category_name' => $name],
+                [
+                    'display_order' => $order++,
+                    'is_active'     => true,
+                ]
+            );
+        }
+
+        return response()->json(['success' => true]);
+    }
 }

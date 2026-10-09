@@ -184,6 +184,8 @@ Route::prefix('masters')->name('masters.')->group(function () {
             Route::post('group-infos/{id}/delete-itinerary', [GroupInfoController::class, 'deleteItinerary'])->name('group-infos.delete-itinerary');
             Route::post('group-infos/{id}/copy', [GroupInfoController::class, 'copy'])->name('group-infos.copy');
             Route::get('group-infos/{busId}/export-pdf-bus-assignment', [GroupInfoController::class, 'exportPdfBusAssignment'])->name('group-infos.export-pdf-bus-assignment');
+            Route::get('group-infos/{busId}/export-pdf-bus-assignment2', [GroupInfoController::class, 'exportPdfBusAssignment2'])->name('group-infos.export-pdf-bus-assignment2');
+            Route::get('group-infos/{id}/export-transport-receipt', [GroupInfoController::class, 'exportTransportReceipt'])->name('group-infos.export-transport-receipt');
             
             Route::get('group-infos/{id}/export-reservation-pdf', [GroupInfoController::class, 'exportReservationPdf'])->name('group-infos.export-reservation-pdf');
             Route::get('group-infos/{id}/export-final-pdf', [GroupInfoController::class, 'exportFinalPdf'])->name('group-infos.export-final-pdf');
@@ -251,6 +253,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
             Route::resource('driver-compensation-types', DriverCompensationTypeController::class)->names('driver-compensation-types');
             Route::resource('driver-compensations', DriverCompensationController::class)->names('driver-compensations');
             Route::resource('driver-vehicle-check-items', DriverVehicleCheckItemsController::class)->names('driver-vehicle-check-items');
+            Route::post('driver-vehicle-check-categories/save', [DriverVehicleCheckItemsController::class, 'saveCategories'])->name('driver-vehicle-check-categories.save');
             
             Route::prefix('friends')->name('friends.')->group(function () {
                 Route::get('/', [FriendController::class, 'index'])->name('index');

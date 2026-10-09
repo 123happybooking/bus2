@@ -258,6 +258,18 @@
                         <div class="flex-1">
                             <input type="text" name="luggage" value="{{ $busAssignment->luggage ?? '' }}" class="form-input" {{ $readonlyAttr }}>
                         </div>
+                        <div class="label-width-large text-gray text-center" style="width: 30px;">申込</div>
+                        <div class="input-width-number mr-4" style="width: 100px;">
+                            <select name="application_method_id" id="application_method_id" class="form-input" {{ $disabledAttr }}>
+                                <option value=""></option>
+                                @foreach($applicationMethods ?? [] as $method)
+                                    <option value="{{ $method->id }}"
+                                        {{ ($groupInfo->application_method_id ?? '') == $method->id ? 'selected' : '' }}>
+                                        {{ $method->method_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
                     <div class="d-flex align-items-start">

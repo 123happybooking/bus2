@@ -178,6 +178,17 @@
                         <div class="input-width-number flex-1">
                             <input type="text" name="luggage" value="{{ old('luggage') }}" class="form-input">
                         </div>
+                        <div class="label-width text-gray mr-2 text-center" style="width: 30px;">申込</div>
+                        <div cstyle="width: 60px;">
+                            <select name="application_method_id" id="application_method_id" class="form-input">
+                                <option value=""></option>
+                                @foreach($applicationMethods ?? [] as $method)
+                                    <option value="{{ $method->id }}" {{ old('application_method_id') == $method->id ? 'selected' : '' }}>
+                                        {{ $method->method_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
                     <div class="d-flex align-items-start">
