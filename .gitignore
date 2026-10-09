@@ -25,3 +25,4 @@ Thumbs.db
 /storage
 404.html
 public/.user.ini
+public/.well-known/
