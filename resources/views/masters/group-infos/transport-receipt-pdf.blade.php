@@ -156,14 +156,9 @@
     </div>
 
     <table>
-        <colgroup>
-            <col style="width: 22%;">
-            <col style="width: 78%;">
-        </colgroup>
-
         <tr>
-            <td class="lbl" style="height: 100px;">運送の申込者</td>
-            <td class="val">
+            <td class="lbl" style="width: 16%;">運送の申込者</td>
+            <td class="val" style="width: 84%;">
                 <div>氏名又は名称：<span class="underline">{{ $agencyName }}</span></div>
                 <div style="margin-top: 4px;">電話番号　　：<span class="underline">{{ $agencyPhone }}</span></div>
                 <div style="margin-top: 4px;">その他連絡先：<span class="underline">{{ $agencyOtherContact }}</span></div>
@@ -171,48 +166,12 @@
         </tr>
 
         <tr>
-            <td class="lbl" style="height: 110px;">申込方法</td>
-            <td class="val">
-                @php
-                    $itemsPerRow = 3;
-                    $methodList = $applicationMethods->values();
-                    $methodRows = $methodList->chunk($itemsPerRow);
-                    $colWidth = 100 / ($itemsPerRow * 2); // 每列 = 方块格 + 文字格
-                @endphp
-                
-                <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
-                    <colgroup>
-                        @for ($c = 0; $c < $itemsPerRow; $c++)
-                            <col style="width: {{ $colWidth * 0.4 }}%;">
-                            <col style="width: {{ $colWidth * 1.6 }}%;">
-                        @endfor
-                    </colgroup>
-                
-                    @foreach ($methodRows as $row)
-                        <tr>
-                            @foreach ($row as $method)
-                                <td style="border: 0; padding: 4px 2px; vertical-align: middle; text-align: center;">
-                                    <table style="width: 16px; height: 16px; border-collapse: collapse; margin: 0 auto;">
-                                        <tr>
-                                            <td style="width: 16px; height: 16px; border: 1px solid #000; padding: 0; text-align: center; vertical-align: middle; font-size: 10pt; line-height: 1;">{{ $method->id == $selectedMethodId ? '√' : '' }}</td>
-                                        </tr>
-                                    </table>
-                                </td>
-                                <td style="border: 0; padding: 4px 2px; vertical-align: middle; font-size: 10pt;">{{ $method->method_name }}</td>
-                            @endforeach
-                
-                            @for ($i = $row->count(); $i < $itemsPerRow; $i++)
-                                <td style="border: 0; padding: 4px 2px;"></td>
-                                <td style="border: 0; padding: 4px 2px;"></td>
-                            @endfor
-                        </tr>
-                    @endforeach
-                </table>
-            </td>
+            <td class="lbl">申込方法</td>
+            <td class="val">{{ $selectedMethodName }}</td>
         </tr>
 
         <tr>
-            <td class="lbl" style="height: 120px;">運行の開始/終了<br>の<br>地点及び日時</td>
+            <td class="lbl">運行の開始/終了<br>の<br>地点及び日時</td>
             <td class="val">
                 【開始】地　点：<span class="underline">{{ $departureLocation }}</span><br>
                 　　　　日　時：<span class="underline">{{ $departureDateTime }}</span><br><br>
@@ -222,7 +181,7 @@
         </tr>
 
         <tr>
-            <td class="lbl" style="height: 120px;">乗車/降車の<br>地点及び日時</td>
+            <td class="lbl">乗車/降車の<br>地点及び日時</td>
             <td class="val">
                 【乗車】地　点：<span class="underline">{{ $boardingLocation }}</span><br>
                 　　　　日　時：<span class="underline">{{ $boardingDateTime }}</span><br><br>
@@ -232,14 +191,14 @@
         </tr>
 
         <tr>
-            <td class="lbl" style="height: 110px;">運賃・料金</td>
+            <td class="lbl">運賃・料金</td>
             <td class="val">
                 <div>
                     運　賃：<span class="underline-short">{{ $fareBase !== '' ? number_format($fareBase) : '' }}</span>円
                     　料　金：<span class="underline-short">{{ $fareCharge !== '' ? number_format($fareCharge) : '' }}</span>円
                 </div>
                 <div style="margin-top: 8px;">
-                    料金の内訳：<span class="underline">{{ $fareBreakdown }}</span>
+                    料金の内訳：<span class="underline">{!! nl2br(e($fareBreakdown)) !!}</span>
                 </div>
                 <div style="margin-top: 8px;">
                     合　計：<span class="underline-short">{{ $fareTotal !== '' ? number_format($fareTotal) : '' }}</span>円　（消費税等を含む。）

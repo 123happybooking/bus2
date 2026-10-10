@@ -47,19 +47,19 @@
     }
     .lbl {
         text-align: center;
-        width: 30%;
+        width: 20%;
         font-size: 9.5pt;
         background: #ddd;
     }
     .val {
         text-align: left;
-        width: 70%;
+        width: 80%;
     }
     .lbl-1 {
-        width: 20%;
+        width: 15%;
     }
     .val-1 {
-        width: 30%;
+        width: 35%;
     }
 
     .blank {

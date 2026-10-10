@@ -179,15 +179,19 @@
                             <input type="text" name="luggage" value="{{ old('luggage') }}" class="form-input">
                         </div>
                         <div class="label-width text-gray mr-2 text-center" style="width: 30px;">申込</div>
-                        <div cstyle="width: 60px;">
-                            <select name="application_method_id" id="application_method_id" class="form-input">
-                                <option value=""></option>
-                                @foreach($applicationMethods ?? [] as $method)
-                                    <option value="{{ $method->id }}" {{ old('application_method_id') == $method->id ? 'selected' : '' }}>
-                                        {{ $method->method_name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        <div class="flex-1 position-relative d-flex gap-1" style="min-width: 100px;">
+                            <input type="text" 
+                                   name="application_method" 
+                                   id="application_method_search" 
+                                   class="form-input search-input" 
+                                   value="{{ old('application_method') }}" 
+                                   autocomplete="off">
+                            <div class="suggestions-container" id="application_method_suggestions" style="display: none;"></div>
+                            <button type="button" class="btn btn-sm p-0 border-0" 
+                                    style="color: #2563eb; background: transparent; white-space: nowrap;" 
+                                    data-bs-toggle="modal" data-bs-target="#applicationMethodModal">
+                                <i class="bi bi-gear"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -312,6 +316,30 @@
         <input type="hidden" name="itinerary_id" value="0">
         <input type="hidden" name="saved_id" id="saved_id" value="">
     </form>
+</div>
+
+
+
+
+<div class="modal fade" id="applicationMethodModal" tabindex="-1" aria-labelledby="applicationMethodModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="max-width: 400px; margin: 10px auto;">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white py-2">
+                <h6 class="modal-title" id="applicationMethodModalLabel">
+                    <i class="bi bi-gear"></i> 申込方法管理
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="閉じる"></button>
+            </div>
+            <div class="modal-body py-2">
+                <p class="text-muted small mb-2" style="font-size: 12px;">1行に1つの申込方法を入力してください。</p>
+                <textarea id="applicationMethodsTextarea" class="form-control" rows="8" style="font-size: 12px; resize: vertical;">{{ ($applicationMethods ?? collect())->pluck('method_name')->implode("\n") }}</textarea>
+            </div>
+            <div class="modal-footer py-1">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary btn-sm" id="saveApplicationMethodsBtn">保存する</button>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -1000,14 +1028,12 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = false;
         });
     });
-});
-
-document.addEventListener('DOMContentLoaded', function() {
+    
+    
     initDateRangePicker('input[name="start_date"]', 'input[name="end_date"]');
-});
 
+    
 
-document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const vehicleId = urlParams.get('vehicle_id');
     const vehicleName = urlParams.get('vehicle_name');
@@ -1033,6 +1059,92 @@ document.addEventListener('DOMContentLoaded', function() {
             vehicleSearchInput.dispatchEvent(event);
         }
     }
+    
+    
+    
+    (function() {
+        const methodsData = @json($applicationMethods ?? []);
+        const input = document.getElementById('application_method_search');
+        const suggestions = document.getElementById('application_method_suggestions');
+        
+        if (!input || !suggestions) return;
+        
+        function showSuggestions(query = '') {
+            const filtered = methodsData.filter(m => {
+                return (m.method_name || '').toLowerCase().includes(query.toLowerCase());
+            }).slice(0, 100);
+            
+            if (filtered.length === 0) {
+                suggestions.style.display = 'none';
+                return;
+            }
+            
+            let html = '';
+            filtered.forEach(m => {
+                html += `<div class="suggestion-item" data-name="${m.method_name}">${m.method_name}</div>`;
+            });
+            
+            suggestions.innerHTML = html;
+            suggestions.style.display = 'block';
+        }
+        
+        input.addEventListener('focus', function() {
+            showSuggestions('');
+        });
+        
+        input.addEventListener('input', function() {
+            showSuggestions(this.value);
+        });
+        
+        suggestions.addEventListener('click', function(e) {
+            const item = e.target.closest('.suggestion-item');
+            if (!item) return;
+            
+            input.value = item.dataset.name;
+            suggestions.style.display = 'none';
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+                suggestions.style.display = 'none';
+            }
+        });
+        
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                suggestions.style.display = 'none';
+            }
+        });
+    })();
+    
+        
+    document.getElementById('saveApplicationMethodsBtn')?.addEventListener('click', function() {
+        var methods = document.getElementById('applicationMethodsTextarea').value;
+        
+        fetch('{{ route("masters.reservation-application-methods.save") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            },
+            body: JSON.stringify({ methods: methods })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                alert('申込方法を保存しました。');
+                location.reload();
+            } else {
+                alert('保存に失敗しました。');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            alert('エラーが発生しました。');
+        });
+    });
+    
+
 });
 </script>
 @endpush

@@ -175,16 +175,17 @@
                                         </div>
                                         <div class="d-flex align-items-center w-50">
                                             <span class="span-label" style="min-width: 50px;">申込</span>
-                                            <div class="flex-1 position-relative w-100">
-                                                <select name="application_method_id" id="application_method_id" class="form-select form-select-sm border w-100">
-                                                    <option value=""></option>
-                                                    @foreach($applicationMethods ?? [] as $method)
-                                                        <option value="{{ $method->id }}"
-                                                            {{ old('application_method_id', $groupInfo->application_method_id ?? '') == $method->id ? 'selected' : '' }}>
-                                                            {{ $method->method_name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
+                                            <div class="d-flex gap-2 flex-1 position-relative w-100">
+                                                <input type="text" 
+                                                       class="form-control form-control-sm border search-input w-100" 
+                                                       id="application_method_search" 
+                                                       name="application_method"
+                                                       value="{{ old('application_method', $groupInfo->application_method ?? '') }}" 
+                                                       autocomplete="off">
+                                                <div class="suggestions-container" id="application_method_suggestions" style="display: none;"></div>
+                                                <button type="button" class="btn btn-sm p-0 border-0" style="color: #2563eb; background: transparent; white-space: nowrap;" data-bs-toggle="modal" data-bs-target="#applicationMethodModal">
+                                                    <i class="bi bi-gear"></i>
+                                                </button>
                                             </div>
                                         </div>
                                         
@@ -901,21 +902,30 @@
                             <div class="col-md-12">
                                 <div class="d-flex align-items-center" style="gap: 8px;">
                                     <span class="span-label" style="min-width: 62px !important; width: 62px !important; white-space: nowrap;">開始地点</span>
-                                    <div class="position-relative" style="flex: 1;">
-                                        <input type="text" class="form-control form-control-sm border search-input"
-                                               id="departure_location_search_{{ $vehicleIndex }}"
-                                               name="bus_assignments[{{ $vehicleIndex }}][departure_location]"
-                                               value="{{ $busAssignment->departure_location ?? '' }}"
-                                               placeholder="開始地点" autocomplete="off">
-                                        <div class="suggestions-container" id="departure_location_suggestions_{{ $vehicleIndex }}" style="display: none;"></div>
-                                    </div>
-                                    <input type="text" class="form-control form-control-sm border datepicker-3months" style="width: 160px;"
+                                    <input type="text" class="form-control form-control-sm border datepicker-3months" style="width: 160px;background:#edffd7;"
                                            name="bus_assignments[{{ $vehicleIndex }}][departure_date]"
                                            value="{{ $busAssignment->departure_date ? \Carbon\Carbon::parse($busAssignment->departure_date)->format('Y-m-d') : '' }}"
                                            placeholder="YYYY-MM-DD" autocomplete="off">
-                                    <input type="time" class="form-control form-control-sm border" style="width: 110px;" step="60"
+                                    <input type="time" class="form-control form-control-sm border" style="width: 110px;background: #edffd7;" step="60"
                                            name="bus_assignments[{{ $vehicleIndex }}][departure_time]"
                                            value="{{ $busAssignment->departure_time ? \Carbon\Carbon::parse($busAssignment->departure_time)->format('H:i') : '' }}">
+                                    <div class="d-flex gap-1" style="flex: 1;">
+                                        <div class="position-relative flex-1">
+                                            <input type="text" class="form-control form-control-sm border search-input"
+                                                   style="background: #edffd7;"
+                                                   id="departure_location_search_{{ $vehicleIndex }}"
+                                                   name="bus_assignments[{{ $vehicleIndex }}][departure_location]"
+                                                   value="{{ $busAssignment->departure_location ?? '' }}"
+                                                   autocomplete="off">
+                                            <div class="suggestions-container" id="departure_location_suggestions_{{ $vehicleIndex }}" style="display: none;"></div>
+                                        </div>
+                                        <button type="button" class="btn btn-sm p-0 border-0"
+                                                style="color: #2563eb; background: transparent; white-space: nowrap;"
+                                                data-bs-toggle="modal" data-bs-target="#departureArrivalLocationModal"
+                                                {{ $groupInfo->ignore_operation ? 'disabled' : '' }}>
+                                            <i class="bi bi-gear"></i> 地点管理
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1041,21 +1051,30 @@
                             <div class="col-md-12">
                                 <div class="d-flex align-items-center" style="gap: 8px;">
                                     <span class="span-label" style="min-width: 62px !important; width: 62px !important; white-space: nowrap;">終了地点</span>
-                                    <div class="position-relative" style="flex: 1;">
-                                        <input type="text" class="form-control form-control-sm border search-input"
-                                               id="arrival_location_search_{{ $vehicleIndex }}"
-                                               name="bus_assignments[{{ $vehicleIndex }}][arrival_location]"
-                                               value="{{ $busAssignment->arrival_location ?? '' }}"
-                                               placeholder="終了地点" autocomplete="off">
-                                        <div class="suggestions-container" id="arrival_location_suggestions_{{ $vehicleIndex }}" style="display: none;"></div>
-                                    </div>
-                                    <input type="text" class="form-control form-control-sm border datepicker-3months" style="width: 160px;"
+                                    <input type="text" class="form-control form-control-sm border datepicker-3months" style="width: 160px;background: #fffbd9;"
                                            name="bus_assignments[{{ $vehicleIndex }}][arrival_date]"
                                            value="{{ $busAssignment->arrival_date ? \Carbon\Carbon::parse($busAssignment->arrival_date)->format('Y-m-d') : '' }}"
                                            placeholder="YYYY-MM-DD" autocomplete="off">
-                                    <input type="time" class="form-control form-control-sm border" style="width: 110px;" step="60"
+                                    <input type="time" class="form-control form-control-sm border" style="width: 110px;background: #fffbd9;" step="60"
                                            name="bus_assignments[{{ $vehicleIndex }}][arrival_time]"
                                            value="{{ $busAssignment->arrival_time ? \Carbon\Carbon::parse($busAssignment->arrival_time)->format('H:i') : '' }}">
+                                    <div class="d-flex gap-1" style="flex: 1;">
+                                        <div class="position-relative flex-1">
+                                            <input type="text" class="form-control form-control-sm border search-input"
+                                                   style="background: #fffbd9;"
+                                                   id="arrival_location_search_{{ $vehicleIndex }}"
+                                                   name="bus_assignments[{{ $vehicleIndex }}][arrival_location]"
+                                                   value="{{ $busAssignment->arrival_location ?? '' }}"
+                                                   autocomplete="off">
+                                            <div class="suggestions-container" id="arrival_location_suggestions_{{ $vehicleIndex }}" style="display: none;"></div>
+                                        </div>
+                                        <button type="button" class="btn btn-sm p-0 border-0"
+                                                style="color: #2563eb; background: transparent; white-space: nowrap;"
+                                                data-bs-toggle="modal" data-bs-target="#departureArrivalLocationModal"
+                                                {{ $groupInfo->ignore_operation ? 'disabled' : '' }}>
+                                            <i class="bi bi-gear"></i> 地点管理
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1188,9 +1207,9 @@
                     </div>
                 </div>
             
-                <div class="d-flex align-items-center mb-2">
-                    <span class="span-label" style="min-width: 90px;">料金の内訳</span>
-                    <input type="text" class="form-control form-control-sm border" id="fare_breakdown" placeholder="内訳を入力">
+                <div class="d-flex align-items-start mb-2">
+                    <span class="span-label" style="min-width: 90px; padding-top: 4px;">料金の内訳</span>
+                    <textarea class="form-control form-control-sm border" id="fare_breakdown" rows="3" placeholder="内訳を入力" style="resize: vertical;resize: none;"></textarea>
                 </div>
             
                 <div class="d-flex align-items-center mb-2">
@@ -1203,6 +1222,59 @@
             <div class="modal-footer py-1">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">キャンセル</button>
                 <button type="button" class="btn btn-primary btn-sm" id="fareApplyBtn">確認</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+<div class="modal fade" id="applicationMethodModal" tabindex="-1" aria-labelledby="applicationMethodModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="applicationMethodModalLabel">
+                    <i class="bi bi-gear"></i> 申込方法管理
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="閉じる"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small" style="font-size: 14px;">1行に1つの申込方法を入力してください。</p>
+                <textarea id="applicationMethodsTextarea" class="form-control" rows="15" style="font-size: 14px;">@foreach($applicationMethods ?? [] as $method){{ $method->method_name }}
+@endforeach</textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="saveApplicationMethodsBtn">保存する</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div class="modal fade" id="departureArrivalLocationModal" tabindex="-1" aria-labelledby="departureArrivalLocationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="departureArrivalLocationModalLabel">
+                    <i class="bi bi-gear"></i> 開始/終了地点管理
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="閉じる"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small" style="font-size: 14px;">1行に1つの地点名を入力してください。</p>
+                <textarea id="departureArrivalLocationsTextarea" class="form-control" rows="15" style="font-size: 14px;">@foreach($departureArrivalLocations ?? [] as $loc){{ $loc->name }}
+@endforeach</textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="saveDepartureArrivalLocationsBtn">保存する</button>
             </div>
         </div>
     </div>
@@ -2603,6 +2675,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const branches = @json($branches ?? []);
     const categories = @json($reservationCategories ?? []);
     const locations = @json($locations ?? []);
+    const departureArrivalLocations = @json($departureArrivalLocations ?? []);
     const vehicleModelCodes = @json($vehicleModels ?? []);
     
     let deletedItineraryIds = [];
@@ -3491,6 +3564,61 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!searchInput || !suggestionsDiv) return;
         setupLocationSearchInput(searchInput, suggestionsDiv);
     }
+    
+    function setupDepartureArrivalLocationSearch(inputId, suggestionsId) {
+        const searchInput = document.getElementById(inputId);
+        const suggestionsDiv = document.getElementById(suggestionsId);
+        if (!searchInput || !suggestionsDiv) return;
+    
+        function showSuggestions(query = '') {
+            const filtered = departureArrivalLocations.filter(item => {
+                const searchable = (item.name || '').toLowerCase();
+                return searchable.includes(query.toLowerCase());
+            }).slice(0, 100);
+    
+            if (filtered.length === 0) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+    
+            let html = '';
+            filtered.forEach(item => {
+                html += `<div class="suggestion-item" data-name="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>`;
+            });
+    
+            suggestionsDiv.innerHTML = html;
+            suggestionsDiv.style.display = 'block';
+        }
+    
+        searchInput.addEventListener('focus', function() {
+            showSuggestions('');
+        });
+    
+        searchInput.addEventListener('input', function() {
+            showSuggestions(this.value);
+        });
+    
+        suggestionsDiv.addEventListener('click', function(e) {
+            const suggestion = e.target.closest('.suggestion-item');
+            if (!suggestion) return;
+    
+            const name = suggestion.getAttribute('data-name');
+            searchInput.value = name;
+            suggestionsDiv.style.display = 'none';
+        });
+    
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                suggestionsDiv.style.display = 'none';
+            }
+        });
+    
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                suggestionsDiv.style.display = 'none';
+            }
+        });
+    }
 
     function addRowAfter(clickedButton) {
         const currentRow = clickedButton.closest('tr.itinerary-row');
@@ -4127,18 +4255,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="col-md-12">
                         <div class="d-flex align-items-center" style="gap: 8px;">
                             <span class="span-label" style="min-width: 62px !important; width: 62px !important; white-space: nowrap;">開始地点</span>
-                            <div class="position-relative" style="flex: 1;">
-                                <input type="text" class="form-control form-control-sm border search-input"
-                                       id="departure_location_search_${newIndex}"
-                                       name="bus_assignments[${newIndex}][departure_location]"
-                                       value="${srcDepartureLocation}" placeholder="開始地点" autocomplete="off">
-                                <div class="suggestions-container" id="departure_location_suggestions_${newIndex}" style="display: none;"></div>
-                            </div>
-                            <input type="text" class="form-control form-control-sm border datepicker-3months" style="width: 160px;"
+                            <input type="text" class="form-control form-control-sm border datepicker-3months" style="width: 160px;background: #edffd7;"
                                    name="bus_assignments[${newIndex}][departure_date]" value="${srcDepartureDate}"
                                    placeholder="YYYY-MM-DD" autocomplete="off">
-                            <input type="time" class="form-control form-control-sm border" style="width: 110px;" step="60"
+                            <input type="time" class="form-control form-control-sm border" style="width: 110px;background: #edffd7;" step="60"
                                    name="bus_assignments[${newIndex}][departure_time]" value="${srcDepartureTime}">
+                            <div class="d-flex gap-1" style="flex: 1;">
+                                <div class="position-relative flex-1">
+                                    <input type="text" class="form-control form-control-sm border search-input"
+                                           style="background: #edffd7;"
+                                           id="departure_location_search_${newIndex}"
+                                           name="bus_assignments[${newIndex}][departure_location]"
+                                           value="${srcDepartureLocation}" placeholder="開始地点" autocomplete="off">
+                                    <div class="suggestions-container" id="departure_location_suggestions_${newIndex}" style="display: none;"></div>
+                                </div>
+                                <button type="button" class="btn btn-sm p-0 border-0"
+                                        style="color: #2563eb; background: transparent; white-space: nowrap;"
+                                        data-bs-toggle="modal" data-bs-target="#departureArrivalLocationModal">
+                                    <i class="bi bi-gear"></i> 地点管理
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -4168,18 +4304,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="col-md-12">
                         <div class="d-flex align-items-center" style="gap: 8px;">
                             <span class="span-label" style="min-width: 62px !important; width: 62px !important; white-space: nowrap;">終了地点</span>
-                            <div class="position-relative" style="flex: 1;">
-                                <input type="text" class="form-control form-control-sm border search-input"
-                                       id="arrival_location_search_${newIndex}"
-                                       name="bus_assignments[${newIndex}][arrival_location]"
-                                       value="${srcArrivalLocation}" placeholder="終了地点" autocomplete="off">
-                                <div class="suggestions-container" id="arrival_location_suggestions_${newIndex}" style="display: none;"></div>
-                            </div>
-                            <input type="text" class="form-control form-control-sm border datepicker-3months" style="width: 160px;"
+                            <input type="text" class="form-control form-control-sm border datepicker-3months" style="width: 160px;background: #fffbd9;"
                                    name="bus_assignments[${newIndex}][arrival_date]" value="${srcArrivalDate}"
                                    placeholder="YYYY-MM-DD" autocomplete="off">
-                            <input type="time" class="form-control form-control-sm border" style="width: 110px;" step="60"
+                            <input type="time" class="form-control form-control-sm border" style="width: 110px;background: #fffbd9;" step="60"
                                    name="bus_assignments[${newIndex}][arrival_time]" value="${srcArrivalTime}">
+                            <div class="d-flex gap-1" style="flex: 1;">
+                                <div class="position-relative flex-1">
+                                    <input type="text" class="form-control form-control-sm border search-input"
+                                           style="background: #fffbd9;"
+                                           id="arrival_location_search_${newIndex}"
+                                           name="bus_assignments[${newIndex}][arrival_location]"
+                                           value="${srcArrivalLocation}" placeholder="終了地点" autocomplete="off">
+                                    <div class="suggestions-container" id="arrival_location_suggestions_${newIndex}" style="display: none;"></div>
+                                </div>
+                                <button type="button" class="btn btn-sm p-0 border-0"
+                                        style="color: #2563eb; background: transparent; white-space: nowrap;"
+                                        data-bs-toggle="modal" data-bs-target="#departureArrivalLocationModal">
+                                    <i class="bi bi-gear"></i> 地点管理
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -4912,8 +5056,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         
-        setupLocationSearchSimple(`departure_location_search_${i}`, `departure_location_suggestions_${i}`);
-        setupLocationSearchSimple(`arrival_location_search_${i}`, `arrival_location_suggestions_${i}`);
+        setupDepartureArrivalLocationSearch(`departure_location_search_${i}`, `departure_location_suggestions_${i}`);
+        setupDepartureArrivalLocationSearch(`arrival_location_search_${i}`, `arrival_location_suggestions_${i}`);
     }
     
     const countries = @json($countries ?? []);
@@ -5058,7 +5202,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('editForm').addEventListener('submit', submitForm);
     
-    
 
 
 
@@ -5107,9 +5250,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         
-        setupLocationSearchSimple(`departure_location_search_${cardIndex}`, `departure_location_suggestions_${cardIndex}`);
-        setupLocationSearchSimple(`arrival_location_search_${cardIndex}`, `arrival_location_suggestions_${cardIndex}`);
+        setupDepartureArrivalLocationSearch(`departure_location_search_${cardIndex}`, `departure_location_suggestions_${cardIndex}`);
+        setupDepartureArrivalLocationSearch(`arrival_location_search_${cardIndex}`, `arrival_location_suggestions_${cardIndex}`);
     }
+    
+    
+    
+    
+    document.getElementById('saveDepartureArrivalLocationsBtn')?.addEventListener('click', function() {
+        var locations = document.getElementById('departureArrivalLocationsTextarea').value;
+    
+        fetch('{{ route("masters.departure-arrival-locations.save") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ locations: locations })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                alert('開始/終了地点を保存しました。');
+                location.reload();
+            } else {
+                alert('保存に失敗しました。');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            alert('エラーが発生しました。');
+        });
+    });
 
 });
 
@@ -6270,6 +6442,93 @@ document.getElementById('btnTransportReceipt')?.addEventListener('click', functi
             if (modal) modal.hide();
         });
     }
+})();
+
+
+
+
+
+
+document.getElementById('saveApplicationMethodsBtn')?.addEventListener('click', function() {
+    var methods = document.getElementById('applicationMethodsTextarea').value;
+    
+    fetch('{{ route("masters.reservation-application-methods.save") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ methods: methods })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.success) {
+            alert('申込方法を保存しました。');
+            location.reload();
+        } else {
+            alert('保存に失敗しました。');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error:', error);
+        alert('エラーが発生しました。');
+    });
+});
+
+
+(function() {
+    const methodsData = @json($applicationMethods ?? []);
+    const input = document.getElementById('application_method_search');
+    const suggestions = document.getElementById('application_method_suggestions');
+    
+    if (!input || !suggestions) return;
+    
+    function showSuggestions(query = '') {
+        const filtered = methodsData.filter(m => {
+            return (m.method_name || '').toLowerCase().includes(query.toLowerCase());
+        }).slice(0, 100);
+        
+        if (filtered.length === 0) {
+            suggestions.style.display = 'none';
+            return;
+        }
+        
+        let html = '';
+        filtered.forEach(m => {
+            html += `<div class="suggestion-item" data-name="${m.method_name}">${m.method_name}</div>`;
+        });
+        
+        suggestions.innerHTML = html;
+        suggestions.style.display = 'block';
+    }
+    
+    input.addEventListener('focus', function() {
+        showSuggestions('');
+    });
+    
+    input.addEventListener('input', function() {
+        showSuggestions(this.value);
+    });
+    
+    suggestions.addEventListener('click', function(e) {
+        const item = e.target.closest('.suggestion-item');
+        if (!item) return;
+        
+        input.value = item.dataset.name;
+        suggestions.style.display = 'none';
+    });
+    
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.style.display = 'none';
+        }
+    });
+    
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            suggestions.style.display = 'none';
+        }
+    });
 })();
 
 </script>

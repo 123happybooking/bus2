@@ -33,7 +33,7 @@ class GroupInfo extends Model
         'other_count',
         'luggage_count',
         'luggage',
-        'application_method_id',
+        'application_method',
         'fare_base',
         'fare_charge',
         'fare_breakdown',

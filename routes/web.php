@@ -189,6 +189,10 @@ Route::prefix('masters')->name('masters.')->group(function () {
             
             Route::get('group-infos/{id}/export-reservation-pdf', [GroupInfoController::class, 'exportReservationPdf'])->name('group-infos.export-reservation-pdf');
             Route::get('group-infos/{id}/export-final-pdf', [GroupInfoController::class, 'exportFinalPdf'])->name('group-infos.export-final-pdf');
+            Route::post('reservation-application-methods/save', [GroupInfoController::class, 'saveApplicationMethods'])
+                ->name('reservation-application-methods.save');
+            Route::post('departure-arrival-locations/save', [GroupInfoController::class, 'saveDepartureArrivalLocations'])
+                ->name('departure-arrival-locations.save');
     
             
             Route::get('operation-ledger', [OperationLedgerController::class, 'index'])->name('operation-ledger.index');

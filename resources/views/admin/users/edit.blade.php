@@ -56,12 +56,13 @@
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="name" class="form-label required">名前</label>
-                                <input type="text" class="form-control @error('name') is-invalid @enderror" 
-                                       id="name" name="name" 
-                                       value="{{ old('name', $user->name) }}" 
-                                       required maxlength="255" placeholder="例: 山田 太郎">
-                                @error('name')
+                                <label for="id" class="form-label">ID</label>
+                                <input type="text" class="form-control @error('id') is-invalid @enderror" 
+                                        style="color:red;" 
+                                       id="id" name="id" 
+                                       value="{{ old('id', $user->id) }}" 
+                                       disabled maxlength="255">
+                                @error('id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -76,9 +77,30 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-                        
-                        <div class="row">
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="user_company_name" class="form-label required">会社名</label>
+                                <input type="text" class="form-control @error('user_company_name') is-invalid @enderror" 
+                                       id="user_company_name" name="user_company_name" 
+                                       value="{{ old('user_company_name', $user->user_company_name) }}" 
+                                       required maxlength="255" placeholder="例: 株式会社〇〇">
+                                @error('user_company_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="form-text text-muted">255文字以内</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label required">名前</label>
+                                <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                       id="name" name="name" 
+                                       value="{{ old('name', $user->name) }}" 
+                                       required maxlength="255" placeholder="例: 山田 太郎">
+                                @error('name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
                             <div class="col-md-6 mb-3">
                                 <label for="password" class="form-label">新しいパスワード</label>
                                 <input type="password" class="form-control @error('password') is-invalid @enderror" 
@@ -97,23 +119,6 @@
                             </div>
                             
                             <div class="col-md-6 mb-3">
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="user_company_name" class="form-label required">会社名</label>
-                                <input type="text" class="form-control @error('user_company_name') is-invalid @enderror" 
-                                       id="user_company_name" name="user_company_name" 
-                                       value="{{ old('user_company_name', $user->user_company_name) }}" 
-                                       required maxlength="255" placeholder="例: 株式会社〇〇">
-                                @error('user_company_name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-text text-muted">255文字以内</small>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
                                 <label for="user_plan" class="form-label required">プラン</label>
                                 <select class="form-control @error('user_plan') is-invalid @enderror" 
                                         id="user_plan" name="user_plan" required>
@@ -127,9 +132,7 @@
                                 @enderror
                                 <small class="form-text text-muted">ユーザーの契約プランを選択</small>
                             </div>
-                        </div>
-                        
-                        <div class="row">
+                            
                             <div class="col-md-6 mb-3">
                                 <label for="user_start_day" class="form-label required">契約開始日</label>
                                 <input type="date" class="form-control @error('user_start_day') is-invalid @enderror" 

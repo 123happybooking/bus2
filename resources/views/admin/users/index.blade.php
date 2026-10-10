@@ -75,10 +75,11 @@
             <table class="table table-bordered mb-0 table-striped">
                 <thead class="table-secondary align-middle">
                     <tr>
-                        <th width="60">ID</th>
-                        <th>名前</th>
-                        <th>ログインID</th>
+                        <th width="60">No.</th>
                         <th>会社名</th>
+                        <th width="80">ID</th>
+                        <th>ログインID</th>
+                        <th>名前</th>
                         <th>プラン</th>
                         <th width="80">状態</th>
                         <th width="150">操作</th>
@@ -87,10 +88,11 @@
                 <tbody>
                     @forelse($users as $user)
                     <tr>
-                        <td>{{ $user->id }}</td>
-                        <td>{{ $user->name }}</td>
-                        <td>{{ $user->login_id }}</td>
+                        <td>{{ $users->firstItem() + $loop->index }}</td>
                         <td>{{ $user->user_company_name ?? '-' }}</td>
+                        <td>{{ $user->id }}</td>
+                        <td>{{ $user->login_id }}</td>
+                        <td>{{ $user->name }}</td>
                         <td>
                             @if($user->user_plan == 'basic')
                                 ベーシック
@@ -124,7 +126,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="text-center py-4">
+                        <td colspan="8" class="text-center py-4">
                             @if(request('search'))
                                 <div class="text-muted">
                                     <i class="bi bi-search display-6 mb-2"></i>

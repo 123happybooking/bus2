@@ -553,7 +553,7 @@ class BusAssignmentController extends Controller
                 'child_count' => 'nullable|integer|min:0',
                 'guide_count' => 'nullable|integer|min:0',
                 'luggage' => 'nullable|string|max:255',
-                'application_method_id' => 'nullable|exists:reservation_application_methods,id',
+                'application_method' => 'nullable|string|max:100',
                 'options' => 'nullable|array',
                 'options.*' => 'exists:option,id',
                 'representative' => 'nullable|string|max:100',
@@ -901,7 +901,7 @@ class BusAssignmentController extends Controller
                     'group_name',
                     'itinerary_name',
                     'agt_tour_id',
-                    'application_method_id',
+                    'application_method',
                     'remarks',
                 ];
                 

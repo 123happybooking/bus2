@@ -28,6 +28,7 @@ use App\Models\Masters\Country;
 use App\Models\Masters\Invoice;
 use App\Models\Masters\InvoiceItem;
 use App\Models\Masters\ReservationApplicationMethod;
+use App\Models\Masters\DepartureArrivalLocation;
 use App\Models\Driver\DriverExpense;
 use App\Models\Driver\DriverExpenseType;
 use App\Models\Driver\DriverPaymentMethod;
@@ -662,7 +663,7 @@ class GroupInfoController extends Controller
             'ignore_attendance' => 'nullable',
             'reservation_channel' => 'nullable|string|max:100',
             'vehicle_model_code' => 'nullable|string|max:100',
-            'application_method_id' => 'nullable|exists:reservation_application_methods,id',
+            'application_method' => 'nullable|string|max:100',
         ];
     
         $messages = [
@@ -815,7 +816,7 @@ class GroupInfoController extends Controller
                 'created_tag' => null,
                 'lock_arrangement' => 0,
                 'operation_count' => 0,
-                'application_method_id' => $validated['application_method_id'] ?? null,
+                'application_method' => $validated['application_method'] ?? null,
                 'created_at' => now(),
                 'updated_at' => now(),
                 'created_by' => $userId,
@@ -1049,6 +1050,11 @@ class GroupInfoController extends Controller
             ->orderBy('display_order')
             ->orderBy('id')
             ->get();
+            
+        $departureArrivalLocations = DepartureArrivalLocation::where('is_active', true)
+            ->orderBy('display_order')
+            ->orderBy('id')
+            ->get();
                         
         $vehicleModels = VehicleModel::with('vehicleType')
             ->orderBy('model_name')
@@ -1212,6 +1218,42 @@ class GroupInfoController extends Controller
         $expenseTypes = DriverExpenseType::orderBy('id')->get();
         $paymentMethods = DriverPaymentMethod::orderBy('id')->get();
         
+        foreach ($busAssignments as $busAssignment) {
+            $itinerariesForBus = DailyItinerary::where('bus_assignment_id', $busAssignment->id)
+                ->where('group_info_id', $groupInfo->id)
+                ->orderBy('date', 'asc')
+                ->get();
+        
+            if ($itinerariesForBus->isEmpty()) {
+                continue;
+            }
+        
+            $dates = $itinerariesForBus->map(function ($it) {
+                return Carbon::parse($it->date)->format('Y-m-d');
+            })->filter()->values();
+        
+            if ($dates->isEmpty()) {
+                continue;
+            }
+        
+            $minDate = $dates->min();
+            $maxDate = $dates->max();
+        
+            $updateData = [];
+        
+            if (empty($busAssignment->departure_date)) {
+                $updateData['departure_date'] = $minDate;
+            }
+        
+            if (empty($busAssignment->arrival_date)) {
+                $updateData['arrival_date'] = $maxDate;
+            }
+        
+            if (!empty($updateData)) {
+                $busAssignment->update($updateData);
+            }
+        }
+        
         return view('masters.group-infos.edit', compact(
             'groupInfo', 
             'agencies',
@@ -1241,7 +1283,8 @@ class GroupInfoController extends Controller
             'countries',
             'locations',
             'vehicleModels',
-            'applicationMethods'
+            'applicationMethods',
+            'departureArrivalLocations'
         ));
     }
 
@@ -1281,7 +1324,7 @@ class GroupInfoController extends Controller
             'vehicle_model' => 'nullable|string|max:200',
             'vehicle_grade_id' => 'nullable|exists:vehicle_grades,id',
             'vehicle_branch' => 'nullable|string|max:200',
-            'application_method_id' => 'nullable|exists:reservation_application_methods,id',
+            'application_method' => 'nullable|string|max:100',
             'remarks' => 'nullable|string',
             'agency_contact' => 'nullable|string',
             'ignore_operation' => 'nullable',
@@ -2689,7 +2732,7 @@ class GroupInfoController extends Controller
                 // 'other_count' => $validated['other_count'] ?? 0,
                 // 'luggage_count' => $validated['luggage_count'] ?? 0,
                 'luggage' => $validated['luggage'] ?? $groupInfo->luggage,
-                'application_method_id' => $validated['application_method_id'] ?? null,
+                'application_method' => $validated['application_method'] ?? null,
                 'options' => $request->has('options') ? implode(',', $request->options) : $groupInfo->options,
                 'reservation_channel' => $validated['reservation_channel'] ?? null,
                 'vehicle_type' => $validated['vehicle_type'] ?? ($vehicleInfo->vehicleType->type_name ?? $groupInfo->vehicle_type),
@@ -2919,6 +2962,8 @@ class GroupInfoController extends Controller
                 ]);
             }
             
+            $this->syncDepartureArrivalDates($newBus->id);
+            
             if ($originalBus) {
                 $remainingItineraries = DailyItinerary::where('bus_assignment_id', $originalBus->id)
                                                       ->where('group_info_id', $groupInfo->id)
@@ -2947,6 +2992,8 @@ class GroupInfoController extends Controller
                             'updated_at' => now(),
                         ]);
                     }
+                    
+                    $this->syncDepartureArrivalDates($originalBus->id);
                 }
             }
 
@@ -3115,6 +3162,8 @@ class GroupInfoController extends Controller
                     'updated_at' => now(),
                 ]);
             }
+            
+            $this->syncDepartureArrivalDates($request->target_bus_id);
             
             $sourceBus->delete();
 
@@ -4345,7 +4394,7 @@ class GroupInfoController extends Controller
             ->orderBy('display_order')
             ->orderBy('id')
             ->get();
-        $selectedMethodId = $groupInfo->application_method_id ?? null;
+        $selectedMethodName = $groupInfo->application_method ?? null;
 
         $weekdays = ['日', '月', '火', '水', '木', '金', '土'];
         $formatDateTime = function ($date, $time) use ($weekdays) {
@@ -4375,9 +4424,25 @@ class GroupInfoController extends Controller
         $departureDateTime = $firstBus
             ? $formatDateTime($firstBus->departure_date, $firstBus->departure_time)
             : '';
-        $arrivalLocation = $firstBus->arrival_location ?? '';
-        $arrivalDateTime = $firstBus
-            ? $formatDateTime($firstBus->arrival_date, $firstBus->arrival_time)
+        
+        $lastArrivalBus = $groupInfo->busAssignments
+            ->filter(function ($bus) {
+                return !empty($bus->arrival_date);
+            })
+            ->sortBy(function ($bus) {
+                $date = $bus->arrival_date
+                    ? Carbon::parse($bus->arrival_date)->format('Y-m-d')
+                    : '';
+                $time = $bus->arrival_time
+                    ? Carbon::parse($bus->arrival_time)->format('H:i:s')
+                    : '00:00:00';
+                return $date . ' ' . $time;
+            })
+            ->last();
+        
+        $arrivalLocation = $lastArrivalBus->arrival_location ?? '';
+        $arrivalDateTime = $lastArrivalBus
+            ? $formatDateTime($lastArrivalBus->arrival_date, $lastArrivalBus->arrival_time)
             : '';
 
         $allItineraries = DailyItinerary::where('group_info_id', $groupInfo->id)
@@ -4411,7 +4476,7 @@ class GroupInfoController extends Controller
             'agencyPhone' => $agencyPhone,
             'agencyOtherContact' => trim(($agencyFax ? $agencyFax : '') . ($agencyEmail ? '，' . $agencyEmail : '')),
             'applicationMethods' => $applicationMethods,
-            'selectedMethodId' => $selectedMethodId,
+            'selectedMethodName' => $selectedMethodName,
             'departureLocation' => $departureLocation,
             'departureDateTime' => $departureDateTime,
             'arrivalLocation' => $arrivalLocation,
@@ -4970,5 +5035,79 @@ class GroupInfoController extends Controller
         return $mpdf->Output($filename, 'D');
     }
 
+
+
+    public function saveApplicationMethods(Request $request)
+    {
+        $text = (string) $request->input('methods', '');
+    
+        $names = collect(preg_split('/\r\n|\r|\n/', $text))
+            ->map(fn ($v) => trim($v))
+            ->filter(fn ($v) => $v !== '')
+            ->unique()
+            ->values();
+    
+        ReservationApplicationMethod::query()->update(['is_active' => false]);
+    
+        $order = 1;
+        foreach ($names as $name) {
+            ReservationApplicationMethod::updateOrCreate(
+                ['method_name' => $name],
+                [
+                    'display_order' => $order++,
+                    'is_active'     => true,
+                ]
+            );
+        }
+    
+        return response()->json(['success' => true]);
+    }
+    
+    
+    public function saveDepartureArrivalLocations(Request $request)
+    {
+        $text = (string) $request->input('locations', '');
+    
+        $names = collect(preg_split('/\r\n|\r|\n/', $text))
+            ->map(fn ($v) => trim($v))
+            ->filter(fn ($v) => $v !== '')
+            ->unique()
+            ->values();
+    
+        DepartureArrivalLocation::query()->update(['is_active' => false]);
+    
+        $order = 1;
+        foreach ($names as $name) {
+            DepartureArrivalLocation::updateOrCreate(
+                ['name' => $name],
+                [
+                    'display_order' => $order++,
+                    'is_active'     => true,
+                ]
+            );
+        }
+    
+        return response()->json(['success' => true]);
+    }
+    
+    
+    
+    private function syncDepartureArrivalDates($busAssignmentId)
+    {
+        $dates = DailyItinerary::where('bus_assignment_id', $busAssignmentId)
+            ->pluck('date')
+            ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'))
+            ->filter()
+            ->values();
+    
+        if ($dates->isEmpty()) {
+            return;
+        }
+    
+        BusAssignment::where('id', $busAssignmentId)->update([
+            'departure_date' => $dates->min(),
+            'arrival_date'   => $dates->max(),
+        ]);
+    }
     
 }
