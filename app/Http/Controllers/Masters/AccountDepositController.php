@@ -26,7 +26,15 @@ class AccountDepositController extends Controller
     public function index(Request $request)
     {
         $accountConfig = AccountConfig::first();
+        if (!$accountConfig || empty($accountConfig->account_deposit_id)) {
+            return redirect()->route('masters.account-config.index')
+                ->with('error', '預金科目が設定されていません。「会計設定」で預金科目を選択してください。');
+        }
         $account = Account::where("id", $accountConfig->account_deposit_id)->first();
+        if (!$account) {
+            return redirect()->route('masters.account-config.index')
+                ->with('error', '設定された預金科目が見つかりません。会計設定を確認してください。');
+        }
         $subAccounts = AccountSub::where("account_id", $account->id)->get();
         $sub_account_id = $request->sub_account_id ?? 0;
 
@@ -62,7 +70,7 @@ class AccountDepositController extends Controller
         }
 
 
-        $mark = $account->category->mark  == "借" ? 1 : 2;
+        $mark = ($account->category && $account->category->mark === "借") ? 1 : 2;
 
         if ($sub_account_id) {
             $datas = $this->makeSubData($startDate, $endDate, $account,$sub_account_id);
