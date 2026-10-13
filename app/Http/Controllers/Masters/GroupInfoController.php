@@ -4200,7 +4200,7 @@ class GroupInfoController extends Controller
         $html = view('masters.group-infos.bus-assignment-pdf', $data)->render();
         
         $mpdf = new Mpdf([
-            'mode' => 'utf-8',
+            'mode' => 'ja',
             'format' => 'A4',
             'margin_footer' => 10,
             'tempDir' => sys_get_temp_dir(),
@@ -4208,16 +4208,11 @@ class GroupInfoController extends Controller
                 storage_path('fonts'),
             ],
             'fontdata' => [
-                'msyh' => [
-                    'R' => 'msyh.ttf',
-                    'B' => 'msyhbd.ttf',
-                ],
-                'genshin' => [
-                    'R' => 'GenShinGothic-Normal.ttf',
-                    'B' => 'GenShinGothic-Bold.ttf',
-                ],
+                'ipaexg' => [
+                    'R' => 'ipaexg.ttf',
+                ]
             ],
-            'default_font' => 'msyh',
+            'default_font' => 'ipaexg',
             
             'autoScriptToLang'  => true,
             'autoLangToFont'    => true,
@@ -4342,7 +4337,7 @@ class GroupInfoController extends Controller
         $html = view('masters.group-infos.bus-assignment-pdf2', $data)->render();
 
         $mpdf = new Mpdf([
-            'mode' => 'utf-8',
+            'mode' => 'ja',
             'format' => 'A4',
             'margin_left' => 10,
             'margin_right' => 10,
@@ -4351,10 +4346,11 @@ class GroupInfoController extends Controller
             'tempDir' => sys_get_temp_dir(),
             'fontDir' => [storage_path('fonts')],
             'fontdata' => [
-                'msyh' => ['R' => 'msyh.ttf', 'B' => 'msyhbd.ttf'],
-                'genshin' => ['R' => 'GenShinGothic-Normal.ttf', 'B' => 'GenShinGothic-Bold.ttf'],
+                'ipaexg' => [
+                    'R' => 'ipaexg.ttf',
+                ]
             ],
-            'default_font' => 'msyh',
+            'default_font' => 'ipaexg',
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
         ]);
@@ -4500,7 +4496,7 @@ class GroupInfoController extends Controller
         $html = view('masters.group-infos.transport-receipt-pdf', $data)->render();
 
         $mpdf = new Mpdf([
-            'mode' => 'utf-8',
+            'mode' => 'ja',
             'format' => 'A4',
             'margin_left' => 12,
             'margin_right' => 12,
@@ -4509,10 +4505,11 @@ class GroupInfoController extends Controller
             'tempDir' => sys_get_temp_dir(),
             'fontDir' => [storage_path('fonts')],
             'fontdata' => [
-                'msyh' => ['R' => 'msyh.ttf', 'B' => 'msyhbd.ttf'],
-                'genshin' => ['R' => 'GenShinGothic-Normal.ttf', 'B' => 'GenShinGothic-Bold.ttf'],
+                'ipaexg' => [
+                    'R' => 'ipaexg.ttf',
+                ]
             ],
-            'default_font' => 'msyh',
+            'default_font' => 'ipaexg',
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
         ]);
@@ -4876,7 +4873,7 @@ class GroupInfoController extends Controller
         $html = view('masters.group-infos.reservation-pdf', $data)->render();
         
         $mpdf = new \Mpdf\Mpdf([
-            'mode' => 'utf-8',
+            'mode' => 'ja',
             'format' => 'A4',
             'margin_left' => 10,
             'margin_right' => 10,
@@ -4887,10 +4884,11 @@ class GroupInfoController extends Controller
             'tempDir' => sys_get_temp_dir(),
             'fontDir' => [storage_path('fonts')],
             'fontdata' => [
-                'msyh' => ['R' => 'msyh.ttf', 'B' => 'msyhbd.ttf'],
-                'genshin' => ['R' => 'GenShinGothic-Normal.ttf', 'B' => 'GenShinGothic-Bold.ttf'],
+                'ipaexg' => [
+                    'R' => 'ipaexg.ttf',
+                ]
             ],
-            'default_font' => 'msyh',
+            'default_font' => 'ipaexg',
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
         ]);
@@ -5010,7 +5008,7 @@ class GroupInfoController extends Controller
         $html = view('masters.group-infos.final-pdf', $data)->render();
         
         $mpdf = new \Mpdf\Mpdf([
-            'mode' => 'utf-8',
+            'mode' => 'ja',
             'format' => 'A4',
             'margin_left' => 10,
             'margin_right' => 10,
@@ -5021,10 +5019,11 @@ class GroupInfoController extends Controller
             'tempDir' => sys_get_temp_dir(),
             'fontDir' => [storage_path('fonts')],
             'fontdata' => [
-                'msyh' => ['R' => 'msyh.ttf', 'B' => 'msyhbd.ttf'],
-                'genshin' => ['R' => 'GenShinGothic-Normal.ttf', 'B' => 'GenShinGothic-Bold.ttf'],
+                'ipaexg' => [
+                    'R' => 'ipaexg.ttf',
+                ]
             ],
-            'default_font' => 'msyh',
+            'default_font' => 'ipaexg',
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
         ]);

@@ -57,8 +57,16 @@ class AccountCashController extends Controller
         }
 
         $accountConfig = AccountConfig::first();
+        if (!$accountConfig || empty($accountConfig->account_cash_id)) {
+            return redirect()->route('masters.account-config.index')
+                ->with('error', '現金科目が設定されていません。「会計設定」で現金科目を選択してください。');
+        }
         $account = Account::where("id", $accountConfig->account_cash_id)->first();
-        $mark = $account->category->mark  == "借" ? 1 : 2;
+        if (!$account) {
+            return redirect()->route('masters.account-config.index')
+                ->with('error', '設定された現金科目が見つかりません。会計設定を確認してください。');
+        }
+        $mark = ($account->category && $account->category->mark === "借") ? 1 : 2;
         $datas = $this->makeData($startDate, $endDate, $account);
         $datas['mark'] = $mark;
 

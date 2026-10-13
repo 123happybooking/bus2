@@ -1685,7 +1685,7 @@ public function store(Request $request)
         }
         
         $mpdf = new Mpdf([
-            'mode' => 'utf-8',
+            'mode' => 'ja',
             'format' => 'A4',
             'margin_left' => 10,      // 左边距 15mm
             'margin_right' => 10,     // 右边距 15mm
@@ -1699,16 +1699,11 @@ public function store(Request $request)
                 storage_path('fonts'),
             ],
             'fontdata' => [
-                'msyh' => [
-                    'R' => 'msyh.ttf',
-                    'B' => 'msyhbd.ttf',
-                ],
-                'genshin' => [
-                    'R' => 'GenShinGothic-Normal.ttf',
-                    'B' => 'GenShinGothic-Bold.ttf',
-                ],
+                'ipaexg' => [
+                    'R' => 'ipaexg.ttf',
+                ]
             ],
-            'default_font' => 'msyh',
+            'default_font' => 'ipaexg',
             
             'autoScriptToLang'  => true,
             'autoLangToFont'    => true,
@@ -1751,7 +1746,7 @@ public function store(Request $request)
         $data = $this->preparePdfData($invoice);
         
         $mpdf = new Mpdf([
-            'mode' => 'utf-8',
+            'mode' => 'ja',
             'format' => 'A4',
             'margin_left' => 10,      // 左边距 15mm
             'margin_right' => 10,     // 右边距 15mm
@@ -1765,16 +1760,11 @@ public function store(Request $request)
                 storage_path('fonts'),
             ],
             'fontdata' => [
-                'msyh' => [
-                    'R' => 'msyh.ttf',
-                    'B' => 'msyhbd.ttf',
-                ],
-                'genshin' => [
-                    'R' => 'GenShinGothic-Normal.ttf',
-                    'B' => 'GenShinGothic-Bold.ttf',
-                ],
+                'ipaexg' => [
+                    'R' => 'ipaexg.ttf',
+                ]
             ],
-            'default_font' => 'msyh',
+            'default_font' => 'ipaexg',
             
             'autoScriptToLang'  => true,
             'autoLangToFont'    => true,

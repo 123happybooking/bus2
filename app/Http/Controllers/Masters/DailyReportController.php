@@ -503,7 +503,7 @@ class DailyReportController extends Controller
         $html = view('masters.daily-reports.pdf', $data)->render();
         
         $mpdf = new Mpdf([
-            'mode' => 'utf-8',
+            'mode' => 'ja',
             'format' => 'A4',
             'margin_footer' => 10,
             'tempDir' => sys_get_temp_dir(),
@@ -511,16 +511,11 @@ class DailyReportController extends Controller
                 storage_path('fonts'),
             ],
             'fontdata' => [
-                'msyh' => [
-                    'R' => 'msyh.ttf',
-                    'B' => 'msyhbd.ttf',
-                ],
-                'genshin' => [
-                    'R' => 'GenShinGothic-Normal.ttf',
-                    'B' => 'GenShinGothic-Bold.ttf',
-                ],
+                'ipaexg' => [
+                    'R' => 'ipaexg.ttf',
+                ]
             ],
-            'default_font' => 'msyh',
+            'default_font' => 'ipaexg',
             
             'autoScriptToLang'  => true,
             'autoLangToFont'    => true,
