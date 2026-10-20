@@ -817,6 +817,7 @@ class GroupInfoController extends Controller
                 'lock_arrangement' => 0,
                 'operation_count' => 0,
                 'application_method' => $validated['application_method'] ?? null,
+                'transport_receipt_date' => Carbon::today()->format('Y-m-d'),
                 'created_at' => now(),
                 'updated_at' => now(),
                 'created_by' => $userId,
@@ -4261,14 +4262,11 @@ class GroupInfoController extends Controller
         ])->findOrFail($busId);
         
         if (empty($busAssignment->created_date) || empty($busAssignment->instruction_date)) {
-            return response(
-                '<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>エラー</title></head><body style="font-family:sans-serif;padding:40px;text-align:center;">'
-                . '<h2 style="color:#dc2626;">作成日または指示日が未設定です</h2>'
-                . '<p>「作成日」「指示日」を入力して、<strong>「確認」ボタンで保存</strong>してから、再度出力してください。</p>'
-                . '<p><button onclick="window.close()" style="padding:8px 20px;cursor:pointer;">閉じる</button></p>'
-                . '</body></html>',
-                200
-            )->header('Content-Type', 'text/html; charset=utf-8');
+            return response()
+                ->view('masters.group-infos.bus-assignment-pdf2-missing-dates', [
+                    'busAssignment' => $busAssignment,
+                    'groupInfo' => $busAssignment->groupInfo,
+                ]);
         }
 
         $busAssignment->dailyItineraries = $busAssignment->dailyItineraries
@@ -4380,6 +4378,44 @@ class GroupInfoController extends Controller
 
         $filename = '運行指示書2_' . ($driver->name ?? '不明') . '_' . $busAssignment->id . '_' . date('Ymd') . '.pdf';
         return $mpdf->Output($filename, 'D');
+    }
+    
+    public function saveInstructionDatesAndExportPdf2(Request $request, $busId)
+    {
+        $busAssignment = BusAssignment::with([
+            'groupInfo',
+            'vehicle',
+            'driver.branch',
+            'dailyItineraries',
+        ])->findOrFail($busId);
+    
+        $request->validate([
+            'created_date' => 'required|date',
+            'instruction_date' => 'required|date',
+        ], [
+            'created_date.required' => '作成日は必須です。',
+            'created_date.date' => '作成日の形式が正しくありません。',
+            'instruction_date.required' => '指示日は必須です。',
+            'instruction_date.date' => '指示日の形式が正しくありません。',
+        ]);
+    
+        $userId = session('user_id', auth()->id() ?? 0);
+    
+        $busAssignment->update([
+            'created_date' => $request->input('created_date'),
+            'instruction_date' => $request->input('instruction_date'),
+            'updated_by' => $userId,
+            'updated_at' => now(),
+        ]);
+    
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'pdf_url' => route('masters.group-infos.export-pdf-bus-assignment2', $busAssignment->id),
+            ]);
+        }
+    
+        return $this->exportPdfBusAssignment2($busId);
     }
 
     public function exportTransportReceipt($id)

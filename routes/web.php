@@ -193,6 +193,7 @@ Route::prefix('masters')->name('masters.')->group(function () {
                 ->name('reservation-application-methods.save');
             Route::post('departure-arrival-locations/save', [GroupInfoController::class, 'saveDepartureArrivalLocations'])
                 ->name('departure-arrival-locations.save');
+            Route::post('group-infos/{busId}/save-instruction-dates-and-export-pdf2', [GroupInfoController::class, 'saveInstructionDatesAndExportPdf2'])->name('group-infos.save-instruction-dates-and-export-pdf2');
     
             
             Route::get('operation-ledger', [OperationLedgerController::class, 'index'])->name('operation-ledger.index');
