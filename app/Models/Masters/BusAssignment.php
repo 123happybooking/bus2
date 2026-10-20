@@ -73,6 +73,8 @@ class BusAssignment extends Model
         'payment_method',
         'amount',
         'vehicle_model_code',
+        'created_date',
+        'instruction_date',
     ];
 
     protected $dates = [
@@ -113,6 +115,8 @@ class BusAssignment extends Model
         'payment_method' => 'string',
         'amount' => 'integer',
         'vehicle_model_code' => 'string',
+        'created_date' => 'date',
+        'instruction_date' => 'date',
     ];
 
     public function groupInfo()

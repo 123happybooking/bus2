@@ -1293,6 +1293,7 @@ class GroupInfoController extends Controller
         $groupInfo = GroupInfo::findOrFail($id);
     
         $rules = [
+            'transport_receipt_date' => 'nullable|date',
             'agt_tour_id' => 'nullable|string|max:200',
             'agency' => 'nullable|string|max:200',
             'agency_code' => 'nullable|string|max:50',
@@ -1368,6 +1369,8 @@ class GroupInfoController extends Controller
                     }
                 },
             ],
+            'bus_assignments.*.created_date' => 'nullable|date',
+            'bus_assignments.*.instruction_date' => 'nullable|date',
             'bus_assignments.*.vehicle_number' => 'nullable|string|max:50',
             'bus_assignments.*.step_car' => 'nullable|string|max:255',
             'bus_assignments.*.adult_count' => 'nullable|integer|min:0',
@@ -1762,6 +1765,8 @@ class GroupInfoController extends Controller
                         'operation_basic_remarks' => $busData['operation_basic_remarks'] ?? null,
                         'doc_remarks' => $busData['doc_remarks'] ?? null,
                         'history_remarks' => $busData['history_remarks'] ?? null,
+                        'created_date' => !empty($busData['created_date']) ? $busData['created_date'] : null,
+                        'instruction_date' => !empty($busData['instruction_date']) ? $busData['instruction_date'] : null,
                         'vehicle_index' => $busData['vehicle_index'] ?? 1,
                         'updated_by' => $userId,
                         'updated_at' => now(),
@@ -2574,6 +2579,8 @@ class GroupInfoController extends Controller
                         'arrival_location' => $submittedBusData['arrival_location'] ?? null,
                         'arrival_date' => !empty($submittedBusData['arrival_date']) ? $submittedBusData['arrival_date'] : null,
                         'arrival_time' => !empty($submittedBusData['arrival_time']) ? $submittedBusData['arrival_time'] : null,
+                        'created_date' => !empty($submittedBusData['created_date']) ? $submittedBusData['created_date'] : null,
+                        'instruction_date' => !empty($submittedBusData['instruction_date']) ? $submittedBusData['instruction_date'] : null,
                     ]);
                     
                     if (isset($submittedBusData['compensations']) && is_array($submittedBusData['compensations'])) {
@@ -2709,6 +2716,7 @@ class GroupInfoController extends Controller
             $this->recalculateGroupTotals($groupInfo->id);
     
             $updateData = [
+                'transport_receipt_date' => $validated['transport_receipt_date'] ?? $groupInfo->transport_receipt_date,
                 'agency' => $validated['agency_name_input'] ?? $validated['agency'] ?? $groupInfo->agency,
                 'agency_code' => $validated['agency_code'] ?? ($agencyInfo->agency_code ?? $groupInfo->agency_code),
                 'agency_branch' => $validated['agency_branch'] ?? ($agencyInfo->branch_name ?? $groupInfo->agency_branch),
@@ -3384,6 +3392,8 @@ class GroupInfoController extends Controller
                 'operation_basic_remarks' => $request->operation_basic_remarks,
                 'doc_remarks' => $request->doc_remarks,
                 'history_remarks' => $request->history_remarks,
+                'created_date' => $request->created_date ?: null,
+                'instruction_date' => $request->instruction_date ?: null,
                 'lock_arrangement' => $request->boolean('lock_arrangement'),
                 'status_sent' => $request->boolean('status_sent'),
                 'status_finalized' => $request->boolean('status_finalized'),
@@ -4249,6 +4259,17 @@ class GroupInfoController extends Controller
             'driver.branch',
             'dailyItineraries',
         ])->findOrFail($busId);
+        
+        if (empty($busAssignment->created_date) || empty($busAssignment->instruction_date)) {
+            return response(
+                '<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>エラー</title></head><body style="font-family:sans-serif;padding:40px;text-align:center;">'
+                . '<h2 style="color:#dc2626;">作成日または指示日が未設定です</h2>'
+                . '<p>「作成日」「指示日」を入力して、<strong>「確認」ボタンで保存</strong>してから、再度出力してください。</p>'
+                . '<p><button onclick="window.close()" style="padding:8px 20px;cursor:pointer;">閉じる</button></p>'
+                . '</body></html>',
+                200
+            )->header('Content-Type', 'text/html; charset=utf-8');
+        }
 
         $busAssignment->dailyItineraries = $busAssignment->dailyItineraries
             ->sortBy('date')
@@ -4310,8 +4331,8 @@ class GroupInfoController extends Controller
             ? $formatDateTime($lastItinerary->date, $lastItinerary->time_end)
             : '';
 
-        $createdDate = Carbon::now()->format('Y年m月d日');
-        $instructionDate = Carbon::now()->format('Y年m月d日 H時i分');
+        $createdDate = Carbon::parse($busAssignment->created_date)->format('Y年m月d日');
+        $instructionDate = Carbon::parse($busAssignment->instruction_date)->format('Y年m月d日');
 
         $data = [
             'companyName' => $companyName,
@@ -4366,6 +4387,17 @@ class GroupInfoController extends Controller
         $groupInfo = GroupInfo::with([
             'busAssignments.dailyItineraries',
         ])->findOrFail($id);
+        
+        if (empty($groupInfo->transport_receipt_date)) {
+            return response(
+                '<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>エラー</title></head><body style="font-family:sans-serif;padding:40px;text-align:center;">'
+                . '<h2 style="color:#dc2626;">運送引受書発行日が未設定です</h2>'
+                . '<p>「引受書発行日」を入力して、<strong>「確認」ボタンで保存</strong>してから、再度出力してください。</p>'
+                . '<p><button onclick="window.close()" style="padding:8px 20px;cursor:pointer;">閉じる</button></p>'
+                . '</body></html>',
+                200
+            )->header('Content-Type', 'text/html; charset=utf-8');
+        }
 
         $firstBus = $groupInfo->busAssignments->sortBy('vehicle_index')->first();
 
@@ -4465,7 +4497,9 @@ class GroupInfoController extends Controller
         $companyEmergency = $userCompany->phone_number_emergency ?? '';
         $companyWorkArea = $userCompany->work_license_area ?? '';
 
-        $today = Carbon::now()->format('Y年m月d日');
+        $today = $groupInfo->transport_receipt_date
+                ? Carbon::parse($groupInfo->transport_receipt_date)->format('Y年m月d日')
+                : Carbon::now()->format('Y年m月d日');
 
         $data = [
             'agencyName' => $agencyName,

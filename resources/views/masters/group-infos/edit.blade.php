@@ -59,16 +59,26 @@
                 <div class="d-flex gap-2">
                     <button type="button" id="btnReservationConfirm" class="btn btn-sm" 
                             style="background-color: #2563eb; border: none; color: white; font-size: 0.7rem; padding: 2px 10px; border-radius: 4px;">
-                        <i class="bi bi-file-pdf"></i> 予約確認書
+                        予約確認書
                     </button>
                     <button type="button" id="btnFinalConfirm" class="btn btn-sm" 
                             style="background-color: #dc2626; border: none; color: white; font-size: 0.7rem; padding: 2px 10px; border-radius: 4px;">
-                        <i class="bi bi-file-pdf"></i> 最終確認書
+                        最終確認書
                     </button>
                     <button type="button" id="btnTransportReceipt" class="btn btn-sm" 
                             style="background-color: #dc2626; border: none; color: white; font-size: 0.7rem; padding: 2px 10px; border-radius: 4px;">
-                        <i class="bi bi-file-pdf"></i> 運送引受書
+                        運送引受書
                     </button>
+                    <div class="d-flex align-items-center gap-1">
+                        <input type="text"
+                               class="form-control form-control-sm border datepicker-3months"
+                               name="transport_receipt_date"
+                               id="transport_receipt_date"
+                               style="width: 100px;"
+                               value="{{ old('transport_receipt_date', $groupInfo->transport_receipt_date ? $groupInfo->transport_receipt_date->format('Y-m-d') : '') }}"
+                               placeholder="引受日"
+                               autocomplete="off">
+                    </div>
                 </div>
             </div>
             <div class="card-body p-2">
@@ -494,31 +504,51 @@
                                     data-bus-id="{{ $busId }}" 
                                     data-vehicle-index="{{ $vehicleIndex }}"
                                     style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
-                                <i class="bi bi-file-pdf"></i> 運行指示書PDF
+                                運行指示書PDF
                             </button>
                             <button type="button" class="btn-pdf-export2 btn btn-sm" 
                                     data-bus-id="{{ $busId }}" 
                                     data-vehicle-index="{{ $vehicleIndex }}"
                                     style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
-                                <i class="bi bi-file-pdf"></i> 運行指示書PDF2
+                                運行指示書PDF2
                             </button>
+                            <div class="d-flex align-items-center gap-1">
+                                <input type="text"
+                                       class="form-control form-control-sm border datepicker-3months"
+                                       name="bus_assignments[{{ $vehicleIndex }}][created_date]"
+                                       id="created_date_{{ $vehicleIndex }}"
+                                       style="width: 100px;"
+                                       value="{{ old('bus_assignments.' . $vehicleIndex . '.created_date', $busAssignment->created_date ? \Carbon\Carbon::parse($busAssignment->created_date)->format('Y-m-d') : '') }}"
+                                       placeholder="作成日"
+                                       autocomplete="off">
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <input type="text"
+                                       class="form-control form-control-sm border datepicker-3months"
+                                       name="bus_assignments[{{ $vehicleIndex }}][instruction_date]"
+                                       id="instruction_date_{{ $vehicleIndex }}"
+                                       style="width: 100px;"
+                                       value="{{ old('bus_assignments.' . $vehicleIndex . '.instruction_date', $busAssignment->instruction_date ? \Carbon\Carbon::parse($busAssignment->instruction_date)->format('Y-m-d') : '') }}"
+                                       placeholder="指示日"
+                                       autocomplete="off">
+                            </div>
                         </h6>
-                        <div class="d-flex align-items-center ms-auto card-header-actions" style="gap: 15px;">
-                            <div class="form-check d-flex align-items-center">
-                                <label class="form-check-label me-2" for="bus_assignments_{{ $vehicleIndex }}" style="font-size: 0.8rem; color: #fff;">最終確認</label>
+                        <div class="d-flex align-items-center ms-auto card-header-actions" style="gap: 0;">
+                            <div class="form-check d-flex align-items-center" style="padding-left: 10px;">
+                                <label class="form-check-label me-1" for="bus_assignments_{{ $vehicleIndex }}" style="font-size: 0.8rem; color: #fff;">最終確認</label>
                                 <input type="checkbox" class="form-check-input" id="bus_assignments_{{ $vehicleIndex }}" name="bus_assignments[{{ $vehicleIndex }}][status_finalized]" value="1" {{ $busAssignment && $busAssignment->status_finalized ? 'checked' : '' }} style="margin: 0;">
                             </div>
                                 
-                            <div class="form-check d-flex align-items-center">
-                                <label class="form-check-label me-2" for="status_sent_{{ $vehicleIndex }}" style="font-size: 0.8rem; color: #fff;">送信済</label>
+                            <div class="form-check d-flex align-items-center" style="padding-left: 10px;">
+                                <label class="form-check-label me-1" for="status_sent_{{ $vehicleIndex }}" style="font-size: 0.8rem; color: #fff;">送信済</label>
                                 <input type="checkbox" class="form-check-input" id="status_sent_{{ $vehicleIndex }}" name="bus_assignments[{{ $vehicleIndex }}][status_sent]" value="1" {{ $busAssignment && $busAssignment->status_sent ? 'checked' : '' }} style="margin: 0;">
                             </div>
                                 
-                            <div class="form-check d-flex align-items-center">
-                                <label class="form-check-label me-2" for="lock_arrangement_{{ $vehicleIndex }}" style="font-size: 0.8rem; color: #fff;">操作ロック</label>
+                            <div class="form-check d-flex align-items-center" style="padding-left: 10px;">
+                                <label class="form-check-label me-1" for="lock_arrangement_{{ $vehicleIndex }}" style="font-size: 0.8rem; color: #fff;">操作ロック</label>
                                 <input type="checkbox" class="form-check-input" id="lock_arrangement_{{ $vehicleIndex }}" name="bus_assignments[{{ $vehicleIndex }}][lock_arrangement]" value="1" {{ $busAssignment && $busAssignment->lock_arrangement ? 'checked' : '' }} style="margin: 0;">
                             </div>
-                            <div class="d-flex align-items-center card-header-btns" style="gap: 5px;">
+                            <div class="d-flex align-items-center card-header-btns" style="gap: 5px; margin-left: 10px;">
                                 <input type="text" class="form-control form-control-sm border merge-operation-id" placeholder="運行ID" style="width: 80px;">
                                 <button type="button" class="btn btn-sm btn-primary merge-btn" style="font-size: 0.75rem; padding: 4px 8px;">統合</button>
                                 <button type="button" class="btn btn-sm btn-secondary split-btn" style="font-size: 0.75rem; padding: 4px 8px;">分割</button>
@@ -2894,6 +2924,8 @@ document.addEventListener('DOMContentLoaded', function() {
             arrival_location: card.querySelector('input[name*="[arrival_location]"]')?.value || '',
             arrival_date: card.querySelector('input[name*="[arrival_date]"]')?.value || '',
             arrival_time: card.querySelector('input[name*="[arrival_time]"]')?.value || '',
+            created_date: card.querySelector('input[name*="[created_date]"]')?.value || '',
+            instruction_date: card.querySelector('input[name*="[instruction_date]"]')?.value || '',
             itineraries: itineraries,
             _token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
         };
@@ -4007,6 +4039,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const srcArrivalDate = sourceCard.querySelector('input[name*="[arrival_date]"]')?.value || '';
         const srcArrivalTime = sourceCard.querySelector('input[name*="[arrival_time]"]')?.value || '';
         
+        const srcCreatedDate = sourceCard.querySelector('input[name*="[created_date]"]')?.value || '';
+        const srcInstructionDate = sourceCard.querySelector('input[name*="[instruction_date]"]')?.value || '';
+        
         const vehicleGrades = @json($vehicleGrades ?? []);
         const reservationCategories = @json($reservationCategories ?? []);
         const options = @json($options ?? []);
@@ -4050,18 +4085,32 @@ document.addEventListener('DOMContentLoaded', function() {
                             style="background-color: #dc2626; border: none; color: white; padding: 2px 10px; font-size: 0.7rem; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
                         <i class="bi bi-file-pdf"></i> 運行指示書PDF2
                     </button>
+                    <div class="d-flex align-items-center gap-1">
+                        <input type="text" class="form-control form-control-sm border datepicker-3months"
+                               name="bus_assignments[${newIndex}][created_date]"
+                               id="created_date_${newIndex}"
+                               style="width: 100px;"
+                               value="${srcCreatedDate}" placeholder="作成日" autocomplete="off">
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <input type="text" class="form-control form-control-sm border datepicker-3months"
+                               name="bus_assignments[${newIndex}][instruction_date]"
+                               id="instruction_date_${newIndex}"
+                               style="width: 100px;"
+                               value="${srcInstructionDate}" placeholder="指示日" autocomplete="off">
+                    </div>
                 </h6>
                 <div class="d-flex align-items-center ms-auto card-header-actions" style="gap: 15px;">
-                    <div class="form-check d-flex align-items-center">
-                        <label class="form-check-label me-2" for="bus_assignments_${newIndex}" style="font-size: 0.8rem; color: #fff;">最終確認</label>
+                    <div class="form-check d-flex align-items-center" style="padding-left: 10px;">
+                        <label class="form-check-label me-1" for="bus_assignments_${newIndex}" style="font-size: 0.8rem; color: #fff;">最終確認</label>
                         <input type="checkbox" class="form-check-input" id="bus_assignments_${newIndex}" name="bus_assignments[${newIndex}][status_finalized]" value="1" style="margin: 0;">
                     </div>
-                    <div class="form-check d-flex align-items-center">
-                        <label class="form-check-label me-2" for="status_sent_${newIndex}" style="font-size: 0.8rem; color: #fff;">送信済</label>
+                    <div class="form-check d-flex align-items-center" style="padding-left: 10px;">
+                        <label class="form-check-label me-1" for="status_sent_${newIndex}" style="font-size: 0.8rem; color: #fff;">送信済</label>
                         <input type="checkbox" class="form-check-input" id="status_sent_${newIndex}" name="bus_assignments[${newIndex}][status_sent]" value="1" style="margin: 0;">
                     </div>
-                    <div class="form-check d-flex align-items-center">
-                        <label class="form-check-label me-2" for="lock_arrangement_${newIndex}" style="font-size: 0.8rem; color: #fff;">操作ロック</label>
+                    <div class="form-check d-flex align-items-center" style="padding-left: 10px;">
+                        <label class="form-check-label me-1" for="lock_arrangement_${newIndex}" style="font-size: 0.8rem; color: #fff;">操作ロック</label>
                         <input type="checkbox" class="form-check-input" id="lock_arrangement_${newIndex}" name="bus_assignments[${newIndex}][lock_arrangement]" value="1" style="margin: 0;">
                     </div>
                     <div class="d-flex align-items-center card-header-btns" style="gap: 5px;">

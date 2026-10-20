@@ -65,6 +65,7 @@ class GroupInfo extends Model
         'payment_method',
         'amount',
         'vehicle_model_code',
+        'transport_receipt_date',
     ];
     
     protected $casts = [
@@ -77,6 +78,7 @@ class GroupInfo extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'amount' => 'decimal:2',
+        'transport_receipt_date' => 'date',
     ];
     
     public function busAssignments()
