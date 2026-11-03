@@ -127,6 +127,30 @@
                         
                         <div class="row">
                             <div class="col-md-6">
+                                <label for="departure_location" class="form-label">開始地点</label>
+                                <input type="text" class="form-control @error('departure_location') is-invalid @enderror"
+                                       id="departure_location" name="departure_location"
+                                       value="{{ old('departure_location', $branch->departure_location) }}"
+                                       maxlength="255">
+                                @error('departure_location')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        
+                            <div class="col-md-6">
+                                <label for="arrival_location" class="form-label">終了地点</label>
+                                <input type="text" class="form-control @error('arrival_location') is-invalid @enderror"
+                                       id="arrival_location" name="arrival_location"
+                                       value="{{ old('arrival_location', $branch->arrival_location) }}"
+                                       maxlength="255">
+                                @error('arrival_location')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
                                 <label for="manager_name" class="form-label">担当者名</label>
                                 <input type="text" class="form-control @error('manager_name') is-invalid @enderror" 
                                        id="manager_name" name="manager_name" 

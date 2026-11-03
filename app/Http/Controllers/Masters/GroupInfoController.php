@@ -829,6 +829,9 @@ class GroupInfoController extends Controller
             $startDate = Carbon::parse($validated['start_date']);
             $endDate = Carbon::parse($validated['end_date']);
             $daysDiff = $startDate->diffInDays($endDate) + 1;
+            
+            $branchDepartureLocation = $vehicleInfo && $vehicleInfo->branch ? $vehicleInfo->branch->departure_location : null;
+            $branchArrivalLocation = $vehicleInfo && $vehicleInfo->branch ? $vehicleInfo->branch->arrival_location : null;
 
             $busAssignmentData = [
                 'group_info_id' => (int)$groupInfo->id,
@@ -873,6 +876,8 @@ class GroupInfoController extends Controller
                 'history_remarks' => null,
                 'vehicle_index' => 1,
                 'vehicle_model_code' => $validated['vehicle_model_code'] ?? null,
+                'departure_location' => $branchDepartureLocation,
+                'arrival_location' => $branchArrivalLocation,
                 'created_by' => (int)$userId,
                 'updated_by' => (int)$userId,
                 'created_at' => now(),

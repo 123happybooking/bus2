@@ -63,6 +63,8 @@
                         <th>住所</th>
                         <th>電話</th>
                         <th>FAX</th>
+                        <th>開始地点</th>
+                        <th>終了地点</th>
                         <th>操作</th>
                     </tr>
                 </thead>
@@ -76,6 +78,8 @@
                         <td>{{ $branch->address }}</td>
                         <td>{{ $branch->phone_number }}</td>
                         <td>{{ $branch->fax_number ?? '--' }}</td>
+                        <td>{{ $branch->departure_location ?? '--' }}</td>
+                        <td>{{ $branch->arrival_location ?? '--' }}</td>
                         <td>
                             <div class="d-flex gap-1 justify-content-center">
                                 <a href="{{ route('masters.branches.show', $branch) }}" 
@@ -106,7 +110,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center py-4">
+                        <td colspan="10" class="text-center py-4">
                             @if(request('search'))
                                 <div class="text-muted">
                                     <i class="bi bi-search display-6 mb-2"></i>

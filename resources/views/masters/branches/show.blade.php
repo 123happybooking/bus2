@@ -69,6 +69,24 @@
                                         <span class="text-muted">未設定</span>
                                     @endif
                                 </dd>
+                                
+                                <dt class="col-sm-4">開始地点</dt>
+                                <dd class="col-sm-8">
+                                    @if($branch->departure_location)
+                                        {{ $branch->departure_location }}
+                                    @else
+                                        <span class="text-muted">未設定</span>
+                                    @endif
+                                </dd>
+                                
+                                <dt class="col-sm-4">終了地点</dt>
+                                <dd class="col-sm-8">
+                                    @if($branch->arrival_location)
+                                        {{ $branch->arrival_location }}
+                                    @else
+                                        <span class="text-muted">未設定</span>
+                                    @endif
+                                </dd>
                             </dl>
                         </div>
                         

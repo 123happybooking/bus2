@@ -133,6 +133,31 @@
             <button class="start-operation-btn" id="advancePaymentBtn">立替計算</button>
             <button class="back-btn" id="cancelBtn">戻る</button>
         </div>
+        
+        
+        <div class="detail-list">
+            <div class="detail-item">
+                <div class="detail-label">開始地点</div>
+                <div class="detail-value-full detail-location-line">
+                    <span class="location-datetime">
+                        {{ $busAssignment->departure_date ? \Carbon\Carbon::parse($busAssignment->departure_date)->format('Y/m/d') : '' }}
+                        {{ $busAssignment->departure_time ? \Carbon\Carbon::parse($busAssignment->departure_time)->format('H:i') : '' }}
+                    </span>
+                    <span class="location-name">{{ $busAssignment->departure_location ?? '' }}</span>
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">終了地点</div>
+                <div class="detail-value-full detail-location-line">
+                    <span class="location-datetime">
+                        {{ $busAssignment->arrival_date ? \Carbon\Carbon::parse($busAssignment->arrival_date)->format('Y/m/d') : '' }}
+                        {{ $busAssignment->arrival_time ? \Carbon\Carbon::parse($busAssignment->arrival_time)->format('H:i') : '' }}
+                    </span>
+                    <span class="location-name">{{ $busAssignment->arrival_location ?? '' }}</span>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 @endsection
@@ -345,6 +370,7 @@
     justify-content: center;
     gap: 12px;
     margin-top: 16px;
+    margin-bottom: 16px;
 }
 
 .start-operation-btn {
@@ -383,6 +409,24 @@
     font-weight: bold;
     padding: 1px 16px;
     border-radius: 12px;
+}
+
+
+.detail-location-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.location-datetime {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.location-name {
+    text-align: right;
+    word-break: break-word;
 }
 </style>
 @endpush

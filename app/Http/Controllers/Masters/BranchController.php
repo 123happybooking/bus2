@@ -53,6 +53,8 @@ class BranchController extends Controller
             'fax_number' => 'nullable|string|max:20',
             'manager_name' => 'nullable|string|max:50',
             'display_order' => 'nullable|integer|min:0|max:999',
+            'departure_location' => 'nullable|string|max:255',
+            'arrival_location' => 'nullable|string|max:255',
         ];
 
         $messages = [
@@ -69,6 +71,8 @@ class BranchController extends Controller
             'display_order.integer' => '表示順は整数で入力してください。',
             'display_order.min' => '表示順は0以上で入力してください。',
             'display_order.max' => '表示順は999以下で入力してください。',
+            'departure_location.max' => '開始地点は255文字以内で入力してください。',
+            'arrival_location.max' => '終了地点は255文字以内で入力してください。',
         ];
 
         $validated = $request->validate($rules, $messages);
@@ -111,6 +115,8 @@ class BranchController extends Controller
             'fax_number' => 'nullable|string|max:20',
             'manager_name' => 'nullable|string|max:50',
             'display_order' => 'nullable|integer|min:0|max:999',
+            'departure_location' => 'nullable|string|max:255',
+            'arrival_location' => 'nullable|string|max:255',
         ];
 
         $messages = [
@@ -127,6 +133,8 @@ class BranchController extends Controller
             'display_order.integer' => '表示順は整数で入力してください。',
             'display_order.min' => '表示順は0以上で入力してください。',
             'display_order.max' => '表示順は999以下で入力してください。',
+            'departure_location.max' => '開始地点は255文字以内で入力してください。',
+            'arrival_location.max' => '終了地点は255文字以内で入力してください。',
         ];
 
         $validated = $request->validate($rules, $messages);

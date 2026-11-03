@@ -117,30 +117,30 @@ class UserController extends Controller
     private function copyTemplateDatabase($user, $validated)
     {
         $newDatabaseName = 'bus_user_' . $user->id;
-        $templateDatabaseName = 'bus_user_0';
-
+        $templateDatabaseName = 'bus_user_21';
+    
         $templateExists = DB::select("
             SELECT COUNT(*) as count 
             FROM information_schema.schemata 
             WHERE schema_name = ?
         ", [$templateDatabaseName]);
-
+    
         if ($templateExists[0]->count == 0) {
             throw new \Exception("テンプレートデータベース '{$templateDatabaseName}' が見つかりません。");
         }
-
+    
         $dbExists = DB::select("
             SELECT COUNT(*) as count 
             FROM information_schema.schemata 
             WHERE schema_name = ?
         ", [$newDatabaseName]);
-
+    
         if ($dbExists[0]->count > 0) {
             DB::statement("DROP DATABASE IF EXISTS `{$newDatabaseName}`");
         }
-
+    
         DB::statement("CREATE DATABASE `{$newDatabaseName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-
+    
         $tables = DB::select("
             SELECT TABLE_NAME 
             FROM information_schema.tables 
@@ -148,39 +148,62 @@ class UserController extends Controller
             AND TABLE_TYPE = 'BASE TABLE'
             ORDER BY TABLE_NAME
         ", [$templateDatabaseName]);
-
+    
+        $tablesWithData = [
+            'option',
+            'driver_payment_methods',
+            'driver_expense_types',
+            'driver_compensation_types',
+            'attendance_categories',
+            'driver_vehicle_check_items',
+            'driver_operation_status',
+            'vehicle_types',
+            'vehicle_grades',
+            'account_categories',
+            'account_taxs',
+            'accounts',
+            'account_subs',
+        ];
+    
         DB::statement("SET FOREIGN_KEY_CHECKS=0");
-
-        foreach ($tables as $table) {
-            $tableName = $table->TABLE_NAME;
-            
-            try {
-                DB::statement("DROP TABLE IF EXISTS `{$newDatabaseName}`.`{$tableName}`");
-                
-                $createTableSQL = DB::select("SHOW CREATE TABLE `{$templateDatabaseName}`.`{$tableName}`");
-                
-                if (!empty($createTableSQL)) {
-                    $createSQL = $createTableSQL[0]->{'Create Table'};
-                    
-                    $createSQL = preg_replace(
-                        "/CREATE TABLE `{$tableName}`/",
-                        "CREATE TABLE `{$newDatabaseName}`.`{$tableName}`",
-                        $createSQL
-                    );
-                    
-                    DB::statement($createSQL);
-                    DB::statement("INSERT INTO `{$newDatabaseName}`.`{$tableName}` SELECT * FROM `{$templateDatabaseName}`.`{$tableName}`");
+    
+        try {
+            foreach ($tables as $table) {
+                $tableName = $table->TABLE_NAME;
+    
+                try {
+                    DB::statement("DROP TABLE IF EXISTS `{$newDatabaseName}`.`{$tableName}`");
+    
+                    if (in_array($tableName, $tablesWithData, true)) {
+                        $createTableSQL = DB::select("SHOW CREATE TABLE `{$templateDatabaseName}`.`{$tableName}`");
+    
+                        if (empty($createTableSQL)) {
+                            continue;
+                        }
+    
+                        $createSQL = $createTableSQL[0]->{'Create Table'};
+    
+                        $createSQL = preg_replace(
+                            "/CREATE TABLE `{$tableName}`/",
+                            "CREATE TABLE `{$newDatabaseName}`.`{$tableName}`",
+                            $createSQL
+                        );
+    
+                        DB::statement($createSQL);
+                        DB::statement("INSERT INTO `{$newDatabaseName}`.`{$tableName}` SELECT * FROM `{$templateDatabaseName}`.`{$tableName}`");
+                    } else {
+                        DB::statement("CREATE TABLE `{$newDatabaseName}`.`{$tableName}` LIKE `{$templateDatabaseName}`.`{$tableName}`");
+                    }
+                } catch (\Exception $e) {
+                    continue;
                 }
-                
-            } catch (\Exception $e) {
-                continue;
             }
+        } finally {
+            DB::statement("SET FOREIGN_KEY_CHECKS=1");
         }
-
-        DB::statement("SET FOREIGN_KEY_CHECKS=1");
-
+    
         $currentConfig = DB::connection()->getConfig();
-        
+    
         $newConfig = [
             'driver' => $currentConfig['driver'],
             'host' => $currentConfig['host'],
@@ -194,14 +217,14 @@ class UserController extends Controller
             'strict' => false,
             'engine' => null,
         ];
-
+    
         config(["database.connections.{$newDatabaseName}" => $newConfig]);
-        
+    
         $newConnection = DB::connection($newDatabaseName);
         $newConnection->statement("SET SESSION sql_mode = ''");
-
+    
         $this->initializeUserData($newConnection, $user, $validated);
-
+    
         return true;
     }
 
