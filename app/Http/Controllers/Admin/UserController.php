@@ -117,7 +117,7 @@ class UserController extends Controller
     private function copyTemplateDatabase($user, $validated)
     {
         $newDatabaseName = 'bus_user_' . $user->id;
-        $templateDatabaseName = 'bus_user_21';
+        $templateDatabaseName = 'bus_user_234';
     
         $templateExists = DB::select("
             SELECT COUNT(*) as count 
