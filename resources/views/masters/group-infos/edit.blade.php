@@ -2533,6 +2533,35 @@ span.flatpickr-weekday {
     }
 
 }
+
+
+
+
+.vehicle-itinerary-table tbody tr.itinerary-row:hover > td {
+    background-color: #dbeafe !important;
+}
+
+.vehicle-itinerary-table tbody tr.itinerary-row:hover input,
+.vehicle-itinerary-table tbody tr.itinerary-row:hover select,
+.vehicle-itinerary-table tbody tr.itinerary-row:hover textarea {
+    background-color: #f0f7ff !important;
+    border-color: #2563eb !important;
+    color: #1e3a8a !important;
+}
+
+.vehicle-itinerary-table tbody tr.itinerary-row:hover .row-number {
+    color: #1d4ed8 !important;
+    font-weight: bold !important;
+}
+
+.vehicle-itinerary-table tbody tr.itinerary-row input:focus,
+.vehicle-itinerary-table tbody tr.itinerary-row select:focus,
+.vehicle-itinerary-table tbody tr.itinerary-row textarea:focus {
+    background-color: #ffffff !important;
+    border-color: #1d4ed8 !important;
+    box-shadow: 0 0 0 0.15rem rgba(37, 99, 235, 0.3) !important;
+    color: #111827 !important;
+}
 </style>
 @endpush
 

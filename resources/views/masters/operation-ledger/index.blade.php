@@ -819,6 +819,11 @@
     border-radius: 4px;
 }
 
+.ledger-table tbody tr:hover td,
+.ledger-table tbody tr:hover td .timeline-cell {
+    background-color: #d9d9d9 !important;
+}
+
 @media (max-width: 768px) {
     .container-fluid {
         padding-left: 8px !important;
